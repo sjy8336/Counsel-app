@@ -1,0 +1,26 @@
+# --- 환경 변수 및 보안 (가장 중요!) ---
+.env
+*.local
+
+# --- 파이썬 관련 (필수) ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- 데이터베이스 관련 ---
+# 만약 SQLite를 연습용으로 쓰신다면 db 파일도 제외해야 합니다.
+*.db
+*.sqlite3
+
+# --- 로그 및 에디터 관련 ---
+*.log
+.vscode/
+.idea/
+.DS_Store

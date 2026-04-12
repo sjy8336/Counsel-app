@@ -1,0 +1,168 @@
+counseling-platform/
+└── README.md
+│
+├── frontend/                                    # React (Vite + TypeScript)
+│   ├── public/
+│   └── src/
+│       ├── api/                                    # 백엔드(FastAPI)와 통신하는 Axios 코드
+│       │   ├── auth.api.js                             # 로그인, 회원가입, 토큰 갱신 요청
+│       │   ├── booking.api.js                          # 예약 관련 API
+│       │   ├── schedule.api.js                         # 시간대 설정 API
+│       │   ├── counselor.api.js                        # 상담사 목록/프로필 조회 API
+│       │   └── journal.api.js                          # 상담 일지 API
+│       ├── components/                              # 재사용 가능한 UI 컴포넌트
+│       │   ├── common/                                 # 공통 UI (Button, Modal ...)
+│       │   ├── layout/                                 # Header, Sidebar, Footer
+│       │   ├── calendar/                               # 시간 슬롯 선택 달력 UI
+│       │   │   ├── TimeSlotGrid.jsx                        # 강사 가능 시간대 그리드
+│       │   │   ├── BookingCalendar.jsx                     # 예약 캘린더 뷰
+│       │   │   └── SlotPicker.jsx                          # 시간 슬롯 선택 UI
+│       │   ├── booking/                                # 예약 카드, 예약 상태 뱃지 등
+│       │   │   ├── BookingCard.jsx
+│       │   │   ├── BookingStatusBadge.jsx                  # 예약 상태 표시
+│       │   │   └── CancelModal.jsx
+│       │   └── journal/                                # 상담 일지 에디터, 뷰어
+│       │       ├── JournalEditor.jsx                       # 상담 일지 작성 (권한자만)
+│       │       └── JournalViewer.jsx
+│       ├── pages/                                  # 화면 단위 (예약 목록, 상담 일지 작성 등)
+│       │   ├── auth/                                   # 로그인, 회원가입 화면
+│       │   │   ├── LoginPage.jsx
+│       │   │   └── RegisterPage.jsx
+│       │   ├── counselor/                              # 상담사 목록, 프로필+예약 화면
+│       │   │   ├── CounselorListPage.jsx                   # 상담사 목록 (내담자용)
+│       │   │   ├── CounselorDetailPage.jsx                 # 상담사 프로필 + 예약
+│       │   │   └── MySchedulePage.jsx                      # 내 시간대 관리 (상담사용)
+│       │   ├── booking/                                # 예약 진행 화면, 내 예약 목록 화면
+│       │   │   ├── BookingPage.jsx                         # 예약 진행 페이지
+│       │   │   └── MyBookingsPage.jsx                      # 내 예약 목록
+│       │   ├── journal/                                # 상담 일지 화면 (권한자만 접근)
+│       │   │   └── JournalPage.jsx                         # 상담 일지 (권한 제어)
+│       │   └── admin/                                  # 관리자(admin) 전용 대시보드 페이지
+│       │       └── AdminDashboardPage.jsx
+│       ├── hooks/                                  # 비즈니스 로직 (예약 상태 관리 등)
+│       │   ├── useAuth.js                              # 로그인 상태, 유저 정보 관리
+│       │   ├── useBooking.js                           # 예약 생성/취소 로직, 예약 상태 관리
+│       │   └── useTimeSlots.js                         # 선택한 상담사의 가능 시간대 조회
+│       ├── utils/                                  # 날짜 처리코드를 많이 사용해야할 시 따로 관리
+│       │   ├── date.utils.js                           # 시간대 변환, 포맷
+│       │   └── timezone.utils.js
+│       ├── App.jsx                                 # 페이지 라우팅 처리
+│       ├── main.jsx                                # React 앱을 HTML에 연결하는 파일
+|       ├── package.json                            # 프로젝트에서 사용하는 라이브러리 목록과 버전 관리.
+|       ├── .env                                    # 환경변수 파일. 백엔드 서버 주소를 여기서 관리.
+│       └── .gitignore                              # 깃에 올리면 안 되는 파일/폴더 목록.
+│
+└── backend/                                     # FastAPI (Python)
+    ├── app/
+    │   ├── api/    
+    │   │   ├── endpoints/
+    │   │   │   ├── auth.py                             # 로그인, 회원가입, 토큰 갱신
+    │   │   │   ├── users.py                            # 유저 프로필
+    │   │   │   ├── counselors.py                       # 상담사 목록/프로필 조회
+    │   │   │   ├── schedules.py                        # 시간대(Time Slot) 설정
+    │   │   │   ├── bookings.py                         # 예약 생성/조회/취소
+    │   │   │   └── journals.py                         # 상담 일지 (권한 분리)
+    │   │   └── router.py
+    │   │
+    │   ├── core/                                       # security.py랑 deps.py 기능 자체는 반드시 있어야 함.(main.py에 해도 됨)
+    │   │   ├── config.py                                   # 환경변수 (DB, JWT, CORS)
+    │   │   ├── security.py                                 # JWT 발급/검증, 비밀번호 해싱
+    │   │   └── deps.py                                     # 의존성 주입 (현재 유저, 권한 체크)
+    │   │
+    │   ├── db/                                         # db 연결
+    │   │   ├── session.py                                  # DB 연결 담당
+    │   │   └── base.py                                     # models/ 안의 모든 테이블 클래스가 상속받는 Base
+    │   │
+    │   ├── models/                                     # DB 테이블 정의
+    │   │   ├── user.py                                     # User (role: client / counselor / admin)
+    │   │   ├── counselor_profile.py                        # 상담사 프로필, 전문 분야
+    │   │   ├── time_slot.py                                # 가능한 시간대 (counselor_id, start, end, is_available)
+    │   │   ├── booking.py                                  # 예약 (slot_id, client_id, status)
+    │   │   └── journal.py                                  # 상담 일지 (booking_id, 암호화 내용)
+    │   │
+    │   ├── schemas/                                    # Pydantic 스키마 (요청/응답 데이터 검증)
+    │   │   ├── auth.py                                     # 로그인 요청/토큰 응답 형식
+    │   │   ├── user.py                                     # 유저 생성/조회 형식
+    │   │   ├── time_slot.py                                # 시간대 생성/조회 형식
+    │   │   ├── booking.py                                  # BookingCreate, BookingResponse 예약 요청/응답 형식
+    │   │   └── journal.py                                  # 일지 작성/조회 형식
+    │   │
+    │   ├── crud/                                       # DB CRUD (DB 데이터 처리 함수)
+    │   │   ├── crud_user.py                                # 유저 생성, 이메일로 조회
+    │   │   ├── crud_time_slot.py                           # 슬롯 생성/조회/비활성화
+    │   │   ├── crud_booking.py                             # 예약 생성 (트랜잭션 포함)
+    │   │   └── crud_journal.py                             # 일지 생성, 예약 ID로 조회
+    │   │
+    │   ├── services/                                   # 핵심 비즈니스 로직
+    │   │   ├── auth_service.py                             # 로그인/회원가입 관련 로직
+    │   │   ├── booking_service.py                          # ★ 중복 예약 방지, 동시성 제어
+    │   │   ├── schedule_service.py                         # 시간 슬롯 생성/충돌 검증
+    │   │   └── journal_service.py                          # 일지 접근 권한 검증
+    │   │
+    │   └── main.py                                     # FastAPI 앱 진입점
+    │
+    ├── alembic/                                    # DB 마이그레이션 (DB 테이블 변경 이력 관리)
+    │   ├── versions/
+    │   └── env.py
+    │
+    ├── tests/
+    │   ├── test_booking/
+    │   │   ├── test_concurrent_booking.py                  # ★ 동시 예약 충돌 테스트
+    │   │   └── test_booking_api.py
+    │   ├── test_schedule/
+    │   │   └── test_timeslot.py
+    │   └── conftest.py
+    │
+    ├── .env                                        # 환경변수 파일. DB 접속 정보, 비밀 키 등 보안 정보 관리.
+    ├── requirements.txt                            # 설치된 파이썬 패키지 명단
+    ├── .gitignore                                  # 백엔드 폴더에서 깃에 올리면 안 되는 목록.
+    └── .venv                                       # Python 가상환경 폴더.
+
+
+
+
+간단버전.
+counseling-platform/
+├── frontend/                # React (Vite + JavaScript)
+│   ├── src/
+│   │   ├── api/             # Axios 통신 (auth.api.js, booking.api.js 등)
+│   │   ├── components/      # UI 컴포넌트 (.jsx)
+│   │   ├── pages/           # 화면 단위 (.jsx)
+│   │   ├── hooks/           # 커스텀 훅 (useAuth.js, useBooking.js)
+│   │   ├── utils/           # 공통 함수 (date.utils.js)
+│   │   ├── App.jsx          # 라우팅
+│   │   └── main.jsx         # 진입점
+│   ├── .env                 # VITE_API_URL=http://localhost:8000
+│   └── .gitignore
+│
+└── backend/                 # FastAPI (Python)
+    ├── app/
+    │   ├── api/             # 엔드포인트 (auth.py, bookings.py 등)
+    │   ├── core/            # 보안 및 설정 (security.py, config.py)
+    │   ├── models/          # DB 테이블 정의
+    │   ├── schemas/         # 데이터 검증 (Pydantic)
+    │   ├── crud/            # DB 조작 함수
+    │   ├── services/        # ★중복 예약 방지 등 핵심 로직
+    │   └── main.py
+    ├── .venv/               # 가상환경
+    ├── .env                 # DB 접속 정보 등 민감 데이터
+    └── requirements.txt
+
+
+---------------------------------------------------------------------
+
+FastAPI 실행할 때
+cd backend
+uvicorn app.main:app --reload
+
+---------------------------------------------------------------------
+
+# 1. 깃 저장소 초기화
+git init
+
+# 2. dev 브랜치 생성 및 이동
+git checkout -b dev
+
+# 3. 깃허브 리포지토리 연결 (본인의 주소로!)
+git remote add origin https://github.com/sjy8336/Counsel-app.git
+
