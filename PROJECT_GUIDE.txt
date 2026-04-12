@@ -156,13 +156,60 @@ cd backend
 uvicorn app.main:app --reload
 
 ---------------------------------------------------------------------
+깃 저장소, 브랜치 생성 및 연결
 
 # 1. 깃 저장소 초기화
 git init
 
 # 2. dev 브랜치 생성 및 이동
-git checkout -b dev
+git checkout -M main
 
 # 3. 깃허브 리포지토리 연결 (본인의 주소로!)
 git remote add origin https://github.com/sjy8336/Counsel-app.git
 
+# 4. main을 복사해서 dev 브랜치 생성하고 이동
+git checkout -b dev
+
+# 5. 기준이 되는 dev 브랜치로 이동
+git checkout dev
+
+# 6. 혹시 모르니 깃허브의 최신 코드를 내 컴퓨터로 가져오기 (Pull)
+git pull origin dev
+
+# 7. 나만의 작업 브랜치 생성 및 이동 (예: feature/ui-layout)
+# -b는 '생성하고 동시에 이동한다'는 뜻이에요.
+git checkout -b feature/ui-layout
+
+# 8. 내 브랜치 이름을 적어서 푸시합니다.
+git push origin feature/ui-layout
+
+----------------------
+깃 저장소에 올리기
+
+# 1. 브랜치 위치 확인 (feature/@@ 맞는지 확인)
+git branch
+
+# 2. 수정한 파일들을 스테이징 영역에 추가
+git add .
+
+# 3. 작업 내용 기록 (커밋)
+git commit -m "feat: 상담사 목록 페이지 레이아웃 구현"
+** 커밋할 때 무엇을 작업했는 기록 잘해주기!
+
+# 4. 푸시합니다.
+git push
+
+-----------------------
+깃 저장소에서 dev 내려받기
+
+# 1. 일단 dev 브랜치로 이동합니다.
+git checkout dev
+
+# 2. 깃허브(origin)의 dev 내용을 내 컴퓨터로 내려받습니다.
+git pull
+
+# 3. 내 작업 브랜치로 이동
+git checkout feature/ui
+
+# 4. 깃허브의 dev 브랜치 내용을 내 작업 브랜치로 바로 합치기
+git merge dev
