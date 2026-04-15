@@ -1,0 +1,145 @@
+/* MINDWELL Login Page Custom Styles */
+
+.login-container {
+    min-height: 100-screen;
+    background-color: #FDFBF7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: sans-serif;
+    padding: 1rem;
+}
+
+@media (min-width: 768px) {
+    .login-container {
+        padding: 1.5rem;
+    }
+}
+
+.login-card {
+    max-width: 56rem;
+    width: 100%;
+    background-color: white;
+    border-radius: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(231, 229, 228, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #f5f5f4;
+    max-height: 95vh;
+}
+
+@media (min-width: 768px) {
+    .login-card {
+        border-radius: 2.5rem;
+        flex-direction: row;
+        max-height: none;
+        overflow-y: visible;
+    }
+}
+
+/* 좌측 브랜딩 영역 */
+.branding-section {
+    background: linear-gradient(to bottom right, #E8F0E7, #8BA888);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+    .branding-section {
+        width: 50%;
+        padding: 3.5rem;
+        justify-content: space-between;
+    }
+}
+
+.branding-decoration {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8rem;
+    height: 8rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    filter: blur(48px);
+    transform: translateX(2.5rem) translateY(-2.5rem);
+}
+
+@media (min-width: 768px) {
+    .branding-decoration {
+        width: 16rem;
+        height: 16rem;
+        transform: translateX(5rem) translateY(-5rem);
+    }
+}
+
+/* 입력 필드 스타일 */
+.input-group {
+    position: relative;
+    }
+
+.input-field {
+    width: 100%;
+    padding-left: 2.5rem;
+    padding-right: 1rem;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    background-color: #FAF7F2;
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    color: #1e293b;
+    transition: all 0.2s;
+    outline: none;
+}
+
+@media (min-width: 768px) {
+    .input-field {
+        padding-top: 0.875rem;
+        padding-bottom: 0.875rem;
+        border-radius: 1rem;
+        font-size: 1rem;
+    }
+}
+
+.input-field:focus {
+    background-color: white;
+    border-color: #8BA888;
+    box-shadow: 0 0 0 2px rgba(139, 168, 136, 0.2);
+}
+
+/* 버튼 스타일 */
+.submit-btn {
+    width: 100%;
+    background-color: #8BA888;
+    color: white;
+    font-weight: 700;
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(139, 168, 136, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .submit-btn {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        border-radius: 1rem;
+    }
+}
+
+.submit-btn:hover {
+    background-color: #7A9577;
+    transform: translateY(-0.125rem);
+}
