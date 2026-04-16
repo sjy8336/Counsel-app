@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import '../static/common.css';
+import '../static/Common.css';
 import { 
   Bell, 
   Calendar, 

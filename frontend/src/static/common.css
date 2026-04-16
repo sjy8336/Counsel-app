@@ -130,6 +130,32 @@
 }
 .user-profile:hover .user-name { color: #8BA888; }
 
+.login-icon {display: none;
+}
+.user-login {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #334155;
+  transition: color 0.3s;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.user-login:hover {color: #8BA888;}
+
+@media (max-width: 1024px) {
+  .login-text {display: none;}
+  .login-icon {display: block;}
+  .user-login {
+    padding: 8px;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 /* Footer */
 .global-footer { display: none; }
 @media (min-width: 1024px) {
