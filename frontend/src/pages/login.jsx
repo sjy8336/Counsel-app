@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, ChevronRight, BookHeart, Eye, EyeOff, User } from 'lucide-react';
 import './login.css'
+import SignUp from './signup'
 
 export default function LoginPage() {
     const [id, setId] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -118,7 +121,7 @@ export default function LoginPage() {
 
                 <p className="signup-prompt">
                 계정이 없으신가요?{' '}
-                <button className="signup-link">회원가입</button>
+                <button className="signup-link" onClick={() => navigate('/signup')}>회원가입</button>
                 </p>
             </div>
             </div>
