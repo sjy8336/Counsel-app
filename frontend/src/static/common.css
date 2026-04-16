@@ -1,0 +1,73 @@
+/* Header 스타일 */
+.header-container {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #F5F5F4;
+  padding: 1rem 1.5rem;
+}
+
+.header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #8BA888;
+  cursor: pointer;
+}
+
+.pc-nav {
+  display: none;
+  gap: 2.5rem;
+}
+
+@media (min-width: 1024px) {
+  .pc-nav { display: flex; }
+}
+
+.nav-item {
+  background: none;
+  border: none;
+  font-weight: 700;
+  color: #A8A29E;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-item.active {
+  color: #8BA888;
+  border-bottom-color: #8BA888;
+}
+
+/* 푸터 (PC 전용) */
+.footer-container {
+  display: none;
+  background: white;
+  border-top: 1px solid #F1F5F9;
+  padding: 4rem 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .footer-container { display: block; }
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2.5rem;
+}
+
+.footer-logo { color: #8BA888; margin-bottom: 1rem; }
+.footer-desc { font-size: 0.75rem; color: #A8A29E; line-height: 1.6; }
+.footer-links h4 { font-size: 0.875rem; margin-bottom: 1.25rem; }
+.footer-links ul { list-style: none; padding: 0; font-size: 0.75rem; color: #78716C; }
+.footer-links li { margin-bottom: 0.75rem; cursor: pointer; }
