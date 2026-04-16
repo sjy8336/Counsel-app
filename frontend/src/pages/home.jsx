@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
 import MobileTap from '../components/mobileTap.jsx';
-import LoginPage from './login.jsx';
 import { 
   Bell, 
   Calendar, 
@@ -21,7 +20,7 @@ import {
   Frown,
   Zap
 } from 'lucide-react';
-import '../static/home.css';
+import '../static/Home.css';
 
 
 export default function App() {
