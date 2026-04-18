@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, ChevronRight, BookHeart, Eye, EyeOff, User } from 'lucide-react';
+import { login } from '../api/auth';
 import '../static/Login.css';
-//import SignUp from './SignUp';
 
 export default function LoginPage() {
     const [id, setId] = useState('');
@@ -10,8 +10,21 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        try {
+            // useState로 관리하는 값들
+            const result = await login({ username: id, password: password });
+            // 로그인 성공 시 정보를 로컬스토리지나 컨텍스트에 저장
+            localStorage.setItem('user', JSON.stringify(result.user));
+            alert(`${result.user.full_name}님, 환영합니다!`);
+            navigate('/'); // 메인 페이지로 이동
+        } catch (error) {
+            console.error('3. 로그인 에러 발생!');
+            console.log('에러 객체 전체:', error);
+            console.log('백엔드 메시지:', error.response?.data);
+            alert(error.response?.data?.detail || "로그인에 실패했습니다.");
+        }
         console.log('Login attempt:', id);
     };
 
@@ -36,8 +49,7 @@ export default function LoginPage() {
                                 수고 많았어요.
                             </h2>
                             <p className="brand-sub-desc">
-                                MINDWELL은 당신의 감정을 안전하게 기록하고,
-                                가장 잘 맞는 상담사를 연결해 드립니다.
+                                MINDWELL은 당신의 감정을 안전하게 기록하고, 가장 잘 맞는 상담사를 연결해 드립니다.
                             </p>
                         </div>
                     </div>
@@ -86,7 +98,7 @@ export default function LoginPage() {
                                         onClick={() => setShowPassword(!showPassword)}
                                         className="password-toggle"
                                     >
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                                     </button>
                                 </div>
                             </div>
@@ -126,9 +138,9 @@ export default function LoginPage() {
                                     ) : (
                                         <img
                                             src={
-                                                p === 'Google' 
-                                                ? 'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png' 
-                                                : 'https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg'
+                                                p === 'Google'
+                                                    ? 'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png'
+                                                    : 'https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg'
                                             }
                                             alt={p}
                                             className="social-img-icon"

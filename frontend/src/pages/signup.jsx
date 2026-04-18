@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, ChevronRight, BadgeCheck, Eye, EyeOff, User, Phone } from 'lucide-react';
+import { Mail, Lock, ChevronRight, BadgeCheck, Eye, EyeOff, User, Phone, UserCircle, GraduationCap } from 'lucide-react';
+import { signUp, checkIdDuplicate } from '../api/auth';
 import '../static/SignUp.css';
 
 export default function SignupPage() {
     const [formData, setFormData] = useState({
+        role: '',
         name: '',
         id: '',
         phone: '',
@@ -57,14 +59,23 @@ export default function SignupPage() {
         }
     };
 
-    const handleIdCheck = () => {
+    const handleIdCheck = async () => {
         if (!formData.id || !validateIdComposition(formData.id)) return;
-        setIsCheckingId(true);
-        setTimeout(() => {
-            setIsCheckingId(false);
-            // 임시 로직: 4자 이상이면 사용 가능으로 표시
-            setIdStatus(formData.id.length >= 4 ? 'available' : 'taken');
-        }, 800);
+        setIsCheckingId(true); // 로딩 표시 시작
+        try {
+            const result = await checkIdDuplicate(formData.id);
+            
+            if (result.available) {
+                setIdStatus('available'); // 사용 가능
+            } else {
+                setIdStatus('taken'); // 이미 사용 중
+            }
+        } catch (error) {
+            alert("중복 확인 중 오류가 발생했습니다.");
+            setIdStatus(null);
+        } finally {
+            setIsCheckingId(false); // 로딩 표시 종료
+        }
     };
 
     const isIdValid = validateIdComposition(formData.id);
@@ -73,22 +84,33 @@ export default function SignupPage() {
     const isPasswordMatch =
         formData.password && formData.confirmPassword ? formData.password === formData.confirmPassword : null;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!formData.role) {
+            alert('내담자인지 상담자인지 선택해 주세요.');
+            return;
+        }
         if (idStatus !== 'available') {
             alert('아이디 중복 확인을 진행해주세요.');
             return;
         }
-
         if (!isPasswordMatch) {
             alert('비밀번호가 일치하지 않습니다.');
             return;
         }
 
-        if (isPasswordValid && isPasswordMatch && idStatus === 'available') {
-            alert('MINDWELL 회원가입을 축하합니다!');
+        // 실제 백엔드와 통신하는 부분
+        try {
+            // 아까 만든 auth.api.js의 signUp 함수 호출
+            const result = await signUp(formData); 
+            // 백엔드에서 성공 응답이 오면 실행
+            alert(`${formData.name}님, MINDWELL 회원가입을 축하합니다!`);
             navigate('/login');
+        } catch (error) {
+            // 백엔드에서 에러(중복 아이디 등)를 보냈을 때 처리
+            const errorMsg = error.response?.data?.detail || "회원가입 중 오류가 발생했습니다.";
+            alert(errorMsg);
         }
     };
 
@@ -99,7 +121,10 @@ export default function SignupPage() {
                 <div className="branding-area">
                     <div className="branding-decoration"></div>
                     <div className="relative z-10">
-                        <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                        <button
+                            onClick={() => navigate('/')}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                        >
                             <h1 className="brand-logo">MINDWELL</h1>
                         </button>
                         <p className="brand-mobile-tag">당신의 마음을 돌보는 따뜻한 공간</p>
@@ -130,6 +155,35 @@ export default function SignupPage() {
                         <p className="form-subtitle">함께하기 위한 정보를 입력해 주세요.</p>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* 역할 선택 섹션 */}
+                            <div className="input-field-group">
+                                <label className="input-label">가입 유형</label>
+                                <div className="role-selection-wrapper">
+                                    <button
+                                        type="button"
+                                        className={`role-card ${formData.role === 'user' ? 'active' : ''}`}
+                                        onClick={() => setFormData({ ...formData, role: 'user' })}
+                                    >
+                                        <UserCircle size={22} className="role-card-icon" />
+                                        <div className="role-card-text">
+                                            <span className="role-card-title">내담자</span>
+                                            <span className="role-card-desc">상담을 받고 싶어요</span>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className={`role-card ${formData.role === 'expert' ? 'active' : ''}`}
+                                        onClick={() => setFormData({ ...formData, role: 'expert' })}
+                                    >
+                                        <GraduationCap size={22} className="role-card-icon" />
+                                        <div className="role-card-text">
+                                            <span className="role-card-title">상담자</span>
+                                            <span className="role-card-desc">전문가로 활동할게요</span>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
                             {/* Name */}
                             <div className="input-field-group">
                                 <label className="input-label">Name</label>
@@ -240,11 +294,13 @@ export default function SignupPage() {
                                         onClick={() => setShowPassword(!showPassword)}
                                         className="password-toggle"
                                     >
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                                     </button>
                                 </div>
                                 {isPasswordValid === false && formData.password.length > 0 && (
-                                    <p className="validation-msg msg-error">문자와 숫자를 조합하여 6자 이상 입력하세요.</p>
+                                    <p className="validation-msg msg-error">
+                                        문자와 숫자를 조합하여 6자 이상 입력하세요.
+                                    </p>
                                 )}
                             </div>
 
@@ -267,7 +323,7 @@ export default function SignupPage() {
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                         className="password-toggle"
                                     >
-                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                                     </button>
                                 </div>
                                 {isPasswordMatch !== null && formData.confirmPassword.length > 0 && (
@@ -285,7 +341,18 @@ export default function SignupPage() {
 
                         <p className="login-prompt">
                             이미 계정이 있으신가요?{' '}
-                            <button className="login-link" onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
+                            <button
+                                className="login-link"
+                                onClick={() => navigate('/login')}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'inherit',
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline',
+                                    padding: 0,
+                                }}
+                            >
                                 로그인
                             </button>
                         </p>
