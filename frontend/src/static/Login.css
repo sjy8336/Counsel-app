@@ -1,50 +1,51 @@
-/* MINDWELL Login Page Custom Styles */
+/* MINDWELL Login Page Custom Styles - Revised */
 
 .login-container {
-    min-height: 100-screen;
+    min-height: 100vh;
     background-color: #FDFBF7;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: sans-serif;
+    font-family: 'Pretendard', sans-serif;
     padding: 1rem;
 }
 
 @media (min-width: 768px) {
     .login-container {
-        padding: 1.5rem;
+        padding: 2.5rem;
     }
 }
 
 .login-card {
-    max-width: 56rem;
+    max-width: 58rem;
     width: 100%;
     background-color: white;
     border-radius: 2rem;
-    box-shadow: 0 20px 25px -5px rgba(231, 229, 228, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(221, 219, 218, 0.4);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid #f5f5f4;
-    max-height: 95vh;
+    border: 1px solid #f1f1ee;
 }
 
 @media (min-width: 768px) {
     .login-card {
         border-radius: 2.5rem;
         flex-direction: row;
-        max-height: none;
-        overflow-y: visible;
+        min-height: 38rem;
     }
 }
 
 /* 좌측 브랜딩 영역 */
 .branding-section {
-    background: linear-gradient(to bottom right, #E8F0E7, #8BA888);
-    padding: 1.5rem;
+    background-color: #C0D6BF;
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 20%),
+        radial-gradient(circle at 90% 80%, rgba(139, 168, 136, 0.3) 0%, rgba(139, 168, 136, 0) 25%);
+    padding: 2rem;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     position: relative;
     overflow: hidden;
     flex-shrink: 0;
@@ -52,94 +53,279 @@
 
 @media (min-width: 768px) {
     .branding-section {
-        width: 50%;
+        width: 44%;
         padding: 3.5rem;
-        justify-content: space-between;
     }
 }
 
-.branding-decoration {
+.branding-glass-overlay {
     position: absolute;
-    top: 0;
-    right: 0;
-    width: 8rem;
-    height: 8rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 9999px;
-    filter: blur(48px);
-    transform: translateX(2.5rem) translateY(-2.5rem);
+    inset: 0;
+    background: inherit;
+    filter: blur(40px);
+    opacity: 0.6;
+}
+
+.branding-top, .branding-middle, .branding-bottom {
+    position: relative;
+    z-index: 1;
+}
+
+.brand-logo-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    outline: none;
+}
+
+.brand-logo {
+    color: #475569;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.brand-message-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 2rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.brand-icon {
+    color: #64748b;
+    margin-bottom: -0.25rem;
+    opacity: 0.8;
+}
+
+.brand-main-title {
+    font-size: 2.1rem;
+    font-weight: 800;
+    line-height: 1.3;
+    color: #1e293b;
+    text-shadow: 0 1px 2px rgba(139, 168, 136, 0.2);
+}
+
+.brand-sub-desc {
+    color: #475569;
+    line-height: 1.6;
+    font-size: 0.98rem;
+    max-width: 100%;
+    margin-top: 0.25rem;
+}
+
+.brand-footer-text {
+    font-size: 0.8rem;
+    color: #64748b;
+    opacity: 0.7;
+    letter-spacing: 0.05em;
+}
+
+/* 폼 섹션 공통 */
+.form-section {
+    flex: 1;
+    padding: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
 }
 
 @media (min-width: 768px) {
-    .branding-decoration {
-        width: 16rem;
-        height: 16rem;
-        transform: translateX(5rem) translateY(-5rem);
+    .form-section {
+        padding: 4.5rem;
     }
 }
 
-/* 입력 필드 스타일 */
+.form-inner-container {
+    width: 100%;
+    max-width: 23rem;
+}
+
+.form-header-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 0.6rem;
+}
+
+.form-header-sub {
+    color: #64748b;
+    margin-bottom: 2.75rem;
+    font-size: 0.98rem;
+}
+
+.input-group-container {
+    margin-bottom: 1.25rem;
+}
+
+.input-label {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.5rem;
+}
+
 .input-group {
     position: relative;
-    }
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1.1rem;
+    color: #94a3b8;
+}
 
 .input-field {
     width: 100%;
-    padding-left: 2.5rem;
-    padding-right: 1rem;
-    padding-top: 0.625rem;
-    padding-bottom: 0.625rem;
+    padding-left: 3rem;
+    padding-right: 1.1rem;
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
     background-color: #FAF7F2;
     border: 1px solid transparent;
-    border-radius: 0.75rem;
-    font-size: 0.875rem;
+    border-radius: 0.8rem;
+    font-size: 0.98rem;
     color: #1e293b;
     transition: all 0.2s;
     outline: none;
 }
 
-@media (min-width: 768px) {
-    .input-field {
-        padding-top: 0.875rem;
-        padding-bottom: 0.875rem;
-        border-radius: 1rem;
-        font-size: 1rem;
-    }
-}
-
 .input-field:focus {
     background-color: white;
-    border-color: #8BA888;
-    box-shadow: 0 0 0 2px rgba(139, 168, 136, 0.2);
+    border-color: #C0D6BF;
+    box-shadow: 0 0 0 2px rgba(192, 214, 191, 0.3);
 }
 
-/* 버튼 스타일 */
+.password-toggle {
+    position: absolute;
+    right: 1.1rem;
+    color: #94a3b8;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
 .submit-btn {
     width: 100%;
     background-color: #8BA888;
     color: white;
     font-weight: 700;
-    padding-top: 0.875rem;
-    padding-bottom: 0.875rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 10px 15px -3px rgba(139, 168, 136, 0.3);
+    padding: 0.9rem;
+    border-radius: 0.8rem;
+    box-shadow: 0 10px 18px -4px rgba(139, 168, 136, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     transition: all 0.2s;
-    margin-top: 0.5rem;
-}
-
-@media (min-width: 768px) {
-    .submit-btn {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-        border-radius: 1rem;
-    }
+    border: none;
+    cursor: pointer;
+    margin-top: 1.75rem;
+    font-size: 1.05rem;
 }
 
 .submit-btn:hover {
     background-color: #7A9577;
     transform: translateY(-0.125rem);
+}
+
+.auth-links-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 1.75rem;
+    font-size: 0.9rem;
+}
+
+.auth-link {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.auth-link:hover {
+    color: #8BA888;
+}
+
+.auth-divider {
+    color: #e2e8f0;
+    user-select: none;
+    opacity: 0.6;
+}
+
+/* ------------------------------------------------ */
+/* 수정된 소셜 로그인 스타일 (이미지 기반) */
+/* ------------------------------------------------ */
+
+.center-divider.social-divider {
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.divider-text {
+    color: #a1b0c4;
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+.social-icon-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 1.25rem;
+}
+
+.social-icon-item {
+    width: 58px;
+    height: 58px;
+    border-radius: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+}
+
+.social-icon-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.15);
+}
+
+/* 개별 배경색 (기존 유지) */
+.google-bg { background-color: #F0F0F0; }
+.kakao-bg { background-color: #FFEB00; }
+.naver-bg { background-color: #03C75A; }
+
+/* 이미지 아이콘 크기 제어 */
+.social-img-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+/* 네이버 텍스트 (기존 유지) */
+.naver-text {
+    font-size: 2.1rem;
+    font-weight: 900;
+    color: white;
+    line-height: 1;
 }

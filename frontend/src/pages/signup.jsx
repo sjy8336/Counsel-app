@@ -29,9 +29,10 @@ export default function SignupPage() {
         return value.replace(/[^a-zA-Z0-9]/g, '');
     };
 
+    // 아이디 조건: 4자 이상 8자 이내 (영문/숫자 조합)
     const validateIdComposition = (value) => {
         if (!value) return null;
-        return value.length >= 6 && value.length <= 12 && /[a-zA-Z]/.test(value) && /[0-9]/.test(value);
+        return value.length >= 4 && value.length <= 8 && /[a-zA-Z]/.test(value) && /[0-9]/.test(value);
     };
 
     const validateEmailFormat = (value) => {
@@ -41,14 +42,7 @@ export default function SignupPage() {
 
     const validatePasswordFormat = (value) => {
         if (!value) return null;
-        return (
-            value.length >= 8 &&
-            value.length <= 13 &&
-            /[A-Z]/.test(value) &&
-            /[a-z]/.test(value) &&
-            /[0-9]/.test(value) &&
-            /[!@#$%^&*(),.?":{}|<>]/.test(value)
-        );
+        return value.length >= 6 && /[a-zA-Z]/.test(value) && /[0-9]/.test(value);
     };
 
     const handleChange = (e) => {
@@ -68,7 +62,8 @@ export default function SignupPage() {
         setIsCheckingId(true);
         setTimeout(() => {
             setIsCheckingId(false);
-            setIdStatus(formData.id.length > 5 ? 'available' : 'taken');
+            // 임시 로직: 4자 이상이면 사용 가능으로 표시
+            setIdStatus(formData.id.length >= 4 ? 'available' : 'taken');
         }, 800);
     };
 
@@ -78,15 +73,33 @@ export default function SignupPage() {
     const isPasswordMatch =
         formData.password && formData.confirmPassword ? formData.password === formData.confirmPassword : null;
 
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        if (idStatus !== 'available') {
+            alert('아이디 중복 확인을 진행해주세요.');
+            return;
+        }
+
+        if (!isPasswordMatch) {
+            alert('비밀번호가 일치하지 않습니다.');
+            return;
+        }
+
+        if (isPasswordValid && isPasswordMatch && idStatus === 'available') {
+            alert('MINDWELL 회원가입을 축하합니다!');
+            navigate('/login');
+        }
+    };
+
     return (
         <div className="signup-container">
-            {/* <style>{signupStyles}</style> */}
             <div className="signup-card">
-                {/* 좌측: 브랜딩 영역 */}
+                {/* 좌측: 브랜딩 영역 (image_3b08c0.jpg 스타일 반영) */}
                 <div className="branding-area">
                     <div className="branding-decoration"></div>
                     <div className="relative z-10">
-                        <button onClick={() => navigate('/')}>
+                        <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                             <h1 className="brand-logo">MINDWELL</h1>
                         </button>
                         <p className="brand-mobile-tag">당신의 마음을 돌보는 따뜻한 공간</p>
@@ -116,7 +129,8 @@ export default function SignupPage() {
                         <h3 className="form-title">반가워요!</h3>
                         <p className="form-subtitle">함께하기 위한 정보를 입력해 주세요.</p>
 
-                        <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Name */}
                             <div className="input-field-group">
                                 <label className="input-label">Name</label>
                                 <div className="input-wrapper">
@@ -133,33 +147,33 @@ export default function SignupPage() {
                                 </div>
                             </div>
 
+                            {/* ID - 중복확인 버튼을 인풋 내부 우측으로 배치 */}
                             <div className="input-field-group">
                                 <label className="input-label">ID</label>
-                                <div className="flex gap-2">
-                                    <div className="input-wrapper flex-1">
-                                        <BadgeCheck size={16} className="input-icon" />
-                                        <input
-                                            type="text"
-                                            name="id"
-                                            value={formData.id}
-                                            onChange={handleChange}
-                                            maxLength="12"
-                                            className={`form-input ${isIdValid === false ? 'error-input' : ''}`}
-                                            placeholder="6~12자 영문, 숫자 조합"
-                                            required
-                                        />
-                                    </div>
+                                <div className="input-wrapper">
+                                    <BadgeCheck size={16} className="input-icon" />
+                                    <input
+                                        type="text"
+                                        name="id"
+                                        value={formData.id}
+                                        onChange={handleChange}
+                                        maxLength="8"
+                                        className={`form-input ${isIdValid === false ? 'error-input' : ''}`}
+                                        placeholder="4~8자 영문, 숫자 조합"
+                                        required
+                                        style={{ paddingRight: '80px' }} // 버튼 공간 확보
+                                    />
                                     <button
                                         type="button"
                                         onClick={handleIdCheck}
                                         disabled={!formData.id || isCheckingId || isIdValid === false}
-                                        className="check-button"
+                                        className="inner-check-button"
                                     >
-                                        {isCheckingId ? '...' : '중복 확인'}
+                                        {isCheckingId ? '...' : '중복확인'}
                                     </button>
                                 </div>
-                                {isIdValid === false && (
-                                    <p className="validation-msg msg-error">6~12자의 영문과 숫자를 조합해 주세요.</p>
+                                {isIdValid === false && formData.id.length > 0 && (
+                                    <p className="validation-msg msg-error">4~8자의 영문과 숫자를 조합해 주세요.</p>
                                 )}
                                 {idStatus === 'available' && (
                                     <p className="validation-msg msg-success">사용 가능한 아이디입니다.</p>
@@ -169,6 +183,7 @@ export default function SignupPage() {
                                 )}
                             </div>
 
+                            {/* Phone */}
                             <div className="input-field-group">
                                 <label className="input-label">Phone</label>
                                 <div className="input-wrapper">
@@ -186,6 +201,7 @@ export default function SignupPage() {
                                 </div>
                             </div>
 
+                            {/* Email */}
                             <div className="input-field-group">
                                 <label className="input-label">Email</label>
                                 <div className="input-wrapper">
@@ -200,8 +216,12 @@ export default function SignupPage() {
                                         required
                                     />
                                 </div>
+                                {isEmailValid === false && formData.email.length > 0 && (
+                                    <p className="validation-msg msg-error">올바른 이메일 형식이 아닙니다.</p>
+                                )}
                             </div>
 
+                            {/* Password */}
                             <div className="input-field-group">
                                 <label className="input-label">Password</label>
                                 <div className="input-wrapper">
@@ -212,7 +232,7 @@ export default function SignupPage() {
                                         value={formData.password}
                                         onChange={handleChange}
                                         className={`form-input ${isPasswordValid === false ? 'error-input' : ''}`}
-                                        placeholder="비밀번호 입력"
+                                        placeholder="문자+숫자 조합 6자 이상"
                                         required
                                     />
                                     <button
@@ -223,8 +243,12 @@ export default function SignupPage() {
                                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
                                 </div>
+                                {isPasswordValid === false && formData.password.length > 0 && (
+                                    <p className="validation-msg msg-error">문자와 숫자를 조합하여 6자 이상 입력하세요.</p>
+                                )}
                             </div>
 
+                            {/* Confirm Password */}
                             <div className="input-field-group">
                                 <label className="input-label">Confirm Password</label>
                                 <div className="input-wrapper">
@@ -246,7 +270,7 @@ export default function SignupPage() {
                                         {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
                                 </div>
-                                {isPasswordMatch !== null && (
+                                {isPasswordMatch !== null && formData.confirmPassword.length > 0 && (
                                     <p className={`validation-msg ${isPasswordMatch ? 'msg-success' : 'msg-error'}`}>
                                         {isPasswordMatch ? '비밀번호가 일치합니다' : '비밀번호가 일치하지 않습니다'}
                                     </p>
@@ -261,7 +285,7 @@ export default function SignupPage() {
 
                         <p className="login-prompt">
                             이미 계정이 있으신가요?{' '}
-                            <button className="login-link" onClick={() => navigate('/login')}>
+                            <button className="login-link" onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
                                 로그인
                             </button>
                         </p>
