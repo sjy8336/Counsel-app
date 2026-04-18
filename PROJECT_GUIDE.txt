@@ -57,8 +57,6 @@ counseling-platform/
     │   ├── api/    
     │   │   ├── endpoints/
     │   │   │   ├── auth.py                 
-    
-                # 로그인, 회원가입, 토큰 갱신
     │   │   │   ├── users.py                            # 유저 프로필
     │   │   │   ├── counselors.py                       # 상담사 목록/프로필 조회
     │   │   │   ├── schedules.py                        # 시간대(Time Slot) 설정

@@ -1,4 +1,3 @@
--- 유저 테이블
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL COMMENT '이름',
