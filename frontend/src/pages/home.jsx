@@ -20,11 +20,13 @@ import {
     Frown,
     Zap,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import '../static/Home.css';
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('home');
     const [userName, setUserName] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
         const user = localStorage.getItem('user');
@@ -43,6 +45,17 @@ export default function App() {
         { label: '스트레스', value: 20, color: '#FCD34D', icon: Zap },
         { label: '불안/우울', value: 15, color: '#FDA4AF', icon: Frown },
     ];
+
+    // record-btn 클릭 핸들러
+    const handleRecordClick = () => {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            alert('로그인 후 이용 가능합니다.');
+            navigate('/login');
+            return;
+        }
+        // 로그인 상태라면 실제 기록 페이지로 이동 등 추가 동작 구현 가능
+    };
 
     return (
         <div className="app-container">
@@ -75,14 +88,14 @@ export default function App() {
                                         )}
                                         지금 마음은 <span className="highlight-text">안녕</span>한가요?
                                     </h2>
-                                    <p className="hero-desc">
+                                    <p className="home-hero-desc">
                                         오늘의 감정을 기록하면 AI가 소현님의 마음 상태를 분석해 가장 따뜻한 처방을
                                         내려드려요.
                                     </p>
                                 </div>
                                 <div className="hero-emoji">😊</div>
                             </div>
-                            <button className="record-btn">
+                            <button className="record-btn" onClick={handleRecordClick}>
                                 <Sparkles size={20} />
                                 <span>오늘의 마음 기록하기</span>
                             </button>
