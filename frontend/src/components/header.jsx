@@ -43,7 +43,12 @@ export default function Header({ activeTab, setActiveTab }) {
                     {pcGnbItems.map((item) => (
                         <button
                             key={item.id}
-                            onClick={() => setActiveTab(item.id)}
+                            onClick={() => {
+                                setActiveTab(item.id);
+                                if (item.id === 'reservation') {
+                                    navigate('/reserve');
+                                }
+                            }}
                             className={`nav-item ${activeTab === item.id ? 'nav-item-active' : ''}`}
                         >
                             <span className="nav-item-text">{item.label}</span>
