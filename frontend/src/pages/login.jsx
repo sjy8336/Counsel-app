@@ -13,12 +13,16 @@ export default function LoginPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // useState로 관리하는 값들
             const result = await login({ username: id, password: password });
-            // 로그인 성공 시 정보를 로컬스토리지나 컨텍스트에 저장
+            // 디버깅: 로그인 응답 user 객체 확인
+            if (typeof result.user.id === 'undefined') {
+                console.warn('로그인 응답에 id(PK)가 없습니다:', result.user);
+            } else {
+                console.log('로그인 응답 user:', result.user);
+            }
             localStorage.setItem('user', JSON.stringify(result.user));
             alert(`${result.user.full_name}님, 환영합니다!`);
-            navigate('/'); // 메인 페이지로 이동
+            navigate('/');
         } catch (error) {
             console.error('3. 로그인 에러 발생!');
             console.log('에러 객체 전체:', error);

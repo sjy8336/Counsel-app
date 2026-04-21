@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 
@@ -24,3 +25,16 @@ class UserResponse(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+class UserUpdate(BaseModel):
+    id: int
+    full_name: str
+    email: EmailStr
+    phone_number: str
+
+
+# 비밀번호 변경 요청용 스키마
+class ChangePasswordRequest(BaseModel):
+    user_id: int
+    current_password: str
+    new_password: str

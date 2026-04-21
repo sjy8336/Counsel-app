@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { deleteAccount } from '../api/auth';
+import { getUserInfo, updateUserInfo, changePassword } from '../api/user';
 import {
     Settings,
     Bell,
@@ -42,10 +44,7 @@ import {
     Target,
     Hash,
 } from 'lucide-react';
-
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/header';
-import Footer from '../components/footer';
 import '../static/MyPage.css';
 
 export default function App() {
@@ -53,36 +52,43 @@ export default function App() {
     const [activeMenu, setActiveMenu] = useState('dashboard');
     const [activeSubMenu, setActiveSubMenu] = useState(null);
     const [ticketCount, setTicketCount] = useState(2);
-
     const [selectedConsultation, setSelectedConsultation] = useState(null);
-
     const [notifSettings, setNotifSettings] = useState({
         session: true,
         marketing: false,
         report: true,
         service: true,
     });
-
+    const [withdrawAgree, setWithdrawAgree] = useState(false);
+    const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [userInfo, setUserInfo] = useState({
         name: '',
-        id: '',
+        id: '', // PK
+        username: '', // 로그인 아이디
         email: '',
         phone: '',
         birth: '',
     });
 
-    // 로그인한 사용자 정보 localStorage에서 불러오기
+    // 로그인한 사용자 정보 localStorage에서 불러오고, DB에서 최신 정보 fetch
     useEffect(() => {
         const user = localStorage.getItem('user');
         if (user) {
             const userObj = JSON.parse(user);
             setUserInfo((prev) => ({
                 ...prev,
-                name: userObj.full_name || userObj.username || '',
-                id: userObj.username || '',
-                email: userObj.email || '',
-                // phone, birth 등은 필요시 추가
+                id: userObj.id,
             }));
+            // DB에서 최신 정보 fetch
+            getUserInfo(userObj.id).then((data) => {
+                setUserInfo((prev) => ({
+                    ...prev,
+                    name: data.full_name,
+                    username: data.username,
+                    email: data.email,
+                    phone: data.phone_number,
+                }));
+            });
         }
     }, []);
 
@@ -91,6 +97,38 @@ export default function App() {
         localStorage.removeItem('user');
         navigate('/');
     };
+
+    // 계정 영구 삭제 핸들러
+    const handleDeleteAccount = async () => {
+        if (!withdrawAgree) {
+            alert('유의사항 동의가 필요합니다.');
+            return;
+        }
+        if (!userInfo.id) {
+            alert('로그인 정보가 없습니다.');
+            return;
+        }
+        if (!window.confirm('정말로 계정을 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+        setWithdrawLoading(true);
+        try {
+            // userInfo.id는 반드시 PK(int)여야 하며, 혹시 string일 경우를 대비해 변환
+            await deleteAccount(Number(userInfo.id));
+            alert('계정이 영구 삭제되었습니다.');
+            handleLogout();
+        } catch (e) {
+            alert('계정 삭제에 실패했습니다.');
+        } finally {
+            setWithdrawLoading(false);
+        }
+    };
+
+    // 비밀번호 변경 관련 상태
+    const [pwFields, setPwFields] = useState({
+        current: '',
+        new1: '',
+        new2: '',
+    });
+    const [pwLoading, setPwLoading] = useState(false);
 
     const menuItems = [
         { id: 'history', label: '상담 히스토리', icon: History },
@@ -455,6 +493,55 @@ export default function App() {
         );
     };
 
+    // 개인정보 수정 저장
+    const handleSaveProfile = async () => {
+        try {
+            await updateUserInfo({
+                id: userInfo.id,
+                full_name: userInfo.name,
+                email: userInfo.email,
+                phone_number: userInfo.phone,
+            });
+            alert('개인정보가 성공적으로 수정되었습니다.');
+        } catch (e) {
+            alert('개인정보 수정에 실패했습니다.');
+        }
+    };
+
+    // 비밀번호 변경 핸들러
+    const handleChangePassword = async () => {
+        if (!pwFields.current || !pwFields.new1 || !pwFields.new2) {
+            alert('모든 비밀번호 입력란을 채워주세요.');
+            return;
+        }
+        if (pwFields.new1.length < 8 || !/[A-Za-z]/.test(pwFields.new1) || !/[0-9]/.test(pwFields.new1)) {
+            alert('새 비밀번호는 8자 이상, 영문+숫자를 포함해야 합니다.');
+            return;
+        }
+        if (pwFields.new1 !== pwFields.new2) {
+            alert('새 비밀번호가 일치하지 않습니다.');
+            return;
+        }
+        setPwLoading(true);
+        try {
+            await changePassword({
+                user_id: userInfo.id,
+                current_password: pwFields.current,
+                new_password: pwFields.new1,
+            });
+            alert('비밀번호가 성공적으로 변경되었습니다.');
+            setPwFields({ current: '', new1: '', new2: '' });
+        } catch (e) {
+            if (e?.response?.data?.detail) {
+                alert(e.response.data.detail);
+            } else {
+                alert('비밀번호 변경에 실패했습니다.');
+            }
+        } finally {
+            setPwLoading(false);
+        }
+    };
+
     const renderPersonalEdit = () => {
         return (
             <div className="fade-in w-full">
@@ -510,7 +597,12 @@ export default function App() {
                             <label className="input-label">아이디</label>
                             <div className="relative-input-box">
                                 <Hash className="input-icon" size={20} />
-                                <input type="text" className="custom-input bg-readonly" value={userInfo.id} readOnly />
+                                <input
+                                    type="text"
+                                    className="custom-input bg-readonly"
+                                    value={userInfo.username}
+                                    readOnly
+                                />
                             </div>
                             <p className="input-helper-text">* 아이디는 변경할 수 없습니다.</p>
                         </div>
@@ -530,7 +622,7 @@ export default function App() {
                     </div>
                 </div>
 
-                {/* 보안 설정 섹션 */}
+                {/* 보안 설정 섹션 (비밀번호 변경) */}
                 <div className="profile-edit-section">
                     <h4 className="security-section-title">
                         <div className="security-icon-box">
@@ -547,6 +639,10 @@ export default function App() {
                                     type="password"
                                     placeholder="현재 비밀번호를 입력해 주세요"
                                     className="custom-input"
+                                    value={pwFields.current}
+                                    onChange={(e) => setPwFields((f) => ({ ...f, current: e.target.value }))}
+                                    autoComplete="current-password"
+                                    disabled={pwLoading}
                                 />
                             </div>
                         </div>
@@ -555,7 +651,15 @@ export default function App() {
                                 <label className="input-label">새 비밀번호</label>
                                 <div className="relative-input-box">
                                     <KeyRound className="input-icon" size={20} />
-                                    <input type="password" placeholder="8자 이상 영문+숫자" className="custom-input" />
+                                    <input
+                                        type="password"
+                                        placeholder="8자 이상 영문+숫자"
+                                        className="custom-input"
+                                        value={pwFields.new1}
+                                        onChange={(e) => setPwFields((f) => ({ ...f, new1: e.target.value }))}
+                                        autoComplete="new-password"
+                                        disabled={pwLoading}
+                                    />
                                 </div>
                             </div>
                             <div>
@@ -566,14 +670,26 @@ export default function App() {
                                         type="password"
                                         placeholder="다시 한번 입력해 주세요"
                                         className="custom-input"
+                                        value={pwFields.new2}
+                                        onChange={(e) => setPwFields((f) => ({ ...f, new2: e.target.value }))}
+                                        autoComplete="new-password"
+                                        disabled={pwLoading}
                                     />
                                 </div>
                             </div>
                         </div>
+                        <button
+                            className="profile-save-full-btn mt-2"
+                            onClick={handleChangePassword}
+                            disabled={pwLoading}
+                            style={{ opacity: pwLoading ? 0.6 : 1 }}
+                        >
+                            <CheckCircle2 size={20} /> 비밀번호 변경
+                        </button>
                     </div>
                 </div>
 
-                <button className="profile-save-full-btn">
+                <button className="profile-save-full-btn" onClick={handleSaveProfile}>
                     <CheckCircle2 size={24} />
                     변경 사항 안전하게 저장하기
                 </button>
@@ -658,11 +774,23 @@ export default function App() {
                     </div>
 
                     <label className="withdraw-agree-label group">
-                        <input type="checkbox" className="withdraw-checkbox" />
+                        <input
+                            type="checkbox"
+                            className="withdraw-checkbox"
+                            checked={withdrawAgree}
+                            onChange={(e) => setWithdrawAgree(e.target.checked)}
+                        />
                         <span className="withdraw-agree-text">위 유의사항을 모두 확인하였으며, 이에 동의합니다.</span>
                     </label>
 
-                    <button className="withdraw-submit-btn">마인드웰 계정 영구 삭제</button>
+                    <button
+                        className="withdraw-submit-btn"
+                        onClick={handleDeleteAccount}
+                        disabled={!withdrawAgree || withdrawLoading}
+                        style={{ opacity: !withdrawAgree || withdrawLoading ? 0.6 : 1 }}
+                    >
+                        {withdrawLoading ? '처리 중...' : '마인드웰 계정 영구 삭제'}
+                    </button>
                 </div>
             </div>
         );
