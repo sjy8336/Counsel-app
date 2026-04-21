@@ -1,0 +1,461 @@
+/* 메인 컨테이너 및 배경 설정 */
+.counselor-list-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 20px;
+    background-color: #FDFBF7; /* Background: Warm White */
+    min-height: 100vh;
+}
+/* PC 화면 최적화: 폭을 늘리고 배경색 적용 */
+.counselor-list-container.wide {
+    max-width: 1400px; /* 기존 1100px에서 확대 */
+    padding: 60px 40px;
+}
+
+.counselor-grid.pc-full {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* 카드 크기 확대 */
+    gap: 40px;
+}
+
+/* 컬러 팔레트 적용 */
+.price-info {
+    color: #F59E0B; /* Accent 2: Amber */
+    font-weight: 700;
+}
+
+.category-btn.active {
+    background-color: #8BA888; /* Main: Sage Green */
+    color: white;
+}
+
+.search-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.search-title {
+    font-size: 2rem;
+    color: #1E293B; /* Text (Main): Slate Navy */
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.search-sub {
+    color: #64748B; /* 서브 텍스트용 연한 네이비 */
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+}
+
+/* 검색바 영역 */
+.search-bar-wrapper {
+    position: relative;
+    max-width: 550px;
+    margin: 0 auto 30px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8BA888; /* Main: Sage Green */
+}
+
+.search-input {
+    width: 100%;
+    padding: 15px 15px 15px 50px;
+    border: 1.5px solid #FAF7F2; /* Sub Background: Sand Beige */
+    border-radius: 12px;
+    background: #FFFFFF;
+    color: #1E293B;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    border-color: #8BA888; /* Focus 시 메인 컬러 */
+    box-shadow: 0 0 0 3px rgba(139, 168, 136, 0.1);
+}
+
+/* 카테고리 탭 */
+.category-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    padding: 10px 25px;
+    background: #FAF7F2; /* Sub Background: Sand Beige */
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    color: #1E293B;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.category-btn:hover {
+    background: #E5E1DA;
+}
+
+.category-btn.active {
+    background: #8BA888; /* Main: Sage Green */
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(139, 168, 136, 0.25);
+}
+
+/* 전문가 카드 그리드 */
+.counselor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+}
+
+.counselor-card {
+    background: #FFFFFF;
+    border-radius: 24px;
+    padding: 30px;
+    border: 1px solid #FAF7F2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 15px rgba(30, 41, 59, 0.02);
+}
+
+.counselor-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(30, 41, 59, 0.08);
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.profile-placeholder {
+    width: 64px;
+    height: 64px;
+    background: #FAF7F2; /* Sub Background */
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8BA888; /* Main: Sage Green */
+}
+
+/* 상담 방식 배지 */
+.type-badge {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: fit-content;
+}
+
+.type-badge[data-type="비대면"] { 
+    background: #E0F2FE; 
+    color: #0369A1; 
+}
+
+.type-badge[data-type="대면"] { 
+    background: #FDF2F2; /* Accent 1: Soft Rose 연하게 활용 */
+    color: #FDA4AF; /* Accent 1: Soft Rose */
+}
+
+/* 카드 본문 텍스트 */
+.counselor-category-label {
+    font-size: 0.8rem;
+    color: #8BA888; /* Main: Sage Green */
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.counselor-name {
+    font-size: 1.35rem;
+    margin: 0 0 8px;
+    color: #1E293B; /* Text (Main) */
+}
+
+.counselor-field-tags {
+    font-size: 0.85rem;
+    color: #64748B;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.counselor-intro {
+    font-size: 0.95rem;
+    color: #475569;
+    line-height: 1.6;
+    flex: 1;
+}
+
+/* 카드 푸터 */
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1.5px solid #FDFBF7;
+    padding-top: 20px;
+    margin-top: 20px;
+}
+
+.price-info {
+    font-weight: 700;
+    color: #F59E0B; /* Accent 2: Amber */
+    font-size: 1.05rem;
+}
+
+.view-detail-btn {
+    background: none;
+    border: none;
+    color: #8BA888; /* Main: Sage Green */
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.view-detail-btn:hover {
+    opacity: 0.7;
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 100px 0;
+    color: #94A3B8;
+}
+/* --- 기존 리스트 스타일 유지 (생략) --- */
+
+/* 상세 페이지 2분할 레이아웃 */
+.detail-split-container {
+    display: flex;
+    max-width: 1400px; /* PC 화면 꽉 차게 설정 */
+    margin: 40px auto;
+    gap: 40px;
+    padding: 0 40px;
+    background-color: #FDFBF7; /* Background: Warm White */
+}
+
+/* 왼쪽 정보 영역 (60%) */
+.detail-left {
+    flex: 6;
+    background: #FFFFFF;
+    padding: 40px;
+    border-radius: 24px;
+    border: 1px solid #FAF7F2;
+    box-shadow: 0 4px 15px rgba(30, 41, 59, 0.02);
+}
+
+.counselor-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #FAF7F2;
+    margin-bottom: 30px;
+}
+
+.large-profile {
+    width: 100px;
+    height: 100px;
+    background: #FAF7F2;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8BA888;
+}
+
+.detail-category {
+    font-size: 0.9rem;
+    color: #8BA888;
+    font-weight: 700;
+}
+
+.detail-name {
+    font-size: 2.2rem;
+    color: #1E293B;
+    margin: 5px 0;
+}
+
+.type-tag {
+    font-size: 0.9rem;
+    color: #64748B;
+}
+
+.detail-content h3 {
+    font-size: 1.3rem;
+    color: #1E293B;
+    margin: 35px 0 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.detail-content p {
+    line-height: 1.8;
+    color: #475569;
+    font-size: 1rem;
+}
+
+.history-list {
+    list-style: none;
+    padding: 0;
+}
+
+.history-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    color: #475569;
+}
+
+.check-icon { color: #8BA888; }
+
+/* 오른쪽 예약 영역 (40%) */
+.detail-right {
+    flex: 4;
+}
+
+.sticky-reservation-card {
+    position: sticky;
+    top: 100px;
+    background: #FFFFFF;
+    padding: 35px;
+    border-radius: 24px;
+    border: 1.5px solid #8BA888; /* Sage Green 강조 */
+    box-shadow: 0 10px 30px rgba(139, 168, 136, 0.1);
+}
+
+.price-tag-large {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #FAF7F2;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+}
+
+.price-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #F59E0B; /* Amber 강조 */
+}
+
+.reservation-step { margin-bottom: 25px; }
+
+.reservation-step label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 12px;
+}
+
+.date-picker {
+    width: 100%;
+    padding: 15px;
+    border: 1.5px solid #FAF7F2;
+    border-radius: 12px;
+    font-family: inherit;
+}
+
+.reserve-submit-btn {
+    width: 100%;
+    padding: 18px;
+    background: #8BA888;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.reserve-submit-btn:hover { background: #7a9677; transform: translateY(-2px); }
+/* 목록으로 돌아가기 버튼 디자인 수정 */
+.back-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    color: #64748B; /* 차분한 그레이 */
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 25px;
+    transition: color 0.2s;
+}
+
+.back-btn:hover {
+    color: #8BA888; /* 포인트 컬러로 강조 */
+}
+
+/* 프로필 이미지 스타일 */
+.large-profile-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 30px;
+    background: #FAF7F2;
+}
+
+/* 예약 섹션 로딩 및 비활성화 스타일 */
+.time-btn.disabled {
+    background: #F1F5F9;
+    color: #CBD5E1;
+    cursor: not-allowed;
+    border: 1px solid #E2E8F0;
+}
+
+.reserve-submit-btn:disabled {
+    background: #CBD5E1;
+    cursor: wait;
+}
+.inquiry-btn {
+    width: 100%;
+    margin-top: 15px;
+    padding: 14px;
+    background: #FFFFFF;
+    color: #8BA888; /* 포인트 컬러: 세이지 그린 */
+    border: 1.5px solid #8BA888;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.inquiry-btn:hover {
+    background: #FAF7F2;
+    color: #7a9677;
+}
+
+/* 예약 완료 후 로딩 상태 시각화 */
+.time-btn.active {
+    background-color: #8BA888;
+    color: white;
+    border-color: #8BA888;
+}
+
