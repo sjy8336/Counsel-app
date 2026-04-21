@@ -35,7 +35,7 @@ export default function Header({ activeTab, setActiveTab }) {
         //1. 글로벌 네비게이션 (Header)
         <header className="global-header">
             <div className="header-content">
-                <h1 className="logo" onClick={() => setActiveTab('home')}>
+                <h1 className="logo" onClick={() => { setActiveTab('home'); navigate('/'); }}>
                     MINDWELL
                 </h1>
 
@@ -45,7 +45,9 @@ export default function Header({ activeTab, setActiveTab }) {
                             key={item.id}
                             onClick={() => {
                                 setActiveTab(item.id);
-                                if (item.id === 'reservation') {
+                                if (item.id === 'search') {
+                                    navigate('/counselors');
+                                } else if (item.id === 'reservation') {
                                     navigate('/reserve');
                                 }
                             }}

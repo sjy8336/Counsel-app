@@ -5,6 +5,8 @@ import SignUp from './pages/SignUp';
 import MyPage from './pages/MyPage'
 import FindPwPage from './pages/FindPw';
 import ReservationPage from './pages/Reservation';
+import CounselorListPage from './pages/CounselorList';
+import CounselorDetailPage from './pages/CounselorDetail';
 
 function App() {
     return (
@@ -16,6 +18,8 @@ function App() {
                 <Route path="/mypage" element={<MyPage />} />
                 <Route path="/find-password" element={<FindPwPage />} />
                 <Route path="/reserve" element={<ReservationPage />} />
+                <Route path="/counselors" element={<CounselorListPage />} />
+                <Route path="/counselor/:id" element={<CounselorDetailPage />} />
             </Routes>
         </BrowserRouter>
     );
