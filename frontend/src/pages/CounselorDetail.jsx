@@ -45,8 +45,8 @@ export default function CounselorDetailPage() {
 
     return (
         <div className="full-page-wrapper">
-            <Header activeTab="search" />
-            
+            <Header activeTab="search" setActiveTab={() => {}} />
+
             <div className="detail-split-container">
                 <section className="detail-left">
                     <button className="back-btn-clear" onClick={() => navigate(-1)}>
@@ -54,9 +54,13 @@ export default function CounselorDetailPage() {
                     </button>
 
                     <div className="counselor-profile-header">
-                        <div className="large-profile"><User size={48} /></div>
+                        <div className="large-profile">
+                            <User size={48} />
+                        </div>
                         <div className="info-text">
-                            <span className="detail-category">{counselor.category} | {counselor.major}</span>
+                            <span className="detail-category">
+                                {counselor.category} | {counselor.major}
+                            </span>
                             <h2 className="detail-name">{counselor.name}</h2>
                             <span className="type-tag">{counselor.type} 상담 전문</span>
                         </div>
@@ -68,13 +72,17 @@ export default function CounselorDetailPage() {
 
                         <h3>상담 분야</h3>
                         <div className="field-chips">
-                            {counselor.fields.map(f => <span key={f}>#{f}</span>)}
+                            {counselor.fields.map((f) => (
+                                <span key={f}>#{f}</span>
+                            ))}
                         </div>
 
                         <h3>주요 약력</h3>
                         <ul className="history-list">
                             {counselor.history.map((h, i) => (
-                                <li key={i}><CheckCircle size={18} className="check-icon" /> {h}</li>
+                                <li key={i}>
+                                    <CheckCircle size={18} className="check-icon" /> {h}
+                                </li>
                             ))}
                         </ul>
                     </div>
@@ -83,27 +91,31 @@ export default function CounselorDetailPage() {
                 <section className="detail-right">
                     <div className="sticky-reservation-card">
                         <h3>상담 예약하기</h3>
-                        
+
                         <div className="price-tag-large">
                             <span className="price-label">대면 상담 (50분)</span>
                             <span className="price-value">{counselor.price}</span>
                         </div>
 
                         <div className="reservation-step">
-                            <label><Calendar size={18} /> 상담 일자 선택</label>
-                            <input 
-                                type="date" 
-                                className="date-picker" 
+                            <label>
+                                <Calendar size={18} /> 상담 일자 선택
+                            </label>
+                            <input
+                                type="date"
+                                className="date-picker"
                                 onChange={(e) => setSelectedDate(e.target.value)}
                             />
                         </div>
 
                         <div className="reservation-step">
-                            <label><Clock size={18} /> 시간 선택</label>
+                            <label>
+                                <Clock size={18} /> 시간 선택
+                            </label>
                             <div className="time-grid">
-                                {counselor.availableTimes.map(time => (
-                                    <button 
-                                        key={time} 
+                                {counselor.availableTimes.map((time) => (
+                                    <button
+                                        key={time}
                                         className={`time-btn ${selectedTime === time ? 'active' : ''}`}
                                         onClick={() => setSelectedTime(time)}
                                         disabled={isSubmitting}
@@ -114,11 +126,7 @@ export default function CounselorDetailPage() {
                             </div>
                         </div>
 
-                        <button 
-                            className="reserve-submit-btn" 
-                            onClick={handleReservation}
-                            disabled={isSubmitting}
-                        >
+                        <button className="reserve-submit-btn" onClick={handleReservation} disabled={isSubmitting}>
                             {isSubmitting ? '처리 중...' : '예약 신청하기'}
                         </button>
 
@@ -128,7 +136,7 @@ export default function CounselorDetailPage() {
                     </div>
                 </section>
             </div>
-            
+
             <Footer />
         </div>
     );
