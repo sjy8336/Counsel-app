@@ -30,13 +30,14 @@ import {
     MoreVertical
 } from 'lucide-react';
 
-    const App = () => {
+const App = () => {
+    // 1. 상태 관리 (State)
     const [activeMenu, setActiveMenu] = useState('dashboard');
     const [currentView, setCurrentView] = useState('dashboard'); 
     const [selectedClient, setSelectedClient] = useState(null);
     const [activeChat, setActiveChat] = useState(null);
-    
-    // 디자인 시스템
+
+    // 2. 디자인 시스템 (Theme & Styles)
     const THEME = {
         primary: '#9BB095',      
         primaryLight: '#F3F6F2', 
@@ -417,7 +418,6 @@ import {
         justifyContent: 'space-between',
         alignItems: 'center'
         },
-        // 메시지/채팅 전용 스타일
         chatContainer: {
         display: 'flex',
         flexDirection: 'column',
@@ -465,7 +465,7 @@ import {
         })
     };
 
-    // Mock 데이터
+    // 3. Mock 데이터 (Mock Data)
     const todaySchedules = [
         { id: 1, time: '10:00', name: '김소현', type: '대면 상담', room: '상담 1실', status: '상담 예정', note: '대인관계 갈등 심화', age: '24세', gender: '여성' },
         { id: 2, time: '14:00', name: '이민준', type: '대면 상담', room: '상담 3실', status: '상담 예정', note: '직장 스트레스', age: '31세', gender: '남성' },
@@ -502,6 +502,7 @@ import {
         { id: 4, name: '정현우', age: '32세', lastVisit: '2024.05.22', count: 1, condition: '신규' }
     ];
 
+    // 4. 핸들러 함수 (Handlers)
     const goHome = () => {
         setActiveMenu('dashboard');
         setCurrentView('dashboard');
@@ -509,6 +510,7 @@ import {
         setActiveChat(null);
     };
 
+    // 5. 공통 서브 컴포넌트 (Sub-components)
     const SimpleHeader = ({ title, sub }) => (
         <div style={{ animation: 'fadeIn 0.3s ease-in', marginBottom: '32px' }}>
         <h2 style={styles.detailTitle}>{title}</h2>
@@ -516,6 +518,7 @@ import {
         </div>
     );
 
+    // 6. 렌더링 함수들 (Render Functions)
     const renderChatView = () => (
     <>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', cursor: 'pointer' }} onClick={() => setCurrentView('notifications')}>
@@ -859,6 +862,7 @@ import {
         }
     };
 
+    // 7. 최종 메인 렌더링 (Main Render)
     return (
         <div style={styles.container}>
         <style>{`
