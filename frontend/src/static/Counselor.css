@@ -1,9 +1,9 @@
 /* 메인 컨테이너 및 배경 설정 */
+.full-page-wrapper{background-color: #FDFBF7;}
 .counselor-list-container {
     max-width: 1100px;
     margin: 0 auto;
     padding: 60px 20px;
-    background-color: #FDFBF7; /* Background: Warm White */
     min-height: 100vh;
 }
 /* PC 화면 최적화: 폭을 늘리고 배경색 적용 */
