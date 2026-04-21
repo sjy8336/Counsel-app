@@ -22,6 +22,17 @@ export const signUp = async (userData) => {
     }
 };
 
+// 계정 영구 삭제 API
+export const deleteAccount = async (user_id) => {
+    try {
+        const response = await axios.post(`${API_URL}/delete-account`, { user_id });
+        return response.data;
+    } catch (error) {
+        console.error('계정 삭제 에러:', error.response?.data?.detail || error.message);
+        throw error;
+    }
+};
+
 export const login = async (credentials) => {
     try {
         const response = await axios.post(`${API_URL}/login`, {
