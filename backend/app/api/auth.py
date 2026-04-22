@@ -6,6 +6,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, LoginRequest
 from app.crud import crud
+from app.api import deps
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -32,10 +33,15 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="이미 존재하는 아이디입니다.")
 
-    # 2. 비밀번호 암호화 로직
+    # 2. 비밀번호 길이 체크 및 디버깅 출력
+    print(f"[DEBUG] password: {user_in.password} (len={len(user_in.password)})")
+    if len(user_in.password) > 13:
+        raise HTTPException(status_code=400, detail="비밀번호는 최대 13자까지 입력 가능합니다.")
+
+    # 3. 비밀번호 암호화 로직
     hashed_pw = pwd_context.hash(user_in.password)
 
-    # 3. DB 객체 생성
+    # 4. DB 객체 생성
     new_user = User(
         full_name=user_in.full_name,
         username=user_in.username,
@@ -44,7 +50,6 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
         phone_number=user_in.phone_number,
         role=user_in.role
     )
-    
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -146,3 +151,13 @@ def change_password(req: ChangePasswordRequest, db: Session = Depends(get_db)):
     except Exception as e:
         print("[DEBUG] 비밀번호 변경/DB commit 예외:", e)
         raise HTTPException(status_code=500, detail="비밀번호 변경 중 오류 발생")
+
+@router.get("/me")
+def get_me(current_user: User = Depends(deps.get_current_active_user)):
+    return {
+        "id": current_user.id,
+        "full_name": current_user.full_name,
+        "email": current_user.email,
+        "role": current_user.role,  # 'counselor', 'client', 'admin'
+        "profile_image": "default.png"
+    }
