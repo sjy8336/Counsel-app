@@ -9,6 +9,7 @@ import FindPwPage from './pages/FindPw';
 import ReservationPage from './pages/Reservation';
 import CounselorListPage from './pages/CounselorList';
 import CounselorDetailPage from './pages/CounselorDetail';
+import CounselorMyPage from './pages/CounselorMyPage';
 
 function App() {
     return (
@@ -22,6 +23,7 @@ function App() {
                 <Route path="/reserve" element={<ReservationPage />} />
                 <Route path="/counselors" element={<CounselorListPage />} />
                 <Route path="/counselor/:id" element={<CounselorDetailPage />} />
+                <Route path="/CounselorMyPage" element={<CounselorMyPage />} />
                 <Route path="/diary" element={<Diary />} />
                 <Route path="/healing" element={<HealingRounge />} />
             </Routes>

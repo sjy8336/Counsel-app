@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, ChevronRight, BadgeCheck, Eye, EyeOff, User, Phone, UserCircle, GraduationCap } from 'lucide-react';
+import {
+    Mail,
+    Lock,
+    ChevronRight,
+    BadgeCheck,
+    Eye,
+    EyeOff,
+    User,
+    Phone,
+    UserCircle,
+    GraduationCap,
+} from 'lucide-react';
 import { signUp, checkIdDuplicate } from '../api/auth';
 import '../static/SignUp.css';
 
@@ -44,7 +55,8 @@ export default function SignupPage() {
 
     const validatePasswordFormat = (value) => {
         if (!value) return null;
-        return value.length >= 6 && /[a-zA-Z]/.test(value) && /[0-9]/.test(value);
+        // 6자 이상 13자 이하, 문자+숫자 조합
+        return value.length >= 6 && value.length <= 13 && /[a-zA-Z]/.test(value) && /[0-9]/.test(value);
     };
 
     const handleChange = (e) => {
@@ -54,6 +66,9 @@ export default function SignupPage() {
         } else if (name === 'id') {
             setFormData((prev) => ({ ...prev, [name]: formatId(value) }));
             setIdStatus(null);
+        } else if (name === 'password' || name === 'confirmPassword') {
+            // 최대 13자 제한
+            setFormData((prev) => ({ ...prev, [name]: value.slice(0, 13) }));
         } else {
             setFormData((prev) => ({ ...prev, [name]: value }));
         }
@@ -64,14 +79,14 @@ export default function SignupPage() {
         setIsCheckingId(true); // 로딩 표시 시작
         try {
             const result = await checkIdDuplicate(formData.id);
-            
+
             if (result.available) {
                 setIdStatus('available'); // 사용 가능
             } else {
                 setIdStatus('taken'); // 이미 사용 중
             }
         } catch (error) {
-            alert("중복 확인 중 오류가 발생했습니다.");
+            alert('중복 확인 중 오류가 발생했습니다.');
             setIdStatus(null);
         } finally {
             setIsCheckingId(false); // 로딩 표시 종료
@@ -103,13 +118,13 @@ export default function SignupPage() {
         // 실제 백엔드와 통신하는 부분
         try {
             // 아까 만든 auth.api.js의 signUp 함수 호출
-            const result = await signUp(formData); 
+            const result = await signUp(formData);
             // 백엔드에서 성공 응답이 오면 실행
             alert(`${formData.name}님, MINDWELL 회원가입을 축하합니다!`);
             navigate('/login');
         } catch (error) {
             // 백엔드에서 에러(중복 아이디 등)를 보냈을 때 처리
-            const errorMsg = error.response?.data?.detail || "회원가입 중 오류가 발생했습니다.";
+            const errorMsg = error.response?.data?.detail || '회원가입 중 오류가 발생했습니다.';
             alert(errorMsg);
         }
     };
@@ -286,7 +301,8 @@ export default function SignupPage() {
                                         value={formData.password}
                                         onChange={handleChange}
                                         className={`form-input ${isPasswordValid === false ? 'error-input' : ''}`}
-                                        placeholder="문자+숫자 조합 6자 이상"
+                                        placeholder="문자+숫자 조합 6~13자"
+                                        maxLength={13}
                                         required
                                     />
                                     <button
@@ -315,7 +331,8 @@ export default function SignupPage() {
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
                                         className={`form-input ${isPasswordMatch === false ? 'error-input' : ''}`}
-                                        placeholder="비밀번호 재입력"
+                                        placeholder="비밀번호 재입력 (최대 13자)"
+                                        maxLength={13}
                                         required
                                     />
                                     <button

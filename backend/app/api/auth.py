@@ -6,6 +6,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, LoginRequest
 from app.crud import crud
+from app.api import deps
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -150,3 +151,13 @@ def change_password(req: ChangePasswordRequest, db: Session = Depends(get_db)):
     except Exception as e:
         print("[DEBUG] 비밀번호 변경/DB commit 예외:", e)
         raise HTTPException(status_code=500, detail="비밀번호 변경 중 오류 발생")
+
+@router.get("/me")
+def get_me(current_user: User = Depends(deps.get_current_active_user)):
+    return {
+        "id": current_user.id,
+        "full_name": current_user.full_name,
+        "email": current_user.email,
+        "role": current_user.role,  # 'counselor', 'client', 'admin'
+        "profile_image": "default.png"
+    }
