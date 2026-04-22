@@ -32,10 +32,15 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="이미 존재하는 아이디입니다.")
 
-    # 2. 비밀번호 암호화 로직
+    # 2. 비밀번호 길이 체크 및 디버깅 출력
+    print(f"[DEBUG] password: {user_in.password} (len={len(user_in.password)})")
+    if len(user_in.password) > 13:
+        raise HTTPException(status_code=400, detail="비밀번호는 최대 13자까지 입력 가능합니다.")
+
+    # 3. 비밀번호 암호화 로직
     hashed_pw = pwd_context.hash(user_in.password)
 
-    # 3. DB 객체 생성
+    # 4. DB 객체 생성
     new_user = User(
         full_name=user_in.full_name,
         username=user_in.username,
@@ -44,7 +49,6 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
         phone_number=user_in.phone_number,
         role=user_in.role
     )
-    
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

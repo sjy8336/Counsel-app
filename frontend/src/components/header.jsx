@@ -49,6 +49,10 @@ export default function Header({ activeTab, setActiveTab }) {
                                     navigate('/counselors');
                                 } else if (item.id === 'reservation') {
                                     navigate('/reserve');
+                                } else if (item.id === 'diary') {
+                                    navigate('/diary');
+                                } else if (item.id === 'lounge') {
+                                    navigate('/healing');
                                 }
                             }}
                             className={`nav-item ${activeTab === item.id ? 'nav-item-active' : ''}`}

@@ -2,7 +2,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import LoginPage from './pages/Login';
 import SignUp from './pages/SignUp';
-import MyPage from './pages/MyPage'
+import MyPage from './pages/MyPage';
+import Diary from './pages/Diary';
+import HealingRounge from './pages/HealingRounge';
 import FindPwPage from './pages/FindPw';
 import ReservationPage from './pages/Reservation';
 import CounselorListPage from './pages/CounselorList';
@@ -20,6 +22,8 @@ function App() {
                 <Route path="/reserve" element={<ReservationPage />} />
                 <Route path="/counselors" element={<CounselorListPage />} />
                 <Route path="/counselor/:id" element={<CounselorDetailPage />} />
+                <Route path="/diary" element={<Diary />} />
+                <Route path="/healing" element={<HealingRounge />} />
             </Routes>
         </BrowserRouter>
     );
