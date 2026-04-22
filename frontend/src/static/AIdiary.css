@@ -1,0 +1,981 @@
+/* =============================================
+   App3.css — MindWell Diary (namespace: mw3-)
+   ============================================= */
+
+/* ---------- Reset / Root ---------- */
+.mw3-root {
+  min-height: 100vh;
+  background-color: #F8FAFB;
+  font-family: sans-serif;
+  color: #1e293b;
+}
+
+/* ---------- Header ---------- */
+.mw3-header {
+  background: #ffffff;
+  padding: 16px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.mw3-header-left {
+  display: flex;
+  align-items: center;
+  gap: 64px;
+}
+
+.mw3-header-menu {
+  display: none;
+  color: #475569;
+}
+
+.mw3-logo {
+  font-size: 24px;
+  font-weight: 800;
+  color: #8FAD88;
+  letter-spacing: -0.05em;
+  margin: 0;
+}
+
+.mw3-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.mw3-nav a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.15s;
+}
+
+.mw3-nav a:hover {
+  color: #0f172a;
+}
+
+.mw3-nav-active {
+  color: #8FAD88 !important;
+  font-weight: 700;
+  border-bottom: 2px solid #8FAD88;
+  padding-bottom: 4px;
+}
+
+.mw3-header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.mw3-bell-btn {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.mw3-bell-btn:hover {
+  color: #475569;
+}
+
+.mw3-bell-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background: #f87171;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+}
+
+.mw3-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mw3-avatar {
+  width: 36px;
+  height: 36px;
+  background: #e2e8f0;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  flex-shrink: 0;
+}
+
+.mw3-avatar img {
+  width: 100%;
+  height: 100%;
+}
+
+.mw3-username {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* ---------- Main Layout ---------- */
+.mw3-main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 48px;
+  display: flex;
+  gap: 32px;
+}
+
+/* ---------- Left Section ---------- */
+.mw3-left {
+  flex: 1.8;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mw3-diary-card {
+  background: #ffffff;
+  border-radius: 32px;
+  padding: 40px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  border: 1px solid rgba(241,245,249,0.5);
+  min-height: 600px;
+}
+
+.mw3-diary-header {
+  margin-bottom: 32px;
+}
+
+.mw3-diary-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8FAD88;
+  background: rgba(143,173,136,0.1);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.mw3-diary-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 4px 0 0;
+  color: #1e293b;
+}
+
+.mw3-diary-date {
+  font-size: 13px;
+  color: #64748b;
+  margin: 8px 0 0;
+}
+
+/* ---------- Form ---------- */
+.mw3-form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.mw3-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mw3-label-icon {
+  color: #8FAD88;
+}
+
+/* ---------- Emotion Buttons ---------- */
+.mw3-emotion-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mw3-emotion-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mw3-emotion-btn:hover {
+  background: #f1f5f9;
+}
+
+.mw3-emotion-btn--selected {
+  border-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: scale(1.05);
+  color: #1e293b;
+}
+
+/* 감정별 선택 배경색 */
+.mw3-emotion-btn--happy  { background: #fef3c7; }
+.mw3-emotion-btn--calm   { background: #d1fae5; }
+.mw3-emotion-btn--tired  { background: #f1f5f9; }
+.mw3-emotion-btn--sad    { background: #dbeafe; }
+.mw3-emotion-btn--angry  { background: #fee2e2; }
+
+/* 감정별 아이콘 색상 */
+.mw3-emotion-icon--happy   { color: #f59e0b; }
+.mw3-emotion-icon--calm    { color: #10b981; }
+.mw3-emotion-icon--tired   { color: #64748b; }
+.mw3-emotion-icon--sad     { color: #3b82f6; }
+.mw3-emotion-icon--angry   { color: #ef4444; }
+.mw3-emotion-icon--default { color: #94a3b8; }
+
+/* ---------- Slider ---------- */
+.mw3-slider-box {
+  background: #f8fafc;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid #f1f5f9;
+}
+
+.mw3-slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.mw3-slider-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.mw3-slider-value {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.mw3-slider-value--stress {
+  color: #8FAD88;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.mw3-slider-track {
+  position: relative;
+  height: 8px;
+  width: 100%;
+  background: #e2e8f0;
+  border-radius: 9999px;
+}
+
+.mw3-slider-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: 10;
+  border-radius: 9999px;
+}
+
+.mw3-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  margin-top: -8px;
+}
+
+.mw3-slider-input::-moz-range-thumb {
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+/* ---------- Textarea ---------- */
+.mw3-textarea-wrap {
+  position: relative;
+}
+
+.mw3-textarea {
+  width: 100%;
+  background: #f8fafc;
+  border-radius: 24px;
+  padding: 24px;
+  height: 192px;
+  font-size: 14px;
+  color: #334155;
+  resize: none;
+  border: 1px solid transparent;
+  outline: none;
+  font-family: inherit;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.mw3-textarea:focus {
+  box-shadow: 0 0 0 2px rgba(143,173,136,0.3);
+}
+
+.mw3-char-count {
+  position: absolute;
+  bottom: 16px;
+  right: 24px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.mw3-char-count--over {
+  color: #f87171;
+  font-weight: 700;
+}
+
+/* ---------- Submit ---------- */
+.mw3-submit-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mw3-submit-btn {
+  background: #8FAD88;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 16px 40px;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.mw3-submit-btn:hover {
+  background: #7a9673;
+}
+
+.mw3-submit-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.mw3-submit-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.mw3-spin {
+  animation: mw3-spin 1s linear infinite;
+}
+
+@keyframes mw3-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ---------- Result View (Left Card) ---------- */
+.mw3-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0;
+  text-align: center;
+  animation: mw3-fadeIn 0.4s ease;
+}
+
+@keyframes mw3-fadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.mw3-result-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(143,173,136,0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8FAD88;
+  margin-bottom: 24px;
+}
+
+.mw3-result-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 32px;
+  color: #1e293b;
+}
+
+.mw3-result-stats {
+  width: 100%;
+  max-width: 512px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 16px;
+}
+
+.mw3-result-stat-row {
+  display: flex;
+  gap: 16px;
+}
+
+.mw3-result-stat-box {
+  flex: 1;
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mw3-result-stat-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.mw3-result-stat-value--stress {
+  font-size: 18px;
+  font-weight: 900;
+  color: #8FAD88;
+}
+
+.mw3-result-stat-value--emotion {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.mw3-result-quote {
+  background: #f8fafc;
+  padding: 20px 24px;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  text-align: left;
+}
+
+.mw3-result-quote p {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.7;
+  font-style: italic;
+  margin: 0;
+}
+
+.mw3-result-actions {
+  margin-top: 40px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.mw3-result-reset-btn {
+  font-size: 14px;
+  color: #8FAD88;
+  font-weight: 700;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.mw3-result-reset-btn:hover {
+  text-decoration: underline;
+}
+
+.mw3-result-divider {
+  width: 1px;
+  height: 16px;
+  background: #e2e8f0;
+}
+
+.mw3-result-view-btn {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 700;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.mw3-result-view-btn:hover {
+  color: #1e293b;
+}
+
+/* ---------- Right Section ---------- */
+.mw3-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ---------- Result Panel (Right) ---------- */
+.mw3-result-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 112px;
+  animation: mw3-slideIn 0.4s ease;
+}
+
+@keyframes mw3-slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.mw3-report-card {
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 32px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  border: 1px solid #f1f5f9;
+}
+
+.mw3-report-title {
+  font-weight: 700;
+  font-size: 20px;
+  margin: 0 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #1e293b;
+}
+
+.mw3-report-title-icon {
+  color: #8FAD88;
+}
+
+.mw3-report-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.mw3-bar-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.mw3-bar-label {
+  color: #475569;
+  font-weight: 600;
+}
+
+.mw3-bar-value--stress {
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.mw3-bar-value--emotion {
+  font-weight: 700;
+}
+
+.mw3-bar-track {
+  width: 100%;
+  background: #f1f5f9;
+  border-radius: 9999px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.mw3-bar-fill--stress {
+  background: #fbbf24;
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.6s ease;
+}
+
+.mw3-bar-fill--emotion {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.6s ease;
+}
+
+.mw3-analysis-box {
+  background: #f8fafc;
+  padding: 20px 24px;
+  border-radius: 16px;
+  border-left: 4px solid #8FAD88;
+}
+
+.mw3-analysis-text {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #334155;
+  font-weight: 500;
+  white-space: pre-line;
+  margin: 0;
+}
+
+/* ---------- Healing Card ---------- */
+.mw3-healing-card {
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 32px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  border: 1px solid #f1f5f9;
+}
+
+.mw3-healing-title {
+  font-weight: 700;
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mw3-healing-body {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.mw3-healing-icon {
+  width: 64px;
+  height: 64px;
+  background: #fffbeb;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+.mw3-healing-name {
+  font-weight: 700;
+  font-size: 18px;
+  margin: 0 0 4px;
+  color: #1e293b;
+}
+
+.mw3-healing-desc {
+  font-size: 11px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ---------- Default Panel (Right) ---------- */
+.mw3-default-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 112px;
+}
+
+.mw3-recent-card {
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  border: 1px solid #f1f5f9;
+}
+
+.mw3-recent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.mw3-recent-title {
+  font-weight: 700;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1e293b;
+  margin: 0;
+}
+
+.mw3-recent-title-icon {
+  color: #94a3b8;
+}
+
+.mw3-recent-all-btn {
+  font-size: 12px;
+  color: #94a3b8;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.mw3-recent-all-btn:hover {
+  color: #475569;
+}
+
+.mw3-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 첫 번째 카드 (초록) */
+.mw3-recent-item--primary {
+  background: rgba(143,173,136,0.7);
+  border-radius: 22px;
+  padding: 20px;
+  color: #ffffff;
+  position: relative;
+}
+
+.mw3-recent-primary-icon {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  opacity: 0.4;
+}
+
+.mw3-recent-badge {
+  background: rgba(255,255,255,0.2);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.mw3-recent-primary-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.mw3-recent-primary-desc {
+  font-size: 12px;
+  opacity: 0.8;
+  margin: 0 0 16px;
+}
+
+.mw3-recent-primary-date {
+  background: rgba(255,255,255,0.1);
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+/* 두 번째 카드 (흰 배경) */
+.mw3-recent-item--secondary {
+  border: 1px solid #f8fafc;
+  border-radius: 22px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.mw3-recent-item--secondary:hover {
+  background: #f8fafc;
+}
+
+.mw3-recent-item--secondary:hover .mw3-recent-chevron {
+  color: #8FAD88;
+}
+
+.mw3-recent-secondary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mw3-recent-ago {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.mw3-recent-secondary-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  margin: 0;
+}
+
+.mw3-recent-secondary-desc {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.mw3-recent-secondary-date {
+  margin-top: 12px;
+  background: #f8fafc;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.mw3-recent-chevron {
+  color: #cbd5e1;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+  .mw3-main {
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+  }
+
+  .mw3-left,
+  .mw3-right {
+    flex: none;
+    width: 100%;
+  }
+
+  .mw3-diary-card,
+  .mw3-report-card,
+  .mw3-healing-card,
+  .mw3-recent-card {
+    border-radius: 0;
+    box-shadow: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+  }
+
+  .mw3-result-panel,
+  .mw3-default-panel {
+    position: static;
+  }
+
+  .mw3-header {
+    padding: 16px 24px;
+  }
+
+  .mw3-header-left {
+    gap: 16px;
+  }
+
+  .mw3-nav {
+    display: none;
+  }
+
+  .mw3-header-menu {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .mw3-header {
+    padding: 16px;
+  }
+
+  .mw3-username {
+    display: none;
+  }
+
+  .mw3-diary-card {
+    padding: 24px;
+    min-height: 500px;
+  }
+
+  .mw3-diary-title {
+    font-size: 20px;
+  }
+
+  .mw3-slider-box {
+    padding: 16px;
+  }
+
+  .mw3-slider-value,
+  .mw3-slider-value--stress {
+    font-size: 16px;
+  }
+
+  .mw3-textarea {
+    height: 160px;
+    padding: 16px;
+  }
+
+  .mw3-submit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .mw3-submit-row {
+    justify-content: center;
+  }
+
+  .mw3-result-stat-row {
+    flex-direction: column;
+  }
+
+  .mw3-result-actions {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .mw3-result-divider {
+    display: none;
+  }
+}

@@ -1,421 +1,385 @@
-import React, { useState } from 'react';
-import { 
-  Bell, 
-  Smile, 
-  Meh, 
-  Frown, 
-  Heart, 
-  CloudRain,
-  ChevronRight,
-  Calendar,
-  Sparkles,
-  Loader2,
+import React, { useState, useEffect } from 'react';
+import {
+  Bell,
+  Heart,
+  Menu,
+  Gift,
   Coffee,
-  Clock,
-  Menu
+  Sparkles,
+  ExternalLink,
+  ChevronRight
 } from 'lucide-react';
+import '../static/HealingRounge.css';
 
-// --- 상단 스크립트 정리 (상수 및 데이터 정의) ---
+export default function HealingLounge() {
+  const [currentBanner, setCurrentBanner] = useState(0);
 
-// 글자수 제한 설정
-const MAX_LENGTH = 500;
+  // 이벤트 배너 데이터
+  const banners = [
+    {
+      id: 1,
+      tag: '가정의 달 EVENT',
+      title: '심리 검사 & 전문가 코칭 50% 할인',
+      desc: '바쁘게 달려온 나에게 다정한 위로를 건네보세요.',
+      gradClass: 'mw-banner-grad-1',
+      date: '~ 5월 31일까지',
+    },
+    {
+      id: 2,
+      tag: '신규 회원 혜택',
+      title: '첫 명상 가이드 무료 체험권 증정',
+      desc: '지금 가입하고 1,000여 개의 힐링 콘텐츠를 만나보세요.',
+      gradClass: 'mw-banner-grad-2',
+      date: '상시 진행',
+    },
+    {
+      id: 3,
+      tag: '커뮤니티 이벤트',
+      title: '마음 일기 챌린지 7일 성공 시 선물',
+      desc: '매일 한 문장, 나를 기록하고 친환경 굿즈를 받으세요.',
+      gradClass: 'mw-banner-grad-3',
+      date: '~ 6월 15일까지',
+    },
+  ];
 
-// 감정 데이터 상수
-const EMOTIONS = [
-  { id: 'happy', icon: Smile, label: '행복해요', color: 'text-amber-500', bg: 'bg-amber-100', accent: '#f59e0b' },
-  { id: 'calm', icon: Heart, label: '평온해요', color: 'text-emerald-500', bg: 'bg-emerald-100', accent: '#10b981' },
-  { id: 'tired', icon: Meh, label: '지쳤어요', color: 'text-slate-500', bg: 'bg-slate-100', accent: '#64748b' },
-  { id: 'sad', icon: CloudRain, label: '우울해요', color: 'text-blue-500', bg: 'bg-blue-100', accent: '#3b82f6' },
-  { id: 'angry', icon: Frown, label: '화가나요', color: 'text-red-500', bg: 'bg-red-100', accent: '#ef4444' },
-];
+  // 배너 자동 슬라이드 (3초)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % banners.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [banners.length]);
 
-export default function App() {
-  // 1. State 정의
-  const [diaryText, setDiaryText] = useState('');
-  const [selectedEmotion, setSelectedEmotion] = useState(null);
-  const [emotionIntensity, setEmotionIntensity] = useState(0); 
-  const [stressLevel, setStressLevel] = useState(0); 
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showResult, setShowResult] = useState(false);
-  const [viewDiary, setViewDiary] = useState(false);
+  // 차와 향 추천 데이터
+  const teaAndScentContents = [
+    {
+      id: 1,
+      mood: '숙면이 필요할 때',
+      tea: '캐모마일 릴렉스 티',
+      scent: '라벤더 인센스 스틱',
+      description: '긴장된 근육을 이완시키고 깊은 잠으로 안내합니다.',
+      glowClass: 'mw-glow-pink',
+      badgeClass: 'mw-badge-pink',
+    },
+    {
+      id: 2,
+      mood: '기분 전환이 필요할 때',
+      tea: '상큼한 히비스커스 티',
+      scent: '시트러스 블렌딩 오일',
+      description: '우울한 기분을 환기시키고 산뜻한 에너지를 채워줍니다.',
+      glowClass: 'mw-glow-amber',
+      badgeClass: 'mw-badge-amber',
+    },
+    {
+      id: 3,
+      mood: '깊은 명상을 할 때',
+      tea: '따뜻한 우롱차',
+      scent: '샌달우드(백단향)',
+      description: '복잡한 생각을 비우고 내면에 집중하도록 돕습니다.',
+      glowClass: 'mw-glow-green',
+      badgeClass: 'mw-badge-green',
+    },
+  ];
 
-  const [reportData, setReportData] = useState({
-    intensity: 0,
-    stress: 0,
-    text: '',
-    emotionId: null
-  });
+  // 책 추천 데이터
+  const bookContents = [
+    {
+      id: 1,
+      title: '당신이 옳다',
+      author: '정혜신',
+      theme: '공감과 위로',
+      coverClass: 'mw-cover-warm',
+      image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      id: 2,
+      title: '만일 내가 인생을 다시 산다면',
+      author: '김혜남',
+      theme: '삶의 태도',
+      coverClass: 'mw-cover-green',
+      image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      id: 3,
+      title: '기분이 태도가 되지 않게',
+      author: '레몬심리',
+      theme: '감정 조절',
+      coverClass: 'mw-cover-pink',
+      image: 'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      id: 4,
+      title: '마흔에 읽는 쇼펜하우어',
+      author: '강용수',
+      theme: '철학과 치유',
+      coverClass: 'mw-cover-amber',
+      image: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=800&auto=format&fit=crop',
+    },
+  ];
 
-  // 2. 헬퍼 변수 및 함수
-  const selectedEmotionData = EMOTIONS.find(e => e.id === (showResult ? reportData.emotionId : selectedEmotion));
+  // 상품 추천 데이터
+  const productContents = [
+    {
+      id: 1,
+      type: 'FOOD',
+      name: '스트레스 릴리프 다크 초콜릿',
+      desc: '테아닌 성분이 함유되어 긴장 완화에 도움을 줍니다.',
+      overlayClass: 'mw-overlay-green',
+      image: 'https://images.unsplash.com/photo-1515037893149-de7f840978e2?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      id: 2,
+      type: 'OBJECT',
+      name: '무음 모래시계 15분',
+      desc: '스마트폰을 내려두고 오직 나에게 집중하는 15분을 만들어보세요.',
+      overlayClass: 'mw-overlay-amber',
+      image: 'https://cdn.pixabay.com/photo/2015/02/01/22/37/new-year-background-620397_640.jpg',
+    },
+    {
+      id: 3,
+      type: 'OBJECT',
+      name: '마인드풀니스 린넨 일기장',
+      desc: '오늘의 감정을 기록하기 좋은 프리미엄 무선 노트입니다.',
+      overlayClass: 'mw-overlay-pink',
+      image: 'https://images.unsplash.com/photo-1531346878377-a5be20888e57?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      id: 4,
+      type: 'FOOD',
+      name: '유기농 제주 무농약 귤피차',
+      desc: '비타민C가 풍부하여 지친 오후 기운을 북돋아줍니다.',
+      overlayClass: 'mw-overlay-green',
+      image: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?q=80&w=800&auto=format&fit=crop',
+    },
+  ];
 
-  const isSubmitDisabled = 
-    isAnalyzing || 
-    !diaryText.trim() || 
-    !selectedEmotion || 
-    emotionIntensity === 0 || 
-    stressLevel === 0;
-
-  const getDynamicAnalysisText = () => {
-    const { stress, intensity, emotionId, text } = reportData;
-    const emoLabel = EMOTIONS.find(e => e.id === emotionId)?.label || "";
-    
-    let analysis = "";
-    let stressAdvice = "";
-    let empathy = "";
-
-    if (intensity > 80) {
-      analysis = `오늘 느끼신 '${emoLabel}'의 감정은 당신의 마음을 가득 채울 만큼 아주 강렬한 상태입니다. 이 에너지가 당신에게 어떤 의미인지 깊이 들여다보는 시간이 필요해 보여요.`;
-    } else if (intensity > 40) {
-      analysis = `현재 '${emoLabel}'의 기분을 적절히 느끼고 계시네요. 감정을 억누르지 않고 솔직하게 마주하는 것만으로도 마음의 건강을 지키는 좋은 습관입니다.`;
-    } else {
-      analysis = `지금의 '${emoLabel}' 감정은 잔잔하게 흐르는 물결 같습니다. 은은하게 느껴지는 이 마음이 일상의 작은 변화를 만들어낼 수도 있어요.`;
-    }
-
-    if (stress > 80) {
-      stressAdvice = `특히 스트레스 지수가 ${stress}%로 위험 수준에 도달해 있습니다. 기록하신 "${text.substring(0, 10)}..."의 상황이 당신을 많이 짓누르고 있진 않나요? 지금은 정답을 찾기보다 모든 일을 잠시 멈추고 심호흡을 하며 자신을 돌봐야 할 때입니다.`;
-    } else if (stress > 50) {
-      stressAdvice = `스트레스 지수 ${stress}%는 마음의 경고등이 노란색으로 켜진 상태입니다. 긴장이 몸과 마음을 굳게 만들고 있을 수 있으니, 좋아하는 음악을 듣거나 가벼운 산책으로 환기를 시켜보세요.`;
-    } else {
-      stressAdvice = `스트레스 지수가 ${stress}%로 매우 건강한 상태입니다. 기록하신 일기 내용처럼 긍정적인 마음의 흐름이 잘 유지되고 있네요.`;
-    }
-
-    empathy = `기록해주신 소중한 문장들 속에서 당신의 진심이 온전히 전해집니다. 오늘 하루도 정말 고생 많으셨습니다.`;
-
-    return `${analysis} ${stressAdvice} ${empathy}`;
-  };
-
-  // 3. 이벤트 핸들러
-  const handleEmotionSelect = (id) => {
-    setSelectedEmotion(id);
-    setEmotionIntensity(0);
-    setStressLevel(0);
-  };
-
-  const handleDiaryChange = (e) => {
-    const text = e.target.value;
-    if (text.length <= MAX_LENGTH) {
-      setDiaryText(text);
-    }
-  };
-
-  const handleAnalyze = () => {
-    if (!diaryText.trim() || !selectedEmotion || emotionIntensity <= 0 || stressLevel <= 0) return;
-    
-    setIsAnalyzing(true);
-    setReportData({
-      intensity: Number(emotionIntensity),
-      stress: Number(stressLevel),
-      text: diaryText,
-      emotionId: selectedEmotion
-    });
-
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      setShowResult(true);
-    }, 1500);
-  };
-
-  const handleReset = () => {
-    setDiaryText('');
-    setSelectedEmotion(null);
-    setEmotionIntensity(0);
-    setStressLevel(0);
-    setShowResult(false);
-    setViewDiary(false);
-  };
-
-  // 4. 렌더링
   return (
-    <div className="min-h-screen bg-[#F8FAFB] font-sans text-slate-800">
-      {/* 글로벌 스타일 */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        input[type=range]::-webkit-slider-thumb {
-          appearance: none;
-          height: 20px;
-          width: 20px;
-          border-radius: 50%;
-          background: white;
-          cursor: pointer;
-          border: 2px solid #E2E8F0;
-          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-          margin-top: -6px;
-        }
-        @media (min-width: 768px) {
-          input[type=range]::-webkit-slider-thumb {
-            height: 24px;
-            width: 24px;
-            margin-top: -8px;
-          }
-        }
-        input[type=range]::-moz-range-thumb {
-          height: 20px;
-          width: 20px;
-          border-radius: 50%;
-          background: white;
-          cursor: pointer;
-          border: 2px solid #E2E8F0;
-          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
-        input[type=range] {
-          border-radius: 9999px;
-        }
-      `}} />
+    <div className="mw-root">
 
-      {/* Header */}
-      <header className="bg-white px-4 md:px-6 lg:px-12 py-4 flex items-center justify-between border-b border-slate-100 sticky top-0 z-20">
-        <div className="flex items-center gap-4 lg:gap-16">
-          <div className="md:hidden">
-             <Menu size={24} className="text-slate-600" />
+      {/* ── 헤더 ── */}
+      <header className="mw-header">
+        <div className="mw-header-inner">
+          <div className="mw-header-left">
+            <button className="mw-menu-btn">
+              <Menu size={20} />
+            </button>
+            <div className="mw-logo">MINDWELL</div>
+            <nav className="mw-nav">
+              <a href="#" className="mw-nav-link">전문가 찾기</a>
+              <a href="#" className="mw-nav-link">예약 관리</a>
+              <a href="#" className="mw-nav-link">AI 일기</a>
+              <a href="#" className="mw-nav-link-active">힐링 라운지</a>
+            </nav>
           </div>
-          <h1 className="text-xl md:text-2xl font-extrabold text-[#8FAD88] tracking-tighter">MINDWELL</h1>
-          <nav className="hidden md:flex items-center gap-8 text-[15px] font-medium text-slate-500">
-            <a href="#" className="hover:text-slate-900 transition-colors">전문가 찾기</a>
-            <a href="#" className="hover:text-slate-900 transition-colors">예약 관리</a>
-            <a href="#" className="text-[#8FAD88] font-bold border-b-2 border-[#8FAD88] pb-1">AI 일기</a>
-            <a href="#" className="hover:text-slate-900 transition-colors">힐링 라운지</a>
-          </nav>
-        </div>
-        <div className="flex items-center gap-3 md:gap-6">
-          <button className="text-slate-400 hover:text-slate-600 relative">
-            <Bell size={20} />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-red-400 rounded-full border border-white"></span>
-          </button>
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 md:w-9 md:h-9 bg-slate-200 rounded-full overflow-hidden border border-slate-100 shadow-sm">
-              <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix" alt="Profile" className="w-full h-full" />
+          <div className="mw-header-right">
+            <button className="mw-bell-btn">
+              <Bell size={18} />
+              <span className="mw-bell-dot" />
+            </button>
+            <div className="mw-profile-btn">
+              <div className="mw-profile-icon">
+                <Heart size={12} fill="#8BA888" style={{ color: '#8BA888' }} />
+              </div>
+              <span className="mw-profile-name">내담자 님</span>
             </div>
-            <span className="hidden sm:inline text-sm font-semibold">먹보 님</span>
           </div>
         </div>
       </header>
 
-      <main className="max-w-[1280px] mx-auto px-0 md:px-0 lg:px-12 py-0 md:py-6 lg:py-12 flex flex-col lg:flex-row gap-0 md:gap-8">
-        {/* Left Section */}
-        <div className="w-full lg:flex-[1.8] flex flex-col gap-0 md:gap-6">
-          <div className="bg-white rounded-none md:rounded-[32px] p-6 md:p-8 lg:p-10 shadow-none md:shadow-sm border-b md:border border-slate-100/50 min-h-[500px] md:min-h-[600px]">
-            <div className="mb-6 md:mb-8">
-              <span className="text-[10px] md:text-xs font-bold text-[#8FAD88] bg-[#8FAD88]/10 px-3 py-1 rounded-full mb-3 inline-block">DIARY</span>
-              <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mt-1">오늘의 마음을 기록해보세요</h2>
-              <p className="text-slate-500 text-xs md:text-sm mt-2">2026년 4월 21일의 기록</p>
+      {/* ── 메인 ── */}
+      <main className="mw-main">
+
+        {/* 타이틀 */}
+        <div className="mw-page-title-wrap">
+          <h1 className="mw-page-title">힐링 라운지</h1>
+          <p className="mw-page-subtitle">"당신의 몸과 마음을 채우는 건강한 추천"</p>
+        </div>
+
+        {/* 1. 이벤트 배너 */}
+        <section className="mw-banner-section">
+          <div
+            className="mw-banner-track"
+            style={{ transform: `translateX(-${currentBanner * 100}%)` }}
+          >
+            {banners.map((banner) => (
+              <div key={banner.id} className="mw-banner-slide">
+                <div className={`mw-banner-card ${banner.gradClass}`}>
+                  <div className="mw-banner-content">
+                    <div className="mw-banner-tag-row">
+                      <span className="mw-banner-tag">{banner.tag}</span>
+                      <span className="mw-banner-date">{banner.date}</span>
+                    </div>
+                    <h2 className="mw-banner-title">{banner.title}</h2>
+                    <p className="mw-banner-desc">{banner.desc}</p>
+                    <button className="mw-banner-btn">
+                      <Gift size={16} style={{ color: '#8BA888' }} />
+                      <span>혜택 확인하기</span>
+                    </button>
+                  </div>
+                  <div className="mw-banner-icon-wrap">
+                    <div className="mw-banner-icon-circle">
+                      <Heart size={36} fill="white" style={{ color: '#fff' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mw-banner-dots">
+            {banners.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentBanner(idx)}
+                className={`mw-banner-dot ${currentBanner === idx ? 'mw-banner-dot-active' : ''}`}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* 2. 오늘의 차와 향기 */}
+        <section className="mw-section">
+          <div className="mw-tea-header">
+            <div className="mw-tea-header-text">
+              <h3 className="mw-section-title">
+                오늘의 차와 향기 <span style={{ display: 'inline-block', animation: 'bounce 1s infinite' }}>🍵</span>
+              </h3>
+              <p className="mw-section-subtitle">지금 당신에게 가장 필요한 감각의 휴식을 제안합니다.</p>
             </div>
+          </div>
 
-            {!showResult ? (
-              <div className="flex flex-col gap-6 md:gap-8">
-                <div>
-                  <p className="text-xs md:text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                    <Sparkles size={16} className="text-[#8FAD88]" />
-                    지금 가장 크게 느껴지는 감정은 무엇인가요?
-                  </p>
-                  <div className="flex flex-wrap gap-2 md:gap-3 -mx-6 md:-mx-8 lg:mx-0 px-6 md:px-8 lg:px-0">
-                    {EMOTIONS.map((emo) => {
-                      const Icon = emo.icon;
-                      const isSelected = selectedEmotion === emo.id;
-                      return (
-                        <button
-                          key={emo.id}
-                          onClick={() => handleEmotionSelect(emo.id)}
-                          className={`flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl transition-all ${
-                            isSelected ? `${emo.bg} border-2 border-white shadow-md scale-105` : 'bg-slate-50 border-2 border-transparent hover:bg-slate-100'
-                          }`}
-                        >
-                          <Icon className={isSelected ? emo.color : 'text-slate-400'} size={18} />
-                          <span className={`font-semibold text-xs md:text-sm ${isSelected ? 'text-slate-800' : 'text-slate-500'}`}>{emo.label}</span>
-                        </button>
-                      );
-                    })}
+          <div className="mw-tea-grid">
+            {teaAndScentContents.map((item) => (
+              <div key={item.id} className="mw-tea-card">
+                <div className={`mw-tea-card-glow ${item.glowClass}`} />
+                <span className={`mw-tea-mood-badge ${item.badgeClass}`}>{item.mood}</span>
+                <div className="mw-tea-items">
+                  <div className="mw-tea-item-row">
+                    <div className="mw-tea-icon-box mw-tea-icon-tea">
+                      <Coffee size={18} />
+                    </div>
+                    <div>
+                      <p className="mw-tea-label">Tea</p>
+                      <span className="mw-tea-name">{item.tea}</span>
+                    </div>
+                  </div>
+                  <div className="mw-tea-item-row">
+                    <div className="mw-tea-icon-box mw-tea-icon-scent">
+                      <Sparkles size={18} />
+                    </div>
+                    <div>
+                      <p className="mw-tea-label">Scent</p>
+                      <span className="mw-tea-name">{item.scent}</span>
+                    </div>
+                  </div>
+                  <div className="mw-tea-desc-box">
+                    <p className="mw-tea-desc">{item.description}</p>
                   </div>
                 </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
-                {selectedEmotion && (
-                  <div className="bg-slate-50 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100">
-                    <div className="flex justify-between items-center mb-4 md:mb-5">
-                      <label className="text-[11px] md:text-sm font-bold text-slate-600">감정의 크기를 드래그해서 표현해주세요</label>
-                      <span className="text-lg md:text-xl font-black" style={{ color: selectedEmotionData?.accent }}>{emotionIntensity}%</span>
-                    </div>
-                    <div className="relative h-2 w-full bg-slate-200 rounded-full">
-                      <input
-                        type="range" min="0" max="100" value={emotionIntensity}
-                        onChange={(e) => setEmotionIntensity(e.target.value)}
-                        className="absolute top-0 left-0 w-full h-2 appearance-none bg-transparent cursor-pointer z-10"
-                        style={{ 
-                          background: `linear-gradient(to right, ${selectedEmotionData?.accent} ${emotionIntensity}%, transparent 0%)`,
-                          borderRadius: '9999px'
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-slate-50 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100">
-                  <div className="flex justify-between items-center mb-4 md:mb-5">
-                    <label className="text-[11px] md:text-sm font-bold text-slate-600">현재 스트레스 지수를 드래그해서 표현해주세요</label>
-                    <span className="text-lg md:text-xl font-black text-[#8FAD88]">{stressLevel}%</span>
-                  </div>
-                  <div className="relative h-2 w-full bg-slate-200 rounded-full">
-                    <input
-                      type="range" min="0" max="100" value={stressLevel}
-                      onChange={(e) => setStressLevel(e.target.value)}
-                      className="absolute top-0 left-0 w-full h-2 appearance-none bg-transparent cursor-pointer z-10"
-                      style={{ 
-                        background: `linear-gradient(to right, #8FAD88 ${stressLevel}%, transparent 0%)`,
-                        borderRadius: '9999px'
-                      }}
+        {/* 3. 마음을 어루만지는 책 */}
+        <section className="mw-section">
+          <div className="mw-section-header">
+            <h3 className="mw-section-title mw-section-title-left">마음을 어루만지는 책 📚</h3>
+            <div className="mw-section-header-actions">
+              <span className="mw-scroll-hint">Scroll →</span>
+              <button className="mw-view-all-btn">
+                전체보기 <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+          <div className="mw-hscroll-outer">
+            <div className="mw-hscroll-inner mw-hscroll-inner-book mw-scrollbar-hide mw-scroll-area">
+              {bookContents.map((book) => (
+                <div key={book.id} className="mw-book-card">
+                  <div className={`mw-book-cover ${book.coverClass}`}>
+                    <img
+                      src={book.image}
+                      alt={book.title}
+                      className="mw-book-img mw-no-drag-img"
+                      loading="lazy"
                     />
+                    <div className="mw-book-spine" />
+                  </div>
+                  <div className="mw-book-info">
+                    <span className="mw-book-theme">{book.theme}</span>
+                    <h4 className="mw-book-title">{book.title}</h4>
+                    <p className="mw-book-author">{book.author}</p>
                   </div>
                 </div>
+              ))}
+              <div className="mw-hscroll-spacer" />
+            </div>
+          </div>
+        </section>
 
-                <div className="relative">
-                  <textarea
-                    value={diaryText}
-                    onChange={handleDiaryChange}
-                    placeholder="오늘 하루 어떤 일이 있었나요? 솔직한 마음을 편안하게 적어주세요."
-                    className="w-full bg-slate-50 rounded-2xl md:rounded-3xl p-4 md:p-6 h-40 md:h-48 text-sm md:text-base text-slate-700 resize-none border border-transparent focus:ring-2 focus:ring-[#8FAD88]/30 focus:outline-none transition-all"
-                  />
-                  <div className="absolute bottom-4 right-6 text-[11px] md:text-xs font-medium text-slate-400">
-                    <span className={diaryText.length >= MAX_LENGTH ? 'text-red-400 font-bold' : ''}>{diaryText.length}</span> / {MAX_LENGTH}자
-                  </div>
-                </div>
+        {/* 4. 일상의 평온을 돕는 큐레이션 */}
+        <section className="mw-section">
+          <div className="mw-section-header">
+            <div className="mw-section-header-left">
+              <h3 className="mw-section-title mw-section-title-left">일상의 평온을 돕는 큐레이션 ✨</h3>
+              <p className="mw-section-subtitle-sm">당신의 공간과 시간을 더 안온하게</p>
+            </div>
+            <div className="mw-section-header-actions">
+              <span className="mw-scroll-hint">Scroll →</span>
+              <button className="mw-view-all-btn">
+                전체보기 <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
 
-                <div className="flex justify-center md:justify-end">
-                  <button
-                    onClick={handleAnalyze}
-                    disabled={isSubmitDisabled}
-                    className="w-full md:w-auto bg-[#8FAD88] hover:bg-[#7a9673] disabled:bg-slate-300 text-white font-bold py-3 md:py-4 px-10 rounded-xl md:rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95"
-                  >
-                    {isAnalyzing ? <Loader2 size={20} className="animate-spin" /> : <Sparkles size={20} />}
-                    {isAnalyzing ? "마음 분석 중..." : "AI 분석받기"}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center py-6 md:py-10 animate-in fade-in zoom-in duration-500 text-center">
-                <div className="w-16 h-16 md:w-20 md:h-20 bg-[#8FAD88]/10 rounded-full flex items-center justify-center mb-6">
-                  <Sparkles className="text-[#8FAD88]" size={30} />
-                </div>
-                <h3 className="text-xl md:text-2xl font-bold mb-6 md:mb-8">분석이 완료되었습니다</h3>
-                
-                <div className="w-full max-w-lg space-y-4 px-4 md:px-0">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1 bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-100 flex justify-between items-center">
-                      <span className="text-xs md:text-sm font-bold text-slate-500">스트레스</span>
-                      <span className="text-base md:text-lg font-black text-[#8FAD88]">{reportData.stress}%</span>
-                    </div>
-                    <div className="flex-1 bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-100 flex justify-between items-center">
-                      <span className="text-xs md:text-sm font-bold text-slate-500">감정 강도</span>
-                      <span className="text-base md:text-lg font-black" style={{ color: selectedEmotionData?.accent }}>{reportData.intensity}%</span>
+          <div className="mw-hscroll-outer">
+            <div className="mw-hscroll-inner mw-hscroll-inner-product mw-scrollbar-hide mw-scroll-area">
+              {productContents.map((product) => (
+                <div key={product.id} className="mw-product-card">
+                  <div className="mw-product-img-wrap">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="mw-product-img mw-no-drag-img"
+                      loading="lazy"
+                    />
+                    <div className={`mw-product-overlay ${product.overlayClass}`} />
+                  </div>
+                  <div>
+                    <span className="mw-product-type">{product.type}</span>
+                    <h4 className="mw-product-name">{product.name}</h4>
+                    <p className="mw-product-desc">{product.desc}</p>
+                    <div className="mw-product-footer">
+                      <span className="mw-product-label">추천 아이템</span>
+                      <button className="mw-product-link-btn">
+                        <ExternalLink size={12} />
+                      </button>
                     </div>
                   </div>
-                  
-                  <div className="bg-slate-50 p-5 md:p-6 rounded-2xl border border-slate-100 text-left">
-                    <p className="text-sm md:text-base text-slate-700 leading-relaxed italic">"{reportData.text}"</p>
-                  </div>
                 </div>
-                
-                <div className="mt-8 md:mt-10 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-                  <button onClick={handleReset} className="text-sm md:text-base text-[#8FAD88] font-bold hover:underline">
-                    새 일기 작성하기
-                  </button>
-                  <div className="hidden sm:block w-[1px] h-4 bg-slate-200"></div>
-                  <button className="text-sm md:text-base text-slate-500 font-bold hover:text-slate-800 transition-colors">
-                    작성한 일기 보기
-                  </button>
-                </div>
-              </div>
-            )}
+              ))}
+              <div className="mw-hscroll-spacer" />
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      {/* ── 푸터 ── */}
+      <footer className="mw-footer">
+        <div className="mw-footer-inner">
+          <div className="mw-footer-brand">
+            <h4 className="mw-footer-logo">MINDWELL</h4>
+            <p className="mw-footer-copy">© 2026 MINDWELL LAB. All rights reserved.</p>
+          </div>
+          <div className="mw-footer-links">
+            <a href="#" className="mw-footer-link">이용약관</a>
+            <a href="#" className="mw-footer-link">개인정보처리방침</a>
+            <a href="#" className="mw-footer-link">고객센터</a>
           </div>
         </div>
+      </footer>
 
-        {/* Right Section */}
-        <div className="w-full lg:flex-1 flex flex-col gap-0 md:gap-6">
-          {showResult ? (
-            <div className="flex flex-col gap-0 md:gap-6 lg:sticky lg:top-28 animate-in slide-in-from-right duration-500">
-              <div className="bg-white rounded-none md:rounded-[28px] p-6 md:p-8 shadow-none md:shadow-sm border-b md:border border-slate-100">
-                <h3 className="font-bold text-lg md:text-xl mb-6 md:mb-8 flex items-center gap-3">
-                  <Sparkles className="text-[#8FAD88]" size={20} />
-                  감정 분석 리포트
-                </h3>
-                
-                <div className="space-y-6 mb-8">
-                  <div>
-                    <div className="flex justify-between text-[11px] md:text-sm mb-2">
-                      <span className="text-slate-600 font-semibold">스트레스/피로</span>
-                      <span className="font-bold text-amber-500">{reportData.stress}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2 md:h-3 overflow-hidden">
-                      <div className="bg-amber-400 h-full rounded-full" style={{ width: `${reportData.stress}%` }}></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-[11px] md:text-sm mb-2">
-                      <span className="text-slate-600 font-semibold">감정 선명도({selectedEmotionData?.label})</span>
-                      <span className="font-bold" style={{ color: selectedEmotionData?.accent }}>{reportData.intensity}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2 md:h-3 overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${reportData.intensity}%`, backgroundColor: selectedEmotionData?.accent }}></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 p-4 md:p-6 rounded-2xl border-l-4 border-[#8FAD88]">
-                  <p className="text-[13px] md:text-sm leading-relaxed text-slate-700 font-medium whitespace-pre-line">{getDynamicAnalysisText()}</p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-none md:rounded-[28px] p-6 md:p-8 shadow-none md:shadow-sm border-b md:border border-slate-100">
-                <h3 className="font-bold text-[10px] md:text-sm text-slate-400 uppercase tracking-widest mb-4 md:mb-6 flex items-center gap-2">
-                  <Coffee size={14} /> 오늘의 힐링 처방
-                </h3>
-                <div className="flex items-center gap-4 md:gap-5">
-                  <div className="w-12 h-12 md:w-16 md:h-16 bg-amber-50 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0">
-                    <Coffee className="text-amber-600" size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-base md:text-lg mb-1">따뜻한 캐모마일 차</h4>
-                    <p className="text-[10px] md:text-xs text-slate-500">긴장을 완화하고 마음을 차분하게 해줄 거예요.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-0 md:gap-6 lg:sticky lg:top-28">
-              <div className="bg-white rounded-none md:rounded-[28px] p-6 md:p-6 shadow-none md:shadow-sm border-b md:border border-slate-100">
-                <div className="flex justify-between items-center mb-6">
-                   <h3 className="font-bold text-base md:text-[17px] flex items-center gap-2 text-slate-800">
-                     <Clock size={18} className="text-slate-400" /> 최근 기록
-                   </h3>
-                   <button className="text-[12px] text-slate-400 hover:text-slate-600">전체보기</button>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="bg-[#8FAD88]/70 rounded-[20px] md:rounded-[22px] p-4 md:p-5 text-white relative">
-                    <div className="absolute top-4 right-5 opacity-40"><Smile size={20} /></div>
-                    <span className="bg-white/20 text-[9px] md:text-[10px] px-2 py-0.5 rounded-full font-bold mb-3 inline-block">D-1</span>
-                    <h4 className="text-sm md:text-[15px] font-bold mb-1">오랜만에 친구를 만났다</h4>
-                    <p className="text-[11px] md:text-[12px] opacity-80 mb-4">즐거운 저녁 식사 시간이었다.</p>
-                    <div className="bg-white/10 w-fit px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] md:text-[11px]">
-                      <Calendar size={12} /> 5월 20일 (수)
-                    </div>
-                  </div>
-
-                  <div className="border border-slate-50 rounded-[20px] md:rounded-[22px] p-4 md:p-5 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer group">
-                    <div className="flex flex-col gap-1">
-                      <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider">2 days ago</p>
-                      <h4 className="text-sm md:text-[14px] font-bold text-slate-700">업무 스트레스가 심한 날</h4>
-                      <p className="text-[10px] md:text-[11px] text-slate-400">회의가 너무 많아서 지쳤다.</p>
-                      <div className="mt-3 bg-slate-50 w-fit px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] md:text-[11px] text-slate-500">
-                        <Calendar size={12} /> 5월 19일 (화)
-                      </div>
-                    </div>
-                    <ChevronRight size={18} className="text-slate-300 group-hover:text-[#8FAD88] transition-colors" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
     </div>
   );
 }
