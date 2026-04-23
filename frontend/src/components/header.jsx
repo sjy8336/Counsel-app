@@ -104,7 +104,10 @@ export default function Header({ activeTab, setActiveTab }) {
                             onClick={() => {
                                 if (userRole === 'counselor') {
                                     navigate('/CounselorMyPage');
+                                } else if (userRole === 'client' || userRole === 'admin') {
+                                    navigate('/mypage');
                                 } else {
+                                    // fallback: 로그인은 했지만 role 정보가 없을 때
                                     navigate('/mypage');
                                 }
                             }}
