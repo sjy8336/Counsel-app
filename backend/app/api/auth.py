@@ -6,7 +6,6 @@ from app.db.session import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, LoginRequest
 from app.crud import crud
-from app.api import deps
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -153,11 +152,15 @@ def change_password(req: ChangePasswordRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="비밀번호 변경 중 오류 발생")
 
 @router.get("/me")
-def get_me(current_user: User = Depends(deps.get_current_active_user)):
+def get_me(db: Session = Depends(get_db)):
+    # 임시: 첫 번째 유저 반환 (실제 서비스에서는 인증된 유저 반환 필요)
+    user = db.query(User).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="유저를 찾을 수 없습니다.")
     return {
-        "id": current_user.id,
-        "full_name": current_user.full_name,
-        "email": current_user.email,
-        "role": current_user.role,  # 'counselor', 'client', 'admin'
+        "id": user.id,
+        "full_name": user.full_name,
+        "email": user.email,
+        "role": user.role,  # 'counselor', 'client', 'admin'
         "profile_image": "default.png"
     }
