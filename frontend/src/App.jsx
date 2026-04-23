@@ -10,6 +10,7 @@ import ReservationPage from './pages/Reservation';
 import CounselorListPage from './pages/CounselorList';
 import CounselorDetailPage from './pages/CounselorDetail';
 import CounselorMyPage from './pages/CounselorMyPage';
+import Schedule from './pages/Schedule';
 
 function App() {
     return (
@@ -26,6 +27,7 @@ function App() {
                 <Route path="/CounselorMyPage" element={<CounselorMyPage />} />
                 <Route path="/diary" element={<Diary />} />
                 <Route path="/healing" element={<HealingRounge />} />
+                <Route path="/schedule" element={<Schedule />} />
             </Routes>
         </BrowserRouter>
     );
