@@ -210,7 +210,7 @@ git pull
 
 # 3. 내 작업 브랜치로 이동
 git checkout feature/ui
-
+git
 # 4. 깃허브의 dev 브랜치 내용을 내 작업 브랜치로 바로 합치기
 git merge dev
 
