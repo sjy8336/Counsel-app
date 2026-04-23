@@ -57,8 +57,6 @@ counseling-platform/
     │   ├── api/    
     │   │   ├── endpoints/
     │   │   │   ├── auth.py                 
-    
-                # 로그인, 회원가입, 토큰 갱신
     │   │   │   ├── users.py                            # 유저 프로필
     │   │   │   ├── counselors.py                       # 상담사 목록/프로필 조회
     │   │   │   ├── schedules.py                        # 시간대(Time Slot) 설정
@@ -215,3 +213,456 @@ git checkout feature/ui
 
 # 4. 깃허브의 dev 브랜치 내용을 내 작업 브랜치로 바로 합치기
 git merge dev
+
+
+
+
+
+
+
+
+
+import React, { useState } from 'react';
+import { 
+  Settings, 
+  MessageCircle, 
+  Sparkles,
+  Bell,
+  BookOpen,
+  PlusCircle,
+  Lightbulb,
+  Music,
+  Wind,
+  Heart,
+  User,
+  Calendar,
+  ChevronRight,
+  TrendingUp,
+  Award,
+  Search,
+  Menu
+} from 'lucide-react';
+
+const App = () => {
+  const [activeTab, setActiveTab] = useState('profile');
+  const [hasWrittenToday, setHasWrittenToday] = useState(false);
+
+  // 디자인 시스템 테마 색상
+  const theme = {
+    bg: '#F9FBF7',        
+    primary: '#7DA67D',   
+    secondary: '#E8F0E5', 
+    accent: '#A9C2A9',    
+    text: '#455245',      
+    subText: '#829182',   
+    border: '#E2EBE0',
+    white: '#FFFFFF',
+    shadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    cardShadow: '0 1px 3px rgba(0,0,0,0.05)'
+  };
+
+  // 모든 스타일을 CSS-in-JS 객체로 통합 (className 대체)
+  const mypageStyles = {
+    container: {
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      maxWidth: '448px',
+      margin: '0 auto',
+      backgroundColor: theme.bg,
+      color: theme.text,
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      boxShadow: '0 0 20px rgba(0,0,0,0.05)'
+    },
+    header: {
+      padding: '20px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: theme.white,
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
+      borderBottom: `1px solid ${theme.border}`
+    },
+    logoSection: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px'
+    },
+    logoIcon: {
+      width: '36px',
+      height: '36px',
+      borderRadius: '10px',
+      backgroundColor: theme.primary,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    logoText: {
+      fontSize: '18px',
+      fontWeight: '800',
+      color: theme.primary,
+      margin: 0,
+      letterSpacing: '-0.5px'
+    },
+    headerIcons: {
+      display: 'flex',
+      gap: '12px'
+    },
+    iconBtn: {
+      background: 'none',
+      border: 'none',
+      padding: '4px',
+      cursor: 'pointer',
+      color: theme.subText,
+      position: 'relative'
+    },
+    badge: {
+      position: 'absolute',
+      top: '2px',
+      right: '2px',
+      width: '8px',
+      height: '8px',
+      backgroundColor: '#FF6B6B',
+      borderRadius: '50%',
+      border: `2px solid ${theme.white}`
+    },
+    tabs: {
+      display: 'flex',
+      backgroundColor: theme.white,
+      padding: '0 20px',
+      borderBottom: `1px solid ${theme.border}`
+    },
+    tabItem: (isActive) => ({
+      flex: 1,
+      padding: '16px 0',
+      textAlign: 'center',
+      fontSize: '15px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      color: isActive ? theme.primary : '#B0BDB0',
+      borderBottom: isActive ? `3px solid ${theme.primary}` : '3px solid transparent',
+      transition: 'all 0.2s ease'
+    }),
+    content: {
+      flex: 1,
+      padding: '20px',
+      overflowY: 'auto'
+    },
+    profileCard: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '20px 0'
+    },
+    avatarBox: {
+      position: 'relative',
+      marginBottom: '12px'
+    },
+    avatar: {
+      width: '100px',
+      height: '100px',
+      borderRadius: '50%',
+      backgroundColor: theme.secondary,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      border: `4px solid ${theme.white}`,
+      boxShadow: theme.shadow
+    },
+    avatarEdit: {
+      position: 'absolute',
+      bottom: '0',
+      right: '0',
+      backgroundColor: theme.white,
+      padding: '6px',
+      borderRadius: '50%',
+      boxShadow: theme.shadow,
+      display: 'flex'
+    },
+    profileName: {
+      fontSize: '22px',
+      fontWeight: '700',
+      margin: '0 0 4px 0'
+    },
+    profileSub: {
+      fontSize: '13px',
+      color: theme.subText,
+      margin: 0
+    },
+    statsGrid: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: '15px',
+      margin: '25px 0'
+    },
+    statBox: {
+      backgroundColor: theme.white,
+      padding: '16px',
+      borderRadius: '16px',
+      border: `1px solid ${theme.border}`
+    },
+    statLabel: {
+      fontSize: '12px',
+      fontWeight: '600',
+      color: theme.subText,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      marginBottom: '8px'
+    },
+    statValue: {
+      fontSize: '24px',
+      fontWeight: '800',
+      margin: 0
+    },
+    listMenu: {
+      backgroundColor: theme.white,
+      borderRadius: '16px',
+      border: `1px solid ${theme.border}`,
+      overflow: 'hidden'
+    },
+    listItem: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '16px',
+      borderBottom: `1px solid ${theme.border}`,
+      cursor: 'pointer'
+    },
+    listItemLeft: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px'
+    },
+    banner: {
+      backgroundColor: theme.secondary,
+      borderRadius: '16px',
+      padding: '20px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '24px'
+    },
+    bannerBtn: {
+      backgroundColor: theme.primary,
+      color: theme.white,
+      border: 'none',
+      padding: '8px 14px',
+      borderRadius: '10px',
+      fontSize: '13px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px'
+    },
+    sectionTitle: {
+      fontSize: '13px',
+      fontWeight: '700',
+      color: theme.subText,
+      textTransform: 'uppercase',
+      letterSpacing: '0.5px',
+      marginBottom: '12px',
+      marginTop: '24px'
+    },
+    logCard: {
+      backgroundColor: theme.white,
+      padding: '20px',
+      borderRadius: '16px',
+      border: `1px solid ${theme.border}`,
+      lineHeight: '1.6',
+      fontSize: '15px'
+    },
+    aiCard: {
+      backgroundColor: theme.white,
+      padding: '20px',
+      borderRadius: '16px',
+      border: `1px solid ${theme.border}`,
+      position: 'relative',
+      overflow: 'hidden'
+    },
+    healingBox: {
+      backgroundColor: theme.white,
+      padding: '20px',
+      borderRadius: '16px',
+      border: `1px solid ${theme.border}`
+    },
+    tag: {
+      padding: '6px 12px',
+      backgroundColor: theme.bg,
+      borderRadius: '20px',
+      fontSize: '12px',
+      color: theme.subText,
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '5px',
+      marginRight: '8px',
+      marginTop: '12px'
+    },
+    footer: {
+      padding: '16px 20px',
+      backgroundColor: theme.white,
+      borderTop: `1px solid ${theme.border}`
+    },
+    mainBtn: {
+      width: '100%',
+      backgroundColor: theme.primary,
+      color: theme.white,
+      border: 'none',
+      padding: '16px',
+      borderRadius: '14px',
+      fontSize: '16px',
+      fontWeight: '700',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '10px',
+      cursor: 'pointer',
+      boxShadow: '0 4px 12px rgba(125, 166, 125, 0.2)'
+    }
+  };
+
+  const reportData = {
+    date: "2024년 5월 20일",
+    content: "숲길을 걷는 것처럼 마음이 편안해지고 싶다. 오늘 하루는 큰 탈 없이 지나갔지만, 나 자신에게 조금 더 친절하고 싶다는 생각이 들었다.",
+    analysis: "오늘 당신의 마음은 마치 비 온 뒤의 맑은 숲속 같아요. 큰 사건은 없었지만, 스스로를 돌보고 싶어 하는 그 마음 자체가 이미 충분히 아름답습니다.",
+    recommendation: "식물에게 물 주기와 심호흡"
+  };
+
+  const renderProfile = () => (
+    <>
+      <div style={mypageStyles.profileCard}>
+        <div style={mypageStyles.avatarBox}>
+          <div style={mypageStyles.avatar}>
+            <User size={50} color={theme.accent} />
+          </div>
+          <div style={mypageStyles.avatarEdit}>
+            <Settings size={14} color={theme.primary} />
+          </div>
+        </div>
+        <h2 style={mypageStyles.profileName}>김마음 님</h2>
+        <p style={mypageStyles.profileSub}>마음 챙김 124일째 이어가는 중</p>
+      </div>
+
+      <div style={mypageStyles.statsGrid}>
+        <div style={mypageStyles.statBox}>
+          <div style={mypageStyles.statLabel}><TrendingUp size={14} /> 평균 점수</div>
+          <p style={mypageStyles.statValue}>78 <span style={{fontSize: '14px', fontWeight: '400'}}>점</span></p>
+        </div>
+        <div style={mypageStyles.statBox}>
+          <div style={mypageStyles.statLabel}><Award size={14} /> 획득 뱃지</div>
+          <p style={mypageStyles.statValue}>12 <span style={{fontSize: '14px', fontWeight: '400'}}>개</span></p>
+        </div>
+      </div>
+
+      <div style={mypageStyles.listMenu}>
+        {[
+          { icon: <Calendar size={18} />, label: "감정 기록 캘린더" },
+          { icon: <Heart size={18} />, label: "찜한 명상 가이드" },
+          { icon: <BookOpen size={18} />, label: "나의 일기장" },
+          { icon: <Bell size={18} />, label: "알림 설정" }
+        ].map((item, idx, arr) => (
+          <div key={idx} style={{...mypageStyles.listItem, borderBottom: idx === arr.length - 1 ? 'none' : mypageStyles.listItem.borderBottom}}>
+            <div style={mypageStyles.listItemLeft}>
+              <span style={{color: theme.primary}}>{item.icon}</span>
+              <span style={{fontSize: '15px', fontWeight: '500'}}>{item.label}</span>
+            </div>
+            <ChevronRight size={18} color="#D1D1D1" />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+
+  const renderReport = () => (
+    <>
+      {!hasWrittenToday && (
+        <div style={mypageStyles.banner}>
+          <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+            <BookOpen color={theme.primary} />
+            <div>
+              <p style={{margin: 0, fontWeight: '700', fontSize: '14px'}}>오늘의 마음 기록</p>
+              <p style={{margin: 0, fontSize: '12px', color: theme.subText}}>일기를 쓰고 분석을 받아보세요</p>
+            </div>
+          </div>
+          <button style={mypageStyles.bannerBtn}><PlusCircle size={14} /> 쓰기</button>
+        </div>
+      )}
+
+      <h3 style={mypageStyles.sectionTitle}>Today's Log</h3>
+      <div style={mypageStyles.logCard}>
+        "{reportData.content}"
+      </div>
+
+      <h3 style={mypageStyles.sectionTitle}>Analysis</h3>
+      <div style={mypageStyles.aiCard}>
+        <div style={{position: 'absolute', top: -20, right: -20, opacity: 0.1}}>
+          <Sparkles size={80} color={theme.primary} />
+        </div>
+        <p style={{margin: 0, lineHeight: '1.7'}}>{reportData.analysis}</p>
+      </div>
+
+      <h3 style={mypageStyles.sectionTitle}>Healing Tip</h3>
+      <div style={mypageStyles.healingBox}>
+        <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px'}}>
+          <Lightbulb size={18} color={theme.primary} />
+          <span style={{fontWeight: '700'}}>{reportData.recommendation}</span>
+        </div>
+        <p style={{fontSize: '13px', color: theme.subText, margin: 0}}>생명력을 가진 식물을 돌보며 마음도 함께 가다듬어 보세요.</p>
+        <div>
+          <span style={mypageStyles.tag}><Music size={12} /> 자연의 소리</span>
+          <span style={mypageStyles.tag}><Wind size={12} /> 심호흡</span>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div style={mypageStyles.container}>
+      <header style={mypageStyles.header}>
+        <div style={mypageStyles.logoSection}>
+          <div style={mypageStyles.logoIcon}><Wind size={20} color="white" /></div>
+          <h1 style={mypageStyles.logoText}>MINDWELL</h1>
+        </div>
+        <div style={mypageStyles.headerIcons}>
+          <button style={mypageStyles.iconBtn}><Search size={22} /></button>
+          <button style={mypageStyles.iconBtn}>
+            <Bell size={22} />
+            <span style={mypageStyles.badge}></span>
+          </button>
+          <button style={mypageStyles.iconBtn}><Menu size={22} /></button>
+        </div>
+      </header>
+
+      <nav style={mypageStyles.tabs}>
+        <div 
+          onClick={() => setActiveTab('profile')} 
+          style={mypageStyles.tabItem(activeTab === 'profile')}
+        >
+          마이페이지
+        </div>
+        <div 
+          onClick={() => setActiveTab('report')} 
+          style={mypageStyles.tabItem(activeTab === 'report')}
+        >
+          마음리포트
+        </div>
+      </nav>
+
+      <main style={mypageStyles.content}>
+        {activeTab === 'profile' ? renderProfile() : renderReport()}
+      </main>
+
+      <footer style={mypageStyles.footer}>
+        <button style={mypageStyles.mainBtn}>
+          <MessageCircle size={20} />
+          {activeTab === 'profile' ? 'AI 상담 시작' : '분석 결과 상담하기'}
+        </button>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
