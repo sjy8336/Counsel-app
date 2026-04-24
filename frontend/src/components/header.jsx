@@ -48,12 +48,54 @@ export default function Header({ activeTab, setActiveTab }) {
         }
     }, []);
     const navigate = useNavigate();
-    const pcGnbItems = [
-        { id: 'search', label: '전문가 찾기' },
-        { id: 'reservation', label: '예약 관리' },
-        { id: 'diary', label: 'AI 일기' },
-        { id: 'lounge', label: '힐링 라운지' },
-    ];
+
+    // PC 메뉴: role에 따라 다르게 렌더링
+    let pcGnbItems = [];
+    if (!isLoggedIn) {
+        pcGnbItems = [
+            { id: 'search', label: '전문가 찾기' },
+            { id: 'reservation', label: '예약 관리' },
+            { id: 'diary', label: 'AI 일기' },
+            { id: 'lounge', label: '힐링 라운지' },
+        ];
+    } else if (userRole === 'counselor') {
+        pcGnbItems = [
+            { id: 'reservation', label: '예약 관리' },
+            { id: 'client', label: '내담자 관리' },
+            { id: 'inquiry', label: '문의하기' },
+        ];
+    } else {
+        // client, admin
+        pcGnbItems = [
+            { id: 'search', label: '전문가 찾기' },
+            { id: 'reservation', label: '예약 관리' },
+            { id: 'diary', label: 'AI 일기' },
+            { id: 'lounge', label: '힐링 라운지' },
+        ];
+    }
+
+    // 메뉴별 네비게이션 경로 (role별로 다르게 처리할 수 있도록 분기)
+    const handleMenuClick = (item) => {
+        setActiveTab(item.id);
+        if (!isLoggedIn) {
+            // 비로그인 시 기존 경로
+            if (item.id === 'search') navigate('/counselors');
+            else if (item.id === 'reservation') navigate('/reserve');
+            else if (item.id === 'diary') navigate('/diary');
+            else if (item.id === 'lounge') navigate('/healing');
+        } else if (userRole === 'counselor') {
+            if (item.id === 'reservation') navigate('/CounselorMyPage');
+            else if (item.id === 'client') navigate('/CounselorMyPage?tab=clients');
+            else if (item.id === 'inquiry') navigate('/CounselorMyPage?tab=inquiry');
+        } else {
+            // client, admin
+            if (item.id === 'search') navigate('/counselors');
+            else if (item.id === 'reservation') navigate('/reserve');
+            else if (item.id === 'diary') navigate('/diary');
+            else if (item.id === 'lounge') navigate('/healing');
+        }
+    };
+
     return (
         //1. 글로벌 네비게이션 (Header)
         <header className="global-header">
@@ -72,18 +114,7 @@ export default function Header({ activeTab, setActiveTab }) {
                     {pcGnbItems.map((item) => (
                         <button
                             key={item.id}
-                            onClick={() => {
-                                setActiveTab(item.id);
-                                if (item.id === 'search') {
-                                    navigate('/counselors');
-                                } else if (item.id === 'reservation') {
-                                    navigate('/reserve');
-                                } else if (item.id === 'diary') {
-                                    navigate('/diary');
-                                } else if (item.id === 'lounge') {
-                                    navigate('/healing');
-                                }
-                            }}
+                            onClick={() => handleMenuClick(item)}
                             className={`nav-item ${activeTab === item.id ? 'nav-item-active' : ''}`}
                         >
                             <span className="nav-item-text">{item.label}</span>
