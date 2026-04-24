@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
+import Home from './pages/home';
 import LoginPage from './pages/Login';
 import SignUp from './pages/SignUp';
 import MyPage from './pages/MyPage';
@@ -11,6 +11,7 @@ import CounselorListPage from './pages/CounselorList';
 import CounselorDetailPage from './pages/CounselorDetail';
 import CounselorMyPage from './pages/CounselorMyPage';
 import Schedule from './pages/Schedule';
+import CounselorPlanner from './pages/CounselorPlanner';
 import CounselorHome from './pages/CounselorHome';
 import CounselorClient from './pages/CounselorClient';
 
@@ -30,6 +31,7 @@ function App() {
                 <Route path="/diary" element={<Diary />} />
                 <Route path="/healing" element={<HealingRounge />} />
                 <Route path="/schedule" element={<Schedule />} />
+                <Route path="/CounselorPlanner" element={<CounselorPlanner />} />
                 <Route path="/counselor/main" element={<CounselorHome />} />
                 <Route path="/counselor/client" element={<CounselorClient />} />
             </Routes>

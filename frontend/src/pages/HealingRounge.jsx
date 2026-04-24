@@ -1,54 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Bell,
-  Heart,
-  Menu,
-  Gift,
   Coffee,
   Sparkles,
   ExternalLink,
   ChevronRight
 } from 'lucide-react';
+import Header from '../components/header';
+import Footer from '../components/footer';
+import MobileTap from '../components/mobileTap';
 import '../static/HealingRounge.css';
 
 export default function HealingLounge() {
-  const [currentBanner, setCurrentBanner] = useState(0);
 
-  // 이벤트 배너 데이터
-  const banners = [
-    {
-      id: 1,
-      tag: '가정의 달 EVENT',
-      title: '심리 검사 & 전문가 코칭 50% 할인',
-      desc: '바쁘게 달려온 나에게 다정한 위로를 건네보세요.',
-      gradClass: 'mw-banner-grad-1',
-      date: '~ 5월 31일까지',
-    },
-    {
-      id: 2,
-      tag: '신규 회원 혜택',
-      title: '첫 명상 가이드 무료 체험권 증정',
-      desc: '지금 가입하고 1,000여 개의 힐링 콘텐츠를 만나보세요.',
-      gradClass: 'mw-banner-grad-2',
-      date: '상시 진행',
-    },
-    {
-      id: 3,
-      tag: '커뮤니티 이벤트',
-      title: '마음 일기 챌린지 7일 성공 시 선물',
-      desc: '매일 한 문장, 나를 기록하고 친환경 굿즈를 받으세요.',
-      gradClass: 'mw-banner-grad-3',
-      date: '~ 6월 15일까지',
-    },
-  ];
-
-  // 배너 자동 슬라이드 (3초)
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % banners.length);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, [banners.length]);
 
   // 차와 향 추천 데이터
   const teaAndScentContents = [
@@ -153,96 +116,36 @@ export default function HealingLounge() {
     },
   ];
 
+  // 모바일/PC 구분
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="mw-root">
-
-      {/* ── 헤더 ── */}
-      <header className="mw-header">
-        <div className="mw-header-inner">
-          <div className="mw-header-left">
-            <button className="mw-menu-btn">
-              <Menu size={20} />
-            </button>
-            <div className="mw-logo">MINDWELL</div>
-            <nav className="mw-nav">
-              <a href="#" className="mw-nav-link">전문가 찾기</a>
-              <a href="#" className="mw-nav-link">예약 관리</a>
-              <a href="#" className="mw-nav-link">AI 일기</a>
-              <a href="#" className="mw-nav-link-active">힐링 라운지</a>
-            </nav>
-          </div>
-          <div className="mw-header-right">
-            <button className="mw-bell-btn">
-              <Bell size={18} />
-              <span className="mw-bell-dot" />
-            </button>
-            <div className="mw-profile-btn">
-              <div className="mw-profile-icon">
-                <Heart size={12} fill="#8BA888" style={{ color: '#8BA888' }} />
-              </div>
-              <span className="mw-profile-name">내담자 님</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* PC Header (hidden on mobile) */}
+      {!isMobile && <Header activeTab="lounge" setActiveTab={() => {}} />}
+      {/* MobileTap (only on mobile) */}
+      {isMobile && <MobileTap activeTab="lounge" setActiveTab={() => {}} />}
 
       {/* ── 메인 ── */}
       <main className="mw-main">
 
         {/* 타이틀 */}
-        <div className="mw-page-title-wrap">
-          <h1 className="mw-page-title">힐링 라운지</h1>
-          <p className="mw-page-subtitle">"당신의 몸과 마음을 채우는 건강한 추천"</p>
-        </div>
+        {/* 힐링 라운지 문구와 "당신의 몸과 마음을 채우는 건강한 추천" 문구를 제거함 */}
 
-        {/* 1. 이벤트 배너 */}
-        <section className="mw-banner-section">
-          <div
-            className="mw-banner-track"
-            style={{ transform: `translateX(-${currentBanner * 100}%)` }}
-          >
-            {banners.map((banner) => (
-              <div key={banner.id} className="mw-banner-slide">
-                <div className={`mw-banner-card ${banner.gradClass}`}>
-                  <div className="mw-banner-content">
-                    <div className="mw-banner-tag-row">
-                      <span className="mw-banner-tag">{banner.tag}</span>
-                      <span className="mw-banner-date">{banner.date}</span>
-                    </div>
-                    <h2 className="mw-banner-title">{banner.title}</h2>
-                    <p className="mw-banner-desc">{banner.desc}</p>
-                    <button className="mw-banner-btn">
-                      <Gift size={16} style={{ color: '#8BA888' }} />
-                      <span>혜택 확인하기</span>
-                    </button>
-                  </div>
-                  <div className="mw-banner-icon-wrap">
-                    <div className="mw-banner-icon-circle">
-                      <Heart size={36} fill="white" style={{ color: '#fff' }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
 
-          <div className="mw-banner-dots">
-            {banners.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentBanner(idx)}
-                className={`mw-banner-dot ${currentBanner === idx ? 'mw-banner-dot-active' : ''}`}
-              />
-            ))}
-          </div>
-        </section>
 
         {/* 2. 오늘의 차와 향기 */}
         <section className="mw-section">
           <div className="mw-tea-header">
             <div className="mw-tea-header-text">
               <h3 className="mw-section-title">
-                오늘의 차와 향기 <span style={{ display: 'inline-block', animation: 'bounce 1s infinite' }}>🍵</span>
+                <span className="mw-section-title-text">오늘의 차와 향기</span> <span style={{ display: 'inline-block', animation: 'bounce 1s infinite' }}>🍵</span>
               </h3>
               <p className="mw-section-subtitle">지금 당신에게 가장 필요한 감각의 휴식을 제안합니다.</p>
             </div>
@@ -287,9 +190,7 @@ export default function HealingLounge() {
             <h3 className="mw-section-title mw-section-title-left">마음을 어루만지는 책 📚</h3>
             <div className="mw-section-header-actions">
               <span className="mw-scroll-hint">Scroll →</span>
-              <button className="mw-view-all-btn">
-                전체보기 <ChevronRight size={14} />
-              </button>
+
             </div>
           </div>
           <div className="mw-hscroll-outer">
@@ -326,9 +227,6 @@ export default function HealingLounge() {
             </div>
             <div className="mw-section-header-actions">
               <span className="mw-scroll-hint">Scroll →</span>
-              <button className="mw-view-all-btn">
-                전체보기 <ChevronRight size={14} />
-              </button>
             </div>
           </div>
 
@@ -365,21 +263,8 @@ export default function HealingLounge() {
 
       </main>
 
-      {/* ── 푸터 ── */}
-      <footer className="mw-footer">
-        <div className="mw-footer-inner">
-          <div className="mw-footer-brand">
-            <h4 className="mw-footer-logo">MINDWELL</h4>
-            <p className="mw-footer-copy">© 2026 MINDWELL LAB. All rights reserved.</p>
-          </div>
-          <div className="mw-footer-links">
-            <a href="#" className="mw-footer-link">이용약관</a>
-            <a href="#" className="mw-footer-link">개인정보처리방침</a>
-            <a href="#" className="mw-footer-link">고객센터</a>
-          </div>
-        </div>
-      </footer>
-
+      {/* Footer (always visible) */}
+      <Footer />
     </div>
   );
 }

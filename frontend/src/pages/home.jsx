@@ -1,266 +1,216 @@
-import React, { useState, useEffect } from 'react';
-import Header from '../components/header.jsx';
-import Footer from '../components/footer.jsx';
-import MobileTap from '../components/mobileTap.jsx';
+import React, { useState } from 'react';
 import {
     Bell,
-    Calendar,
-    Video,
     ChevronRight,
-    Home,
-    UserCircle,
+    Calendar,
     Coffee,
+    Users,
     Activity,
-    CalendarHeart,
-    Search,
-    BookOpen,
-    Sparkles,
-    TrendingUp,
-    Smile,
-    Frown,
-    Zap,
+    ShieldCheck,
+    CheckCircle2,
+    Menu,
+    X,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import '../static/Home.css';
+import Header from '../components/header';
+import Footer from '../components/footer';
+import MobileTap from '../components/mobileTap';
+import '../static/home.css';
 
-export default function App() {
+// --- Constants & Mock Data ---
+const USER_NAME = '먹보';
+
+const NAVIGATION_LINKS = [
+    { label: '전문가 찾기', href: '#' },
+    { label: '예약 관리',   href: '#' },
+    { label: 'AI 일기',    href: '#' },
+    { label: '힐링 라운지', href: '#' },
+];
+
+const TEST_RESULTS = [
+    { id: 'stress',     label: '스트레스 지수', status: '양호', value: '30%', color: '#8BA888' },
+    { id: 'depression', label: '우울 지수',     status: '주의', value: '65%', color: '#F59E0B' },
+    { id: 'anxiety',    label: '불안 지수',     status: '안정', value: '20%', color: '#8BA888' },
+];
+
+const UPCOMING_RESERVATIONS = [
+    { id: 1, type: '심리 상담', doctor: '이은지 상담사', date: '5월 20일 (수) 오후 2:00', dDay: 'D-2' },
+    { id: 2, type: '심리 상담', doctor: '박민우 상담사', date: '5월 27일 (수) 오후 3:00', tag: 'NEXT WEEK' },
+    { id: 3, type: '심리 상담', doctor: '김지현 상담사', date: '6월 3일 (수) 오후 2:00',  tag: 'NEXT MONTH' },
+];
+
+// --- Main Component ---
+export default function HomePage() {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('home');
-    const [userName, setUserName] = useState('');
-    const navigate = useNavigate();
 
-    useEffect(() => {
-        const user = localStorage.getItem('user');
-        if (user) {
-            const userObj = JSON.parse(user);
-            setUserName(userObj.full_name || userObj.username || '');
-        } else {
-            setUserName('');
-        }
-    }, []);
-
-    // 데이터 구성
-
-    const emotionStats = [
-        { label: '행복/기쁨', value: 65, color: '#8BA888', icon: Smile },
-        { label: '스트레스', value: 20, color: '#FCD34D', icon: Zap },
-        { label: '불안/우울', value: 15, color: '#FDA4AF', icon: Frown },
-    ];
-
-    // record-btn 클릭 핸들러
-    const handleRecordClick = () => {
-        const user = localStorage.getItem('user');
-        if (!user) {
-            alert('로그인 후 이용 가능합니다.');
-            navigate('/login');
-            return;
-        }
-        // 로그인 상태라면 실제 기록 페이지로 이동 등 추가 동작 구현 가능
-    };
+    const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
     return (
-        <div className="app-container">
+        <div className="mw-root">
+            {/* PC Header (hidden on mobile) */}
             <Header activeTab={activeTab} setActiveTab={setActiveTab} />
-            {/* 2. 모바일 전용 검색바 */}
-            <section className="mobile-search-section">
-                <div className="search-container">
-                    <div className="search-input-wrapper">
-                        <Search className="search-icon" size={20} />
-                        <input type="text" placeholder="전문가 찾기" className="search-input" />
-                    </div>
-                </div>
-            </section>
+            {/* MobileTap (only on mobile) */}
+            <MobileTap activeTab={activeTab} setActiveTab={setActiveTab} />
 
-            {/* 3. 메인 콘텐츠 */}
-            <main className="main-content">
-                <div className="main-grid">
-                    {/* 콘텐츠 영역 (좌측/중앙) */}
-                    <div className="content-col">
-                        {/* Hero 카드 */}
-                        <section className="hero-section">
-                            <div className="hero-content">
-                                <div>
-                                    <span className="emotion-badge">Emotion Care</span>
-                                    <h2 className="hero-title">
-                                        {userName && (
-                                            <>
-                                                {userName}님, <br />
-                                            </>
-                                        )}
-                                        지금 마음은 <span className="highlight-text">안녕</span>한가요?
-                                    </h2>
-                                    <p className="home-hero-desc">
-                                        오늘의 감정을 기록하면 AI가 소현님의 마음 상태를 분석해 가장 따뜻한 처방을
-                                        내려드려요.
-                                    </p>
-                                </div>
-                                <div className="hero-emoji">😊</div>
-                            </div>
-                            <button className="record-btn" onClick={handleRecordClick}>
-                                <Sparkles size={20} />
-                                <span>오늘의 마음 기록하기</span>
-                            </button>
-                        </section>
+            {/* ── Main Content ── */}
+            <main className="mw-main">
+                <div className="mw-content-grid">
 
-                        {/* AI 감정 리포트 */}
-                        <section className="report-section">
-                            <div className="report-header">
-                                <div>
-                                    <h3 className="report-title">
-                                        <TrendingUp className="report-icon" size={22} />
-                                        이번 주 감정 리포트
-                                    </h3>
-                                </div>
-                                <div className="report-date">5월 14일 ~ 5월 20일</div>
-                            </div>
+                    {/* Left Column */}
+                    <div className="mw-left-col">
 
-                            <div className="report-grid">
-                                <div className="donut-chart-container">
-                                    <svg className="donut-svg">
-                                        <circle
-                                            cx="88"
-                                            cy="88"
-                                            r="70"
-                                            stroke="#F1F5F9"
-                                            strokeWidth="24"
-                                            fill="transparent"
-                                        />
-                                        <circle
-                                            cx="88"
-                                            cy="88"
-                                            r="70"
-                                            stroke="#8BA888"
-                                            strokeWidth="24"
-                                            fill="transparent"
-                                            strokeDasharray="440"
-                                            strokeDashoffset={440 - (440 * 65) / 100}
-                                            strokeLinecap="round"
-                                        />
-                                        <circle
-                                            cx="88"
-                                            cy="88"
-                                            r="70"
-                                            stroke="#FCD34D"
-                                            strokeWidth="24"
-                                            fill="transparent"
-                                            strokeDasharray="440"
-                                            strokeDashoffset={440 - (440 * 20) / 100}
-                                            transform="rotate(234, 88, 88)"
-                                            strokeLinecap="round"
-                                        />
-                                    </svg>
-                                    <div className="donut-text-container">
-                                        <span className="donut-value">65%</span>
-                                        <span className="donut-label">맑음</span>
-                                    </div>
-                                </div>
-
-                                <div className="stats-list">
-                                    {emotionStats.map((stat, idx) => (
-                                        <div key={idx} className="stat-item">
-                                            <div className="stat-info">
-                                                <div className="stat-icon-wrap" style={{ color: stat.color }}>
-                                                    <stat.icon size={18} />
-                                                </div>
-                                                <span className="stat-label">{stat.label}</span>
-                                            </div>
-                                            <span className="stat-value-text">{stat.value}%</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </section>
-
-                        <div className="card-grid">
-                            {/* AI 맞춤 추천 */}
-                            <section className="recommend-section">
-                                <div className="recommend-content">
-                                    <div className="card-header">
-                                        <div className="card-icon">
-                                            <Activity size={18} />
-                                        </div>
-                                        <h3 className="card-title">AI 맞춤 추천</h3>
-                                    </div>
-                                    <p className="recommend-text">
-                                        최근 일기 데이터를 통해 <br />
-                                        <strong className="recommend-expert">박민우 코치</strong>님을 찾았어요.
-                                    </p>
-                                </div>
-                                <button className="recommend-btn">
-                                    <span>전문가 찾기</span>
-                                    <ChevronRight size={16} className="arrow-icon" />
+                        {/* Welcome Banner */}
+                        <div className="mw-banner">
+                            <div className="mw-banner-content">
+                                <span className="mw-banner-tag">EMOTION CARE</span>
+                                <h1 className="mw-banner-title">
+                                    {USER_NAME}님,<br />
+                                    지금 마음은 <span className="mw-banner-title-sub">안녕</span>한가요?
+                                </h1>
+                                <p className="mw-banner-desc">
+                                    오늘의 감정을 기록하면 AI가 {USER_NAME}님의 마음 상태를 분석해
+                                    가장 따뜻한 처방을 내려드려요.
+                                </p>
+                                <button className="mw-banner-btn">
+                                    <Activity size={18} />
+                                    오늘의 마음 기록하기
                                 </button>
-                            </section>
+                            </div>
 
-                            {/* 오늘의 힐링 */}
-                            <section className="healing-section">
-                                <div className="card-header healing-header">
-                                    <div className="card-icon healing-icon">
-                                        <Coffee size={18} />
-                                    </div>
-                                    <h3 className="card-title">오늘의 힐링</h3>
+                            {/* Emoji Decoration */}
+                            <div className="mw-banner-emoji">
+                                <span>😊</span>
+                            </div>
+
+                            {/* Background Decorations */}
+                            <div className="mw-banner-deco-1" />
+                            <div className="mw-banner-deco-2" />
+                        </div>
+
+                        {/* Recent Test Results */}
+                        <div className="mw-test-card">
+                            <div className="mw-test-card-header">
+                                <div className="mw-test-card-title-row">
+                                    <ShieldCheck size={20} />
+                                    <h2 className="mw-test-card-title">최근 자가진단 결과</h2>
                                 </div>
-                                <div className="healing-content">
-                                    <div className="healing-icon-large">
-                                        <Coffee size={32} />
+                                <span className="mw-test-date-badge">5월 14일 검사</span>
+                            </div>
+
+                            <div className="mw-test-list">
+                                {TEST_RESULTS.map((result) => (
+                                    <div key={result.id}>
+                                        <div className="mw-test-item-label-row">
+                                            <span className="mw-test-item-name">{result.label}</span>
+                                            <span className="mw-test-item-status" style={{ color: result.color }}>
+                                                {result.status}
+                                            </span>
+                                        </div>
+                                        <div className="mw-progress-track">
+                                            <div
+                                                className="mw-progress-fill"
+                                                style={{ width: result.value, backgroundColor: result.color }}
+                                            />
+                                        </div>
                                     </div>
-                                    <h4 className="healing-title">카모마일 차 한 잔</h4>
-                                    <p className="healing-desc">긴장을 풀어주는 향긋한 차 한 잔 어때요?</p>
+                                ))}
+                            </div>
+
+                            <div className="mw-test-footer">
+                                <CheckCircle2 size={18} />
+                                <p className="mw-test-footer-text">
+                                    전반적으로 안정적인 상태를 유지하고 계시네요. 약간의 우울감이 감지되었으나,
+                                    다가오는 상담 세션에서 코치님과 함께 이야기 나누어 보시면 좋겠습니다.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Bottom 2-col Widgets */}
+                        <div className="mw-widget-row">
+                            {/* AI Recommendation */}
+                            <div className="mw-ai-widget">
+                                <div>
+                                    <div className="mw-widget-title-row">
+                                        <Activity size={18} />
+                                        <h3 className="mw-widget-title">AI 맞춤 추천</h3>
+                                    </div>
+                                    <p className="mw-ai-desc">
+                                        최근 일기 데이터를 통해<br />
+                                        <strong>박민우 상담사</strong>님을 찾았어요.
+                                    </p>
                                 </div>
-                            </section>
+                                <button className="mw-ai-btn">
+                                    전문가 찾기 <ChevronRight size={16} />
+                                </button>
+                            </div>
+
+                            {/* Today's Healing */}
+                            <div className="mw-healing-widget">
+                                <div className="mw-healing-title-row">
+                                    <Coffee size={18} />
+                                    <h3 className="mw-widget-title">오늘의 힐링</h3>
+                                </div>
+                                <div className="mw-healing-icon-box">
+                                    <Coffee size={24} />
+                                </div>
+                                <p className="mw-healing-name">카모마일 차 한 잔</p>
+                                <p className="mw-healing-desc">긴장을 풀어주는 향긋한 차 한 잔 어때요?</p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* 서브 컬럼 (사이드바) */}
-                    <div className="sidebar-col">
-                        <section className="reservation-section">
-                            <div className="reservation-header">
-                                <h3 className="reservation-title">
-                                    <CalendarHeart size={20} className="res-title-icon" />
-                                    <span>예약 현황</span>
-                                </h3>
-                                <button className="view-all-btn">전체보기</button>
+                    {/* Right Column (Schedule) */}
+                    <div className="mw-right-col">
+                        <div className="mw-schedule-header">
+                            <div className="mw-schedule-title-row">
+                                <Calendar size={18} />
+                                <h2 className="mw-schedule-title">예약 현황</h2>
                             </div>
+                            <a href="#" className="mw-schedule-more">전체보기</a>
+                        </div>
 
-                            <div className="reservation-list">
-                                {/* 메인 예약 카드 */}
-                                <div className="main-reservation-card">
-                                    <div className="res-card-top">
-                                        <div className="res-icon">
-                                            <Video size={24} />
+                        {UPCOMING_RESERVATIONS.map((res, index) =>
+                            index === 0 ? (
+                                // Primary Reservation Card
+                                <div key={res.id} className="mw-res-primary">
+                                    <div className="mw-res-primary-top">
+                                        <div className="mw-res-primary-icon">
+                                            <Users size={18} />
                                         </div>
-                                        <span className="res-dday">D-2</span>
+                                        <span className="mw-d-day-badge">{res.dDay}</span>
                                     </div>
-                                    <div className="res-info">
-                                        <p className="res-type">화상 심리 상담</p>
-                                        <h4 className="res-name">이은지 코치님</h4>
+                                    <div className="mw-res-primary-body">
+                                        <div className="mw-res-type">{res.type}</div>
+                                        <p className="mw-res-doctor">{res.doctor}</p>
                                     </div>
-                                    <div className="res-date-wrap">
-                                        <Calendar size={18} className="res-date-icon" />
-                                        <span className="res-date-text">5월 20일 (수) 오후 2:00</span>
+                                    <div className="mw-res-date-box">
+                                        <Calendar size={14} />
+                                        <span>{res.date}</span>
                                     </div>
                                 </div>
-
-                                {/* 다음 예약 */}
-                                <div className="next-reservation-card">
-                                    <div className="next-res-content">
-                                        <div className="next-res-icon">
-                                            <Activity size={22} />
+                            ) : (
+                                // Small Reservation Card
+                                <div key={res.id} className="mw-res-small">
+                                    <div className="mw-res-small-left">
+                                        <div className="mw-res-small-icon-box">
+                                            <Users size={16} className="mw-res-small-icon" />
                                         </div>
-                                        <div className="next-res-info">
-                                            <p className="next-res-label">Next Week</p>
-                                            <p className="next-res-title">정기 명상 세션</p>
-                                            <p className="next-res-date">5월 27일 (수)</p>
+                                        <div>
+                                            <div className="mw-res-small-tag">{res.tag}</div>
+                                            <div className="mw-res-small-type">{res.type}</div>
+                                            <div className="mw-res-small-date">{res.date}</div>
                                         </div>
-                                        <ChevronRight size={18} className="next-res-arrow" />
                                     </div>
+                                    <ChevronRight size={16} className="mw-res-small-arrow" />
                                 </div>
-                            </div>
-                        </section>
+                            )
+                        )}
                     </div>
                 </div>
             </main>
+
+            {/* Footer (always visible, PC/Mobile 모두) */}
             <Footer />
-            <MobileTap />
         </div>
     );
 }
