@@ -43,9 +43,68 @@ import {
     Stethoscope,
     Target,
     Hash,
+    Lightbulb,
+    Check,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../static/MyPage.css';
+
+// ─── NotificationSettings 컴포넌트 (App 외부에 선언) ────────────────────────
+const notifSettingsData = [
+    { key: 'session',   title: '상담 일정 알림',     desc: '예약된 상담 시간 및 변동 사항 안내' },
+    { key: 'report',    title: '마음 리포트 알림',    desc: '분석 완료된 리포트 도착 소식' },
+    { key: 'service',   title: '서비스 공지사항',     desc: '점검 안내 및 주요 이용 정보' },
+    { key: 'marketing', title: '이벤트 및 혜택 알림', desc: '새로운 프로그램 및 할인 쿠폰 정보' },
+];
+
+const NotificationSettings = ({ notifSettings, toggleNotif }) => {
+    return (
+        <div className="ns-card">
+            {/* Header */}
+            <header className="ns-header">
+                <div className="ns-header-icon-box">
+                    <Bell size={20} />
+                </div>
+                <h1 className="ns-header-title">알림 설정</h1>
+            </header>
+
+            {/* Toggle List */}
+            <main className="ns-list">
+                {notifSettingsData.map((item) => {
+                    const isActive = notifSettings[item.key];
+                    return (
+                        <div key={item.key} className="ns-toggle-item">
+                            <div className="ns-item-text">
+                                <p className="ns-item-title">{item.title}</p>
+                                <p className="ns-item-desc">{item.desc}</p>
+                            </div>
+                            <button
+                                onClick={() => toggleNotif(item.key)}
+                                className={`ns-toggle-btn ${isActive ? 'is-on' : 'is-off'}`}
+                            >
+                                {isActive
+                                    ? <ToggleRight size={48} strokeWidth={1.2} />
+                                    : <ToggleLeft  size={48} strokeWidth={1.2} />
+                                }
+                            </button>
+                        </div>
+                    );
+                })}
+            </main>
+
+            {/* Footer Alert */}
+            <footer className="ns-footer-box">
+                <AlertCircle size={18} className="ns-footer-icon" />
+                <p className="ns-footer-text">
+                    기기 전체 알림이 꺼져있을 경우 앱 설정을 켜도 알림이 전송되지 않습니다. 휴대폰의{' '}
+                    <span className="ns-footer-highlight">설정 &gt; 알림</span>{' '}
+                    메뉴에서 마인드웰의 알림 허용 상태를 확인해 주세요.
+                </p>
+            </footer>
+        </div>
+    );
+};
+// ────────────────────────────────────────────────────────────────────────────
 
 export default function App() {
     const navigate = useNavigate();
@@ -63,23 +122,20 @@ export default function App() {
     const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [userInfo, setUserInfo] = useState({
         name: '',
-        id: '', // PK
-        username: '', // 로그인 아이디
+        id: '',
+        username: '',
         email: '',
         phone: '',
         birth: '',
     });
 
-    // 로그인한 사용자 정보 localStorage에서 불러오고, DB에서 최신 정보 fetch
+    const completedConsultations = 12;
+
     useEffect(() => {
         const user = localStorage.getItem('user');
         if (user) {
             const userObj = JSON.parse(user);
-            setUserInfo((prev) => ({
-                ...prev,
-                id: userObj.id,
-            }));
-            // DB에서 최신 정보 fetch
+            setUserInfo((prev) => ({ ...prev, id: userObj.id }));
             getUserInfo(userObj.id).then((data) => {
                 setUserInfo((prev) => ({
                     ...prev,
@@ -92,13 +148,11 @@ export default function App() {
         }
     }, []);
 
-    // 로그아웃 핸들러
     const handleLogout = () => {
         localStorage.removeItem('user');
         navigate('/');
     };
 
-    // 계정 영구 삭제 핸들러
     const handleDeleteAccount = async () => {
         if (!withdrawAgree) {
             alert('유의사항 동의가 필요합니다.');
@@ -111,7 +165,6 @@ export default function App() {
         if (!window.confirm('정말로 계정을 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
         setWithdrawLoading(true);
         try {
-            // userInfo.id는 반드시 PK(int)여야 하며, 혹시 string일 경우를 대비해 변환
             await deleteAccount(Number(userInfo.id));
             alert('계정이 영구 삭제되었습니다.');
             handleLogout();
@@ -122,12 +175,7 @@ export default function App() {
         }
     };
 
-    // 비밀번호 변경 관련 상태
-    const [pwFields, setPwFields] = useState({
-        current: '',
-        new1: '',
-        new2: '',
-    });
+    const [pwFields, setPwFields] = useState({ current: '', new1: '', new2: '' });
     const [pwLoading, setPwLoading] = useState(false);
 
     const menuItems = [
@@ -157,10 +205,8 @@ export default function App() {
                 type: '대면 상담',
                 status: '상담 완료',
                 topic: '대인관계 스트레스',
-                summary:
-                    '주변인들의 부탁을 거절하지 못해 발생하는 번아웃과 스트레스에 대해 논의함. 자신의 욕구를 먼저 파악하는 연습이 필요함.',
-                feedback:
-                    '소현님은 타인에 대한 배려가 깊지만, 그만큼 자신을 돌보는 데 소홀해져 있었습니다. 오늘은 "나의 경계선 설정하기"를 주제로 구체적인 거절의 기술을 연습해 보았습니다.',
+                summary: '주변인들의 부탁을 거절하지 못해 발생하는 번아웃과 스트레스에 대해 논의함. 자신의 욕구를 먼저 파악하는 연습이 필요함.',
+                feedback: '소현님은 타인에 대한 배려가 깊지만, 그만큼 자신을 돌보는 데 소홀해져 있었습니다. 오늘은 "나의 경계선 설정하기"를 주제로 구체적인 거절의 기술을 연습해 보았습니다.',
                 nextStep: '하루에 한 번, 내키지 않는 제안에 대해 정중히 거절해 보기',
             },
             {
@@ -172,8 +218,7 @@ export default function App() {
                 status: '상담 완료',
                 topic: '직장 내 갈등 관리',
                 summary: '상사의 일방적인 업무 지시 방식으로 인한 무력감과 갈등 상황을 공유함.',
-                feedback:
-                    '감정적인 대응보다는 업무 효율성과 연계된 소통 방식을 제안했습니다. 본인의 감정이 "무시당함"에 집중되어 있음을 인지하고 이를 객관적으로 분리하는 훈련을 진행했습니다.',
+                feedback: '감정적인 대응보다는 업무 효율성과 연계된 소통 방식을 제안했습니다. 본인의 감정이 "무시당함"에 집중되어 있음을 인지하고 이를 객관적으로 분리하는 훈련을 진행했습니다.',
                 nextStep: '갈등 상황 발생 시 즉시 반응하지 않고 10초간 호흡하기',
             },
             {
@@ -185,8 +230,7 @@ export default function App() {
                 status: '상담 완료',
                 topic: '자존감 회복 훈련',
                 summary: '과거의 실패 경험이 현재의 의사 결정에 미치는 부정적 영향 분석.',
-                feedback:
-                    '성취 경험을 기록하는 "칭찬 일기"를 통해 자신감을 회복하는 단계입니다. 오늘은 본인이 가진 강점 5가지를 찾아내는 시간을 가졌습니다.',
+                feedback: '성취 경험을 기록하는 "칭찬 일기"를 통해 자신감을 회복하는 단계입니다. 오늘은 본인이 가진 강점 5가지를 찾아내는 시간을 가졌습니다.',
                 nextStep: '매일 잠들기 전 나를 위한 칭찬 한 문장 적기',
             },
             {
@@ -198,8 +242,7 @@ export default function App() {
                 status: '상담 완료',
                 topic: '불안 장애 상담',
                 summary: '원인 모를 급격한 심박수 증가와 신체적 불안 증상에 대한 대처법.',
-                feedback:
-                    '공황 증상과 유사한 불안 발작 시 사용할 수 있는 접지법(Grounding)과 복식 호흡법을 숙달했습니다. 심리적 안전 기지를 설정하는 명상을 함께 진행했습니다.',
+                feedback: '공황 증상과 유사한 불안 발작 시 사용할 수 있는 접지법(Grounding)과 복식 호흡법을 숙달했습니다. 심리적 안전 기지를 설정하는 명상을 함께 진행했습니다.',
                 nextStep: '불안 신호 포착 시 5-4-3-2-1 접지법 시행하기',
             },
         ];
@@ -210,15 +253,13 @@ export default function App() {
                     <button onClick={() => setSelectedConsultation(null)} className="back-button">
                         <ArrowLeft size={16} /> 전체 목록으로
                     </button>
-
                     <div className="report-card">
                         <div className="report-header">
                             <div>
                                 <span className="badge">Consultation Report</span>
                                 <h3 className="report-title">{selectedConsultation.topic}</h3>
                                 <p className="report-meta">
-                                    {selectedConsultation.counselor} • {selectedConsultation.date}{' '}
-                                    {selectedConsultation.time}
+                                    {selectedConsultation.counselor} • {selectedConsultation.date} {selectedConsultation.time}
                                 </p>
                             </div>
                             <div className="icon-wrapper-outer">
@@ -227,7 +268,6 @@ export default function App() {
                                 </div>
                             </div>
                         </div>
-
                         <div className="report-body">
                             <section className="report-section">
                                 <h4 className="section-title">
@@ -238,7 +278,6 @@ export default function App() {
                                     <p className="summary-text">{selectedConsultation.summary}</p>
                                 </div>
                             </section>
-
                             <section className="report-section">
                                 <h4 className="section-title">
                                     <div className="title-indicator"></div>
@@ -248,7 +287,6 @@ export default function App() {
                                     <p className="feedback-text">{selectedConsultation.feedback}</p>
                                 </div>
                             </section>
-
                             <section className="action-step-card">
                                 <h4 className="action-step-title">
                                     <Target size={20} />
@@ -257,7 +295,6 @@ export default function App() {
                                 <p className="action-step-content">"{selectedConsultation.nextStep}"</p>
                             </section>
                         </div>
-
                         <div className="report-footer">
                             <p className="privacy-notice">이 기록은 오직 소현님과 담당 상담사만 확인할 수 있습니다.</p>
                         </div>
@@ -271,7 +308,6 @@ export default function App() {
                 <button onClick={() => handleMenuClick('dashboard')} className="history-back-button">
                     <ArrowLeft size={16} /> 대시보드
                 </button>
-
                 <div className="history-header">
                     <div>
                         <h3 className="history-title">상담 히스토리</h3>
@@ -281,7 +317,6 @@ export default function App() {
                         <span className="history-total-badge">총 12회 상담 완료</span>
                     </div>
                 </div>
-
                 <div className="history-list-container">
                     {historyList.map((item) => (
                         <div key={item.id} onClick={() => setSelectedConsultation(item)} className="history-item-card">
@@ -291,16 +326,13 @@ export default function App() {
                                 </div>
                                 <div>
                                     <div className="history-item-meta">
-                                        <span className="meta-date">
-                                            {item.date} {item.time}
-                                        </span>
+                                        <span className="meta-date">{item.date} {item.time}</span>
                                         <span className="meta-type">{item.type}</span>
                                     </div>
                                     <h4 className="history-item-counselor">{item.counselor}</h4>
                                     <p className="history-item-topic">상담 주제: {item.topic}</p>
                                 </div>
                             </div>
-
                             <div className="history-item-right">
                                 <div className="history-link-text">
                                     <p>상담 기록지 보기</p>
@@ -326,9 +358,7 @@ export default function App() {
                     <ArrowLeft size={16} /> 대시보드
                 </button>
                 <h3 className="payment-main-title">상담권/결제 상세</h3>
-
                 <div className="payment-grid-layout">
-                    {/* 왼쪽: 상담권 보유 및 구매 섹션 */}
                     <div className="payment-main-content bg-white">
                         <div className="ticket-status-card">
                             <div>
@@ -339,12 +369,10 @@ export default function App() {
                                 <Wallet size={40} className="text-amber-300" />
                             </div>
                         </div>
-
                         <button className="payment-primary-btn">
                             <PlusCircle size={20} />
                             추가 결제하기
                         </button>
-
                         <h4 className="payment-section-title">
                             <PlusCircle size={18} className="text-[#8BA888]" /> 상담권 구매하기
                         </h4>
@@ -361,8 +389,6 @@ export default function App() {
                             </button>
                         </div>
                     </div>
-
-                    {/* 오른쪽: 최근 결제 내역 섹션 */}
                     <div className="payment-side-content bg-white">
                         <h4 className="payment-section-title">
                             <PaymentIcon size={18} className="text-[#8BA888]" /> 최근 결제 내역
@@ -393,9 +419,7 @@ export default function App() {
                     <ArrowLeft size={16} /> 대시보드
                 </button>
                 <h3 className="report-detail-main-title">마음 리포트 상세</h3>
-
                 <div className="report-detail-grid">
-                    {/* 왼쪽 영역: 감정 분석 및 AI 코멘트 */}
                     <div className="report-detail-left-col">
                         <div className="report-detail-card main-chart-card">
                             <div className="chart-header">
@@ -408,8 +432,6 @@ export default function App() {
                                     <span>평온함</span>
                                 </div>
                             </div>
-
-                            {/* 그래프 영역 */}
                             <div className="emotion-chart-container">
                                 <div className="chart-bar h-40-pct"></div>
                                 <div className="chart-bar h-60-pct"></div>
@@ -425,22 +447,15 @@ export default function App() {
                                 ))}
                             </div>
                         </div>
-
                         <div className="report-detail-card ai-comment-card">
                             <h4 className="ai-comment-title">
                                 <MessagesSquare size={20} className="text-[#8BA888]" /> AI 마음 코멘트
                             </h4>
                             <div className="ai-comment-bubble">
-                                <p>
-                                    "소현님, 이번 주에는 평소보다 직장에서의 인간관계에 대한 고민이 많으셨네요. 하지만
-                                    상담을 통해 감정을 객관화하려는 노력이 엿보여요. 목요일 이후로 감정 상태가 눈에 띄게
-                                    회복된 것은 아주 긍정적인 신호입니다. 자신을 다독이는 시간을 조금 더 가져보세요."
-                                </p>
+                                <p>"소현님, 이번 주에는 평소보다 직장에서의 인간관계에 대한 고민이 많으셨네요. 하지만 상담을 통해 감정을 객관화하려는 노력이 엿보여요. 목요일 이후로 감정 상태가 눈에 띄게 회복된 것은 아주 긍정적인 신호입니다. 자신을 다독이는 시간을 조금 더 가져보세요."</p>
                             </div>
                         </div>
                     </div>
-
-                    {/* 오른쪽 영역: 에너지 바 및 추천 테라피 */}
                     <div className="report-detail-right-col">
                         <div className="report-detail-card energy-card">
                             <h4 className="energy-title">현재 마음 에너지</h4>
@@ -474,7 +489,6 @@ export default function App() {
                                 </div>
                             </div>
                         </div>
-
                         <div className="report-detail-card therapy-card">
                             <h4 className="therapy-title">추천 테라피</h4>
                             <div className="therapy-content-box">
@@ -493,7 +507,6 @@ export default function App() {
         );
     };
 
-    // 개인정보 수정 저장
     const handleSaveProfile = async () => {
         try {
             await updateUserInfo({
@@ -508,7 +521,6 @@ export default function App() {
         }
     };
 
-    // 비밀번호 변경 핸들러
     const handleChangePassword = async () => {
         if (!pwFields.current || !pwFields.new1 || !pwFields.new2) {
             alert('모든 비밀번호 입력란을 채워주세요.');
@@ -545,16 +557,12 @@ export default function App() {
     const renderPersonalEdit = () => {
         return (
             <div className="fade-in w-full">
-                {/* 프로필 및 기본 정보 섹션 */}
                 <div className="profile-edit-section">
                     <div className="profile-upper-layout">
                         <div className="profile-image-container">
                             <div className="profile-image-wrapper">
                                 <div className="profile-avatar">
-                                    <img
-                                        src="https://api.dicebear.com/7.x/notionists/svg?seed=Sohyun"
-                                        alt="User Profile"
-                                    />
+                                    <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Sohyun" alt="User Profile" />
                                 </div>
                                 <button className="profile-camera-btn">
                                     <Camera size={24} />
@@ -563,7 +571,6 @@ export default function App() {
                             <p className="profile-change-text">프로필 사진 변경</p>
                             <p className="profile-change-sub">나를 잘 나타내는 사진을 등록해 주세요.</p>
                         </div>
-
                         <div className="profile-info-fields">
                             <div>
                                 <label className="input-label">이름</label>
@@ -591,18 +598,12 @@ export default function App() {
                             </div>
                         </div>
                     </div>
-
                     <div className="profile-readonly-grid">
                         <div className="grid-col-1">
                             <label className="input-label">아이디</label>
                             <div className="relative-input-box">
                                 <Hash className="input-icon" size={20} />
-                                <input
-                                    type="text"
-                                    className="custom-input bg-readonly"
-                                    value={userInfo.username}
-                                    readOnly
-                                />
+                                <input type="text" className="custom-input bg-readonly" value={userInfo.username} readOnly />
                             </div>
                             <p className="input-helper-text">* 아이디는 변경할 수 없습니다.</p>
                         </div>
@@ -610,19 +611,12 @@ export default function App() {
                             <label className="input-label">이메일 주소</label>
                             <div className="relative-input-box">
                                 <Mail className="input-icon" size={20} />
-                                <input
-                                    type="email"
-                                    className="custom-input bg-readonly"
-                                    value={userInfo.email}
-                                    readOnly
-                                />
+                                <input type="email" className="custom-input bg-readonly" value={userInfo.email} readOnly />
                             </div>
                             <p className="input-helper-text">* 이메일은 가입 시 고유 정보로 변경할 수 없습니다.</p>
                         </div>
                     </div>
                 </div>
-
-                {/* 보안 설정 섹션 (비밀번호 변경) */}
                 <div className="profile-edit-section">
                     <h4 className="security-section-title">
                         <div className="security-icon-box">
@@ -688,7 +682,6 @@ export default function App() {
                         </button>
                     </div>
                 </div>
-
                 <button className="profile-save-full-btn" onClick={handleSaveProfile}>
                     <CheckCircle2 size={24} />
                     변경 사항 안전하게 저장하기
@@ -697,114 +690,126 @@ export default function App() {
         );
     };
 
+    // ─── NotificationSettings 호출 ───────────────────────────────────────────
     const renderNotificationEdit = () => {
-        const settings = [
-            { key: 'session', title: '상담 일정 알림', desc: '예약된 상담 시간 및 변동 사항을 알려드려요.' },
-            { key: 'report', title: '마음 리포트 알림', desc: '분석이 완료된 나만의 리포트 도착 소식을 알려드려요.' },
-            { key: 'service', title: '서비스 공지사항', desc: '점검 안내 등 서비스 이용에 필요한 정보를 알려드려요.' },
-            { key: 'marketing', title: '이벤트 및 혜택 알림', desc: '새로운 프로그램과 할인 쿠폰 정보를 받아보세요.' },
-        ];
-
         return (
-            <div className="fade-in w-full">
-                <div className="notif-settings-container">
-                    <div className="notif-list-wrapper">
-                        {settings.map((item) => (
-                            <div key={item.key} className="notif-toggle-item group">
-                                <div className="notif-item-content">
-                                    <p className="notif-item-title">{item.title}</p>
-                                    <p className="notif-item-desc">{item.desc}</p>
-                                </div>
-                                <button
-                                    onClick={() => toggleNotif(item.key)}
-                                    className={`notif-toggle-btn ${notifSettings[item.key] ? 'active' : 'inactive'}`}
-                                >
-                                    {notifSettings[item.key] ? (
-                                        <ToggleRight size={56} strokeWidth={1.2} />
-                                    ) : (
-                                        <ToggleLeft size={56} strokeWidth={1.2} />
-                                    )}
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="notif-alert-box">
-                        <AlertCircle size={24} className="notif-alert-icon" />
-                        <p className="notif-alert-text">
-                            기기 전체 알림이 꺼져있을 경우 앱 설정을 켜도 알림이 전송되지 않을 수 있습니다. 휴대폰의{' '}
-                            <span className="notif-alert-highlight">설정 {' > '} 알림</span> 메뉴에서 마인드웰의 '알림
-                            허용' 상태를 확인해 주세요.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <NotificationSettings
+                notifSettings={notifSettings}
+                toggleNotif={toggleNotif}
+            />
         );
     };
+    // ────────────────────────────────────────────────────────────────────────
 
+    // ─── WithdrawPage UI ─────────────────────────────────────────────────────
     const renderQuitService = () => {
         return (
-            <div className="fade-in w-full text-center">
-                <div className="withdraw-container">
-                    <div className="withdraw-header">
-                        <div className="withdraw-icon-box">
-                            <UserX size={48} />
-                        </div>
-                        <h4 className="withdraw-title">정말 마인드웰을 떠나시나요?</h4>
-                        <p className="withdraw-subtitle">탈퇴하시면 지금까지 쌓아온 소중한 기록들이 사라집니다.</p>
+            <div className="wd-page-container">
+                <div className="wd-inner-wrapper">
+                    <div className="wd-header">
+                        <button className="wd-back-btn" onClick={() => setActiveSubMenu(null)}>
+                            <ArrowLeft size={16} /> 계정 설정으로 돌아가기
+                        </button>
+                        <h2 className="wd-page-title">서비스 탈퇴</h2>
+                        <p className="wd-page-subtitle">탈퇴 시 소중한 기록들이 모두 삭제됩니다.</p>
                     </div>
-
-                    <div className="withdraw-notice-box">
-                        <div className="withdraw-notice-item">
-                            <span className="notice-number">1</span>
-                            <p className="notice-text">
-                                보유 중인 모든 상담권({ticketCount}회)과 포인트가 즉시 소멸되며 환불이 불가능합니다.
-                            </p>
+                    <div className="wd-withdraw-wrapper wd-fade-in">
+                        <div className="wd-top-grid">
+                            <div className="wd-notice-card">
+                                <h4 className="wd-card-title">탈퇴 시 삭제되는 항목</h4>
+                                <div className="wd-notice-list">
+                                    <div className="wd-notice-item">
+                                        <div className="wd-notice-bullet" />
+                                        <div>
+                                            <p className="wd-notice-label">보유 상담권 및 포인트 즉시 소멸</p>
+                                            <p className="wd-notice-sub">환불 불가 — 탈퇴 전 사용을 권장드려요.</p>
+                                        </div>
+                                    </div>
+                                    <div className="wd-notice-item">
+                                        <div className="wd-notice-bullet" />
+                                        <div>
+                                            <p className="wd-notice-label">마음 리포트 및 상담 히스토리 전체 삭제</p>
+                                            <p className="wd-notice-sub">기록은 복구되지 않으며, 영구적으로 제거됩니다.</p>
+                                        </div>
+                                    </div>
+                                    <div className="wd-notice-item">
+                                        <div className="wd-notice-bullet" />
+                                        <div>
+                                            <p className="wd-notice-label">동일 정보로 30일간 재가입 불가</p>
+                                            <p className="wd-notice-sub">이메일과 전화번호 기준으로 제한됩니다.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="wd-stats-column">
+                                <div className="wd-stat-card">
+                                    <p className="wd-stat-label">잔여 상담권</p>
+                                    <div>
+                                        <span className="wd-stat-value">{ticketCount}</span>
+                                        <span className="wd-stat-unit">회</span>
+                                    </div>
+                                    <p className="wd-stat-warning">탈퇴 시 환불 불가</p>
+                                </div>
+                                <div className="wd-stat-card">
+                                    <p className="wd-stat-label">완료한 상담</p>
+                                    <div>
+                                        <span className="wd-stat-value">{completedConsultations}</span>
+                                        <span className="wd-stat-unit">회</span>
+                                    </div>
+                                    <p className="wd-stat-warning">기록 전체 삭제</p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="withdraw-notice-item">
-                            <span className="notice-number">2</span>
-                            <p className="notice-text">
-                                지금까지 작성된 모든 마음 리포트와 상담 히스토리(기록지)가 영구 삭제됩니다.
-                            </p>
-                        </div>
-                        <div className="withdraw-notice-item">
-                            <span className="notice-number">3</span>
-                            <p className="notice-text">탈퇴 후 30일간은 동일한 정보로 재가입이 불가능합니다.</p>
+                        <div className="wd-bottom-card">
+                            <label className="wd-agree-box">
+                                <div className="wd-checkbox-wrapper">
+                                    <input
+                                        type="checkbox"
+                                        checked={withdrawAgree}
+                                        onChange={(e) => setWithdrawAgree(e.target.checked)}
+                                    />
+                                    <div className="wd-check-display">
+                                        {withdrawAgree && <Check size={11} strokeWidth={4} />}
+                                    </div>
+                                </div>
+                                <span className="wd-agree-text">
+                                    위 유의사항을 모두 확인하였으며 이에 동의합니다.
+                                </span>
+                            </label>
+                            <button
+                                className="wd-delete-btn"
+                                onClick={handleDeleteAccount}
+                                disabled={!withdrawAgree || withdrawLoading}
+                            >
+                                {withdrawLoading ? '처리 중...' : '마인드웰 계정 영구 삭제'}
+                            </button>
+                            <div className="wd-suggestion-box">
+                                <Lightbulb size={16} className="wd-suggestion-icon" />
+                                <p>
+                                    탈퇴 대신{' '}
+                                    <span className="wd-highlight" onClick={() => setActiveSubMenu('notification')}>알림 설정</span>이나{' '}
+                                    <span className="wd-highlight">상담 일시 중지</span>를 이용해 보세요.
+                                    언제든지 다시 돌아오실 수 있어요.
+                                </p>
+                            </div>
                         </div>
                     </div>
-
-                    <label className="withdraw-agree-label group">
-                        <input
-                            type="checkbox"
-                            className="withdraw-checkbox"
-                            checked={withdrawAgree}
-                            onChange={(e) => setWithdrawAgree(e.target.checked)}
-                        />
-                        <span className="withdraw-agree-text">위 유의사항을 모두 확인하였으며, 이에 동의합니다.</span>
-                    </label>
-
-                    <button
-                        className="withdraw-submit-btn"
-                        onClick={handleDeleteAccount}
-                        disabled={!withdrawAgree || withdrawLoading}
-                        style={{ opacity: !withdrawAgree || withdrawLoading ? 0.6 : 1 }}
-                    >
-                        {withdrawLoading ? '처리 중...' : '마인드웰 계정 영구 삭제'}
-                    </button>
                 </div>
             </div>
         );
     };
+    // ────────────────────────────────────────────────────────────────────────
 
     const renderProfileDetail = () => {
         const details = {
-            personal: {
-                title: '개인정보 수정 및 보안',
-                desc: '회원님의 소중한 정보와 비밀번호를 안전하게 관리하세요.',
-            },
-            notification: { title: '알림 설정', desc: '상담 일정 및 서비스 소식을 전해드릴게요.' },
-            quit: { title: '서비스 탈퇴', desc: '탈퇴 시 소중한 기록들이 모두 삭제됩니다.' },
+            personal:     { title: '개인정보 수정 및 보안', desc: '회원님의 소중한 정보와 비밀번호를 안전하게 관리하세요.' },
+            notification: { title: '알림 설정',            desc: '상담 일정 및 서비스 소식을 전해드릴게요.' },
+            quit:         { title: '서비스 탈퇴',           desc: '탈퇴 시 소중한 기록들이 모두 삭제됩니다.' },
         };
+
+        if (activeSubMenu === 'quit') {
+            return renderQuitService();
+        }
 
         const current = details[activeSubMenu];
 
@@ -818,11 +823,9 @@ export default function App() {
                         <h3 className="submenu-main-title">{current.title}</h3>
                         <p className="submenu-description">{current.desc}</p>
                     </div>
-
                     <div className="submenu-content-area">
-                        {activeSubMenu === 'personal' && renderPersonalEdit()}
+                        {activeSubMenu === 'personal'     && renderPersonalEdit()}
                         {activeSubMenu === 'notification' && renderNotificationEdit()}
-                        {activeSubMenu === 'quit' && renderQuitService()}
                     </div>
                 </div>
             </div>
@@ -848,12 +851,11 @@ export default function App() {
                             <ArrowLeft size={16} /> 돌아가기
                         </button>
                         <h3 className="account-main-title">계정 설정</h3>
-
                         <div className="setting-items-list">
                             {[
-                                { key: 'personal', label: '개인정보 수정 및 보안', icon: User, type: 'personal' },
-                                { key: 'notification', label: '알림 설정', icon: Bell, type: 'notification' },
-                                { key: 'quit', label: '서비스 탈퇴', icon: UserX, type: 'quit' },
+                                { key: 'personal',     label: '개인정보 수정 및 보안', icon: User,  type: 'personal' },
+                                { key: 'notification', label: '알림 설정',            icon: Bell,  type: 'notification' },
+                                { key: 'quit',         label: '서비스 탈퇴',           icon: UserX, type: 'quit' },
                             ].map((item) => (
                                 <div
                                     key={item.key}
@@ -870,7 +872,6 @@ export default function App() {
                                 </div>
                             ))}
                         </div>
-
                         <div className="account-logout-section">
                             <button className="account-logout-btn" onClick={handleLogout}>
                                 <LogOut size={20} />
@@ -882,43 +883,26 @@ export default function App() {
             default:
                 return (
                     <div className="fade-in">
-                        {/* 상단 상태 그리드 */}
                         <div className="dash-status-grid">
                             <div className="dash-status-item" onClick={() => handleMenuClick('tickets')}>
-                                <div className="status-icon-box bg-amber">
-                                    <Wallet size={18} />
-                                </div>
+                                <div className="status-icon-box bg-amber"><Wallet size={18} /></div>
                                 <p className="status-label">잔여 상담권</p>
-                                <p className="status-value">
-                                    {ticketCount}
-                                    <span className="unit">회</span>
-                                </p>
+                                <p className="status-value">{ticketCount}<span className="unit">회</span></p>
                             </div>
                             <div className="dash-status-item">
-                                <div className="status-icon-box bg-blue">
-                                    <CalendarHeart size={18} />
-                                </div>
+                                <div className="status-icon-box bg-blue"><CalendarHeart size={18} /></div>
                                 <p className="status-label">대기 중인 예약</p>
-                                <p className="status-value">
-                                    1<span className="unit">건</span>
-                                </p>
+                                <p className="status-value">1<span className="unit">건</span></p>
                             </div>
                             <div className="dash-status-item" onClick={() => handleMenuClick('history')}>
-                                <div className="status-icon-box bg-rose">
-                                    <History size={18} />
-                                </div>
+                                <div className="status-icon-box bg-rose"><History size={18} /></div>
                                 <p className="status-label">완료한 상담</p>
-                                <p className="status-value">
-                                    12<span className="unit">회</span>
-                                </p>
+                                <p className="status-value">12<span className="unit">회</span></p>
                             </div>
                         </div>
-                        {/* 다음 상담 예약 히어로 카드 */}
                         <div className="dash-hero-card">
                             <div className="hero-content">
-                                <div className="hero-icon-wrapper">
-                                    <MessagesSquare size={28} />
-                                </div>
+                                <div className="hero-icon-wrapper"><MessagesSquare size={28} /></div>
                                 <div className="hero-text-group">
                                     <div className="hero-badge-row">
                                         <span className="hero-d-badge">D-2</span>
@@ -929,62 +913,38 @@ export default function App() {
                                 </div>
                             </div>
                             <button className="hero-action-btn">
-                                상담 상세 보기
-                                <ChevronRight size={18} />
+                                상담 상세 보기 <ChevronRight size={18} />
                             </button>
                         </div>
-                        {/* 최근 상담 기록 리스트 */}
                         <div className="dash-section-header">
                             <h3 className="section-title">
                                 <History size={20} className="text-[#8BA888]" /> 최근 상담 기록
                             </h3>
-                            <button onClick={() => handleMenuClick('history')} className="section-more-btn">
-                                전체보기
-                            </button>
+                            <button onClick={() => handleMenuClick('history')} className="section-more-btn">전체보기</button>
                         </div>
-
                         <div className="dash-history-list">
                             {[
-                                {
-                                    counselor: '이은지 상담사',
-                                    date: '2024.05.13',
-                                    type: '대면 상담',
-                                    status: '상담 완료',
-                                },
-                                {
-                                    counselor: '박민우 상담사',
-                                    date: '2024.05.06',
-                                    type: '대면 상담',
-                                    status: '상담 완료',
-                                },
+                                { counselor: '이은지 상담사', date: '2024.05.13', type: '대면 상담', status: '상담 완료' },
+                                { counselor: '박민우 상담사', date: '2024.05.06', type: '대면 상담', status: '상담 완료' },
                             ].map((item, idx) => (
                                 <div key={idx} className="dash-history-card" onClick={() => handleMenuClick('history')}>
                                     <div className="history-info-group">
-                                        <div className="history-icon-box">
-                                            <MessageSquareHeart size={20} />
-                                        </div>
+                                        <div className="history-icon-box"><MessageSquareHeart size={20} /></div>
                                         <div>
                                             <div className="history-title-row">
                                                 <p className="counselor-name">{item.counselor}</p>
                                                 <span className="status-tag">{item.status}</span>
                                             </div>
-                                            <p className="history-meta">
-                                                {item.date} • {item.type}
-                                            </p>
+                                            <p className="history-meta">{item.date} • {item.type}</p>
                                         </div>
                                     </div>
-                                    <button className="history-arrow-btn">
-                                        <ChevronRight size={18} />
-                                    </button>
+                                    <button className="history-arrow-btn"><ChevronRight size={18} /></button>
                                 </div>
                             ))}
                         </div>
-                        {/* 상담권 구매 배너 */}
                         <div className="dash-purchase-banner group" onClick={() => handleMenuClick('tickets')}>
                             <div className="purchase-info">
-                                <div className="purchase-icon-box">
-                                    <Ticket size={18} />
-                                </div>
+                                <div className="purchase-icon-box"><Ticket size={18} /></div>
                                 <div className="purchase-text">
                                     <p className="title">더 많은 위로가 필요하신가요?</p>
                                     <p className="desc">상담권을 충전하고 마음 케어를 이어가세요.</p>
@@ -995,35 +955,16 @@ export default function App() {
                                 <ChevronRight size={14} />
                             </div>
                         </div>
-                        {/* 모바일 전용 하단 메뉴 */}
                         <section className="mobile-only-menu">
                             <h4 className="mobile-menu-label">전체 메뉴</h4>
                             <div className="mobile-menu-group">
-                                <div onClick={() => handleMenuClick('history')} className="mobile-menu-item border-b">
-                                    <span>상담 히스토리</span>
-                                    <ChevronRight size={16} />
-                                </div>
-                                <div onClick={() => handleMenuClick('tickets')} className="mobile-menu-item border-b">
-                                    <span>상담권/결제</span>
-                                    <ChevronRight size={16} />
-                                </div>
-                                <div onClick={() => handleMenuClick('diary')} className="mobile-menu-item">
-                                    <span>마음 리포트</span>
-                                    <ChevronRight size={16} />
-                                </div>
+                                <div onClick={() => handleMenuClick('history')} className="mobile-menu-item border-b"><span>상담 히스토리</span><ChevronRight size={16} /></div>
+                                <div onClick={() => handleMenuClick('tickets')} className="mobile-menu-item border-b"><span>상담권/결제</span><ChevronRight size={16} /></div>
+                                <div onClick={() => handleMenuClick('diary')} className="mobile-menu-item"><span>마음 리포트</span><ChevronRight size={16} /></div>
                             </div>
                             <div className="mobile-menu-group mt-4">
-                                <div onClick={() => handleMenuClick('profile')} className="mobile-menu-item border-b">
-                                    <span>계정 설정</span>
-                                    <ChevronRight size={16} />
-                                </div>
-                                <div
-                                    className="mobile-menu-item text-rose"
-                                    onClick={handleLogout}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <span>로그아웃</span>
-                                </div>
+                                <div onClick={() => handleMenuClick('profile')} className="mobile-menu-item border-b"><span>계정 설정</span><ChevronRight size={16} /></div>
+                                <div className="mobile-menu-item text-rose" onClick={handleLogout} style={{ cursor: 'pointer' }}><span>로그아웃</span></div>
                             </div>
                         </section>
                     </div>
@@ -1033,13 +974,11 @@ export default function App() {
 
     return (
         <div className="mypage-layout-root">
-            {/* 사이드바 영역 */}
             <aside className="mypage-sidebar">
                 <div className="sidebar-logo-section" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
                     <h1 className="sidebar-brand-logo">MINDWELL</h1>
                     <p className="sidebar-brand-sub">Mental Health Care</p>
                 </div>
-
                 <nav className="sidebar-nav-list">
                     <div
                         onClick={() => handleMenuClick('dashboard')}
@@ -1059,49 +998,35 @@ export default function App() {
                         </div>
                     ))}
                 </nav>
-
                 <div className="sidebar-footer-nav">
                     <div className="sidebar-nav-item is-cs-link">
                         <Headset size={20} className="icon-stone" />
                         <span>고객센터</span>
                     </div>
-                    <div
-                        className="sidebar-nav-item is-logout-link"
-                        onClick={handleLogout}
-                        style={{ cursor: 'pointer' }}
-                    >
+                    <div className="sidebar-nav-item is-logout-link" onClick={handleLogout} style={{ cursor: 'pointer' }}>
                         <LogOut size={20} />
                         <span>로그아웃</span>
                     </div>
                 </div>
             </aside>
 
-            {/* 메인 콘텐츠 영역 */}
             <main className="mypage-content-area">
-                {/* <Header/> */}
-
                 <div className="user-welcome-header">
                     <div className="user-profile-summary" onClick={() => handleMenuClick('dashboard')}>
                         <div className="user-avatar-box">
                             <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Sohyun" alt="User" />
                         </div>
                         <div className="user-info-text">
-                            <h2 className="user-name-title">
-                                안녕하세요, {userInfo.name ? userInfo.name + '님' : ''}!
-                            </h2>
+                            <h2 className="user-name-title">안녕하세요, {userInfo.name ? userInfo.name + '님' : ''}!</h2>
                             <p className="user-status-msg">마음 근육을 키운 지 42일째 되는 날이에요. 🌿</p>
                         </div>
                     </div>
-
                     <button className="user-notif-check-btn">
                         <Bell size={18} className="icon-green" />
                         알림 확인
                     </button>
                 </div>
-
                 <div className="dynamic-render-content">{renderContent()}</div>
-
-                {/* <Footer/> */}
             </main>
         </div>
     );
