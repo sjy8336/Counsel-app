@@ -1187,6 +1187,17 @@ const App = () => {
         }
     };
 
+    // 로그아웃 핸들러
+    const handleLogout = () => {
+        // 토큰 및 사용자 정보 삭제
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('user');
+        // 로그인 페이지로 이동
+        navigate('/login');
+    };
+
     return (
         <div className="mw-app">
             <button className="mw-mobile-btn" onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}>
@@ -1235,7 +1246,7 @@ const App = () => {
                         <HeadphonesIcon size={20} />
                         <span>고객센터</span>
                     </div>
-                    <div className="mw-footer-item danger">
+                    <div className="mw-footer-item danger" onClick={handleLogout}>
                         <LogOut size={20} />
                         <span>로그아웃</span>
                     </div>
