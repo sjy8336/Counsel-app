@@ -12,6 +12,8 @@ import CounselorDetailPage from './pages/CounselorDetail';
 import CounselorMyPage from './pages/CounselorMyPage';
 import Schedule from './pages/Schedule';
 import CounselorPlanner from './pages/CounselorPlanner';
+import CounselorHome from './pages/CounselorHome';
+import CounselorClient from './pages/CounselorClient';
 
 function App() {
     return (
@@ -30,6 +32,8 @@ function App() {
                 <Route path="/healing" element={<HealingRounge />} />
                 <Route path="/schedule" element={<Schedule />} />
                 <Route path="/CounselorPlanner" element={<CounselorPlanner />} />
+                <Route path="/counselor/main" element={<CounselorHome />} />
+                <Route path="/counselor/client" element={<CounselorClient />} />
             </Routes>
         </BrowserRouter>
     );

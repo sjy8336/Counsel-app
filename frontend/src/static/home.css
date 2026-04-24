@@ -879,4 +879,6 @@
         opacity: 1;
         transform: translateY(0);
     }
+.next-res-arrow {
+    color: #d6d3d1;
 }

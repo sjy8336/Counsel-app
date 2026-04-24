@@ -19,10 +19,18 @@ export default function LoginPage() {
                 console.warn('로그인 응답에 id(PK)가 없습니다:', result.user);
             } else {
                 console.log('로그인 응답 user:', result.user);
+                // role, username 등 주요 정보 명확히 출력
+                console.log('user.role:', result.user.role);
+                console.log('user.username:', result.user.username);
             }
             localStorage.setItem('user', JSON.stringify(result.user));
             alert(`${result.user.full_name}님, 환영합니다!`);
-            navigate('/');
+            // role에 따라 이동 경로 분기
+            if (result.user.role === 'counselor') {
+                navigate('/counselorhome');
+            } else {
+                navigate('/');
+            }
         } catch (error) {
             console.error('3. 로그인 에러 발생!');
             console.log('에러 객체 전체:', error);
