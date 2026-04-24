@@ -1,5 +1,6 @@
+.heart-btn.liked svg {filter: drop-shadow(0 1px 2px #f8d7da);}
 /* 메인 컨테이너 및 배경 설정 */
-.full-page-wrapper{background-color: #FDFBF7;}
+.full-page-wrapper {background-color: #fdfbf7;}
 .counselor-list-container {
     max-width: 1100px;
     margin: 0 auto;
@@ -19,12 +20,12 @@
 
 /* 컬러 팔레트 적용 */
 .price-info {
-    color: #F59E0B; /* Accent 2: Amber */
+    color: #f59e0b; /* Accent 2: Amber */
     font-weight: 700;
 }
 
 .category-btn.active {
-    background-color: #8BA888; /* Main: Sage Green */
+    background-color: #8ba888; /* Main: Sage Green */
     color: white;
 }
 
@@ -33,47 +34,51 @@
     margin-bottom: 50px;
 }
 
-.search-title {
-    font-size: 2rem;
-    color: #1E293B; /* Text (Main): Slate Navy */
-    margin-bottom: 10px;
-    font-weight: 700;
+.time-btn {
+    padding: 12px 22px;
+    border-radius: 10px;
+    border: 1.5px solid #d1d5db;
+    background: #f5f6fa;
+    color: #6b7280;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(30,41,59,0.04);
 }
-
-.search-sub {
-    color: #64748B; /* 서브 텍스트용 연한 네이비 */
-    margin-bottom: 30px;
-    font-size: 0.95rem;
+.time-btn:hover:not(:disabled),
+.time-btn:focus-visible:not(:disabled) {
+    background: #8ba888;
+    color: #fff;
+    border-color: #8ba888;
 }
-
-/* 검색바 영역 */
-.search-bar-wrapper {
-    position: relative;
-    max-width: 550px;
-    margin: 0 auto 30px;
+.time-btn.active {
+    background: #8ba888;
+    color: #fff;
+    border-color: #8ba888;
+    box-shadow: 0 4px 16px rgba(139,168,136,0.13);
 }
-
-.search-icon {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #8BA888; /* Main: Sage Green */
+.time-btn:disabled {
+    background: #f1f5f9;
+    color: #cbd5e1;
+    border: 1.5px solid #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
-
 .search-input {
     width: 100%;
     padding: 15px 15px 15px 50px;
-    border: 1.5px solid #FAF7F2; /* Sub Background: Sand Beige */
+    border: 1.5px solid #faf7f2; /* Sub Background: Sand Beige */
     border-radius: 12px;
-    background: #FFFFFF;
-    color: #1E293B;
+    background: #ffffff;
+    color: #1e293b;
     outline: none;
     transition: all 0.2s;
 }
 
 .search-input:focus {
-    border-color: #8BA888; /* Focus 시 메인 컬러 */
+    border-color: #8ba888; /* Focus 시 메인 컬러 */
     box-shadow: 0 0 0 3px rgba(139, 168, 136, 0.1);
 }
 
@@ -87,23 +92,23 @@
 
 .category-btn {
     padding: 10px 25px;
-    background: #FAF7F2; /* Sub Background: Sand Beige */
+    background: #faf7f2; /* Sub Background: Sand Beige */
     border: none;
     border-radius: 50px;
     cursor: pointer;
-    color: #1E293B;
+    color: #1e293b;
     font-size: 0.9rem;
     font-weight: 500;
     transition: all 0.3s;
 }
 
 .category-btn:hover {
-    background: #E5E1DA;
+    background: #e5e1da;
 }
 
 .category-btn.active {
-    background: #8BA888; /* Main: Sage Green */
-    color: #FFFFFF;
+    background: #8ba888; /* Main: Sage Green */
+    color: #ffffff;
     box-shadow: 0 4px 12px rgba(139, 168, 136, 0.25);
 }
 
@@ -115,10 +120,10 @@
 }
 
 .counselor-card {
-    background: #FFFFFF;
+    background: #ffffff;
     border-radius: 24px;
     padding: 30px;
-    border: 1px solid #FAF7F2;
+    border: 1px solid #faf7f2;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -140,12 +145,12 @@
 .profile-placeholder {
     width: 64px;
     height: 64px;
-    background: #FAF7F2; /* Sub Background */
+    background: #faf7f2; /* Sub Background */
     border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #8BA888; /* Main: Sage Green */
+    color: #8ba888; /* Main: Sage Green */
 }
 
 /* 상담 방식 배지 */
@@ -160,20 +165,20 @@
     height: fit-content;
 }
 
-.type-badge[data-type="비대면"] { 
-    background: #E0F2FE; 
-    color: #0369A1; 
+.type-badge[data-type='비대면'] {
+    background: #e0f2fe;
+    color: #0369a1;
 }
 
-.type-badge[data-type="대면"] { 
-    background: #FDF2F2; /* Accent 1: Soft Rose 연하게 활용 */
-    color: #FDA4AF; /* Accent 1: Soft Rose */
+.type-badge[data-type='대면'] {
+    background: #fdf2f2; /* Accent 1: Soft Rose 연하게 활용 */
+    color: #fda4af; /* Accent 1: Soft Rose */
 }
 
 /* 카드 본문 텍스트 */
 .counselor-category-label {
     font-size: 0.8rem;
-    color: #8BA888; /* Main: Sage Green */
+    color: #8ba888; /* Main: Sage Green */
     font-weight: 700;
     margin-bottom: 6px;
     display: block;
@@ -182,12 +187,12 @@
 .counselor-name {
     font-size: 1.35rem;
     margin: 0 0 8px;
-    color: #1E293B; /* Text (Main) */
+    color: #1e293b; /* Text (Main) */
 }
 
 .counselor-field-tags {
     font-size: 0.85rem;
-    color: #64748B;
+    color: #64748b;
     margin-bottom: 15px;
     display: block;
 }
@@ -199,26 +204,45 @@
     flex: 1;
 }
 
+/* 하트(좋아요) 버튼 스타일 */
+.heart-btn {
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 2px 2px 0 2px;
+    margin-left: 6px;
+    transition: transform 0.1s;
+    vertical-align: middle;
+    display: flex;
+    align-items: center;
+}
+.heart-btn svg {
+    transition:
+        fill 0.2s,
+        color 0.2s;
+}
+
 /* 카드 푸터 */
 .card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1.5px solid #FDFBF7;
+    border-top: 1.5px solid #fdfbf7;
     padding-top: 20px;
     margin-top: 20px;
 }
 
 .price-info {
     font-weight: 700;
-    color: #F59E0B; /* Accent 2: Amber */
+    color: #f59e0b; /* Accent 2: Amber */
     font-size: 1.05rem;
 }
 
 .view-detail-btn {
     background: none;
     border: none;
-    color: #8BA888; /* Main: Sage Green */
+    color: #8ba888; /* Main: Sage Green */
     font-weight: 700;
     font-size: 0.9rem;
     cursor: pointer;
@@ -233,7 +257,7 @@
     grid-column: 1 / -1;
     text-align: center;
     padding: 100px 0;
-    color: #94A3B8;
+    color: #94a3b8;
 }
 /* --- 기존 리스트 스타일 유지 (생략) --- */
 
@@ -244,16 +268,16 @@
     margin: 40px auto;
     gap: 40px;
     padding: 0 40px;
-    background-color: #FDFBF7; /* Background: Warm White */
+    background-color: #fdfbf7; /* Background: Warm White */
 }
 
 /* 왼쪽 정보 영역 (60%) */
 .detail-left {
     flex: 6;
-    background: #FFFFFF;
+    background: #ffffff;
     padding: 40px;
     border-radius: 24px;
-    border: 1px solid #FAF7F2;
+    border: 1px solid #faf7f2;
     box-shadow: 0 4px 15px rgba(30, 41, 59, 0.02);
 }
 
@@ -262,41 +286,41 @@
     align-items: center;
     gap: 25px;
     padding-bottom: 30px;
-    border-bottom: 1px solid #FAF7F2;
+    border-bottom: 1px solid #faf7f2;
     margin-bottom: 30px;
 }
 
 .large-profile {
     width: 100px;
     height: 100px;
-    background: #FAF7F2;
+    background: #faf7f2;
     border-radius: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #8BA888;
+    color: #8ba888;
 }
 
 .detail-category {
     font-size: 0.9rem;
-    color: #8BA888;
+    color: #8ba888;
     font-weight: 700;
 }
 
 .detail-name {
     font-size: 2.2rem;
-    color: #1E293B;
+    color: #1e293b;
     margin: 5px 0;
 }
 
 .type-tag {
     font-size: 0.9rem;
-    color: #64748B;
+    color: #64748b;
 }
 
 .detail-content h3 {
     font-size: 1.3rem;
-    color: #1E293B;
+    color: #1e293b;
     margin: 35px 0 15px;
     display: flex;
     align-items: center;
@@ -322,20 +346,18 @@
     color: #475569;
 }
 
-.check-icon { color: #8BA888; }
+.check-icon {color: #8ba888;}
 
 /* 오른쪽 예약 영역 (40%) */
-.detail-right {
-    flex: 4;
-}
+.detail-right {flex: 4;}
 
 .sticky-reservation-card {
     position: sticky;
     top: 100px;
-    background: #FFFFFF;
+    background: #ffffff;
     padding: 35px;
     border-radius: 24px;
-    border: 1.5px solid #8BA888; /* Sage Green 강조 */
+    border: 1.5px solid #8ba888; /* Sage Green 강조 */
     box-shadow: 0 10px 30px rgba(139, 168, 136, 0.1);
 }
 
@@ -343,7 +365,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #FAF7F2;
+    background: #faf7f2;
     padding: 20px;
     border-radius: 15px;
     margin-bottom: 30px;
@@ -352,32 +374,23 @@
 .price-value {
     font-size: 1.4rem;
     font-weight: 800;
-    color: #F59E0B; /* Amber 강조 */
+    color: #f59e0b; /* Amber 강조 */
 }
 
-.reservation-step { margin-bottom: 25px; }
-
+.reservation-step {margin-bottom: 25px;}
 .reservation-step label {
     display: flex;
     align-items: center;
     gap: 8px;
     font-weight: 700;
-    color: #1E293B;
+    color: #1e293b;
     margin-bottom: 12px;
-}
-
-.date-picker {
-    width: 100%;
-    padding: 15px;
-    border: 1.5px solid #FAF7F2;
-    border-radius: 12px;
-    font-family: inherit;
 }
 
 .reserve-submit-btn {
     width: 100%;
     padding: 18px;
-    background: #8BA888;
+    background: #8ba888;
     color: white;
     border: none;
     border-radius: 15px;
@@ -387,21 +400,24 @@
     transition: all 0.2s;
 }
 
-.reserve-submit-btn:hover { background: #7a9677; transform: translateY(-2px); }
+.reserve-submit-btn:hover {
+    background: #7a9677;
+    transform: translateY(-2px);
+}
 /* 목록으로 돌아가기 버튼 디자인 수정 */
 .back-btn-clear {
     display: flex;
     align-items: center;
     gap: 6px;
-    
+
     /* 배경과 테두리를 완전히 없애서 글자만 보이게 설정 */
     background: transparent;
     border: none;
     padding: 0;
     margin-bottom: 25px;
-    
+
     /* 주변 텍스트(#475569)와 어울리는 차분한 색상 */
-    color: #475569; 
+    color: #475569;
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
@@ -409,16 +425,10 @@
 }
 
 .back-btn-clear:hover {
-    /* 마우스를 올리면 서비스 메인 컬러인 세이지 그린으로 변경 */
-    color: #8BA888;
-    /* 왼쪽으로 살짝 움직이는 효과로 '뒤로가기' 느낌 강조 */
+    color: #8ba888;
     transform: translateX(-3px);
 }
-
-/* 아이콘 위치 정렬 */
-.back-btn-clear svg {
-    display: block;
-}
+.back-btn-clear svg {display: block;}
 
 /* 프로필 이미지 스타일 */
 .large-profile-img {
@@ -426,28 +436,24 @@
     height: 100px;
     object-fit: cover;
     border-radius: 30px;
-    background: #FAF7F2;
+    background: #faf7f2;
 }
 
 /* 예약 섹션 로딩 및 비활성화 스타일 */
 .time-btn.disabled {
-    background: #F1F5F9;
-    color: #CBD5E1;
+    background: #f1f5f9;
+    color: #cbd5e1;
     cursor: not-allowed;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #e2e8f0;
 }
-
-.reserve-submit-btn:disabled {
-    background: #CBD5E1;
-    cursor: wait;
-}
+.reserve-submit-btn:disabled {background: #cbd5e1; cursor: wait;}
 .inquiry-btn {
     width: 100%;
     margin-top: 15px;
     padding: 14px;
-    background: #FFFFFF;
-    color: #8BA888; /* 포인트 컬러: 세이지 그린 */
-    border: 1.5px solid #8BA888;
+    background: #ffffff;
+    color: #8ba888; /* 포인트 컬러: 세이지 그린 */
+    border: 1.5px solid #8ba888;
     border-radius: 12px;
     font-size: 0.95rem;
     font-weight: 700;
@@ -458,16 +464,151 @@
     cursor: pointer;
     transition: all 0.2s;
 }
-
-.inquiry-btn:hover {
-    background: #FAF7F2;
-    color: #7a9677;
-}
+.inquiry-btn:hover {background: #faf7f2; color: #7a9677;}
 
 /* 예약 완료 후 로딩 상태 시각화 */
 .time-btn.active {
-    background-color: #8BA888;
+    background-color: #8ba888;
     color: white;
-    border-color: #8BA888;
+    border-color: #8ba888;
 }
 
+.date-picker-container {
+    position: relative;
+    width: 100%;
+    font-family: 'Pretendard', sans-serif;
+}
+
+.date-input-wrapper {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #FDFBF7; /* Warm White */
+    border: 1px solid #8BA888; /* Sage Green */
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.date-input-wrapper:hover {background-color: #FAF7F2; /* Sand Beige */}
+
+.calendar-icon {color: #8BA888; margin-right: 12px;}
+
+.date-display-input {
+    border: none;
+    background: transparent;
+    color: #1E293B; /* Slate Navy */
+    font-size: 15px;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.calendar-popup {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 100%;
+    background-color: #FDFBF7; /* Warm White */
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    border: 1px solid #FAF7F2;
+    padding: 20px;
+    z-index: 100;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.current-month-text {
+    font-weight: 700;
+    color: #1E293B; /* Slate Navy */
+    font-size: 16px;
+}
+
+.nav-button {
+    background: none;
+    border: none;
+    color: #8BA888; /* Sage Green */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.nav-button:hover {
+    background-color: #FAF7F2;
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 10px;
+}
+
+.weekday-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8BA888; /* Sage Green */
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #1E293B;
+}
+
+.calendar-day.enabled:hover {
+    background-color: #8BA888;
+    color: white;
+}
+
+.calendar-day.selected {
+    background-color: #8BA888; /* Main Point */
+    color: white;
+    font-weight: 700;
+}
+
+.calendar-day.disabled {
+    color: #CBD5E1;
+    cursor: not-allowed;
+}
+
+.calendar-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #FAF7F2;
+    font-size: 11px;
+    color: #8BA888;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dot.accent {
+    width: 6px;
+    height: 6px;
+    background-color: #FDA4AF; /* Soft Rose */
+    border-radius: 50%;
+}
