@@ -1,28 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Calendar, Clock, CheckCircle, ChevronLeft, MessageCircle } from 'lucide-react';
+import { User, Calendar, CalendarIcon, ChevronLeft, ChevronRight, Clock, CheckCircle, MessageCircle } from 'lucide-react';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import '../static/Counselor.css';
 
 const detailedCounselorData = {
-    "1": { name: "이은지 상담사", category: "개인 심리", major: "임상심리학 석사", fields: ["우울", "불안", "공황"], type: "대면", price: "60,000원", description: "당신의 마음 일기 속 숨겨진 감정을 함께 찾아냅니다. 10년 간의 임상 경험을 바탕으로, 일상에서 느끼는 미묘한 불안과 우울의 원인을 분석합니다.", history: ["한국심리학회 공인 상담심리사 1급", "전 OO대학교 학생상담센터 상담원"], availableTimes: ["10:00", "14:00", "16:00"] },
-    "2": { name: "김태현 상담사", category: "직장", major: "산업심리학 박사", fields: ["스트레스", "번아웃", "대인관계"], type: "대면", price: "60,000원", description: "조직 내 갈등과 업무 압박으로 인한 번아웃은 단순한 휴식만으로 해결되지 않습니다.", history: ["기업 상담(EAP) 전문 상담사"], availableTimes: ["11:00", "15:00", "17:00"] },
+    1: {
+        name: '이은지 상담사',
+        category: '개인 심리',
+        major: '임상심리학 석사',
+        fields: ['우울', '불안', '공황'],
+        type: '대면',
+        price: '60,000원',
+        description:
+            '당신의 마음 일기 속 숨겨진 감정을 함께 찾아냅니다. 10년 간의 임상 경험을 바탕으로, 일상에서 느끼는 미묘한 불안과 우울의 원인을 분석합니다.',
+        history: ['한국심리학회 공인 상담심리사 1급', '전 OO대학교 학생상담센터 상담원'],
+        availableTimes: ['10:00', '14:00', '16:00'],
+    },
+    2: {
+        name: '김태현 상담사',
+        category: '직장',
+        major: '산업심리학 박사',
+        fields: ['스트레스', '번아웃', '대인관계'],
+        type: '대면',
+        price: '60,000원',
+        description: '조직 내 갈등과 업무 압박으로 인한 번아웃은 단순한 휴식만으로 해결되지 않습니다.',
+        history: ['기업 상담(EAP) 전문 상담사'],
+        availableTimes: ['11:00', '15:00', '17:00'],
+    },
     // 필요 시 3, 4, 5... 추가 가능
 };
 
 export default function CounselorDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const counselor = detailedCounselorData[id] || detailedCounselorData["1"];
+    const counselor = detailedCounselorData[id] || detailedCounselorData['1'];
 
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const containerRef = useRef(null);
 
     const handleReservation = async () => {
         if (!selectedDate || !selectedTime) {
-            alert("상담 일자와 시간을 모두 선택해주세요.");
+            alert('상담 일자와 시간을 모두 선택해주세요.');
             return;
         }
 
@@ -30,17 +52,84 @@ export default function CounselorDetailPage() {
 
         try {
             // 시뮬레이션
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             alert('예약 신청이 완료되었습니다.');
-            
+
             // [중요] App.js의 Route path가 "/reservation" 인지 "/Reservation" 인지 확인 필요!
             // 보통 소문자로 작성하는 것이 표준입니다.
-            navigate('/reservation'); 
+            navigate('/reservation');
         } catch (error) {
             alert('에러가 발생했습니다.');
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const [isOpen, setIsOpen] = useState(false);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+
+    // 외부 클릭 시 달력 닫기
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (containerRef.current && !containerRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // 오늘 날짜 정보
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 달력 계산 로직
+    const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+    const firstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
+
+    const handleDateClick = (day) => {
+        const clickedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+        if (clickedDate >= today) {
+            const formattedDate = `${clickedDate.getFullYear()}-${String(clickedDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            setSelectedDate(formattedDate);
+            setIsOpen(false);
+        }
+    };
+
+    const changeMonth = (offset) => {
+        setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1));
+    };
+
+    const renderCalendar = () => {
+        const year = currentMonth.getFullYear();
+        const month = currentMonth.getMonth();
+        const totalDays = daysInMonth(year, month);
+        const firstDay = firstDayOfMonth(year, month);
+        const days = [];
+
+        // 빈 칸 (이전 달 날짜 공간)
+        for (let i = 0; i < firstDay; i++) {
+            days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
+        }
+
+        // 실제 날짜
+        for (let d = 1; d <= totalDays; d++) {
+            const dateObj = new Date(year, month, d);
+            const isPast = dateObj < today;
+            const isSelected =
+                selectedDate === `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+            days.push(
+                <div
+                    key={d}
+                    className={`calendar-day ${isPast ? 'disabled' : 'enabled'} ${isSelected ? 'selected' : ''}`}
+                    onClick={() => !isPast && handleDateClick(d)}
+                >
+                    {d}
+                </div>
+            );
+        }
+        return days;
     };
 
     return (
@@ -101,11 +190,50 @@ export default function CounselorDetailPage() {
                             <label>
                                 <Calendar size={18} /> 상담 일자 선택
                             </label>
-                            <input
-                                type="date"
-                                className="date-picker"
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                            />
+                            <div className="date-picker-container" ref={containerRef}>
+                                {/* 입력 영역 */}
+                                <div className="date-input-wrapper" onClick={() => setIsOpen(!isOpen)}>
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        placeholder="상담 날짜를 선택해주세요"
+                                        value={selectedDate}
+                                        className="date-display-input"
+                                    />
+                                </div>
+                                {/* 달력 팝업 */}
+                                {isOpen && (
+                                    <div className="calendar-popup">
+                                        <div className="calendar-header">
+                                            <button onClick={() => changeMonth(-1)} className="nav-button">
+                                                <ChevronLeft size={20} />
+                                            </button>
+                                            <span className="current-month-text">
+                                                {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
+                                            </span>
+                                            <button onClick={() => changeMonth(1)} className="nav-button">
+                                                <ChevronRight size={20} />
+                                            </button>
+                                        </div>
+
+                                        <div className="calendar-weekdays">
+                                            {['일', '월', '화', '수', '목', '금', '토'].map((d) => (
+                                                <div key={d} className="weekday-label">
+                                                    {d}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="calendar-grid">{renderCalendar()}</div>
+
+                                        <div className="calendar-footer">
+                                            <div className="legend-item">
+                                                <span className="dot accent"></span> 오늘 이후 예약 가능
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div className="reservation-step">
