@@ -1,6 +1,50 @@
-.heart-btn.liked svg {filter: drop-shadow(0 1px 2px #f8d7da);}
+/* 예약하기 버튼 옆 하트(찜) 버튼 및 정렬 */
+.reserve-action-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.heart-btn-reserve {
+    background: #f5f6fa;
+    border: 1.5px solid #e2e8f0;
+    outline: none;
+    cursor: pointer;
+    padding: 0 0 0 0;
+    display: flex;
+    align-items: center;
+    border-radius: 10px;
+    transition:
+        background 0.18s,
+        border 0.18s,
+        box-shadow 0.18s;
+    height: 48px;
+    width: 48px;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(30, 41, 59, 0.04);
+}
+.heart-btn-reserve svg {
+    transition:
+        fill 0.2s,
+        stroke 0.2s;
+}
+.heart-btn-reserve.liked {
+    background: #fdf2f8;
+    border-color: #fda4af;
+    box-shadow: 0 4px 16px rgba(253, 164, 175, 0.13);
+}
+.heart-btn-reserve.liked svg {
+    filter: drop-shadow(0 1px 2px #f8d7da);
+}
+.heart-btn-reserve:active {
+    background: #fdf2f8;
+    transform: scale(1.08);
+}
 /* 메인 컨테이너 및 배경 설정 */
-.full-page-wrapper {background-color: #fdfbf7;}
+.full-page-wrapper {
+    background-color: #fdfbf7;
+}
 .counselor-list-container {
     max-width: 1100px;
     margin: 0 auto;
@@ -29,23 +73,65 @@
     color: white;
 }
 
-.search-header {
+.clist-search-header {
     text-align: center;
     margin-bottom: 50px;
 }
 
+/* 검색바 영역 */
+.clist-search-bar-wrapper {
+    position: relative;
+    max-width: 550px;
+    margin: 24px auto;
+}
+
+.clist-search-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8ba888; /* Main: Sage Green */
+}
+
+.clist-search-input {
+    width: 100%;
+    padding: 15px 15px 15px 50px;
+    border: 1.5px solid #faf7f2; /* Sub Background: Sand Beige */
+    border-radius: 12px;
+    background: #ffffff;
+    color: #1e293b;
+    outline: none;
+    transition: all 0.2s;
+}
+.clist-search-input:focus {
+    border-color: #8ba888; /* Focus 시 메인 컬러 */
+    box-shadow: 0 0 0 3px rgba(139, 168, 136, 0.1);
+}
+
+/* 시간 선택 버튼 그리드 (상세페이지) */
+.time-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 8px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    min-height: 48px;
+}
+
 .time-btn {
-    padding: 12px 22px;
+    padding: 8px 16px;
     border-radius: 10px;
     border: 1.5px solid #d1d5db;
     background: #f5f6fa;
     color: #6b7280;
-    font-size: 1.05rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.18s;
     outline: none;
-    box-shadow: 0 2px 8px rgba(30,41,59,0.04);
+    box-shadow: 0 2px 8px rgba(30, 41, 59, 0.04);
 }
 .time-btn:hover:not(:disabled),
 .time-btn:focus-visible:not(:disabled) {
@@ -57,7 +143,7 @@
     background: #8ba888;
     color: #fff;
     border-color: #8ba888;
-    box-shadow: 0 4px 16px rgba(139,168,136,0.13);
+    box-shadow: 0 4px 16px rgba(139, 168, 136, 0.13);
 }
 .time-btn:disabled {
     background: #f1f5f9;
@@ -65,21 +151,6 @@
     border: 1.5px solid #e2e8f0;
     cursor: not-allowed;
     opacity: 0.7;
-}
-.search-input {
-    width: 100%;
-    padding: 15px 15px 15px 50px;
-    border: 1.5px solid #faf7f2; /* Sub Background: Sand Beige */
-    border-radius: 12px;
-    background: #ffffff;
-    color: #1e293b;
-    outline: none;
-    transition: all 0.2s;
-}
-
-.search-input:focus {
-    border-color: #8ba888; /* Focus 시 메인 컬러 */
-    box-shadow: 0 0 0 3px rgba(139, 168, 136, 0.1);
 }
 
 /* 카테고리 탭 */
@@ -215,12 +286,14 @@
     transition: transform 0.1s;
     vertical-align: middle;
     display: flex;
-    align-items: center;
 }
 .heart-btn svg {
     transition:
         fill 0.2s,
         color 0.2s;
+}
+.heart-btn.liked svg {
+    filter: drop-shadow(0 1px 2px #f8d7da);
 }
 
 /* 카드 푸터 */
@@ -346,10 +419,14 @@
     color: #475569;
 }
 
-.check-icon {color: #8ba888;}
+.check-icon {
+    color: #8ba888;
+}
 
 /* 오른쪽 예약 영역 (40%) */
-.detail-right {flex: 4;}
+.detail-right {
+    flex: 4;
+}
 
 .sticky-reservation-card {
     position: sticky;
@@ -359,6 +436,9 @@
     border-radius: 24px;
     border: 1.5px solid #8ba888; /* Sage Green 강조 */
     box-shadow: 0 10px 30px rgba(139, 168, 136, 0.1);
+}
+.sticky-reservation-card > h3 {
+    margin-bottom: 14px;
 }
 
 .price-tag-large {
@@ -377,7 +457,9 @@
     color: #f59e0b; /* Amber 강조 */
 }
 
-.reservation-step {margin-bottom: 25px;}
+.reservation-step {
+    margin-bottom: 25px;
+}
 .reservation-step label {
     display: flex;
     align-items: center;
@@ -393,7 +475,7 @@
     background: #8ba888;
     color: white;
     border: none;
-    border-radius: 15px;
+    border-radius: 12px;
     font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
@@ -428,7 +510,9 @@
     color: #8ba888;
     transform: translateX(-3px);
 }
-.back-btn-clear svg {display: block;}
+.back-btn-clear svg {
+    display: block;
+}
 
 /* 프로필 이미지 스타일 */
 .large-profile-img {
@@ -446,7 +530,10 @@
     cursor: not-allowed;
     border: 1px solid #e2e8f0;
 }
-.reserve-submit-btn:disabled {background: #cbd5e1; cursor: wait;}
+.reserve-submit-btn:disabled {
+    background: #cbd5e1;
+    cursor: wait;
+}
 .inquiry-btn {
     width: 100%;
     margin-top: 15px;
@@ -464,7 +551,10 @@
     cursor: pointer;
     transition: all 0.2s;
 }
-.inquiry-btn:hover {background: #faf7f2; color: #7a9677;}
+.inquiry-btn:hover {
+    background: #faf7f2;
+    color: #7a9677;
+}
 
 /* 예약 완료 후 로딩 상태 시각화 */
 .time-btn.active {
@@ -483,20 +573,25 @@
     display: flex;
     align-items: center;
     padding: 12px 16px;
-    background-color: #FDFBF7; /* Warm White */
-    border: 1px solid #8BA888; /* Sage Green */
+    background-color: #fdfbf7; /* Warm White */
+    border: 1px solid #8ba888; /* Sage Green */
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
-.date-input-wrapper:hover {background-color: #FAF7F2; /* Sand Beige */}
+.date-input-wrapper:hover {
+    background-color: #faf7f2; /* Sand Beige */
+}
 
-.calendar-icon {color: #8BA888; margin-right: 12px;}
+.calendar-icon {
+    color: #8ba888;
+    margin-right: 12px;
+}
 
 .date-display-input {
     border: none;
     background: transparent;
-    color: #1E293B; /* Slate Navy */
+    color: #1e293b; /* Slate Navy */
     font-size: 15px;
     outline: none;
     cursor: pointer;
@@ -508,10 +603,10 @@
     top: calc(100% + 8px);
     left: 0;
     width: 100%;
-    background-color: #FDFBF7; /* Warm White */
+    background-color: #fdfbf7; /* Warm White */
     border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    border: 1px solid #FAF7F2;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid #faf7f2;
     padding: 20px;
     z-index: 100;
 }
@@ -525,14 +620,14 @@
 
 .current-month-text {
     font-weight: 700;
-    color: #1E293B; /* Slate Navy */
+    color: #1e293b; /* Slate Navy */
     font-size: 16px;
 }
 
 .nav-button {
     background: none;
     border: none;
-    color: #8BA888; /* Sage Green */
+    color: #8ba888; /* Sage Green */
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -540,9 +635,8 @@
     border-radius: 50%;
     transition: background 0.2s;
 }
-
 .nav-button:hover {
-    background-color: #FAF7F2;
+    background-color: #faf7f2;
 }
 
 .calendar-weekdays {
@@ -555,7 +649,7 @@
     text-align: center;
     font-size: 12px;
     font-weight: 600;
-    color: #8BA888; /* Sage Green */
+    color: #8ba888; /* Sage Green */
 }
 
 .calendar-grid {
@@ -573,31 +667,31 @@
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
-    color: #1E293B;
+    color: #1e293b;
 }
 
 .calendar-day.enabled:hover {
-    background-color: #8BA888;
+    background-color: #8ba888;
     color: white;
 }
 
 .calendar-day.selected {
-    background-color: #8BA888; /* Main Point */
+    background-color: #8ba888; /* Main Point */
     color: white;
     font-weight: 700;
 }
 
 .calendar-day.disabled {
-    color: #CBD5E1;
+    color: #cbd5e1;
     cursor: not-allowed;
 }
 
 .calendar-footer {
     margin-top: 16px;
     padding-top: 12px;
-    border-top: 1px solid #FAF7F2;
+    border-top: 1px solid #faf7f2;
     font-size: 11px;
-    color: #8BA888;
+    color: #8ba888;
 }
 
 .legend-item {
@@ -609,6 +703,6 @@
 .dot.accent {
     width: 6px;
     height: 6px;
-    background-color: #FDA4AF; /* Soft Rose */
+    background-color: #fda4af; /* Soft Rose */
     border-radius: 50%;
 }

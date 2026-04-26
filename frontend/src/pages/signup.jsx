@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Mail,
     Lock,
     ChevronRight,
+    ChevronLeft,
     BadgeCheck,
     Eye,
     EyeOff,
@@ -11,6 +12,10 @@ import {
     Phone,
     UserCircle,
     GraduationCap,
+    Calendar,
+    ShieldCheck,
+    ChevronDown,
+    Check,
 } from 'lucide-react';
 import { signUp, checkIdDuplicate } from '../api/auth';
 import '../static/SignUp.css';
@@ -24,12 +29,22 @@ export default function SignupPage() {
         email: '',
         password: '',
         confirmPassword: '',
+        birth: '',
+        gender: '',
     });
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isCheckingId, setIsCheckingId] = useState(false);
     const [idStatus, setIdStatus] = useState(null);
+    const [agree, setAgree] = useState(false);
+    const [showDetail, setShowDetail] = useState(false);
+    const calendarRef = useRef(null);
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const [currentMonth, setCurrentMonth] = useState(() => {
+        // 기본값: 오늘 날짜
+        return new Date();
+    });
 
     const formatPhoneNumber = (value) => {
         const numbers = value.replace(/[^\d]/g, '');
@@ -67,7 +82,6 @@ export default function SignupPage() {
             setFormData((prev) => ({ ...prev, [name]: formatId(value) }));
             setIdStatus(null);
         } else if (name === 'password' || name === 'confirmPassword') {
-            // 최대 13자 제한
             setFormData((prev) => ({ ...prev, [name]: value.slice(0, 13) }));
         } else {
             setFormData((prev) => ({ ...prev, [name]: value }));
@@ -102,6 +116,10 @@ export default function SignupPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!agree) {
+            alert('개인정보 제공에 동의해 주세요.');
+            return;
+        }
         if (!formData.role) {
             alert('내담자인지 상담자인지 선택해 주세요.');
             return;
@@ -127,6 +145,49 @@ export default function SignupPage() {
             const errorMsg = error.response?.data?.detail || '회원가입 중 오류가 발생했습니다.';
             alert(errorMsg);
         }
+    };
+
+    // 달력 월 이동
+    const changeMonth = (offset) => {
+        setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
+    };
+
+    // 달력 날짜 렌더링
+    const renderCalendarDays = () => {
+        const year = currentMonth.getFullYear();
+        const month = currentMonth.getMonth();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const firstDay = new Date(year, month, 1).getDay();
+        const days = [];
+        // 빈 칸
+        for (let i = 0; i < firstDay; i++) {
+            days.push(<div key={`empty-${i}`} className="cal-day empty"></div>);
+        }
+        // 날짜
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateObj = new Date(year, month, d);
+            const isPast = dateObj > today ? false : false;
+            const isSelected =
+                formData.birth === `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            days.push(
+                <div
+                    key={d}
+                    className={`cal-day${isSelected ? ' selected' : ''}`}
+                    onClick={() => {
+                        setFormData((prev) => ({
+                            ...prev,
+                            birth: `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+                        }));
+                        setIsCalendarOpen(false);
+                    }}
+                >
+                    {d}
+                </div>
+            );
+        }
+        return days;
     };
 
     return (
@@ -213,6 +274,133 @@ export default function SignupPage() {
                                         placeholder="실명을 입력해 주세요"
                                         required
                                     />
+                                </div>
+                            </div>
+
+                            {/* 생년월일 섹션 */}
+                            <div className="input-field-group" style={{ position: 'relative' }}>
+                                <label className="input-label">생년월일</label>
+                                <div
+                                    className={`input-wrapper pointer-cursor ${isCalendarOpen ? 'active' : ''}`}
+                                    onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                                >
+                                    <Calendar size={16} className="input-icon" />
+                                    <input
+                                        type="text"
+                                        name="birth"
+                                        value={formData.birth}
+                                        readOnly
+                                        className="form-input pointer-cursor"
+                                        placeholder="날짜를 선택해 주세요"
+                                        required
+                                    />
+                                </div>
+
+                                {isCalendarOpen && (
+                                    <div className="custom-calendar-popup">
+                                        <div className="cal-header">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    changeMonth(-1);
+                                                }}
+                                                className="cal-nav-btn"
+                                            >
+                                                <ChevronLeft size={18} />
+                                            </button>
+                                            <div className="cal-title-group">
+                                                <select
+                                                    value={currentMonth.getFullYear()}
+                                                    onChange={(e) =>
+                                                        setCurrentMonth(
+                                                            new Date(
+                                                                parseInt(e.target.value),
+                                                                currentMonth.getMonth(),
+                                                                1
+                                                            )
+                                                        )
+                                                    }
+                                                    className="cal-select"
+                                                >
+                                                    {Array.from(
+                                                        { length: 100 },
+                                                        (_, i) => new Date().getFullYear() - i
+                                                    ).map((year) => (
+                                                        <option key={year} value={year}>
+                                                            {year}년
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <select
+                                                    value={currentMonth.getMonth()}
+                                                    onChange={(e) =>
+                                                        setCurrentMonth(
+                                                            new Date(
+                                                                currentMonth.getFullYear(),
+                                                                parseInt(e.target.value),
+                                                                1
+                                                            )
+                                                        )
+                                                    }
+                                                    className="cal-select"
+                                                >
+                                                    {Array.from({ length: 12 }, (_, i) => (
+                                                        <option key={i} value={i}>
+                                                            {i + 1}월
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    changeMonth(1);
+                                                }}
+                                                className="cal-nav-btn"
+                                            >
+                                                <ChevronRight size={18} />
+                                            </button>
+                                        </div>
+                                        <div className="cal-weekdays">
+                                            {['일', '월', '화', '수', '목', '금', '토'].map((d) => (
+                                                <div key={d} className="cal-weekday">
+                                                    {d}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="cal-grid">{renderCalendarDays()}</div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 성별 선택 섹션 */}
+                            <div className="input-field-group">
+                                <label className="input-label">성별</label>
+                                <div className="gender-radio-group">
+                                    <label className={`gender-radio ${formData.gender === 'male' ? 'checked' : ''}`}>
+                                        <input
+                                            type="radio"
+                                            name="gender"
+                                            value="male"
+                                            checked={formData.gender === 'male'}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                        남성
+                                    </label>
+                                    <label className={`gender-radio ${formData.gender === 'female' ? 'checked' : ''}`}>
+                                        <input
+                                            type="radio"
+                                            name="gender"
+                                            value="female"
+                                            checked={formData.gender === 'female'}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                        여성
+                                    </label>
                                 </div>
                             </div>
 
@@ -350,6 +538,59 @@ export default function SignupPage() {
                                 )}
                             </div>
 
+                            {/* 개인정보 제공 동의 */}
+                            <div className="policy-section-card">
+                                <div className="policy-header" onClick={() => setShowDetail(!showDetail)}>
+                                    <div className="policy-title-group">
+                                        <ShieldCheck size={18} className="policy-icon" />
+                                        <span>상담 데이터 제공 및 본인확인 동의 (필수)</span>
+                                    </div>
+                                    <ChevronDown size={20} className={`policy-arrow ${showDetail ? 'active' : ''}`} />
+                                </div>
+
+                                {showDetail && (
+                                    <div className="policy-detail-content">
+                                        <div className="policy-detail-item">
+                                            <span className="policy-dot"></span>
+                                            <p>
+                                                <strong>제공 받는 자:</strong> 담당 매칭 상담사
+                                            </p>
+                                        </div>
+                                        <div className="policy-detail-item">
+                                            <span className="policy-dot"></span>
+                                            <p>
+                                                <strong>제공 항목:</strong> 성명, 생년월일, 성별
+                                            </p>
+                                        </div>
+                                        <div className="policy-detail-item">
+                                            <span className="policy-dot"></span>
+                                            <p>
+                                                <strong>이용 목적:</strong> 맞춤형 상담 제공 및 본인 확인
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="policy-agree-footer">
+                                    <label className="custom-checkbox-wrapper">
+                                        <div className={`custom-checkbox-box ${agree ? 'checked' : ''}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={agree}
+                                                onChange={(e) => setAgree(e.target.checked)}
+                                                required
+                                            />
+                                            <Check
+                                                size={14}
+                                                className={`custom-check-icon ${agree ? 'visible' : ''}`}
+                                            />
+                                        </div>
+                                        <span className="custom-checkbox-text">
+                                            내용을 확인했으며, 이에 동의합니다.
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
                             <button type="submit" className="submit-button">
                                 <span>MINDWELL 시작하기</span>
                                 <ChevronRight size={18} />

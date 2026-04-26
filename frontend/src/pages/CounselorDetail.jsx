@@ -1,6 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Calendar, CalendarIcon, ChevronLeft, ChevronRight, Clock, CheckCircle, MessageCircle } from 'lucide-react';
+import {
+    User,
+    Calendar,
+    CalendarIcon,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    CheckCircle,
+    MessageCircle,
+} from 'lucide-react';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import '../static/Counselor.css';
@@ -40,6 +49,7 @@ export default function CounselorDetailPage() {
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [liked, setLiked] = useState(false);
     const containerRef = useRef(null);
 
     const handleReservation = async () => {
@@ -63,6 +73,16 @@ export default function CounselorDetailPage() {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleLike = () => {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            alert('로그인 후 이용 가능한 기능입니다.');
+            navigate('/login');
+            return;
+        }
+        setLiked((prev) => !prev);
     };
 
     const [isOpen, setIsOpen] = useState(false);
@@ -254,9 +274,32 @@ export default function CounselorDetailPage() {
                             </div>
                         </div>
 
-                        <button className="reserve-submit-btn" onClick={handleReservation} disabled={isSubmitting}>
-                            {isSubmitting ? '처리 중...' : '예약 신청하기'}
-                        </button>
+                        <div className="reserve-action-row">
+                            <button className="reserve-submit-btn" onClick={handleReservation} disabled={isSubmitting}>
+                                {isSubmitting ? '처리 중...' : '예약 신청하기'}
+                            </button>
+                            <button
+                                className={`heart-btn-reserve${liked ? ' liked' : ''}`}
+                                aria-label="찜하기"
+                                onClick={handleLike}
+                                type="button"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="26"
+                                    height="26"
+                                    viewBox="0 0 24 24"
+                                    fill={liked ? '#fda4af' : 'none'}
+                                    stroke={liked ? '#f43f5e' : '#64748b'}
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    style={{ verticalAlign: 'middle', transition: 'fill 0.2s, stroke 0.2s' }}
+                                >
+                                    <path d="M19.5 13.6l-7.5 7.4-7.5-7.4C2.1 11.7 2.1 8.7 4 6.9c1.8-1.8 4.8-1.8 6.6 0l.9.9.9-.9c1.8-1.8 4.8-1.8 6.6 0 1.9 1.8 1.9 4.8 0 6.7z" />
+                                </svg>
+                            </button>
+                        </div>
 
                         <button className="inquiry-btn" onClick={() => navigate('/mypage')}>
                             <MessageCircle size={18} /> 상담사에게 예약 문의하기

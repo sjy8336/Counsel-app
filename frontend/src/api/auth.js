@@ -12,6 +12,8 @@ export const signUp = async (userData) => {
             email: userData.email,
             password: userData.password,
             phone_number: userData.phone,
+            birth_date: userData.birth,
+            gender: userData.gender,
             role: userData.role === 'expert' ? 'counselor' : 'client', // 'expert'를 DB의 'counselor'로 변환
         });
         return response.data;

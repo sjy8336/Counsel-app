@@ -1,25 +1,27 @@
 /* HomePage.css */
 
 :root {
-    --mw-sage: #8BA888;
-    --mw-bg: #FDFBF7;
-    --mw-sub-bg: #FAF7F2;
-    --mw-text: #1E293B;
-    --mw-border: #E2E8F0;
-    --mw-border-light: #FAF7F2;
-    --mw-rose: #FDA4AF;
-    --mw-amber: #F59E0B;
+    --mw-sage: #8ba888;
+    --mw-bg: #fdfbf7;
+    --mw-sub-bg: #faf7f2;
+    --mw-text: #1e293b;
+    --mw-border: #e2e8f0;
+    --mw-border-light: #faf7f2;
+    --mw-rose: #fda4af;
+    --mw-amber: #f59e0b;
     --mw-muted: rgba(30, 41, 59, 0.4);
 }
 
 /* ───── Root ───── */
 .mw-root {
+    display: block;
+    position: relative;
+    width: 100%;
     min-height: 100vh;
     background-color: var(--mw-bg);
     font-family: sans-serif;
     color: var(--mw-text);
 }
-
 
 /* ───── Main Content ───── */
 .mw-main {
@@ -91,14 +93,14 @@
 .mw-banner-tag {
     display: inline-block;
     padding: 0.25rem 0.75rem;
-    background-color: rgba(255,255,255,0.2);
+    background-color: rgba(255, 255, 255, 0.2);
     color: white;
     font-size: 0.625rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     border-radius: 9999px;
     margin-bottom: 1rem;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(8px);
 }
 
@@ -123,17 +125,17 @@
 }
 
 .mw-banner-title-sub {
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.8);
     font-weight: 500;
     font-style: italic;
     text-decoration: underline;
-    text-decoration-color: rgba(255,255,255,0.3);
+    text-decoration-color: rgba(255, 255, 255, 0.3);
     text-underline-offset: 4px;
 }
 
 .mw-banner-desc {
     font-size: 0.75rem;
-    color: rgba(255,255,255,0.85);
+    color: rgba(255, 255, 255, 0.85);
     margin-bottom: 2rem;
     line-height: 1.6;
     max-width: 280px;
@@ -166,13 +168,13 @@
     border: none;
     cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     width: 100%;
 }
 
 @media (min-width: 640px) {
     .mw-banner-btn {
-        width: auto;
+        width: 100%;
     }
 }
 
@@ -195,13 +197,13 @@
     transform: translateY(-50%);
     width: 8rem;
     height: 8rem;
-    background-color: rgba(255,255,255,0.15);
+    background-color: rgba(255, 255, 255, 0.15);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(4px);
     opacity: 0.5;
 }
@@ -222,7 +224,7 @@
 
 .mw-banner-emoji span {
     font-size: 3rem;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 @media (min-width: 768px) {
@@ -237,7 +239,7 @@
     left: -2.5rem;
     width: 10rem;
     height: 10rem;
-    background-color: rgba(255,255,255,0.05);
+    background-color: rgba(255, 255, 255, 0.05);
     border-radius: 50%;
     filter: blur(24px);
 }
@@ -248,7 +250,7 @@
     right: -1.25rem;
     width: 15rem;
     height: 15rem;
-    background-color: rgba(0,0,0,0.05);
+    background-color: rgba(0, 0, 0, 0.05);
     border-radius: 50%;
     filter: blur(32px);
 }
@@ -258,7 +260,7 @@
     background-color: white;
     border-radius: 1rem;
     padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--mw-border);
 }
 
@@ -421,7 +423,7 @@
     background-color: white;
     border-radius: 1rem;
     padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--mw-border);
     display: flex;
     flex-direction: column;
@@ -510,7 +512,7 @@
 }
 
 .mw-ai-btn:hover {
-    background-color: #F2ECE4;
+    background-color: #f2ece4;
 }
 
 /* Healing Widget */
@@ -518,7 +520,7 @@
     background-color: white;
     border-radius: 1rem;
     padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--mw-border);
     display: flex;
     flex-direction: column;
@@ -652,7 +654,7 @@
     color: white;
     border-radius: 1rem;
     padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     position: relative;
     overflow: hidden;
     border: 1px solid var(--mw-sage);
@@ -674,7 +676,7 @@
 .mw-res-primary-icon {
     width: 2.25rem;
     height: 2.25rem;
-    background-color: rgba(255,255,255,0.2);
+    background-color: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -694,7 +696,7 @@
 }
 
 .mw-d-day-badge {
-    background-color: rgba(255,255,255,0.2);
+    background-color: rgba(255, 255, 255, 0.2);
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.625rem;
@@ -713,7 +715,7 @@
 }
 
 .mw-res-type {
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.8);
     font-size: 0.625rem;
     margin-bottom: 0.25rem;
     font-weight: 500;
@@ -739,7 +741,7 @@
 }
 
 .mw-res-date-box {
-    background-color: rgba(255,255,255,0.2);
+    background-color: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(4px);
     border-radius: 0.75rem;
     padding: 0.75rem;
@@ -760,7 +762,7 @@
     background-color: white;
     border-radius: 0.75rem;
     padding: 1rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--mw-border);
     display: flex;
     align-items: center;
@@ -868,7 +870,9 @@
     transition: color 0.2s;
 }
 
-
+.next-res-arrow {
+    color: #d6d3d1;
+}
 /* ───── Animation ───── */
 @keyframes mwFadeSlideIn {
     from {
@@ -879,6 +883,4 @@
         opacity: 1;
         transform: translateY(0);
     }
-.next-res-arrow {
-    color: #d6d3d1;
 }

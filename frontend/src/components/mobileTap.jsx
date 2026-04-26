@@ -42,9 +42,11 @@ export default function mobileTap() {
     let mobileMenuItems = [];
     if (userRole === 'counselor') {
         mobileMenuItems = [
+            { id: 'home', icon: Home, label: '홈' },
             { id: 'reservation', icon: Calendar, label: '예약관리' },
             { id: 'client', icon: UserCircle, label: '내담자관리' },
             { id: 'inquiry', icon: MessageCircle, label: '문의하기' },
+            { id: 'mypage', icon: UserCircle, label: '마이페이지' },
         ];
     } else {
         // 비로그인, client, admin
@@ -60,9 +62,11 @@ export default function mobileTap() {
     const handleMobileMenuClick = (item) => {
         setActiveTab(item.id);
         if (userRole === 'counselor') {
-            if (item.id === 'reservation') navigate('/CounselorMyPage');
-            else if (item.id === 'client') navigate('/CounselorMyPage?tab=clients');
+            if (item.id === 'home') navigate('/CounselorHome');
+            else if (item.id === 'reservation') navigate('/CounselorMyPage');
+            else if (item.id === 'client') navigate('/CounselorClient');
             else if (item.id === 'inquiry') navigate('/CounselorMyPage?tab=inquiry');
+            else if (item.id === 'mypage') navigate('/CounselorMyPage?tab=mypage');
         } else {
             if (item.id === 'home') navigate('/');
             else if (item.id === 'reservation') navigate('/reserve');
