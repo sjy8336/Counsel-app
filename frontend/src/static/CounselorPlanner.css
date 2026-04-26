@@ -1,52 +1,71 @@
 .reservepanel-primary-button-large {
-  font-size: 1.15rem;
-  padding: 0.75rem 2.5rem;
+    font-size: 1.15rem;
+    padding: 0.75rem 2.5rem;
 }
-
 .reservepanel-close-button {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
 }
-body
-{ overflow-x: hidden;
-}
-.reservepanel-shell
-{ --reservepanel-main: #8ba888; --reservepanel-main-soft: #e8f0e7; --reservepanel-bg: #fdfbf7; --reservepanel-bg-soft: #faf7f2; --reservepanel-white: #fff; --reservepanel-text: #1e293b; --reservepanel-text-soft: #64748b; --reservepanel-text-muted: #94a3b8; --reservepanel-border: #f1f5f9; --reservepanel-border-strong: #e2e8f0; --reservepanel-disabled: #cbd5e1; --reservepanel-off: #fda4af; --reservepanel-off-soft: #fff1f2; --reservepanel-warn: #f59e0b; --reservepanel-warn-soft: #fff7ed; --reservepanel-gray-soft: #f3f4f6; --reservepanel-shadow: 0 1px 2px rgb(15 23 42 / 0.08); --reservepanel-shadow-hover: 0 4px 10px rgb(15 23 42 / 0.1); --reservepanel-shadow-strong: 0 24px 48px rgb(15 23 42 / 0.24); --reservepanel-shadow-main: 0 10px 18px rgb(139 168 136 / 0.2); min-height: 100vh; background: var(--reservepanel-bg); color: var(--reservepanel-text); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+body {overflow-x: hidden;}
+.reservepanel-shell {
+    --reservepanel-main: #8ba888;
+    --reservepanel-main-soft: #e8f0e7;
+    --reservepanel-bg: #fdfbf7;
+    --reservepanel-bg-soft: #faf7f2;
+    --reservepanel-white: #fff;
+    --reservepanel-text: #1e293b;
+    --reservepanel-text-soft: #64748b;
+    --reservepanel-text-muted: #94a3b8;
+    --reservepanel-border: #f1f5f9;
+    --reservepanel-border-strong: #e2e8f0;
+    --reservepanel-disabled: #cbd5e1;
+    --reservepanel-off: #fda4af;
+    --reservepanel-off-soft: #fff1f2;
+    --reservepanel-warn: #f59e0b;
+    --reservepanel-warn-soft: #fff7ed;
+    --reservepanel-gray-soft: #f3f4f6;
+    --reservepanel-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+    --reservepanel-shadow-hover: 0 4px 10px rgb(15 23 42 / 0.1);
+    --reservepanel-shadow-strong: 0 24px 48px rgb(15 23 42 / 0.24);
+    --reservepanel-shadow-main: 0 10px 18px rgb(139 168 136 / 0.2);
+    min-height: 100vh;
+    background: var(--reservepanel-bg);
+    color: var(--reservepanel-text);
+    font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        sans-serif;
 }
 .reservepanel-shell,
 .reservepanel-shell *,
-.reservepanel-no-scrollbar
-{ box-sizing: border-box;
-} .reservepanel-no-scrollbar::-webkit-scrollbar{ display: none;
+.reservepanel-no-scrollbar {
+    box-sizing: border-box;
 }
-.reservepanel-no-scrollbar
-{ -ms-overflow-style: none; scrollbar-width: none;
+.reservepanel-no-scrollbar::-webkit-scrollbar {
+    display: none;
 }
-.reservepanel-header,
+.reservepanel-no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
 .reservepanel-calendar-grid-wrap,
 .reservepanel-list-card,
 .reservepanel-month-nav,
 .reservepanel-legend,
-.reservepanel-footer,
 .reservepanel-modal,
 .reservepanel-booked-card,
 .reservepanel-search-input,
 .reservepanel-block-form,
 .reservepanel-picker-menu,
-.reservepanel-secondary-button,
-.reservepanel-offday-button-default
-{ background: var(--reservepanel-white);
-}
-.reservepanel-header-inner,
-.reservepanel-main,
-.reservepanel-footer-inner
-{ margin: 0 auto;
-}
-.reservepanel-header-inner,
+.reservepanel-offday-button-default {background: var(--reservepanel-white);}
+
+.reservepanel-main {margin: 0 auto;}
+
 .reservepanel-brand-row,
-.reservepanel-header-actions,
 .reservepanel-person-header,
 .reservepanel-modal-header-row,
 .reservepanel-detail-item,
@@ -69,13 +88,11 @@ body
 .reservepanel-view-toggle,
 .reservepanel-offday-button,
 .reservepanel-bell-button,
-.reservepanel-mobile-menu,
 .reservepanel-close-button,
 .reservepanel-picker-trigger,
 .reservepanel-picker-option,
 .reservepanel-block-add,
 .reservepanel-primary-button,
-.reservepanel-secondary-button,
 .reservepanel-add-button,
 .reservepanel-month-nav-button,
 .reservepanel-list-arrow,
@@ -84,11 +101,9 @@ body
 .reservepanel-booked-card,
 .reservepanel-reservation-chip,
 .reservepanel-blocked-chip,
-.reservepanel-overlay
-{ display: flex; align-items: center; gap: 0.5em;
-}
+.reservepanel-overlay {display: flex; align-items: center; gap: 0.5em;}
+
 .reservepanel-bell-button,
-.reservepanel-mobile-menu,
 .reservepanel-close-button,
 .reservepanel-offday-button,
 .reservepanel-blocked-remove,
@@ -96,106 +111,95 @@ body
 .reservepanel-block-cancel,
 .reservepanel-block-trigger,
 .reservepanel-primary-button,
-.reservepanel-secondary-button,
 .reservepanel-add-button,
 .reservepanel-month-nav-button,
 .reservepanel-view-toggle-button,
 .reservepanel-list-arrow,
-.reservepanel-picker-trigger
-{ border: 0; cursor: pointer;
-}
+.reservepanel-picker-trigger {border: 0; cursor: pointer;}
+
 .reservepanel-bell-button,
-.reservepanel-mobile-menu,
 .reservepanel-close-button,
 .reservepanel-blocked-remove,
 .reservepanel-list-arrow,
 .reservepanel-month-nav-button,
-.reservepanel-block-trigger
-{ background: transparent;
-}
-.reservepanel-mobile-menu,
+.reservepanel-block-trigger {background: transparent;}
+
 .reservepanel-bell-button,
 .reservepanel-close-button,
 .reservepanel-list-arrow,
-.reservepanel-month-nav-button
-{ border-radius: 9999px; transition: background-color 0.2s ease;
-} .reservepanel-mobile-menu:hover,
+.reservepanel-month-nav-button {border-radius: 9999px; transition: background-color 0.2s ease;}
+
 .reservepanel-bell-button:hover,
 .reservepanel-close-button:hover,
 .reservepanel-list-arrow:hover,
-.reservepanel-month-nav-button:hover{ background: var(--reservepanel-bg-soft);
+.reservepanel-month-nav-button:hover {background: var(--reservepanel-bg-soft);}
+
+.reservepanel-brand {
+  margin: 0; 
+  color: var(--reservepanel-main); 
+  font-weight: 700; 
+  font-size: 1.125rem; 
+  letter-spacing: -0.025em;
 }
-.reservepanel-brand,
-.reservepanel-footer-brand
-{ margin: 0; color: var(--reservepanel-main); font-weight: 700;
+.reservepanel-nav {
+    display: none;
+    align-items: center;
+    gap: 2rem;
+    color: var(--reservepanel-text-soft);
+    font-weight: 500;
 }
-.reservepanel-brand
-{ font-size: 1.125rem; letter-spacing: -0.025em;
+.reservepanel-nav-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
 }
-.reservepanel-nav
-{ display: none; align-items: center; gap: 2rem; color: var(--reservepanel-text-soft); font-weight: 500;
+.reservepanel-nav-link:hover {color: var(--reservepanel-main);}
+.reservepanel-nav-link-active {
+    padding: 0.25rem 0;
+    color: var(--reservepanel-text);
+    font-weight: 700;
+    border-bottom: 2px solid var(--reservepanel-main);
 }
-.reservepanel-nav-link
-{ color: inherit; text-decoration: none; transition: color 0.2s ease;
-} .reservepanel-nav-link:hover{ color: var(--reservepanel-main);
-}
-.reservepanel-nav-link-active
-{ padding: 0.25rem 0; color: var(--reservepanel-text); font-weight: 700; border-bottom: 2px solid var(--reservepanel-main);
-}
-.reservepanel-header
-{ position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--reservepanel-border);
-}
-.reservepanel-header-inner
-{ max-width: 80rem; height: 3.5rem; padding: 0 1rem; justify-content: space-between;
-}
-.reservepanel-header-actions
-{ gap: 0.5rem;
-}
-.reservepanel-mobile-menu,
+
 .reservepanel-bell-button,
 .reservepanel-close-button,
-.reservepanel-list-arrow
-{ padding: 0.5rem;
-}
-.reservepanel-mobile-menu,
-.reservepanel-bell-button
-{ color: var(--reservepanel-text-soft);
-}
-.reservepanel-bell-button
-{ position: relative;
-}
-.reservepanel-bell-dot,
-.reservepanel-legend-dot
-{ border-radius: 9999px;
-}
-.reservepanel-bell-dot
-{ position: absolute; top: 0.5rem; right: 0.5rem; width: 0.375rem; height: 0.375rem; background: var(--reservepanel-off);
+.reservepanel-list-arrow {padding: 0.5rem;}
+
+.reservepanel-bell-button {color: var(--reservepanel-text-soft); position: relative;}
+
+.reservepanel-bell-dot, .reservepanel-legend-dot {border-radius: 9999px;}
+.reservepanel-bell-dot {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 0.375rem;
+    height: 0.375rem;
+    background: var(--reservepanel-off);
 }
 .reservepanel-user-badge,
 .reservepanel-date-number,
 .reservepanel-view-toggle,
 .reservepanel-status-badge,
-.reservepanel-list-type-badge
-{ border-radius: 9999px;
+.reservepanel-list-type-badge {border-radius: 9999px;}
+.reservepanel-user-badge {
+    width: 2rem;
+    height: 2rem;
+    justify-content: center;
+    background: var(--reservepanel-main-soft);
+    border: 1px solid var(--reservepanel-main);
+    overflow: hidden;
 }
-.reservepanel-user-badge
-{ width: 2rem; height: 2rem; justify-content: center; background: var(--reservepanel-main-soft); border: 1px solid var(--reservepanel-main); overflow: hidden;
-}
-.reservepanel-icon-main
-{ color: var(--reservepanel-main);
-}
+.reservepanel-icon-main {color: var(--reservepanel-main);}
+
 .reservepanel-icon-muted,
 .reservepanel-search-icon,
 .reservepanel-picker-chevron,
 .reservepanel-detail-icon-wrap,
 .reservepanel-offday-icon-default,
-.reservepanel-footer-copy,
-.reservepanel-empty-copy
-{ color: var(--reservepanel-text-muted);
-}
-.reservepanel-main
-{ max-width: 72rem; padding: 1.5rem 1rem;
-}
+.reservepanel-empty-copy {color: var(--reservepanel-text-muted);}
+
+.reservepanel-main {max-width: 72rem; padding: 1.5rem 1rem;}
+
 .reservepanel-hero,
 .reservepanel-body,
 .reservepanel-detail-list,
@@ -205,676 +209,692 @@ body
 .reservepanel-calendar-entrylist,
 .reservepanel-list-meta,
 .reservepanel-block-form,
-.reservepanel-picker
-{ display: flex; flex-direction: column;
+.reservepanel-picker {display: flex; flex-direction: column;}
+
+.reservepanel-hero {gap: 1rem; margin-bottom: 1.5rem;}
+.reservepanel-hero-title {
+    margin: 0 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
 }
-.reservepanel-hero
-{ gap: 1rem; margin-bottom: 1.5rem;
+.reservepanel-hero-copy {
+    margin: 0;
+    color: var(--reservepanel-text-soft);
+    font-size: 10px;
 }
-.reservepanel-hero-title
-{ margin: 0 0 0.25rem; font-size: 1.25rem; font-weight: 700;
-}
-.reservepanel-hero-copy,
-.reservepanel-footer-copy
-{ margin: 0; color: var(--reservepanel-text-soft); font-size: 10px;
-}
-.reservepanel-view-toggle
-{ align-self: flex-start; padding: 0.25rem; background: var(--reservepanel-bg-soft);
+.reservepanel-view-toggle {
+    align-self: flex-start;
+    padding: 0.25rem;
+    background: var(--reservepanel-bg-soft);
 }
 .reservepanel-view-toggle-button,
 .reservepanel-month-nav-button,
 .reservepanel-add-button,
 .reservepanel-search-input,
 .reservepanel-picker-trigger,
-.reservepanel-block-trigger
-{ transition: all 0.2s ease;
+.reservepanel-block-trigger {transition: all 0.2s ease;}
+.reservepanel-view-toggle-button {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
 }
-.reservepanel-view-toggle-button
-{ padding: 0.5rem; border-radius: 0.5rem;
+.reservepanel-view-toggle-button-active {
+    color: var(--reservepanel-main);
+    background: var(--reservepanel-white);
+    box-shadow: var(--reservepanel-shadow);
 }
-.reservepanel-view-toggle-button-active
-{ color: var(--reservepanel-main); background: var(--reservepanel-white); box-shadow: var(--reservepanel-shadow);
-}
-.reservepanel-view-toggle-button-inactive
-{ color: var(--reservepanel-text-muted);
-}
-.reservepanel-body
-{ gap: 1.5rem;
-}
+.reservepanel-view-toggle-button-inactive {color: var(--reservepanel-text-muted);}
+.reservepanel-body {gap: 1.5rem;}
 .reservepanel-calendar-view,
-.reservepanel-list-view
-{ display: block;
-}
-.reservepanel-calendar-area
-{ width: 100%;
-}
+.reservepanel-list-view {display: block;}
+.reservepanel-calendar-area {width: 100%;}
 .reservepanel-toolbar,
 .reservepanel-search-row,
-.reservepanel-footer-inner,
-.reservepanel-modal-actions
-{ display: flex;
+.reservepanel-modal-actions {display: flex;}
+.reservepanel-toolbar {
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
 }
-.reservepanel-toolbar
-{ flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;
-}
-.reservepanel-toolbar-main
-{ gap: 0.75rem;
-}
+.reservepanel-toolbar-main {gap: 0.75rem;}
 .reservepanel-month-title,
 .reservepanel-modal-title,
 .reservepanel-section-title,
 .reservepanel-offday-title,
-.reservepanel-list-card-title
-{ margin: 0; color: var(--reservepanel-text); font-weight: 700;
+.reservepanel-list-card-title {
+    margin: 0;
+    color: var(--reservepanel-text);
+    font-weight: 700;
 }
-.reservepanel-month-title
-{ font-size: 1rem;
+.reservepanel-month-title {font-size: 1rem;}
+.reservepanel-month-nav {
+    padding: 0.125rem;
+    border: 1px solid var(--reservepanel-border);
+    border-radius: 0.5rem;
 }
-.reservepanel-month-nav
-{ padding: 0.125rem; border: 1px solid var(--reservepanel-border); border-radius: 0.5rem;
+.reservepanel-month-nav-button {
+    padding: 0.25rem;
+    color: var(--reservepanel-text-soft);
+    border-radius: 0.5rem;
 }
-.reservepanel-month-nav-button
-{ padding: 0.25rem; color: var(--reservepanel-text-soft); border-radius: 0.5rem;
+.reservepanel-toolbar-side {
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
-.reservepanel-toolbar-side
-{ flex-wrap: wrap; gap: 0.75rem;
+.reservepanel-legend {
+    display: none;
+    gap: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    color: var(--reservepanel-text-soft);
+    font-size: 13px;
+    border: 1px solid var(--reservepanel-border);
 }
-.reservepanel-legend
-{ display: none; gap: 0.75rem; padding: 0.375rem 0.75rem; color: var(--reservepanel-text-soft); font-size: 13px; border: 1px solid var(--reservepanel-border);
+.reservepanel-legend-dot {
+    width: 0.375rem;
+    height: 0.375rem;
 }
-.reservepanel-legend-dot
-{ width: 0.375rem; height: 0.375rem;
-}
-.reservepanel-legend-dot-main
-{ background: var(--reservepanel-main);
-}
-.reservepanel-legend-dot-off
-{ background: var(--reservepanel-off);
-}
+.reservepanel-legend-dot-main {background: var(--reservepanel-main);}
+.reservepanel-legend-dot-off {background: var(--reservepanel-off);}
 .reservepanel-add-button,
 .reservepanel-primary-button,
-.reservepanel-block-add
-{ justify-content: center; color: var(--reservepanel-white); background: var(--reservepanel-main);
+.reservepanel-block-add {
+    justify-content: center;
+    color: var(--reservepanel-white);
+    background: var(--reservepanel-main);
 }
-.reservepanel-add-button
-{ flex: 1 1 auto; padding: 0.375rem 1rem; font-size: 13px; font-weight: 700; border-radius: 0.5rem; box-shadow: var(--reservepanel-shadow); display: flex; align-items: center; gap: 0.5em;
-} .reservepanel-add-button:hover,
-.reservepanel-primary-button:hover{ box-shadow: var(--reservepanel-shadow-main);
+.reservepanel-add-button {
+    flex: 1 1 auto;
+    padding: 0.375rem 1rem;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 0.5rem;
+    box-shadow: var(--reservepanel-shadow);
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
 }
-.reservepanel-calendar-grid-wrap
-{ display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--reservepanel-border); border-left: 1px solid var(--reservepanel-border); border-radius: 0.75rem; overflow: hidden; box-shadow: var(--reservepanel-shadow);
+.reservepanel-add-button:hover,
+.reservepanel-primary-button:hover {
+    box-shadow: var(--reservepanel-shadow-main);
+}
+.reservepanel-calendar-grid-wrap {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    border-top: 1px solid var(--reservepanel-border);
+    border-left: 1px solid var(--reservepanel-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: var(--reservepanel-shadow);
 }
 .reservepanel-calendar-weekday,
 .reservepanel-calendar-empty,
-.reservepanel-calendar-cell
-{ border-right: 1px solid var(--reservepanel-border); border-bottom: 1px solid var(--reservepanel-border);
+.reservepanel-calendar-cell {
+    border-right: 1px solid var(--reservepanel-border);
+    border-bottom: 1px solid var(--reservepanel-border);
 }
-.reservepanel-calendar-weekday
-{ padding: 0.5rem 0; text-align: center; color: var(--reservepanel-text-soft); font-size: 9px; font-weight: 700;
+.reservepanel-calendar-weekday {
+    padding: 0.5rem 0;
+    text-align: center;
+    color: var(--reservepanel-text-soft);
+    font-size: 9px;
+    font-weight: 700;
 }
 .reservepanel-calendar-empty,
-.reservepanel-calendar-cell
-{ height: 4rem; padding: 0.25rem; overflow: hidden;
+.reservepanel-calendar-cell {
+    height: 4rem;
+    padding: 0.25rem;
+    overflow: hidden;
 }
-.reservepanel-calendar-empty
-{ background: rgb(249 250 251 / 0.2);
+.reservepanel-calendar-empty {background: rgb(249 250 251 / 0.2);}
+.reservepanel-calendar-cell {position: relative;}
+.reservepanel-calendar-cell-past {
+    background: rgb(249 250 251 / 0.5);
+    cursor: not-allowed;
 }
-.reservepanel-calendar-cell
-{ position: relative;
+.reservepanel-calendar-cell-active {
+    background: var(--reservepanel-white);
+    cursor: pointer;
 }
-.reservepanel-calendar-cell-past
-{ background: rgb(249 250 251 / 0.5); cursor: not-allowed;
-}
-.reservepanel-calendar-cell-active
-{ background: var(--reservepanel-white); cursor: pointer;
-} .reservepanel-calendar-cell-active:hover{ background: var(--reservepanel-bg-soft);
-}
-.reservepanel-calendar-cell-off
-{ background: rgb(255 241 242 / 0.3);
-}
+.reservepanel-calendar-cell-active:hover {background: var(--reservepanel-bg-soft);}
+.reservepanel-calendar-cell-off {background: rgb(255 241 242 / 0.3);}
 .reservepanel-calendar-dayhead,
 .reservepanel-status-row-inner,
 .reservepanel-offday-row,
 .reservepanel-blocked-row,
 .reservepanel-booked-card,
-.reservepanel-list-card
-{ justify-content: space-between;
+.reservepanel-list-card {
+    justify-content: space-between;
 }
-.reservepanel-calendar-dayhead
-{ align-items: flex-start; margin-bottom: 0.125rem;
+.reservepanel-calendar-dayhead {
+    align-items: flex-start;
+    margin-bottom: 0.125rem;
 }
 .reservepanel-date-number,
 .reservepanel-person-avatar,
 .reservepanel-person-avatar-card,
-.reservepanel-person-avatar-large
-{ display: flex; align-items: center; justify-content: center;
+.reservepanel-person-avatar-large {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.reservepanel-date-number
-{ width: 1.25rem; height: 1.25rem; font-size: 10px; font-weight: 500;
+.reservepanel-date-number {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 10px;
+    font-weight: 500;
 }
 .reservepanel-date-number-default,
 .reservepanel-booked-name,
-.reservepanel-blocked-time
-{ color: var(--reservepanel-text);
+.reservepanel-blocked-time {color: var(--reservepanel-text);}
+.reservepanel-date-number-today {
+    color: var(--reservepanel-white);
+    background: var(--reservepanel-main);
 }
-.reservepanel-date-number-today
-{ color: var(--reservepanel-white); background: var(--reservepanel-main);
-}
-.reservepanel-date-number-past
-{ color: var(--reservepanel-disabled);
-}
+.reservepanel-date-number-past {color: var(--reservepanel-disabled);}
 .reservepanel-date-number-off,
 .reservepanel-offday-icon-active,
-.reservepanel-blocked-remove
-{ color: var(--reservepanel-off);
+.reservepanel-blocked-remove {
+    color: var(--reservepanel-off);
 }
-.reservepanel-off-badge
-{ display: none; padding: 0.125rem 0.25rem; color: var(--reservepanel-off); font-size: 12px; font-weight: 700; background: var(--reservepanel-white); border: 1px solid var(--reservepanel-off); border-radius: 0.25rem;
+.reservepanel-off-badge {
+    display: none;
+    padding: 0.125rem 0.25rem;
+    color: var(--reservepanel-off);
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--reservepanel-white);
+    border: 1px solid var(--reservepanel-off);
+    border-radius: 0.25rem;
 }
 .reservepanel-calendar-entrylist,
-.reservepanel-list-meta
-{ gap: 0.125rem; overflow: hidden;
+.reservepanel-list-meta {
+    gap: 0.125rem;
+    overflow: hidden;
 }
 .reservepanel-reservation-chip,
-.reservepanel-blocked-chip
-{ gap: 0.25rem; padding: 0.125rem; font-size: 13px; border-left: 2px solid; border-radius: 0.25rem; overflow: hidden; white-space: nowrap;
+.reservepanel-blocked-chip {
+    gap: 0.25rem;
+    padding: 0.125rem;
+    font-size: 13px;
+    border-left: 2px solid;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    white-space: nowrap;
 }
-.reservepanel-reservation-chip
-{ color: var(--reservepanel-text); border-left-color: var(--reservepanel-main); text-overflow: ellipsis; box-shadow: var(--reservepanel-shadow);
+.reservepanel-reservation-chip {
+    color: var(--reservepanel-text);
+    border-left-color: var(--reservepanel-main);
+    text-overflow: ellipsis;
+    box-shadow: var(--reservepanel-shadow);
 }
-.reservepanel-reservation-chip-active
-{ background: var(--reservepanel-border);
-}
-.reservepanel-reservation-chip-past
-{ background: var(--reservepanel-gray-soft); border-left-color: #d1d5db; opacity: 0.6;
+.reservepanel-reservation-chip-active {background: var(--reservepanel-border);}
+.reservepanel-reservation-chip-past {
+    background: var(--reservepanel-gray-soft);
+    border-left-color: #d1d5db;
+    opacity: 0.6;
 }
 .reservepanel-reservation-time,
-.reservepanel-blocked-chip-time
-{ display: none;
+.reservepanel-blocked-chip-time {display: none;}
+.reservepanel-reservation-time {font-weight: 700;}
+.reservepanel-blocked-chip {
+    color: #9ca3af;
+    background: var(--reservepanel-gray-soft);
+    border-left-color: #d1d5db;
 }
-.reservepanel-reservation-time
-{ font-weight: 700;
+.reservepanel-list-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
 }
-.reservepanel-blocked-chip
-{ color: #9ca3af; background: var(--reservepanel-gray-soft); border-left-color: #d1d5db;
+.reservepanel-list-card {
+    padding: 1rem;
+    border: 1px solid var(--reservepanel-border);
+    border-radius: 1.5rem;
+    box-shadow: var(--reservepanel-shadow);
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
-.reservepanel-list-grid
-{ display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 1rem;
+.reservepanel-list-card:hover {box-shadow: var(--reservepanel-shadow-hover);}
+.reservepanel-list-card-main {gap: 0.75rem;}
+.reservepanel-person-avatar {background: var(--reservepanel-bg-soft);}
+.reservepanel-person-avatar-card {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    transition: background-color 0.2s ease;
 }
-.reservepanel-list-card
-{ padding: 1rem; border: 1px solid var(--reservepanel-border); border-radius: 1.5rem; box-shadow: var(--reservepanel-shadow); cursor: pointer; transition: all 0.2s ease;
-} .reservepanel-list-card:hover{ box-shadow: var(--reservepanel-shadow-hover);
+.reservepanel-list-card:hover .reservepanel-person-avatar-card {background: var(--reservepanel-main-soft);}
+.reservepanel-list-card-head {
+    gap: 0.5rem;
+    margin-bottom: 0.125rem;
 }
-.reservepanel-list-card-main
-{ gap: 0.75rem;
+.reservepanel-list-card-title {font-size: 0.875rem;}
+.reservepanel-list-type-badge {
+    padding: 0.125rem 0.5rem;
+    color: var(--reservepanel-main);
+    font-size: 8px;
+    font-weight: 700;
+    background: var(--reservepanel-main-soft);
 }
-.reservepanel-person-avatar
-{ background: var(--reservepanel-bg-soft);
+.reservepanel-list-meta {
+    color: var(--reservepanel-text-soft);
+    font-size: 10px;
 }
-.reservepanel-person-avatar-card
-{ width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; transition: background-color 0.2s ease;
-} .reservepanel-list-card:hover .reservepanel-person-avatar-card{ background: var(--reservepanel-main-soft);
+.reservepanel-list-meta-item {gap: 0.25rem;}
+.reservepanel-search-row {
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
 }
-.reservepanel-list-card-head
-{ gap: 0.5rem; margin-bottom: 0.125rem;
+.reservepanel-searchbox {
+    position: relative;
+    width: 100%;
+    max-width: 28rem;
 }
-.reservepanel-list-card-title
-{ font-size: 0.875rem;
+.reservepanel-search-icon {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
 }
-.reservepanel-list-type-badge
-{ padding: 0.125rem 0.5rem; color: var(--reservepanel-main); font-size: 8px; font-weight: 700; background: var(--reservepanel-main-soft);
+.reservepanel-search-input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid var(--reservepanel-border);
+    border-radius: 0.75rem;
+    font-size: 0.75rem;
 }
-.reservepanel-list-meta
-{ color: var(--reservepanel-text-soft); font-size: 10px;
+.reservepanel-search-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgb(139 168 136 / 0.1);
 }
-.reservepanel-list-meta-item
-{ gap: 0.25rem;
+.reservepanel-overlay {
+    position: fixed;
+    inset: 0;
+    justify-content: center;
+    padding: 1rem;
+    background: rgb(0 0 0 / 0.4);
+    backdrop-filter: blur(4px);
 }
-.reservepanel-search-row
-{ justify-content: space-between; margin-bottom: 1.5rem;
-}
-.reservepanel-searchbox
-{ position: relative; width: 100%; max-width: 28rem;
-}
-.reservepanel-search-icon
-{ position: absolute; top: 50%; left: 1rem; transform: translateY(-50%);
-}
-.reservepanel-search-input
-{ width: 100%; padding: 0.5rem 1rem 0.5rem 2.5rem; border: 1px solid var(--reservepanel-border); border-radius: 0.75rem; font-size: 0.75rem;
-} .reservepanel-search-input:focus{ outline: none; box-shadow: 0 0 0 2px rgb(139 168 136 / 0.1);
-}
-.reservepanel-footer
-{ margin-top: 5rem; padding: 2rem 1rem; border-top: 1px solid var(--reservepanel-border);
-}
-.reservepanel-footer-inner
-{ max-width: 80rem; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 1rem;
-}
-.reservepanel-footer-brand
-{ font-size: 1.125rem;
-}
-.reservepanel-overlay
-{ position: fixed; inset: 0; justify-content: center; padding: 1rem; background: rgb(0 0 0 / 0.4); backdrop-filter: blur(4px);
-}
-.reservepanel-overlay-front
-{ z-index: 110;
-}
-.reservepanel-overlay-base
-{ z-index: 100;
-}
-.reservepanel-modal
-{ width: 100%; border-radius: 1.5rem; overflow: hidden; box-shadow: var(--reservepanel-shadow-strong);
+.reservepanel-overlay-front {z-index: 110;}
+.reservepanel-overlay-base {z-index: 100;}
+.reservepanel-modal {
+    width: 100%;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: var(--reservepanel-shadow-strong);
 }
 .reservepanel-modal-compact,
-.reservepanel-modal-scroll
-{ max-width: 28rem;
+.reservepanel-modal-scroll {
+    max-width: 28rem;
 }
-.reservepanel-modal-scroll
-{ max-height: 90vh; display: flex; flex-direction: column;
+.reservepanel-modal-scroll {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
-.reservepanel-modal-content
-{ padding: 1.5rem;
+.reservepanel-modal-content {padding: 1.5rem;}
+.reservepanel-modal-scroll-body {overflow-y: auto;}
+.reservepanel-modal-header-row {
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
 }
-.reservepanel-modal-scroll-body
-{ overflow-y: auto;
+.reservepanel-person-header {gap: 1rem;}
+.reservepanel-person-avatar-large {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 1rem;
 }
-.reservepanel-modal-header-row
-{ align-items: flex-start; margin-bottom: 1.5rem;
-}
-.reservepanel-person-header
-{ gap: 1rem;
-}
-.reservepanel-person-avatar-large
-{ width: 3rem; height: 3rem; border-radius: 1rem;
-}
-.reservepanel-modal-title
-{ font-size: 1.125rem;
-}
-.reservepanel-modal-subtitle
-{ margin: 0.125rem 0 0; color: var(--reservepanel-main); font-size: 0.75rem; font-weight: 500;
+.reservepanel-modal-title {font-size: 1.125rem;}
+.reservepanel-modal-subtitle {
+    margin: 0.125rem 0 0;
+    color: var(--reservepanel-main);
+    font-size: 0.75rem;
+    font-weight: 500;
 }
 .reservepanel-detail-list,
-.reservepanel-section-stack
-{ gap: 1rem;
-}
-.reservepanel-detail-item
-{ align-items: flex-start; gap: 0.75rem;
+.reservepanel-section-stack {gap: 1rem;}
+.reservepanel-detail-item {
+    align-items: flex-start;
+    gap: 0.75rem;
 }
 .reservepanel-detail-label,
-.reservepanel-picker-label
-{ color: var(--reservepanel-text-muted); font-size: 10px; font-weight: 700;
+.reservepanel-picker-label {
+    color: var(--reservepanel-text-muted);
+    font-size: 10px;
+    font-weight: 700;
 }
-.reservepanel-detail-label
-{ margin: 0; text-transform: uppercase;
+.reservepanel-detail-label {
+    margin: 0;
+    text-transform: uppercase;
 }
 .reservepanel-detail-value,
-.reservepanel-detail-text
-{ margin: 0.125rem 0 0; font-size: 0.875rem; font-weight: 500;
+.reservepanel-detail-text {
+    margin: 0.125rem 0 0;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
-.reservepanel-detail-text
-{ line-height: 1.625;
-}
-.reservepanel-status-row
-{ padding-top: 1rem; border-top: 1px solid var(--reservepanel-border);
+.reservepanel-detail-text {line-height: 1.625;}
+.reservepanel-status-row {
+    padding-top: 1rem;
+    border-top: 1px solid var(--reservepanel-border);
 }
 .reservepanel-status-row-label,
 .reservepanel-offday-copy,
-.reservepanel-booked-time
-{ color: var(--reservepanel-text-soft);
+.reservepanel-booked-time {
+    color: var(--reservepanel-text-soft);
 }
-.reservepanel-status-row-label
-{ font-size: 0.75rem;
+.reservepanel-status-row-label {font-size: 0.75rem;}
+.reservepanel-status-badge {
+    padding: 0.25rem 0.75rem;
+    font-size: 10px;
+    font-weight: 700;
 }
-.reservepanel-status-badge
-{ padding: 0.25rem 0.75rem; font-size: 10px; font-weight: 700;
+.reservepanel-status-badge-confirmed {
+    color: var(--reservepanel-main);
+    background: var(--reservepanel-main-soft);
 }
-.reservepanel-status-badge-confirmed
-{ color: var(--reservepanel-main); background: var(--reservepanel-main-soft);
+.reservepanel-status-badge-pending {
+    color: var(--reservepanel-warn);
+    background: var(--reservepanel-warn-soft);
 }
-.reservepanel-status-badge-pending
-{ color: var(--reservepanel-warn); background: var(--reservepanel-warn-soft);
+.reservepanel-modal-actions {
+    display: grid;
+    gap: 0.75rem;
 }
-.reservepanel-modal-actions
-{ display: grid; gap: 0.75rem;
-}
-.reservepanel-modal-actions-split
-{ grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 1.5rem;
-}
-.reservepanel-secondary-button,
+.reservepanel-modal-actions-split {margin-top: 1.5rem;}
 .reservepanel-primary-button,
 .reservepanel-block-cancel,
-.reservepanel-block-add
-{ padding: 0.75rem 1rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 700; transition: all 0.2s ease;
+.reservepanel-block-add {
+    padding: 0.75rem 1rem;
+    border-radius: 0.6rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
 }
-.reservepanel-secondary-button
-{ color: var(--reservepanel-text-soft); border: 1px solid var(--reservepanel-border-strong);
-} .reservepanel-secondary-button:hover,
 .reservepanel-block-cancel:hover,
-.reservepanel-block-trigger:hover{ background: #f9fafb;
-}
-.reservepanel-primary-button-full
-{ width: 100%;
-}
-.reservepanel-modal-topline
-{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;
+.reservepanel-block-trigger:hover {background: #f9fafb;}
+.reservepanel-primary-button-full {width: 100%;}
+.reservepanel-modal-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
 }
 .reservepanel-section-block,
-.reservepanel-card-stack
-{ gap: 0.75rem;
+.reservepanel-card-stack {gap: 0.75rem;}
+.reservepanel-section-title {
+    gap: 0.5rem;
+    font-size: 0.875rem;
 }
-.reservepanel-section-title
-{ gap: 0.5rem; font-size: 0.875rem;
-}
-.reservepanel-card-stack
-{ gap: 0.5rem;
-}
+.reservepanel-card-stack {gap: 0.5rem;}
 .reservepanel-booked-card,
-.reservepanel-blocked-row
-{ padding: 0.75rem; border-radius: 0.75rem;
+.reservepanel-blocked-row {
+    padding: 0.75rem;
+    border-radius: 0.75rem;
 }
-.reservepanel-booked-card
-{ background: rgb(232 240 231 / 0.3); border: 1px solid var(--reservepanel-main-soft);
+.reservepanel-booked-card {
+    background: rgb(232 240 231 / 0.3);
+    border: 1px solid var(--reservepanel-main-soft);
 }
 .reservepanel-booked-name,
-.reservepanel-offday-title
-{ font-size: 0.875rem; font-weight: 700;
+.reservepanel-offday-title {
+    font-size: 0.875rem;
+    font-weight: 700;
 }
-.reservepanel-booked-name
-{ font-size: 0.75rem;
-}
+.reservepanel-booked-name {font-size: 0.75rem;}
 .reservepanel-booked-time,
 .reservepanel-blocked-time,
 .reservepanel-empty-copy,
 .reservepanel-offday-copy,
-.reservepanel-block-trigger
-{ font-size: 10px;
-}
-.reservepanel-empty-copy
-{ margin: 0; font-style: italic;
+.reservepanel-block-trigger {font-size: 10px;}
+.reservepanel-empty-copy {
+    margin: 0;
+    font-style: italic;
 }
 .reservepanel-offday-card,
 .reservepanel-block-form,
 .reservepanel-modal-content-box,
-.reservepanel-ai-card
-{ border-radius: 1rem;
+.reservepanel-ai-card {border-radius: 1rem;}
+.reservepanel-offday-card {
+    padding: 1rem;
+    border: 1px solid var(--reservepanel-border);
 }
-.reservepanel-offday-card
-{ padding: 1rem; border: 1px solid var(--reservepanel-border);
+.reservepanel-offday-card-default {background: var(--reservepanel-bg);}
+.reservepanel-offday-card-active {
+    background: var(--reservepanel-off-soft);
+    border-color: var(--reservepanel-off);
+  }
+.reservepanel-offday-card-disabled {opacity: 0.8;}
+.reservepanel-offday-info {gap: 0.75rem;}
+.reservepanel-offday-icon {flex-shrink: 0;}
+.reservepanel-offday-title {margin: 0;}
+.reservepanel-offday-copy {margin: 0.125rem 0 0;}
+.reservepanel-offday-button {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    font-size: 10px;
+    font-weight: 700;
+    transition: all 0.2s ease;
 }
-.reservepanel-offday-card-default
-{ background: var(--reservepanel-bg);
+.reservepanel-offday-button-active {
+    color: var(--reservepanel-white);
+    background: var(--reservepanel-off);
 }
-.reservepanel-offday-card-active
-{ background: var(--reservepanel-off-soft); border-color: var(--reservepanel-off);
+.reservepanel-offday-button-disabled {
+    color: var(--reservepanel-disabled);
+    background: var(--reservepanel-border);
+    cursor: not-allowed;
 }
-.reservepanel-offday-card-disabled
-{ opacity: 0.8;
+.reservepanel-offday-button-default {
+    color: var(--reservepanel-text-soft);
+    border: 1px solid var(--reservepanel-border-strong);
 }
-.reservepanel-offday-info
-{ gap: 0.75rem;
+.reservepanel-blocked-row {
+    background: var(--reservepanel-bg-soft);
+    border: 1px solid var(--reservepanel-border);
 }
-.reservepanel-offday-icon
-{ flex-shrink: 0;
-}
-.reservepanel-offday-title
-{ margin: 0;
-}
-.reservepanel-offday-copy
-{ margin: 0.125rem 0 0;
-}
-.reservepanel-offday-button
-{ padding: 0.5rem 0.75rem; border-radius: 0.75rem; font-size: 10px; font-weight: 700; transition: all 0.2s ease;
-}
-.reservepanel-offday-button-active
-{ color: var(--reservepanel-white); background: var(--reservepanel-off);
-}
-.reservepanel-offday-button-disabled
-{ color: var(--reservepanel-disabled); background: var(--reservepanel-border); cursor: not-allowed;
-}
-.reservepanel-offday-button-default
-{ color: var(--reservepanel-text-soft); border: 1px solid var(--reservepanel-border-strong);
-}
-.reservepanel-blocked-row
-{ background: var(--reservepanel-bg-soft); border: 1px solid var(--reservepanel-border);
-}
-.reservepanel-blocked-time
-{ font-weight: 500;
-} .reservepanel-blocked-remove:hover{ color: #e11d48;
-}
-.reservepanel-block-form
-{ gap: 1rem; padding: 1rem; border: 1px solid var(--reservepanel-main);
+.reservepanel-blocked-time {font-weight: 500;}
+.reservepanel-blocked-remove:hover {color: #e11d48;}
+.reservepanel-block-form {
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--reservepanel-main);
 }
 .reservepanel-block-form-grid,
-.reservepanel-block-actions
-{ display: flex; gap: 1rem;
+.reservepanel-block-actions {
+    display: flex;
+    gap: 1rem;
 }
-.reservepanel-block-actions
-{ gap: 0.5rem;
+.reservepanel-block-actions {gap: 0.5rem;}
+.reservepanel-picker {
+    position: relative;
+    flex: 1 1 0;
+    gap: 0.375rem;
 }
-.reservepanel-picker
-{ position: relative; flex: 1 1 0; gap: 0.375rem;
+.reservepanel-picker-label {margin-left: 0.25rem;}
+.reservepanel-picker-trigger {
+    width: 100%;
+    justify-content: space-between;
+    padding: 0.625rem 0.75rem;
+    color: var(--reservepanel-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: var(--reservepanel-bg-soft);
+    border: 1px solid var(--reservepanel-border);
+    border-radius: 0.75rem;
+    outline: none;
 }
-.reservepanel-picker-label
-{ margin-left: 0.25rem;
+.reservepanel-picker-trigger-open {z-index: 1;}
+.reservepanel-picker-chevron-open {transform: rotate(180deg);}
+.reservepanel-picker-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    z-index: 110;
+    max-height: 10rem;
+    overflow-y: auto;
+    margin-top: 0.25rem;
+    padding: 0.25rem 0;
+    border: 1px solid var(--reservepanel-border);
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 24px rgb(15 23 42 / 0.18);
 }
-.reservepanel-picker-trigger
-{ width: 100%; justify-content: space-between; padding: 0.625rem 0.75rem; color: var(--reservepanel-text); font-size: 0.875rem; font-weight: 500; background: var(--reservepanel-bg-soft); border: 1px solid var(--reservepanel-border); border-radius: 0.75rem; outline: none;
+.reservepanel-picker-option {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
 }
-.reservepanel-picker-trigger-open
-{ z-index: 1;
+.reservepanel-picker-option-default {color: var(--reservepanel-text-soft);}
+.reservepanel-picker-option-default:hover {background: var(--reservepanel-main-soft);}
+.reservepanel-picker-option-selected {
+    color: var(--reservepanel-main);
+    font-weight: 700;
+    background: rgb(232 240 231 / 0.5);
 }
-.reservepanel-picker-chevron-open
-{ transform: rotate(180deg);
+.reservepanel-block-add {
+    flex: 1 1 0;
+    gap: 0.5rem;
 }
-.reservepanel-picker-menu
-{ position: absolute; top: 100%; right: 0; left: 0; z-index: 110; max-height: 10rem; overflow-y: auto; margin-top: 0.25rem; padding: 0.25rem 0; border: 1px solid var(--reservepanel-border); border-radius: 0.75rem; box-shadow: 0 20px 24px rgb(15 23 42 / 0.18);
+.reservepanel-block-cancel {
+    color: var(--reservepanel-text-soft);
+    background: var(--reservepanel-bg-soft);
 }
-.reservepanel-picker-option
-{ padding: 0.5rem 1rem; font-size: 0.75rem;
+.reservepanel-block-trigger {
+    width: 100%;
+    padding: 0.75rem;
+    color: var(--reservepanel-text-soft);
+    font-weight: 700;
+    border: 1px dashed var(--reservepanel-disabled);
+    border-radius: 0.75rem;
 }
-.reservepanel-picker-option-default
-{ color: var(--reservepanel-text-soft);
-} .reservepanel-picker-option-default:hover{ background: var(--reservepanel-main-soft);
+.reservepanel-modal-footer {margin-top: 2rem;}
+.reservepanel-fade-in {animation: reservepanelfade 0.2s ease;}
+.reservepanel-zoom-in {animation: reservepanelzoom 0.2s ease;}
+.reservepanel-fade-panel {animation: reservepanelfadepanel 0.5s ease;}
+.reservepanel-slide-panel {animation: reservepanelslidepanel 0.5s ease;}
+.reservepanel-block-form-animate {animation: reservepanelblockin 0.2s ease;}
+@keyframes reservepanelfade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
-.reservepanel-picker-option-selected
-{ color: var(--reservepanel-main); font-weight: 700; background: rgb(232 240 231 / 0.5);
+@keyframes reservepanelzoom {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
-.reservepanel-block-add
-{ flex: 1 1 0; gap: 0.5rem;
+@keyframes reservepanelfadepanel {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
-.reservepanel-block-cancel
-{ color: var(--reservepanel-text-soft); background: var(--reservepanel-bg-soft);
+@keyframes reservepanelslidepanel {
+    from {
+        opacity: 0;
+        transform: translateY(1rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
-.reservepanel-block-trigger
-{ width: 100%; padding: 0.75rem; color: var(--reservepanel-text-soft); font-weight: 700; border: 1px dashed var(--reservepanel-disabled); border-radius: 0.75rem;
+@keyframes reservepanelblockin {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
-.reservepanel-modal-footer
-{ margin-top: 2rem;
+@media (min-width: 640px) {
+    .reservepanel-toolbar {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .reservepanel-toolbar-side {justify-content: flex-end;}
+    .reservepanel-legend {display: flex;}
+    .reservepanel-add-button {flex: 0 0 auto;}
+    .reservepanel-calendar-empty,
+    .reservepanel-calendar-cell {height: 8rem; padding: 0.5rem;}
+    .reservepanel-off-badge {display: block;}
 }
-.reservepanel-fade-in
-{ animation: reservepanelfade 0.2s ease;
+@media (min-width: 768px) {
+    .reservepanel-brand-row {gap: 3rem;}
+    .reservepanel-main {padding: 2.5rem 1.5rem;}
+    .reservepanel-hero {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+    .reservepanel-hero-title {
+        margin-bottom: 0.25rem;
+        font-size: 1.875rem;
+    }
+    .reservepanel-hero-copy {font-size: 0.875rem;}
+    .reservepanel-view-toggle {align-self: auto; border-radius: 1rem;}
+    .reservepanel-view-toggle-button {
+      padding: 0.625rem;
+      border-radius: 0.75rem;
+    }
+    .reservepanel-month-title {font-size: 1.5rem;}
+    .reservepanel-calendar-grid-wrap {border-radius: 1rem;}
+    .reservepanel-calendar-weekday {
+      padding: 1rem 0;
+      font-size: 0.75rem;
+    }
+    .reservepanel-date-number {
+      width: 1.75rem;
+      height: 1.75rem;
+      font-size: 0.875rem;
+    }
+    .reservepanel-reservation-chip {
+      padding: 0.375rem;
+      font-size: 13px;
+    }
+    .reservepanel-reservation-time,
+    .reservepanel-blocked-chip-time {display: inline;}
+    .reservepanel-blocked-chip {padding: 0.25rem; font-size: 13px;}
+    .reservepanel-list-grid {grid-template-columns: repeat(2, minmax(0, 1fr));}
+    .reservepanel-list-card {padding: 1.5rem;}
+    .reservepanel-person-avatar-card {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 1rem;
+    }
+    .reservepanel-list-card-main {gap: 1.25rem;}
+    .reservepanel-list-card-title {font-size: 1rem;}
+    .reservepanel-list-type-badge {font-size: 10px;}
+    .reservepanel-list-meta {font-size: 0.75rem;}
+    .reservepanel-modal {border-radius: 2rem;}
+    .reservepanel-modal-content {padding: 2rem;}
+    .reservepanel-person-avatar-large {width: 3.5rem; height: 3.5rem;}
+    .reservepanel-modal-title {font-size: 1.25rem;}
+    .reservepanel-modal-subtitle,
+    .reservepanel-detail-label,
+    .reservepanel-status-badge,
+    .reservepanel-offday-copy,
+    .reservepanel-booked-time,
+    .reservepanel-blocked-time,
+    .reservepanel-block-trigger {font-size: 0.75rem;}
 }
-.reservepanel-zoom-in
-{ animation: reservepanelzoom 0.2s ease;
-}
-.reservepanel-fade-panel
-{ animation: reservepanelfadepanel 0.5s ease;
-}
-.reservepanel-slide-panel
-{ animation: reservepanelslidepanel 0.5s ease;
-}
-.reservepanel-block-form-animate
-{ animation: reservepanelblockin 0.2s ease;
-}
-@keyframes reservepanelfade
-{
-  from
-{ opacity: 0;
-  }
-  to
-{ opacity: 1;
-  }
-}
-@keyframes reservepanelzoom
-{
-  from
-{ opacity: 0; transform: scale(0.95);
-  }
-  to
-{ opacity: 1; transform: scale(1);
-  }
-}
-@keyframes reservepanelfadepanel
-{
-  from
-{ opacity: 0;
-  }
-  to
-{ opacity: 1;
-  }
-}
-@keyframes reservepanelslidepanel
-{
-  from
-{ opacity: 0; transform: translateY(1rem);
-  }
-  to
-{ opacity: 1; transform: translateY(0);
-  }
-}
-@keyframes reservepanelblockin
-{
-  from
-{ opacity: 0; transform: scale(0.95);
-  }
-  to
-{ opacity: 1; transform: scale(1);
-  }
-}
-@media (min-width: 640px)
-{
-  .reservepanel-toolbar
-{ flex-direction: row; align-items: center; justify-content: space-between;
-  }
-  .reservepanel-toolbar-side
-{ justify-content: flex-end;
-  }
-  .reservepanel-legend
-{ display: flex;
-  }
-  .reservepanel-add-button
-{ flex: 0 0 auto;
-  }
-  .reservepanel-calendar-empty,
-  .reservepanel-calendar-cell
-{ height: 8rem; padding: 0.5rem;
-  }
-  .reservepanel-off-badge
-{ display: block;
-  }
-  .reservepanel-footer-inner
-{ flex-direction: row; align-items: flex-start;
-  }
-}
-@media (min-width: 768px)
-{
-  .reservepanel-header-inner
-{ height: 5rem; padding: 0 1.5rem;
-  }
-  .reservepanel-brand-row
-{ gap: 3rem;
-  }
-  .reservepanel-main
-{ padding: 2.5rem 1.5rem;
-  }
-  .reservepanel-hero
-{ flex-direction: row; align-items: center; justify-content: space-between; gap: 1.5rem; margin-bottom: 2.5rem;
-  }
-  .reservepanel-hero-title
-{ margin-bottom: 0.25rem; font-size: 1.875rem;
-  }
-  .reservepanel-hero-copy
-{ font-size: 0.875rem;
-  }
-  .reservepanel-view-toggle
-{ align-self: auto; border-radius: 1rem;
-  }
-  .reservepanel-view-toggle-button
-{ padding: 0.625rem; border-radius: 0.75rem;
-  }
-  .reservepanel-month-title
-{ font-size: 1.5rem;
-  }
-  .reservepanel-calendar-grid-wrap
-{ border-radius: 1rem;
-  }
-  .reservepanel-calendar-weekday
-{ padding: 1rem 0; font-size: 0.75rem;
-  }
-  .reservepanel-date-number
-{ width: 1.75rem; height: 1.75rem; font-size: 0.875rem;
-  }
-  .reservepanel-reservation-chip
-{ padding: 0.375rem; font-size: 13px;
-  }
-  .reservepanel-reservation-time,
-  .reservepanel-blocked-chip-time
-{ display: inline;
-  }
-  .reservepanel-blocked-chip
-{ padding: 0.25rem; font-size: 13px;
-  }
-  .reservepanel-list-grid
-{ grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .reservepanel-list-card
-{ padding: 1.5rem;
-  }
-  .reservepanel-person-avatar-card
-{ width: 3rem; height: 3rem; border-radius: 1rem;
-  }
-  .reservepanel-list-card-main
-{ gap: 1.25rem;
-  }
-  .reservepanel-list-card-title
-{ font-size: 1rem;
-  }
-  .reservepanel-list-type-badge
-{ font-size: 10px;
-  }
-  .reservepanel-list-meta
-{ font-size: 0.75rem;
-  }
-  .reservepanel-modal
-{ border-radius: 2rem;
-  }
-  .reservepanel-modal-content
-{ padding: 2rem;
-  }
-  .reservepanel-person-avatar-large
-{ width: 3.5rem; height: 3.5rem;
-  }
-  .reservepanel-modal-title
-{ font-size: 1.25rem;
-  }
-  .reservepanel-modal-subtitle,
-  .reservepanel-detail-label,
-  .reservepanel-status-badge,
-  .reservepanel-offday-copy,
-  .reservepanel-booked-time,
-  .reservepanel-blocked-time,
-  .reservepanel-block-trigger
-{ font-size: 0.75rem;
-  }
-  .reservepanel-footer
-{ padding: 2rem 1.5rem;
-  }
-}
-@media (min-width: 1024px)
-{
-  .reservepanel-nav
-{ display: flex;
-  }
-  .reservepanel-mobile-menu
-{ display: none;
-  }
+
+/* 하단탭과 풋터 사이 여백 */
+.footer-gap {
+    height: 32px;
+    width: 100%;
 }

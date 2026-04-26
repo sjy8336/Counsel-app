@@ -12,11 +12,10 @@ class User(Base):
     email = Column(String(255), unique=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     phone_number = Column(String(20), nullable=False)
-    # Enum 타입 설정
+    birth_date = Column(String(10), nullable=False)  # YYYY-MM-DD
+    gender = Column(Enum('male', 'female'), nullable=False)
     role = Column(Enum('client', 'counselor', 'admin'), server_default='client')
 
     is_active = Column(Boolean, server_default=text('1'), nullable=False)
-    
-    # 시간 관련 설정
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))

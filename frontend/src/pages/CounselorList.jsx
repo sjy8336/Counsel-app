@@ -62,28 +62,34 @@ export default function CounselorListPage() {
     const [liked, setLiked] = useState({}); // { [id]: true/false }
     const navigate = useNavigate();
 
+    const handleLike = (id, e) => {
+        e.stopPropagation();
+        const user = localStorage.getItem('user');
+        if (!user) {
+            alert('로그인 후 이용 가능한 기능입니다.');
+            navigate('/login');
+            return;
+        }
+        setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
+    };
+
     const filteredCounselors = counselorData.filter((c) => {
         const matchesSearch = c.name.includes(searchTerm) || c.field.includes(searchTerm);
         const matchesCategory = selectedCategory === '전체' || c.category === selectedCategory;
         return matchesSearch && matchesCategory;
     });
 
-    const toggleLike = (id, e) => {
-        e.stopPropagation();
-        setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
-    };
-
     return (
         <div className="full-page-wrapper">
             <Header activeTab="search" setActiveTab={() => {}} />
             <div className="counselor-list-container wide">
-                <header className="search-header">
-                    <h2 className="search-title">전문가 찾기</h2>
-                    <div className="search-bar-wrapper">
-                        <Search className="search-icon" size={20} />
+                <header className="clist-search-header">
+                    <h2 className="clist-search-title">전문가 찾기</h2>
+                    <div className="clist-search-bar-wrapper">
+                        <Search className="clist-search-icon" size={20} />
                         <input
                             type="text"
-                            className="search-input"
+                            className="clist-search-input"
                             placeholder="이름 혹은 고민 중인 분야를 입력하세요"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -113,10 +119,9 @@ export default function CounselorListPage() {
                                 <div className="profile-placeholder">
                                     <User size={32} />
                                 </div>
-                                {/* 하트 아이콘 - 좋아요 토글 */}
                                 <button
                                     className={`heart-btn${liked[counselor.id] ? ' liked' : ''}`}
-                                    onClick={(e) => toggleLike(counselor.id, e)}
+                                    onClick={(e) => handleLike(counselor.id, e)}
                                     aria-label="좋아요"
                                 >
                                     <Heart

@@ -45,8 +45,10 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
         full_name=user_in.full_name,
         username=user_in.username,
         email=user_in.email,
-        hashed_password=hashed_pw, # 실제 해시값 저장
+        hashed_password=hashed_pw,
         phone_number=user_in.phone_number,
+        birth_date=user_in.birth_date,
+        gender=user_in.gender,
         role=user_in.role
     )
     db.add(new_user)

@@ -7,8 +7,10 @@ class UserCreate(BaseModel):
     full_name: str
     username: str
     email: EmailStr
-    password: str  # DB 저장 전 날것의 비밀번호
+    password: str
     phone_number: str
+    birth_date: str  # YYYY-MM-DD
+    gender: str  # 'male' or 'female'
     role: Optional[str] = "client"
 
 # 응답용 데이터 구조
@@ -17,6 +19,9 @@ class UserResponse(BaseModel):
     full_name: str
     username: str
     email: EmailStr
+    phone_number: str
+    birth_date: str
+    gender: str
     role: str
 
     class Config:
