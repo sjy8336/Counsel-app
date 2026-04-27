@@ -10,6 +10,7 @@ import ReservationPage from './pages/Reservation';
 import CounselorListPage from './pages/CounselorList';
 import CounselorDetailPage from './pages/CounselorDetail';
 import CounselorMyPage from './pages/CounselorMyPage';
+import CounselorUpload from './pages/CounselorUpload';
 import Schedule from './pages/Schedule';
 import CounselorPlanner from './pages/CounselorPlanner';
 import CounselorHome from './pages/CounselorHome';
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/counselors" element={<CounselorListPage />} />
                 <Route path="/counselor/:id" element={<CounselorDetailPage />} />
                 <Route path="/CounselorMyPage" element={<CounselorMyPage />} />
+                <Route path="/counselorUpload" element={<CounselorUpload />} />
                 <Route path="/diary" element={<Diary />} />
                 <Route path="/healing" element={<HealingRounge />} />
                 <Route path="/schedule" element={<Schedule />} />

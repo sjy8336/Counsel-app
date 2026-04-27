@@ -49,7 +49,7 @@ const CounselorHome = () => {
                                             <span className="desc">제1상담실 (대면)</span>
                                         </div>
                                         {/* 3. 버튼 클릭 시 내담자 관리 페이지로 이동 (경로는 App.jsx에 설정한 대로 수정) */}
-                                        <button className="action-btn" onClick={() => navigate('/counselor/client')}>
+                                        <button className="action-btn" onClick={() => navigate('/CounselorClient')}>
                                             일지 작성
                                         </button>
                                     </div>

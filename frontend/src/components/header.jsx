@@ -104,7 +104,11 @@ export default function Header({ activeTab, setActiveTab }) {
                     className="logo"
                     onClick={() => {
                         setActiveTab('home');
-                        navigate('/');
+                        if (isLoggedIn && userRole === 'counselor') {
+                            navigate('/CounselorHome');
+                        } else {
+                            navigate('/');
+                        }
                     }}
                 >
                     MINDWELL
