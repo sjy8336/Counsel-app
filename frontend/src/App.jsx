@@ -15,6 +15,11 @@ import CounselorPlanner from './pages/CounselorPlanner';
 import CounselorHome from './pages/CounselorHome';
 import CounselorClient from './pages/CounselorClient';
 import AIDiary from './pages/AIdiary';
+import Survey from './pages/Survey';
+import Payment from './pages/Payment';
+import Success from './pages/Success';
+import Fail from './pages/Fail';
+
 
 function App() {
     return (
@@ -36,6 +41,10 @@ function App() {
                 <Route path="/CounselorClient" element={<CounselorClient />} />
                 <Route path="/counselorhome" element={<CounselorHome />} />
                 <Route path="/AIdiary" element={<AIDiary />} />
+                <Route path="/survey" element={<Survey />} />
+                <Route path="/payment" element={<Payment />} />
+                <Route path="/payment/success" element={<Success />} />
+                <Route path="/payment/fail" element={<Fail />} />
             </Routes>
         </BrowserRouter>
     );
