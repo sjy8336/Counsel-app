@@ -2,7 +2,6 @@
    Diary.css - MindWell AI Diary Styles
    모든 클래스명은 mw- 접두사 사용 (충돌 방지)
    ============================================= */
-
 /* --- Global Reset --- */
 .mw-diary-root * {
   -ms-overflow-style: none !important;
