@@ -1,0 +1,120 @@
+/* static/Payment.css */
+.pay-wrapper {
+  padding: 50px 20px;
+  background-color: #f9fbf9;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.pay-card {
+  width: 100%;
+  max-width: 480px;
+  background: white;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(46, 75, 63, 0.05);
+}
+
+.pay-main-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2e4b3f;
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.pay-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #88a096;
+  margin-bottom: 12px;
+}
+
+.pay-info-box, .pay-price-box, .pay-method-box {
+  margin-bottom: 30px;
+}
+
+.pay-details {
+  background: #f1f5f3;
+  padding: 20px;
+  border-radius: 16px;
+}
+
+.pay-details p {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+  font-size: 15px;
+}
+
+/* --- 금액 및 안내 문구 스타일 추가/수정 --- */
+.pay-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.pay-amount-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ff9100; /* 강조 주황색 */
+}
+
+.pay-amount-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #2e4b3f;
+}
+
+.pay-notice-text {
+  font-size: 13px;
+  color: #888;
+  margin-top: 12px;
+  line-height: 1.5;
+  text-align: left; /* 문구 위치 조절 */
+}
+
+.pay-notice-text span {
+  color: #e63946; /* 선입금 강조 레드 */
+  font-weight: 600;
+}
+/* ---------------------------------- */
+
+.method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.method-btn {
+  padding: 12px;
+  border: 1px solid #e0eadd;
+  background: white;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.method-btn.active {
+  border-color: #2e4b3f;
+  background: #2e4b3f;
+  color: white;
+}
+
+.pay-final-btn {
+  width: 100%;
+  padding: 18px;
+  background: #2e4b3f;
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(46, 75, 63, 0.2);
+  margin-top: 10px;
+}

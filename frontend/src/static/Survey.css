@@ -1,0 +1,85 @@
+/* frontend/src/static/Survey.css */
+
+:root {
+  --main-color: #8BA888;      /* Sage Green */
+  --bg-color: #FDFBF7;        /* Warm White */
+  --sub-bg: #FAF7F2;          /* Sand Beige */
+  --accent-rose: #FDA4AF;     /* Soft Rose */
+  --text-main: #1E293B;       /* Slate Navy */
+}
+
+.survey-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  border-radius: 12px;
+}
+
+.survey-header h2 {
+  color: var(--main-color);
+  margin-bottom: 8px;
+}
+
+.selected-info {
+  background: var(--sub-bg);
+  padding: 12px;
+  border-radius: 8px;
+  margin: 20px 0;
+  font-size: 0.9rem;
+  display: flex;
+  gap: 15px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.form-group select, 
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid var(--sub-bg);
+  border-radius: 6px;
+  background-color: #fff;
+}
+
+.radio-group {
+  display: flex;
+  gap: 20px;
+}
+
+.payment-notice {
+  border-top: 1px solid var(--sub-bg);
+  padding-top: 20px;
+  margin-top: 30px;
+}
+
+.payment-notice h3 {
+  color: var(--accent-rose);
+  font-size: 1.1rem;
+}
+
+.submit-btn {
+  width: 100%;
+  background-color: var(--main-color);
+  color: white;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.submit-btn:hover {
+  filter: brightness(0.9);
+}

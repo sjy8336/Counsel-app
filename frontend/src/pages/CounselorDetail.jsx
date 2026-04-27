@@ -38,7 +38,6 @@ const detailedCounselorData = {
         history: ['기업 상담(EAP) 전문 상담사'],
         availableTimes: ['11:00', '15:00', '17:00'],
     },
-    // 필요 시 3, 4, 5... 추가 가능
 };
 
 export default function CounselorDetailPage() {
@@ -52,27 +51,21 @@ export default function CounselorDetailPage() {
     const [liked, setLiked] = useState(false);
     const containerRef = useRef(null);
 
-    const handleReservation = async () => {
+    // --- 수정된 예약 핸들러: 바로 완료하지 않고 설문 페이지로 데이터 전송 ---
+    const handleReservation = () => {
         if (!selectedDate || !selectedTime) {
             alert('상담 일자와 시간을 모두 선택해주세요.');
             return;
         }
 
-        setIsSubmitting(true);
-
-        try {
-            // 시뮬레이션
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            alert('예약 신청이 완료되었습니다.');
-
-            // [중요] App.js의 Route path가 "/reservation" 인지 "/Reservation" 인지 확인 필요!
-            // 보통 소문자로 작성하는 것이 표준입니다.
-            navigate('/reservation');
-        } catch (error) {
-            alert('에러가 발생했습니다.');
-        } finally {
-            setIsSubmitting(false);
-        }
+        // Survey.jsx로 이동하면서 상담사 이름, 날짜, 시간 정보를 state에 담아 보냅니다.
+        navigate('/survey', {
+            state: {
+                counselorName: counselor.name,
+                selectedDate: selectedDate,
+                selectedTime: selectedTime
+            }
+        });
     };
 
     const handleLike = () => {
@@ -88,7 +81,6 @@ export default function CounselorDetailPage() {
     const [isOpen, setIsOpen] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
-    // 외부 클릭 시 달력 닫기
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -99,11 +91,9 @@ export default function CounselorDetailPage() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // 오늘 날짜 정보
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // 달력 계산 로직
     const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
     const firstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
@@ -127,12 +117,10 @@ export default function CounselorDetailPage() {
         const firstDay = firstDayOfMonth(year, month);
         const days = [];
 
-        // 빈 칸 (이전 달 날짜 공간)
         for (let i = 0; i < firstDay; i++) {
             days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
         }
 
-        // 실제 날짜
         for (let d = 1; d <= totalDays; d++) {
             const dateObj = new Date(year, month, d);
             const isPast = dateObj < today;
@@ -211,7 +199,6 @@ export default function CounselorDetailPage() {
                                 <Calendar size={18} /> 상담 일자 선택
                             </label>
                             <div className="date-picker-container" ref={containerRef}>
-                                {/* 입력 영역 */}
                                 <div className="date-input-wrapper" onClick={() => setIsOpen(!isOpen)}>
                                     <input
                                         type="text"
@@ -221,7 +208,6 @@ export default function CounselorDetailPage() {
                                         className="date-display-input"
                                     />
                                 </div>
-                                {/* 달력 팝업 */}
                                 {isOpen && (
                                     <div className="calendar-popup">
                                         <div className="calendar-header">

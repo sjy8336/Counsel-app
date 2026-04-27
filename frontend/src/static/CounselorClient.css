@@ -448,3 +448,100 @@
     position: static; /* 모바일에서는 따라다니는 스크롤 해제 */
   }
 }
+/* 우측 유틸리티 사이드바 */
+.right-utility-side {
+  flex: 0 0 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.utility-box {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+}
+
+.utility-box h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.keyword-tag {
+  display: inline-block;
+  background: #F1F3F2;
+  color: #5A755D;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+.quick-memo-input {
+  width: 100%;
+  height: 120px;
+  border: 1px solid #E0E0E0;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13px;
+  resize: none;
+  outline-color: #8EAC91;
+  box-sizing: border-box;
+}
+
+/* 아코디언 상세 내용 */
+.log-detail-expanded {
+  background-color: #F9FAFA;
+  border-radius: 0 0 12px 12px;
+  padding: 20px;
+  margin-top: -10px; /* 카드와 밀착 */
+  border: 1px solid #F0F0F0;
+  border-top: none;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #444;
+}
+
+.survey-view-btn {
+  background: none;
+  border: 1px solid #8EAC91;
+  color: #8EAC91;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+.btn-edit-small {
+  background-color: #F1F3F2; /* 메인 테마와 어울리는 연한 그린그레이 */
+  color: #6B7A6D;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-edit-small:hover {
+  background-color: #E6ECE6;
+  color: #333333;
+}
+
+/* 상세보기 내부 레이아웃 정돈 */
+.log-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #EEE;
+  padding-bottom: 8px;
+}
