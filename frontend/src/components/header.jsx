@@ -86,7 +86,7 @@ export default function Header({ activeTab, setActiveTab }) {
         } else if (userRole === 'counselor') {
             if (item.id === 'reservation') navigate('/CounselorPlanner');
             else if (item.id === 'client') navigate('/CounselorClient');
-            else if (item.id === 'inquiry') navigate('/CounselorMyPage?tab=inquiry');
+            else if (item.id === 'inquiry') navigate('/CounselorMessages');
         } else {
             // client, admin
             if (item.id === 'search') navigate('/counselors');

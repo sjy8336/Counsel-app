@@ -20,13 +20,22 @@ import Survey from './pages/Survey';
 import Payment from './pages/Payment';
 import Success from './pages/Success';
 import Fail from './pages/Fail';
+import CounselorMessages from './pages/CounselorMessages';
 
 
 function App() {
+    // localStorage에서 user 정보 파싱
+    let nickname = '';
+    try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        nickname = user?.full_name || user?.username || '';
+    } catch (e) {
+        nickname = '';
+    }
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<Home nickname={nickname} />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/mypage" element={<MyPage />} />
@@ -47,6 +56,7 @@ function App() {
                 <Route path="/payment" element={<Payment />} />
                 <Route path="/payment/success" element={<Success />} />
                 <Route path="/payment/fail" element={<Fail />} />
+                <Route path="/CounselorMessages" element={<CounselorMessages />} />
             </Routes>
         </BrowserRouter>
     );
