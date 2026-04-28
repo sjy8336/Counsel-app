@@ -37,7 +37,7 @@ import {
     HelpCircle,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './MyPage.css';
+import '../static/MyPage.css';
 
 const notifSettingsData = [
     { key: 'session', title: '상담 일정 알림', desc: '예약된 상담 시간 및 변동 사항 안내' },
