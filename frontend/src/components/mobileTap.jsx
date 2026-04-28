@@ -65,7 +65,7 @@ export default function mobileTap() {
             if (item.id === 'home') navigate('/CounselorHome');
             else if (item.id === 'reservation') navigate('/CounselorMyPage');
             else if (item.id === 'client') navigate('/CounselorClient');
-            else if (item.id === 'inquiry') navigate('/CounselorMyPage?tab=inquiry');
+            else if (item.id === 'inquiry') navigate('/CounselorMessages');
             else if (item.id === 'mypage') navigate('/CounselorMyPage?tab=mypage');
         } else {
             if (item.id === 'home') navigate('/');

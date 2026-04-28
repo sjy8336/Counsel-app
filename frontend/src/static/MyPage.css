@@ -1,9 +1,147 @@
+
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
+/* 고객센터 연락처 블록 스타일 */
+.support-contact-block {
+    display: flex;
+    flex-direction: row;
+    gap: 1.2rem;
+    margin-bottom: 2.2rem;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+.support-contact-item {
+        background: #f4f8f6;
+        border-radius: 1rem;
+        padding: 1.1rem 1.5rem 1.1rem 1.5rem;
+        border: 1px solid #e0ece6;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        box-shadow: 0 1px 4px 0 rgba(139, 168, 136, 0.04);
+        flex: 0 0 32%;
+        max-width: 32%;
+}
+
+@media (max-width: 900px) {
+    .support-contact-block {
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+    .support-contact-item {
+        max-width: 100%;
+        flex: 1 1 100%;
+    }
+}
+.support-contact-label {
+    font-weight: 700;
+    color: #3b5d50;
+    font-size: 1.08rem;
+    margin-bottom: 0.2rem;
+}
+.support-contact-desc {
+    color: #2d3a3a;
+    font-size: 1.01rem;
+    word-break: keep-all;
+}
+
+.support-contact-label {
+    font-weight: 700;
+    color: #3b5d50;
+    font-size: 1.08rem;
+    margin-bottom: 0.2rem;
+}
+.support-contact-desc {
+    color: #2d3a3a;
+    font-size: 1.01rem;
+    word-break: keep-all;
+}
+
+/* 고객센터(고객지원) 스타일 */
+.support-center-card {
+    padding: 2.5rem 5vw 2.5rem 5vw;
+    max-width: 1200px;
+    margin: 0 auto 2.5rem auto;
+    background: linear-gradient(135deg, #f8fafc 60%, #e6f4ea 100%);
+    border-radius: 2rem;
+    box-shadow: 0 6px 32px 0 rgba(139, 168, 136, 0.13);
+    border: 1.5px solid #d1e7dd;
+    transition: box-shadow 0.2s;
+}
+.support-center-card:hover {
+    box-shadow: 0 10px 40px 0 rgba(139, 168, 136, 0.18);
+}
+.support-title {
+    font-weight: 800;
+    font-size: 1.35rem;
+    margin-bottom: 1.7rem;
+    color: #3b5d50;
+    letter-spacing: -0.5px;
+    text-align: center;
+}
+.support-contact-list {
+    padding-left: 0;
+    list-style: none;
+    margin-bottom: 2.2rem;
+    background: #f4f8f6;
+    border-radius: 1rem;
+    padding: 1.2rem 1.5rem;
+    border: 1px solid #e0ece6;
+}
+.support-contact-list li {
+    margin-bottom: 0.7rem;
+    font-size: 1.07rem;
+    color: #3b5d50;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.support-link {
+    color: #4e9e7a;
+    text-decoration: underline;
+    font-weight: 600;
+    transition: color 0.15s;
+}
+.support-link:hover {
+    color: #2b7a5a;
+}
+.support-faq-section {
+    margin-bottom: 2.2rem;
+    background: #f7f9fa;
+    border-radius: 1rem;
+    padding: 1.2rem 1.5rem 0.7rem 1.5rem;
+    border: 1px solid #e0ece6;
+}
+.support-faq-title {
+    font-size: 1.13rem;
+    font-weight: 900;
+    color: #4e9e7a;
+    margin-bottom: 1.1rem;
+    text-align: left;
+    letter-spacing: -0.5px;
+}
+.support-faq-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+.support-faq-list li {
+    margin-bottom: 1.1rem;
+    font-size: 1.04rem;
+    color: #2d3a3a;
+    line-height: 1.8;
+    background: #eaf6f0;
+    border-radius: 0.7rem;
+    padding: 0.8rem 1rem;
+    box-shadow: 0 1px 4px 0 rgba(139, 168, 136, 0.04);
+}
+.support-footer-msg {
+    color: #4e9e7a;
+    font-weight: 600;
+    font-size: 1.03rem;
+    text-align: center;
+    margin-top: 2.2rem;
+    letter-spacing: -0.2px;
 }
 
 body {
@@ -984,48 +1122,6 @@ img {
     min-width: 0;
 }
 
-.mwp-support-banner {
-    padding: 1.25rem;
-    border-radius: 1.5rem;
-    background-color: #faf7f2;
-    border: 1px solid rgba(139, 168, 136, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    transition: background-color 0.15s;
-}
-
-.mwp-support-banner:hover {
-    background-color: rgba(139, 168, 136, 0.05);
-}
-
-.mwp-support-label {
-    font-size: 0.625rem;
-    color: #9ca3af;
-    font-weight: 700;
-    margin-bottom: 0.125rem;
-    margin-top: 0;
-}
-
-.mwp-support-text {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #1e293b;
-    transition: color 0.15s;
-    margin: 0;
-}
-
-.mwp-support-banner:hover .mwp-support-text,
-.mwp-support-banner:hover .mwp-support-icon {
-    color: #8ba888;
-}
-
-.mwp-support-icon {
-    color: #d1d5db;
-    font-size: 1.125rem;
-    transition: color 0.15s;
-}
 
 .profile-edit-section {
     background-color: #ffffff;
@@ -1283,25 +1379,25 @@ img {
 
 .ns-card {
     width: 100%;
-    max-width: 100%;
-    background: #ffffff;
-    border-radius: 0;
-    box-shadow: none;
-    border: none;
-    overflow: visible;
+    max-width: 1200px;
+    margin: 0 auto 2.5rem auto;
+    background: #fff;
+    border-radius: 1.5rem;
+    box-shadow: 0 2px 12px 0 rgba(139, 168, 136, 0.07);
+    border: 1px solid #e5e7eb;
+    padding: 2.5rem 5vw 2rem 5vw;
     animation: nsFadeIn 0.5s ease-out forwards;
-    margin: 0;
     display: flex;
     flex-direction: column;
     align-items: stretch;
 }
 
 .ns-header {
-    padding: 0;
+    padding: 0 0 1.2rem 0;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    border-bottom: 1px solid var(--ns-sub-bg);
+    border-bottom: 1px solid #f3f4f6;
 }
 
 .ns-header-icon-box {
@@ -1325,20 +1421,24 @@ img {
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 1.1rem;
+    margin-top: 1.2rem;
 }
 
 .ns-toggle-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
+    padding: 1.1rem 1.2rem;
     border-radius: 1rem;
-    transition: background-color 0.2s;
+    background: #f8fafc;
+    border: 1px solid #f3f4f6;
+    transition: background-color 0.2s, border 0.2s;
 }
 
 .ns-toggle-item:hover {
-    background-color: rgba(250, 247, 242, 0.5);
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
 }
 
 .ns-item-text {
