@@ -24,6 +24,9 @@ export default function LoginPage() {
                 console.log('user.username:', result.user.username);
             }
             localStorage.setItem('user', JSON.stringify(result.user));
+            if (result.access_token) {
+                localStorage.setItem('token', result.access_token);
+            }
             alert(`${result.user.full_name}님, 환영합니다!`);
             // role에 따라 이동 경로 분기
             if (result.user.role === 'counselor') {
@@ -35,7 +38,7 @@ export default function LoginPage() {
             console.error('3. 로그인 에러 발생!');
             console.log('에러 객체 전체:', error);
             console.log('백엔드 메시지:', error.response?.data);
-            alert(error.response?.data?.detail || "로그인에 실패했습니다.");
+            alert(error.response?.data?.detail || '로그인에 실패했습니다.');
         }
         console.log('Login attempt:', id);
     };

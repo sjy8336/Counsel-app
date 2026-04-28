@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { toggleFavorite } from '../api/favorite';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     User,
@@ -63,19 +64,25 @@ export default function CounselorDetailPage() {
             state: {
                 counselorName: counselor.name,
                 selectedDate: selectedDate,
-                selectedTime: selectedTime
-            }
+                selectedTime: selectedTime,
+            },
         });
     };
 
-    const handleLike = () => {
+    const handleLike = async () => {
         const user = localStorage.getItem('user');
-        if (!user) {
+        const token = localStorage.getItem('token');
+        if (!user || !token) {
             alert('로그인 후 이용 가능한 기능입니다.');
             navigate('/login');
             return;
         }
-        setLiked((prev) => !prev);
+        try {
+            const res = await toggleFavorite(id, token);
+            setLiked(res.is_favorite);
+        } catch (err) {
+            alert('찜 처리 중 오류가 발생했습니다.');
+        }
     };
 
     const [isOpen, setIsOpen] = useState(false);

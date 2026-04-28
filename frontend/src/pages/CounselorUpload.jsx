@@ -17,6 +17,9 @@ import {
     X,
 } from 'lucide-react';
 import '../static/CounselorUpload.css';
+import Header from '../components/header';
+import MobileTap from '../components/mobileTap';
+import Footer from '../components/footer';
 
 /* ── 상수 ──────────────────────────────────────────── */
 const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
@@ -248,25 +251,7 @@ export default function App() {
     /* ── 렌더 ─────────────────────────────────────────── */
     return (
         <div className="app">
-            {/* GNB */}
-            <header className="gnb">
-                <div className="gnb-left">
-                    <h1 className="logo">MINDWELL</h1>
-                    <nav className="gnb-nav">
-                        <a href="#">전문가 찾기</a>
-                        <a href="#">예약 관리</a>
-                        <a href="#">AI 일기</a>
-                        <a href="#">힐링 라운지</a>
-                    </nav>
-                </div>
-                <div className="gnb-user">
-                    <div className="gnb-avatar">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=counselor" alt="프로필" />
-                    </div>
-                    <span className="gnb-name">이은지 코치님</span>
-                </div>
-            </header>
-
+            <Header />
             <main>
                 <div className="page-header">
                     <h2>전문가 프로필 등록</h2>
@@ -621,23 +606,8 @@ export default function App() {
                 </div>
             </main>
 
-            <footer className="site-footer">
-                <div className="footer-grid">
-                    <div className="footer-brand">
-                        <h4>MINDWELL</h4>
-                        <p>AI 멘탈 웰니스 플랫폼 마음웰입니다.</p>
-                    </div>
-                    {['서비스', '고객지원', '법적 고지'].map((t) => (
-                        <div key={t} className="footer-col">
-                            <h5>{t}</h5>
-                            <ul>
-                                <li>링크 1</li>
-                                <li>링크 2</li>
-                            </ul>
-                        </div>
-                    ))}
-                </div>
-            </footer>
+            <MobileTap />
+            <Footer />
         </div>
     );
 }

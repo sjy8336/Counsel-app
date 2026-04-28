@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toggleFavorite } from '../api/favorite';
 import { useNavigate } from 'react-router-dom';
 import { Search, User, Heart } from 'lucide-react';
 import Header from '../components/header';
@@ -62,15 +63,21 @@ export default function CounselorListPage() {
     const [liked, setLiked] = useState({}); // { [id]: true/false }
     const navigate = useNavigate();
 
-    const handleLike = (id, e) => {
+    const handleLike = async (id, e) => {
         e.stopPropagation();
         const user = localStorage.getItem('user');
-        if (!user) {
+        const token = localStorage.getItem('token');
+        if (!user || !token) {
             alert('로그인 후 이용 가능한 기능입니다.');
             navigate('/login');
             return;
         }
-        setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
+        try {
+            const res = await toggleFavorite(id, token);
+            setLiked((prev) => ({ ...prev, [id]: res.is_favorite }));
+        } catch (err) {
+            alert('찜 처리 중 오류가 발생했습니다.');
+        }
     };
 
     const filteredCounselors = counselorData.filter((c) => {

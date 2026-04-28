@@ -24,6 +24,7 @@ CREATE USER 'mindwell_user'@'%' IDENTIFIED BY '062206';
 GRANT ALL PRIVILEGES ON mindwell_db.* TO 'mindwell_user'@'%';
 FLUSH PRIVILEGES;
 
+
 SELECT user, host FROM mysql.user WHERE user = 'mindwell_user';
 
 GRANT ALL PRIVILEGES ON counseling_db.* TO 'mindwell_user'@'%';
