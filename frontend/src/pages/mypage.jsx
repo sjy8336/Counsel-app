@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { deleteAccount } from '../api/auth';
 import { getUserInfo, updateUserInfo, changePassword } from '../api/user';
+import { getFavorites } from '../api/favorite';
 import {
     Settings,
     Bell,
@@ -37,7 +38,7 @@ import {
     HelpCircle,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './MyPage.css';
+import '../static/MyPage.css';
 
 const notifSettingsData = [
     { key: 'session', title: '상담 일정 알림', desc: '예약된 상담 시간 및 변동 사항 안내' },
@@ -83,8 +84,8 @@ const NotificationSettings = ({ notifSettings, toggleNotif }) => {
                 <AlertCircle size={18} className="ns-footer-icon" />
                 <p className="ns-footer-text">
                     기기 전체 알림이 꺼져있을 경우 앱 설정을 켜도 알림이 전송되지 않습니다. 휴대폰의{' '}
-                    <span className="ns-footer-highlight">설정 &gt; 알림</span> 메뉴에서 마인드웰의
-                    알림 허용 상태를 확인해 주세요.
+                    <span className="ns-footer-highlight">설정 &gt; 알림</span> 메뉴에서 마인드웰의 알림 허용 상태를
+                    확인해 주세요.
                 </p>
             </footer>
         </div>
@@ -117,18 +118,13 @@ export default function App() {
     const [openInquiryId, setOpenInquiryId] = useState(null);
     const [pwFields, setPwFields] = useState({ current: '', new1: '', new2: '' });
     const [pwLoading, setPwLoading] = useState(false);
-    const [favoritesList, setFavoritesList] = useState([
-        { id: 1, name: '이은지 상담사', type: '상담사', desc: '따뜻하고 공감적인 상담 스타일', date: '2026.04.12' },
-        { id: 2, name: '김지훈 상담사', type: '상담사', desc: '논리적이고 실용적인 조언 제공', date: '2026.03.30' },
-        { id: 3, name: '박수현 상담사', type: '상담사', desc: '경청과 존중을 바탕으로 한 상담', date: '2026.03.15' },
-        { id: 4, name: '최민수 상담사', type: '상담사', desc: '유쾌하고 긍정적인 에너지 전달', date: '2026.02.28' },
-        { id: 5, name: '정다은 상담사', type: '상담사', desc: '섬세하고 따뜻한 공감 능력', date: '2026.02.10' },
-    ]);
+    const [favoritesList, setFavoritesList] = useState([]);
 
     const completedConsultations = 12;
 
     useEffect(() => {
         const user = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
         if (user) {
             const userObj = JSON.parse(user);
             setUserInfo((prev) => ({ ...prev, id: userObj.id }));
@@ -143,6 +139,14 @@ export default function App() {
                     gender: data.gender || '',
                 }));
             });
+            // 찜내역 불러오기
+            getFavorites(token)
+                .then((data) => {
+                    setFavoritesList(data.favorites || []);
+                })
+                .catch(() => {
+                    setFavoritesList([]);
+                });
         }
     }, []);
 
@@ -255,8 +259,10 @@ export default function App() {
                 type: '대면 상담',
                 status: '상담 완료',
                 topic: '대인관계 스트레스',
-                summary: '주변인들의 부탁을 거절하지 못해 발생하는 번아웃과 스트레스에 대해 논의함. 자신의 욕구를 먼저 파악하는 연습이 필요함.',
-                feedback: '소현님은 타인에 대한 배려가 깊지만, 그만큼 자신을 돌보는 데 소홀해져 있었습니다. 오늘은 "나의 경계선 설정하기"를 주제로 구체적인 거절의 기술을 연습해 보았습니다.',
+                summary:
+                    '주변인들의 부탁을 거절하지 못해 발생하는 번아웃과 스트레스에 대해 논의함. 자신의 욕구를 먼저 파악하는 연습이 필요함.',
+                feedback:
+                    '소현님은 타인에 대한 배려가 깊지만, 그만큼 자신을 돌보는 데 소홀해져 있었습니다. 오늘은 "나의 경계선 설정하기"를 주제로 구체적인 거절의 기술을 연습해 보았습니다.',
                 nextStep: '하루에 한 번, 내키지 않는 제안에 대해 정중히 거절해 보기',
             },
             {
@@ -268,7 +274,8 @@ export default function App() {
                 status: '상담 완료',
                 topic: '직장 내 갈등 관리',
                 summary: '상사의 일방적인 업무 지시 방식으로 인한 무력감과 갈등 상황을 공유함.',
-                feedback: '감정적인 대응보다는 업무 효율성과 연계된 소통 방식을 제안했습니다. 본인의 감정이 "무시당함"에 집중되어 있음을 인지하고 이를 객관적으로 분리하는 훈련을 진행했습니다.',
+                feedback:
+                    '감정적인 대응보다는 업무 효율성과 연계된 소통 방식을 제안했습니다. 본인의 감정이 "무시당함"에 집중되어 있음을 인지하고 이를 객관적으로 분리하는 훈련을 진행했습니다.',
                 nextStep: '갈등 상황 발생 시 즉시 반응하지 않고 10초간 호흡하기',
             },
             {
@@ -280,7 +287,8 @@ export default function App() {
                 status: '상담 완료',
                 topic: '자존감 회복 훈련',
                 summary: '과거의 실패 경험이 현재의 의사 결정에 미치는 부정적 영향 분석.',
-                feedback: '성취 경험을 기록하는 "칭찬 일기"를 통해 자신감을 회복하는 단계입니다. 오늘은 본인이 가진 강점 5가지를 찾아내는 시간을 가졌습니다.',
+                feedback:
+                    '성취 경험을 기록하는 "칭찬 일기"를 통해 자신감을 회복하는 단계입니다. 오늘은 본인이 가진 강점 5가지를 찾아내는 시간을 가졌습니다.',
                 nextStep: '매일 잠들기 전 나를 위한 칭찬 한 문장 적기',
             },
             {
@@ -292,7 +300,8 @@ export default function App() {
                 status: '상담 완료',
                 topic: '불안 장애 상담',
                 summary: '원인 모를 급격한 심박수 증가와 신체적 불안 증상에 대한 대처법.',
-                feedback: '공황 증상과 유사한 불안 발작 시 사용할 수 있는 접지법(Grounding)과 복식 호흡법을 숙달했습니다. 심리적 안전 기지를 설정하는 명상을 함께 진행했습니다.',
+                feedback:
+                    '공황 증상과 유사한 불안 발작 시 사용할 수 있는 접지법(Grounding)과 복식 호흡법을 숙달했습니다. 심리적 안전 기지를 설정하는 명상을 함께 진행했습니다.',
                 nextStep: '불안 신호 포착 시 5-4-3-2-1 접지법 시행하기',
             },
         ];
@@ -347,9 +356,7 @@ export default function App() {
                             </section>
                         </div>
                         <div className="report-footer">
-                            <p className="privacy-notice">
-                                이 기록은 오직 소현님과 담당 상담사만 확인할 수 있습니다.
-                            </p>
+                            <p className="privacy-notice">이 기록은 오직 소현님과 담당 상담사만 확인할 수 있습니다.</p>
                         </div>
                     </div>
                 </div>
@@ -369,11 +376,7 @@ export default function App() {
                 </div>
                 <div className="history-list-container">
                     {historyList.map((item) => (
-                        <div
-                            key={item.id}
-                            onClick={() => setSelectedConsultation(item)}
-                            className="history-item-card"
-                        >
+                        <div key={item.id} onClick={() => setSelectedConsultation(item)} className="history-item-card">
                             <div className="history-item-main">
                                 <div className="history-icon-box">
                                     <CalendarDays size={24} />
@@ -562,7 +565,9 @@ export default function App() {
                                         </div>
                                         <div className="mwp-sidebar-item-inner">
                                             <p className="mwp-sidebar-item-title">유효 기간</p>
-                                            <p className="mwp-sidebar-item-desc">구매일로부터 90일 이내에 사용 가능합니다.</p>
+                                            <p className="mwp-sidebar-item-desc">
+                                                구매일로부터 90일 이내에 사용 가능합니다.
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="mwp-sidebar-info-item">
@@ -571,7 +576,9 @@ export default function App() {
                                         </div>
                                         <div className="mwp-sidebar-item-inner">
                                             <p className="mwp-sidebar-item-title">자동 갱신 안내</p>
-                                            <p className="mwp-sidebar-item-desc">횟수 차감형 이용권은 자동 갱신되지 않습니다.</p>
+                                            <p className="mwp-sidebar-item-desc">
+                                                횟수 차감형 이용권은 자동 갱신되지 않습니다.
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -826,7 +833,9 @@ export default function App() {
                                         <div className="wd-notice-bullet" />
                                         <div>
                                             <p className="wd-notice-label">상담 히스토리 전체 삭제</p>
-                                            <p className="wd-notice-sub">기록은 복구되지 않으며, 영구적으로 제거됩니다.</p>
+                                            <p className="wd-notice-sub">
+                                                기록은 복구되지 않으며, 영구적으로 제거됩니다.
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="wd-notice-item">
@@ -881,8 +890,12 @@ export default function App() {
                             <div className="wd-suggestion-box">
                                 <Lightbulb size={16} className="wd-suggestion-icon" />
                                 <p>
-                                    탈퇴 대신 <span className="wd-highlight" onClick={() => setActiveSubMenu('notification')}>알림 설정</span>이나{' '}
-                                    <span className="wd-highlight">상담 일시 중지</span>를 이용해 보세요. 언제든지 다시 돌아오실 수 있어요.
+                                    탈퇴 대신{' '}
+                                    <span className="wd-highlight" onClick={() => setActiveSubMenu('notification')}>
+                                        알림 설정
+                                    </span>
+                                    이나 <span className="wd-highlight">상담 일시 중지</span>를 이용해 보세요. 언제든지
+                                    다시 돌아오실 수 있어요.
                                 </p>
                             </div>
                         </div>
@@ -894,7 +907,10 @@ export default function App() {
 
     const renderProfileDetail = () => {
         const details = {
-            personal: { title: '개인정보 수정 및 보안', desc: '회원님의 소중한 정보와 비밀번호를 안전하게 관리하세요.' },
+            personal: {
+                title: '개인정보 수정 및 보안',
+                desc: '회원님의 소중한 정보와 비밀번호를 안전하게 관리하세요.',
+            },
             notification: { title: '알림 설정', desc: '상담 일정 및 서비스 소식을 전해드릴게요.' },
             quit: { title: '서비스 탈퇴', desc: '탈퇴 시 소중한 기록들이 모두 삭제됩니다.' },
         };
@@ -1128,8 +1144,18 @@ export default function App() {
 
                         <div className="dash-history-list">
                             {[
-                                { counselor: '이은지 상담사', date: '2024.05.13', type: '대면 상담', status: '상담 완료' },
-                                { counselor: '박민우 상담사', date: '2024.05.06', type: '대면 상담', status: '상담 완료' },
+                                {
+                                    counselor: '이은지 상담사',
+                                    date: '2024.05.13',
+                                    type: '대면 상담',
+                                    status: '상담 완료',
+                                },
+                                {
+                                    counselor: '박민우 상담사',
+                                    date: '2024.05.06',
+                                    type: '대면 상담',
+                                    status: '상담 완료',
+                                },
                             ].map((item, idx) => (
                                 <div key={idx} className="dash-history-card" onClick={() => handleMenuClick('history')}>
                                     <div className="history-info-group">
