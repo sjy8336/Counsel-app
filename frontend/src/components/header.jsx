@@ -96,6 +96,15 @@ export default function Header({ activeTab, setActiveTab }) {
         }
     };
 
+    // 벨 버튼 클릭 — role에 따라 마이페이지로 이동 (알람센터)
+  const handleBellClick = () => {
+    if (userRole === 'counselor') {
+        navigate('/CounselorMyPage?tab=notifications'); // ← ?tab=notifications 추가
+    } else {
+        navigate('/mypage');
+    }
+};
+
     return (
         //1. 글로벌 네비게이션 (Header)
         <header className="global-header">
@@ -128,9 +137,9 @@ export default function Header({ activeTab, setActiveTab }) {
 
                 <div className="user-actions">
                     {isLoggedIn && (
-                        <button className="bell-btn">
-                            <Bell size={22} />
-                            <span className="notification-dot"></span>
+                        <button className="bell-btn" onClick={handleBellClick}>
+                        <Bell size={22} />
+                        <span className="notification-dot"></span>
                         </button>
                     )}
                     {isLoggedIn ? (

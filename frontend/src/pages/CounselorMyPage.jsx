@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../static/CounselorMyPage.css';
 import {
     LayoutDashboard,
@@ -510,7 +510,8 @@ const BackHeader = ({ title, onBack }) => (
 const App = () => {
     const navigate = useNavigate();
 
-    const [activeMenu, setActiveMenu] = useState('dashboard');
+    const [searchParams] = useSearchParams();
+    const [activeMenu, setActiveMenu] = useState(searchParams.get('tab') || 'dashboard');
     const [settingsView, setSettingsView] = useState(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
