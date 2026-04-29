@@ -1,4 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Header from '../components/header';
+import Footer from '../components/footer';
+import MobileTap from '../components/mobileTap';
 import { 
   Calendar as CalendarIcon, 
   List, 
@@ -22,6 +25,9 @@ import {
 import '../static/CounselorPlanner.css';
 
 const App = () => {
+  const [activeTab, setActiveTab] = React.useState('reservation');
+  const [userName, setUserName] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   // --- 1. 상태 관리 (States) ---
   const [viewMode, setViewMode] = useState('calendar'); 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -430,27 +436,16 @@ const App = () => {
 
   // --- 6. 최종 메인 뷰 (Main View) ---
   return (
-    <div className="mwc-root">
-      {renderDetailModal()}
+    <div className="planner-root">
+      <Header
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        userName={userName}
+        setUserName={setUserName}
+        isLoggedIn={isLoggedIn}
+        setIsLoggedIn={setIsLoggedIn}
+      />
       
-      <header className="mwc-header">
-        <div className="mwc-header-inner">
-          <div className="mwc-header-left">
-            <h1 className="mwc-logo">MINDWELL</h1>
-            <nav className="mwc-nav">
-              <a href="#">전문가 찾기</a>
-              <a href="#" className="mwc-nav-active">예약 관리</a>
-              <a href="#">AI 일기</a>
-            </nav>
-          </div>
-          <div className="mwc-header-right">
-            <button className={`mwc-icon-btn mwc-mobile-menu-btn`}><Menu size={20} /></button>
-            <button className="mwc-icon-btn mwc-bell-btn"><Bell size={22} /><span className="mwc-bell-dot"></span></button>
-            <div className="mwc-avatar"><User className="text-[#8BA888]" size={18} /></div>
-          </div>
-        </div>
-      </header>
-
       <main className="mwc-main">
         <div className="mwc-page-header">
           <div>
@@ -509,12 +504,8 @@ const App = () => {
         </div>
       </main>
 
-      <footer className="mwc-footer">
-        <div className="mwc-footer-inner">
-          <h2 className="mwc-footer-logo">MINDWELL</h2>
-          <p className="mwc-footer-copy">© 2026 MINDWELL LAB. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
+      <MobileTap />
     </div>
   );
 };

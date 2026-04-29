@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Header from '../components/header';
+import Footer from '../components/footer';
+import MobileTap from '../components/mobileTap';
 import {
     Search,
     MessageSquare,
@@ -109,56 +112,11 @@ const App = () => {
     };
 
     /* ── 6. 렌더링 ── */
+    const [activeTab, setActiveTab] = useState('inquiry');
+
     return (
         <div className="mwci-root">
-            {/* ── 헤더 ── */}
-            <header className="mwci-header">
-                <div className="mwci-header-inner">
-                    <div className="mwci-header-left">
-                        <button
-                            className="mwci-hamburger-btn"
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        >
-                            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                        </button>
-
-                        <h1 className="mwci-logo">
-                            MINDWELL
-                            <span className="mwci-logo-sub">상담사 센터</span>
-                        </h1>
-
-                        <nav className="mwci-desktop-nav">
-                            <span>내담자 관리</span>
-                            <span className="mwci-nav-active">문의 답변</span>
-                            <span>예약 일정</span>
-                        </nav>
-                    </div>
-
-                    <div className="mwci-header-right">
-                        <div className="mwci-coach-info">
-                            <p className="mwci-coach-name">이은지 코치님</p>
-                            <p className="mwci-coach-title">마음관리 전문</p>
-                        </div>
-                        <div className="mwci-avatar">
-                            <User size={18} />
-                        </div>
-                    </div>
-                </div>
-
-                {/* 모바일 메뉴 */}
-                {isMobileMenuOpen && (
-                    <div className="mwci-mobile-menu">
-                        <nav className="mwci-mobile-nav">
-                            <span className="mwci-mobile-nav-item">내담자 관리</span>
-                            <span className="mwci-mobile-nav-item mwci-mobile-nav-item--active">
-                                문의 답변
-                            </span>
-                            <span className="mwci-mobile-nav-item">예약 일정</span>
-                        </nav>
-                    </div>
-                )}
-            </header>
-
+            <Header activeTab={activeTab} setActiveTab={setActiveTab} />
             {/* ── 메인 바디 ── */}
             <main className="mwci-main">
                 {/* 왼쪽: 문의 목록 */}
@@ -479,22 +437,8 @@ const App = () => {
                     )}
                 </section>
             </main>
-
-            {/* ── 푸터 ── */}
-            <footer
-                className={`mwci-footer ${
-                    selectedInquiryId ? 'mwci-footer--hidden-mobile' : ''
-                }`}
-            >
-                <div className="mwci-footer-inner">
-                    <div className="mwci-footer-brand">Mindwell Counselor Dashboard</div>
-                    <div className="mwci-footer-links">
-                        <span className="mwci-footer-link">Terms</span>
-                        <span className="mwci-footer-link">Privacy</span>
-                        <span>© 2026 Mindwell Lab.</span>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
+            <MobileTap />
         </div>
     );
 };

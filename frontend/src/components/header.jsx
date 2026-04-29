@@ -10,10 +10,8 @@ import '../static/Common.css';
  * @param {function} setActiveTab - 탭 변경 함수
  * @param {Array} pcGnbItems - PC 네비게이션 메뉴 리스트 (방어 코드를 위해 기본값 [] 설정)
  */
-export default function Header({ activeTab, setActiveTab }) {
-    // 로그인 상태 및 사용자 이름
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userName, setUserName] = useState('');
+export default function Header({ activeTab, setActiveTab, userName = '', setUserName, isLoggedIn = false, setIsLoggedIn }) {
+    // 상태는 상위에서 관리, userRole만 내부에서 관리
     const [userRole, setUserRole] = useState('');
     useEffect(() => {
         // localStorage에 access_token이 있으면 /me로 내 정보 최신화
@@ -21,15 +19,15 @@ export default function Header({ activeTab, setActiveTab }) {
         if (token) {
             getMyInfo(token)
                 .then((userObj) => {
-                    setIsLoggedIn(true);
-                    setUserName(userObj.full_name || userObj.username || '');
+                    setIsLoggedIn && setIsLoggedIn(true);
+                    setUserName && setUserName(userObj.full_name || userObj.username || '');
                     setUserRole(userObj.role || '');
                     // 최신 user 정보 localStorage에도 저장
                     localStorage.setItem('user', JSON.stringify(userObj));
                 })
                 .catch(() => {
-                    setIsLoggedIn(false);
-                    setUserName('');
+                    setIsLoggedIn && setIsLoggedIn(false);
+                    setUserName && setUserName('');
                     setUserRole('');
                 });
         } else {
@@ -37,16 +35,16 @@ export default function Header({ activeTab, setActiveTab }) {
             const user = localStorage.getItem('user');
             if (user) {
                 const userObj = JSON.parse(user);
-                setIsLoggedIn(true);
-                setUserName(userObj.full_name || userObj.username || '');
+                setIsLoggedIn && setIsLoggedIn(true);
+                setUserName && setUserName(userObj.full_name || userObj.username || '');
                 setUserRole(userObj.role || '');
             } else {
-                setIsLoggedIn(false);
-                setUserName('');
+                setIsLoggedIn && setIsLoggedIn(false);
+                setUserName && setUserName('');
                 setUserRole('');
             }
         }
-    }, []);
+    }, [setIsLoggedIn, setUserName]);
     const navigate = useNavigate();
 
     // PC 메뉴: role에 따라 다르게 렌더링
