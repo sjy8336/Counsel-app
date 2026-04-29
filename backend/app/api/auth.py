@@ -162,15 +162,16 @@ def change_password(req: ChangePasswordRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="비밀번호 변경 중 오류 발생")
 
 @router.get("/me")
-def get_me(db: Session = Depends(get_db)):
-    # 임시: 첫 번째 유저 반환 (실제 서비스에서는 인증된 유저 반환 필요)
-    user = db.query(User).first()
+def get_me(current_user=Depends(get_current_user)):
+    # JWT 인증된 유저 정보 반환
+    user = current_user
     if not user:
         raise HTTPException(status_code=404, detail="유저를 찾을 수 없습니다.")
     return {
         "id": user.id,
         "full_name": user.full_name,
         "email": user.email,
+        "phone_number": user.phone_number,
         "role": user.role,  # 'counselor', 'client', 'admin'
         "profile_image": "default.png"
     }

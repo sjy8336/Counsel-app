@@ -22,7 +22,6 @@ import Success from './pages/Success';
 import Fail from './pages/Fail';
 import CounselorMessages from './pages/CounselorMessages';
 
-
 function App() {
     // localStorage에서 user 정보 파싱
     let nickname = '';
