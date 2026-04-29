@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Coffee, Sparkles, ExternalLink, ChevronRight } from 'lucide-react';
-import Header from '../components/header';
-import Footer from '../components/footer';
-import MobileTap from '../components/mobileTap';
+import Header from '../components/header.jsx';
+import Footer from '../components/footer.jsx';
+import MobileTap from '../components/mobileTap.jsx';
 import '../static/HealingRounge.css';
 
 export default function HealingLounge() {

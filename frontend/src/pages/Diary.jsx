@@ -215,7 +215,7 @@ export default function App() {
 
                 {/* Content Section */}
                 {viewMode === 'calendar' ? (
-                    <div className="mw-calendar-card mw-no-scrollbar">
+                    <div className="mw-calendar-card">
                         <div className="mw-calendar-header">
                             <h2 className="mw-calendar-month-nav">
                                 <button onClick={goToPrevMonth} className="mw-month-nav-btn">
@@ -288,7 +288,7 @@ export default function App() {
                         </div>
                     </div>
                 ) : (
-                    <div className="mw-list-grid mw-no-scrollbar">
+                    <div className="mw-list-grid">
                         {diaryData.map((diary) => (
                             <div key={diary.id} onClick={() => setSelectedDiary(diary)} className="mw-diary-card">
                                 <div className="mw-diary-card-top">
