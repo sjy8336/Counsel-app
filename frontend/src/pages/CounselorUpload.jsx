@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Camera,
@@ -20,6 +20,25 @@ import '../static/CounselorUpload.css';
 import Header from '../components/header';
 import MobileTap from '../components/mobileTap';
 import Footer from '../components/footer';
+import { registerCounselorProfile } from '../api/counselor';
+import { getMyInfo } from '../api/user';
+
+// 이미지 업로드 API 함수 (임시 구현, 실제 경로/응답에 맞게 수정 필요)
+async function uploadProfileImage(file, token) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/api/upload/profile-image', {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+    });
+    if (!res.ok) throw new Error('이미지 업로드 실패');
+    const data = await res.json();
+    // data.url 또는 data.profile_img_url 등 실제 응답에 맞게 수정
+    return data.url || data.profile_img_url;
+}
 
 /* ── 상수 ──────────────────────────────────────────── */
 const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
@@ -36,7 +55,9 @@ const SPECIALTIES = [
     '정서 조절',
 ];
 
-const YEARS = Array.from({ length: 20 }, (_, i) => String(2025 - i));
+const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_MONTH = (new Date().getMonth() + 1).toString().padStart(2, '0');
+const YEARS = Array.from({ length: 20 }, (_, i) => String(CURRENT_YEAR - i));
 const MONTHS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 
 const TABS = [
@@ -65,6 +86,16 @@ function PeriodPicker({ exp, onChange }) {
     const setField = (f, v) => onChange({ ...exp, [f]: v });
     const togglePresent = () => onChange({ ...exp, present: !exp.present });
 
+    // 종료 연도/월에서 미래 선택 방지
+    const toYearOptions = YEARS.filter((y) => Number(y) <= CURRENT_YEAR);
+    const toMonthOptions =
+        exp.toY === String(CURRENT_YEAR) ? MONTHS.filter((m) => Number(m) <= Number(CURRENT_MONTH)) : MONTHS;
+
+    // 시작 연도/월에서 미래 선택 방지
+    const fromYearOptions = YEARS.filter((y) => Number(y) <= CURRENT_YEAR);
+    const fromMonthOptions =
+        exp.fromY === String(CURRENT_YEAR) ? MONTHS.filter((m) => Number(m) <= Number(CURRENT_MONTH)) : MONTHS;
+
     return (
         <div className="period-picker">
             <div className="period-row">
@@ -75,7 +106,7 @@ function PeriodPicker({ exp, onChange }) {
                         value={exp.fromY}
                         onChange={(e) => setField('fromY', e.target.value)}
                     >
-                        {YEARS.map((y) => (
+                        {fromYearOptions.map((y) => (
                             <option key={y}>{y}</option>
                         ))}
                     </select>
@@ -85,7 +116,7 @@ function PeriodPicker({ exp, onChange }) {
                         value={exp.fromM}
                         onChange={(e) => setField('fromM', e.target.value)}
                     >
-                        {MONTHS.map((m) => (
+                        {fromMonthOptions.map((m) => (
                             <option key={m}>{m}</option>
                         ))}
                     </select>
@@ -106,7 +137,7 @@ function PeriodPicker({ exp, onChange }) {
                                 value={exp.toY}
                                 onChange={(e) => setField('toY', e.target.value)}
                             >
-                                {YEARS.map((y) => (
+                                {toYearOptions.map((y) => (
                                     <option key={y}>{y}</option>
                                 ))}
                             </select>
@@ -116,7 +147,7 @@ function PeriodPicker({ exp, onChange }) {
                                 value={exp.toM}
                                 onChange={(e) => setField('toM', e.target.value)}
                             >
-                                {MONTHS.map((m) => (
+                                {toMonthOptions.map((m) => (
                                     <option key={m}>{m}</option>
                                 ))}
                             </select>
@@ -138,7 +169,37 @@ export default function App() {
     const [activeTab, setActiveTab] = useState('basic');
     const [errors, setErrors] = useState({});
 
-    const [basic, setBasic] = useState({ name: '', phone: '', email: '', officeName: '', officeAddress: '' });
+    const [basic, setBasic] = useState({
+        name: '',
+        phone: '',
+        email: '',
+        officeName: '',
+        officeAddress: '',
+        introduction: '', // 상담사 자기소개
+    });
+
+    // 유저 정보 불러오기
+    useEffect(() => {
+        const fetchUser = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            try {
+                const user = await getMyInfo(token);
+                setBasic((b) => ({
+                    ...b,
+                    name: user.full_name || user.name || '',
+                    phone: user.phone_number || user.phone || '',
+                    email: user.email || '',
+                }));
+            } catch (e) {
+                // 실패 시 무시
+            }
+        };
+        fetchUser();
+    }, []);
+    // 사진 업로드 상태
+    const [photo, setPhoto] = useState(null); // File 객체
+    const [photoPreview, setPhotoPreview] = useState(null); // 미리보기 URL
     const [profile, setProfile] = useState({
         specialties: [],
         customSpecialty: '',
@@ -228,6 +289,7 @@ export default function App() {
     };
 
     /* ── 기본 입력 헬퍼 ───────────────────────────────── */
+    // 모든 입력란 항상 수정 가능
     const basicInput = (field, label, icon, type = 'text', ph = '') => (
         <div className="input-group">
             <label className="input-label">
@@ -247,6 +309,88 @@ export default function App() {
             {errors[field] && <span className="field-error">{errors[field]}</span>}
         </div>
     );
+
+    // 상담사 프로필 등록
+    const handleRegister = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
+        let profileImgUrl = '';
+        // 1. 사진 업로드 (있을 때만)
+        if (photo) {
+            try {
+                profileImgUrl = await uploadProfileImage(photo, token);
+            } catch (err) {
+                alert('프로필 사진 업로드에 실패했습니다.');
+                return;
+            }
+        }
+        // 2. 프로필
+        const profileData = {
+            profile_img_url: profileImgUrl,
+            center_name: basic.officeName,
+            center_address: basic.officeAddress,
+            bio: basic.introduction,
+        };
+        // 3. 전문분야
+        const specialties = profile.specialties.map((s) => ({ specialty_name: s }));
+        // 4. 경력
+        const experiences = profile.experience.map((exp) => ({
+            company_name: exp.company_name || '',
+            start_date: `${exp.fromY}-${exp.fromM}-01`,
+            end_date: exp.present ? null : `${exp.toY}-${exp.toM}-01`,
+            is_current: exp.present,
+            description: exp.content,
+        }));
+        // 5. 학력
+        const educations = profile.education.map((edu) => ({
+            school_name: edu.school || '',
+            major: edu.major || '',
+            degree_type: null, // UI에 학위 구분이 없으므로 null
+        }));
+        // 6. 일정
+        const schedules = [];
+        Object.entries(profile.weeklySchedule).forEach(([day, val]) => {
+            if (val.active) {
+                val.slots.forEach((slot) => {
+                    schedules.push({
+                        day_of_week: day,
+                        start_time: slot.start,
+                        end_time: slot.end,
+                        is_holiday: false,
+                    });
+                });
+            } else {
+                schedules.push({
+                    day_of_week: day,
+                    start_time: '00:00',
+                    end_time: '00:00',
+                    is_holiday: true,
+                });
+            }
+        });
+        const req = { profile: profileData, specialties, experiences, educations, schedules };
+        try {
+            // 0. user 테이블 정보도 업데이트
+            const user = await getMyInfo(token);
+            const { updateUserInfo } = await import('../api/user');
+            await updateUserInfo({
+                id: user.id,
+                full_name: basic.name,
+                phone_number: basic.phone,
+                email: basic.email,
+            });
+            // 1. 상담사 프로필 등록
+            await registerCounselorProfile(req, token);
+            alert('상담사 프로필이 성공적으로 등록되었습니다!');
+            localStorage.setItem('counselor_registered', 'true');
+            navigate('/counselormypage');
+        } catch (e) {
+            alert('프로필 등록에 실패했습니다.');
+        }
+    };
 
     /* ── 렌더 ─────────────────────────────────────────── */
     return (
@@ -273,31 +417,65 @@ export default function App() {
                     {activeTab === 'basic' && (
                         <div className="tab-content basic-layout">
                             <div className="photo-wrapper">
-                                <div className="photo-box">
-                                    <Camera size={28} />
-                                    <span>사진 업로드</span>
+                                <div className="photo-box" style={{ position: 'relative' }}>
+                                    {photoPreview ? (
+                                        <img
+                                            src={photoPreview}
+                                            alt="프로필 미리보기"
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                                borderRadius: '50%',
+                                            }}
+                                        />
+                                    ) : (
+                                        <>
+                                            <Camera size={28} />
+                                            <span>사진 업로드</span>
+                                        </>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        id="profile-photo-input"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                setPhoto(file);
+                                                setPhotoPreview(URL.createObjectURL(file));
+                                            }
+                                        }}
+                                    />
                                 </div>
-                                <button className="photo-add-btn">
+                                <button
+                                    className="photo-add-btn"
+                                    onClick={() => document.getElementById('profile-photo-input').click()}
+                                    type="button"
+                                >
                                     <Plus size={14} />
                                 </button>
+                                {photoPreview && (
+                                    <button
+                                        className="photo-add-btn"
+                                        style={{ background: '#f87171', marginLeft: 8 }}
+                                        onClick={() => {
+                                            setPhoto(null);
+                                            setPhotoPreview(null);
+                                            document.getElementById('profile-photo-input').value = '';
+                                        }}
+                                        type="button"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                )}
                             </div>
 
                             <div className="form-fields">
                                 <div className="grid-2">
                                     {basicInput('name', '이름', null, 'text', '성함을 입력해 주세요')}
-                                    <div className="input-group">
-                                        <label className="input-label">
-                                            <Phone size={11} /> 연락처
-                                        </label>
-                                        <input
-                                            className={`input${errors.phone ? ' error' : ''}`}
-                                            type="text"
-                                            placeholder="010-0000-0000"
-                                            value={basic.phone}
-                                            onChange={handlePhone}
-                                        />
-                                        {errors.phone && <span className="field-error">{errors.phone}</span>}
-                                    </div>
+                                    {basicInput('phone', '연락처', <Phone size={11} />, 'text', '010-0000-0000')}
                                 </div>
                                 {basicInput('email', '이메일', <Mail size={11} />, 'email', 'example@mindwell.com')}
                                 <div className="section-divider">
@@ -315,6 +493,17 @@ export default function App() {
                                         'text',
                                         '상담 진행 주소'
                                     )}
+                                </div>
+                                {/* 상담사 자기소개 입력란 */}
+                                <div className="input-group">
+                                    <label className="input-label">상담사 자기소개</label>
+                                    <textarea
+                                        className="input"
+                                        style={{ minHeight: '80px', resize: 'none' }}
+                                        value={basic.introduction}
+                                        onChange={(e) => setBasic({ ...basic, introduction: e.target.value })}
+                                        placeholder="상담사님의 전문 분야, 상담 철학, 주요 경력 등을 자유롭게 소개해 주세요."
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -593,13 +782,7 @@ export default function App() {
                             다음 단계로 <ChevronRight size={18} />
                         </button>
                     ) : (
-                        <button
-                            className="cta-btn"
-                            onClick={() => {
-                                localStorage.setItem('counselor_registered', 'true');
-                                navigate('/counselormypage');
-                            }}
-                        >
+                        <button className="cta-btn" onClick={handleRegister}>
                             <Save size={17} /> 프로필 등록 완료
                         </button>
                     )}

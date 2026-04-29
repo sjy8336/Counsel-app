@@ -27,6 +27,8 @@ export default function LoginPage() {
             if (result.access_token) {
                 localStorage.setItem('token', result.access_token);
             }
+            // 로그인 시간 저장 (UTC ms)
+            localStorage.setItem('login_time', Date.now().toString());
             alert(`${result.user.full_name}님, 환영합니다!`);
             // role에 따라 이동 경로 분기
             if (result.user.role === 'counselor') {
