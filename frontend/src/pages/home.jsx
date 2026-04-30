@@ -11,7 +11,7 @@ const MIND_GUIDES = [
         id: 1,
         category: 'SLEEP CARE',
         title: '깊은 밤, 숙면을 돕는 릴렉스 가이드',
-        imgUrl: '',
+        imgUrl: 'https://cdn.pixabay.com/photo/2016/01/20/11/11/baby-1151351_1280.jpg',
         fallbackImg: 'https://images.unsplash.com/photo-1513694490325-24b4c241dfb3?q=80&w=800&auto=format&fit=crop',
         readTime: '15 min read',
         likes: 412,
@@ -76,12 +76,9 @@ const GuideCard = ({ guide }) => (
     </div>
 );
 
-// --- App 컴포넌트 ---
-const App = () => {
+// --- Home 컴포넌트 ---
+const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
     const [activeTab, setActiveTab] = useState('home');
-    const [userName, setUserName] = useState('');
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    // Header에서 userName, isLoggedIn을 받아옴
     return (
         <div className="mwl-root">
             <Header
@@ -281,4 +278,4 @@ const App = () => {
     );
 };
 
-export default App;
+export default Home;

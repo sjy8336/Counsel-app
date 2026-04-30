@@ -139,7 +139,7 @@ const StressBadge = ({ level }) => {
         </span>
     );
 };
-export default function App() {
+export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
     const navigate = useNavigate();
     const location = useLocation();
     const [selectedDiary, setSelectedDiary] = useState(null);
@@ -173,7 +173,14 @@ export default function App() {
 
     return (
         <div className="mw-diary-root">
-            <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+            <Header
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                userName={userName}
+                setUserName={setUserName}
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+            />
             <main className="mw-main">
                 {/* Page Header Area */}
                 <div className="mw-page-header">

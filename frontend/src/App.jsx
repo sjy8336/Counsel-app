@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { isTokenExpired } from './utils/jwt';
 
 import Home from './pages/home';
@@ -28,6 +28,21 @@ import CounselorMessages from './pages/CounselorMessages';
 function App() {
     const location = useLocation();
     const navigate = useNavigate();
+    const [userName, setUserName] = useState('');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    useEffect(() => {
+        // 로그인 상태 동기화
+        const user = localStorage.getItem('user');
+        const token = localStorage.getItem('access_token');
+        if (user && token && !isTokenExpired(token)) {
+            const userObj = JSON.parse(user);
+            setUserName(userObj.full_name || userObj.username || '');
+            setIsLoggedIn(true);
+        } else {
+            setUserName('');
+            setIsLoggedIn(false);
+        }
+    }, [location.pathname, localStorage.getItem('user')]);
 
     useEffect(() => {
         // 1. 가드 로직: 현재 페이지가 로그인 관련 페이지라면 아무것도 하지 않음
@@ -67,28 +82,128 @@ function App() {
 
     return (
         <Routes>
-            <Route path="/" element={<Home nickname={nickname} />} />
-            <Route path="/login" element={<LoginPage />} />
+            <Route
+                path="/"
+                element={
+                    <Home
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
+            <Route path="/login" element={<LoginPage setUserName={setUserName} setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/mypage" element={<MyPage />} />
             <Route path="/find-password" element={<FindPwPage />} />
-            <Route path="/reserve" element={<ReservationPage />} />
-            <Route path="/counselors" element={<CounselorListPage />} />
-            <Route path="/counselor/:id" element={<CounselorDetailPage />} />
+            <Route
+                path="/reserve"
+                element={
+                    <ReservationPage
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
+            <Route
+                path="/counselors"
+                element={
+                    <CounselorListPage
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
+            <Route
+                path="/counselor/:id"
+                element={
+                    <CounselorDetailPage
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
             <Route path="/CounselorMyPage" element={<CounselorMyPage />} />
             <Route path="/counselorUpload" element={<CounselorUpload />} />
-            <Route path="/diary" element={<Diary />} />
-            <Route path="/healing" element={<HealingRounge />} />
+            <Route
+                path="/diary"
+                element={
+                    <Diary
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
+            <Route
+                path="/healing"
+                element={
+                    <HealingRounge
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
             <Route path="/schedule" element={<Schedule />} />
-            <Route path="/CounselorPlanner" element={<CounselorPlanner />} />
-            <Route path="/CounselorClient" element={<CounselorClient />} />
+            <Route
+                path="/CounselorPlanner"
+                element={
+                    <CounselorPlanner
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
+            <Route
+                path="/CounselorClient"
+                element={
+                    <CounselorClient
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
             <Route path="/counselorhome" element={<CounselorHome />} />
-            <Route path="/AIdiary" element={<AIDiary />} />
+            <Route
+                path="/AIdiary"
+                element={
+                    <AIDiary
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
             <Route path="/survey" element={<Survey />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/payment/success" element={<Success />} />
             <Route path="/payment/fail" element={<Fail />} />
-            <Route path="/CounselorMessages" element={<CounselorMessages />} />
+            <Route
+                path="/CounselorMessages"
+                element={
+                    <CounselorMessages
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
         </Routes>
     );
 }

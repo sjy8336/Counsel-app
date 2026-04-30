@@ -1,37 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import { Calendar, Clock, MapPin, Home, BookOpen, Heart, User, AlertCircle, ChevronRight, X } from 'lucide-react';
 import '../static/Reservation.css';
 
-export default function ReservationHistoryPage() {
+export default function ReservationHistoryPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
+    const navigate = useNavigate();
+    useEffect(() => {
+        const user = localStorage.getItem('user');
+        if (user) {
+            const userObj = JSON.parse(user);
+            if (userObj.role === 'counselor') {
+                // 상담사라면 상담사용 예약관리로 리다이렉트
+                navigate('/CounselorPlanner', { replace: true });
+            }
+        }
+    }, []);
     const [filter, setFilter] = useState('전체');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
     const [blockedMessage, setBlockedMessage] = useState('');
 
-    // 나중에 실제 로그인 정보를 가져와서 이 변수에 할당하면 자동으로 이름이 바뀝니다.
-    const userName = "소현";
+    // userName은 props로 전달됨 (App.jsx에서)
 
     const [historyData, setHistoryData] = useState([
-        { id: 1, name: "이은지 상담사", date: "2026.05.20", time: "14:00", status: "예약 확정", location: "서울 강남구 테헤란로 센터" },
-        { id: 2, name: "김태현 상담사", date: "2026.05.25", time: "11:00", status: "예약 대기", location: "서울 서초구 서초대로 점" },
-        { id: 3, name: "이은지 상담사", date: "2026.04.10", time: "16:00", status: "상담 완료", location: "서울 강남구 테헤란로 센터" },
-        { id: 4, name: "박소연 상담사", date: "2026.03.15", time: "15:00", status: "예약 취소", location: "서울 마포구 양화로 점" },
+        {
+            id: 1,
+            name: '이은지 상담사',
+            date: '2026.05.20',
+            time: '14:00',
+            status: '예약 확정',
+            location: '서울 강남구 테헤란로 센터',
+        },
+        {
+            id: 2,
+            name: '김태현 상담사',
+            date: '2026.05.25',
+            time: '11:00',
+            status: '예약 대기',
+            location: '서울 서초구 서초대로 점',
+        },
+        {
+            id: 3,
+            name: '이은지 상담사',
+            date: '2026.04.10',
+            time: '16:00',
+            status: '상담 완료',
+            location: '서울 강남구 테헤란로 센터',
+        },
+        {
+            id: 4,
+            name: '박소연 상담사',
+            date: '2026.03.15',
+            time: '15:00',
+            status: '예약 취소',
+            location: '서울 마포구 양화로 점',
+        },
     ]);
 
-    const filteredData = historyData.filter(item => filter === '전체' ? true : item.status === filter);
+    const filteredData = historyData.filter((item) => (filter === '전체' ? true : item.status === filter));
 
     // 예약일 2일 전 이내인지 확인하는 함수
     const isTooLateToCancelFn = (dateStr) => {
         // "2026.05.20" 형식을 파싱
         const parts = dateStr.split('.');
-        const reservationDate = new Date(
-            parseInt(parts[0]),
-            parseInt(parts[1]) - 1,
-            parseInt(parts[2])
-        );
+        const reservationDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -43,7 +77,7 @@ export default function ReservationHistoryPage() {
     };
 
     const handleCancelClick = (id) => {
-        const item = historyData.find(i => i.id === id);
+        const item = historyData.find((i) => i.id === id);
         if (!item) return;
 
         if (isTooLateToCancelFn(item.date)) {
@@ -59,9 +93,9 @@ export default function ReservationHistoryPage() {
     };
 
     const confirmCancel = () => {
-        setHistoryData(prev => prev.map(item =>
-            item.id === selectedId ? { ...item, status: '예약 취소' } : item
-        ));
+        setHistoryData((prev) =>
+            prev.map((item) => (item.id === selectedId ? { ...item, status: '예약 취소' } : item))
+        );
         setIsModalOpen(false);
         setSelectedId(null);
     };
@@ -74,16 +108,25 @@ export default function ReservationHistoryPage() {
 
     return (
         <div className="history-page-root">
-            <Header activeTab="reservation" setActiveTab={() => {}} />
+            <Header
+                activeTab="reservation"
+                setActiveTab={() => {}}
+                userName={userName}
+                setUserName={setUserName}
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+            />
 
             <main className="history-container">
                 <div className="history-top-section">
                     <h2>예약 관리</h2>
-                    <p className="sub-desc"><strong>{userName}님,</strong> 상담사와 함께하는 일정을 관리하세요.</p>
+                    <p className="sub-desc">
+                        <strong>{userName}님,</strong> 상담사와 함께하는 일정을 관리하세요.
+                    </p>
                 </div>
 
                 <nav className="history-tabs">
-                    {['전체', '예약 대기', '예약 확정', '상담 완료', '예약 취소'].map(tab => (
+                    {['전체', '예약 대기', '예약 확정', '상담 완료', '예약 취소'].map((tab) => (
                         <button
                             key={tab}
                             className={`tab-btn-modern ${filter === tab ? 'active' : ''}`}
@@ -95,7 +138,7 @@ export default function ReservationHistoryPage() {
                 </nav>
 
                 <div className="history-list">
-                    {filteredData.map(item => (
+                    {filteredData.map((item) => (
                         <div key={item.id} className="history-list-item">
                             <div className="item-main-info">
                                 <div className="date-badge-column">
@@ -103,21 +146,24 @@ export default function ReservationHistoryPage() {
                                     <span className={`status-tag ${getStatusClass(item.status)}`}>{item.status}</span>
                                 </div>
                                 <div className="item-content-box">
-                                    <h3 className="counselor-name">{item.name} <span className="type-tag">대면 상담</span></h3>
+                                    <h3 className="counselor-name">
+                                        {item.name} <span className="type-tag">대면 상담</span>
+                                    </h3>
                                     <div className="item-details">
-                                        <span><Clock size={16}/> {item.time}</span>
+                                        <span>
+                                            <Clock size={16} /> {item.time}
+                                        </span>
                                         <span className="divider">|</span>
-                                        <span><MapPin size={16}/> {item.location}</span>
+                                        <span>
+                                            <MapPin size={16} /> {item.location}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="item-actions">
                                 {(item.status === '예약 대기' || item.status === '예약 확정') && (
-                                    <button
-                                        className="cancel-trigger-btn"
-                                        onClick={() => handleCancelClick(item.id)}
-                                    >
+                                    <button className="cancel-trigger-btn" onClick={() => handleCancelClick(item.id)}>
                                         취소하기
                                     </button>
                                 )}
@@ -131,34 +177,40 @@ export default function ReservationHistoryPage() {
             {/* 취소 확인 / 취소 불가 팝업 — portal처럼 DOM 최상위에서 렌더링 */}
             {isModalOpen && (
                 <div className="modal-overlay-modern" onClick={closeModal}>
-                    <div className="modal-content-modern" onClick={e => e.stopPropagation()}>
+                    <div className="modal-content-modern" onClick={(e) => e.stopPropagation()}>
                         <button className="modal-close-icon" onClick={closeModal}>
-                            <X size={20}/>
+                            <X size={20} />
                         </button>
 
                         {blockedMessage ? (
                             /* ── 취소 불가 안내 모달 ── */
                             <>
                                 <div className="modal-icon-wrapper modal-icon-wrapper--warn">
-                                    <AlertCircle size={40} color="#F59E0B" strokeWidth={2.5}/>
+                                    <AlertCircle size={40} color="#F59E0B" strokeWidth={2.5} />
                                 </div>
                                 <h3 className="modal-title">취소가 불가합니다</h3>
                                 <p className="modal-desc">{blockedMessage}</p>
                                 <div className="modal-btns-modern">
-                                    <button className="btn-confirm btn-confirm--single" onClick={closeModal}>확인</button>
+                                    <button className="btn-confirm btn-confirm--single" onClick={closeModal}>
+                                        확인
+                                    </button>
                                 </div>
                             </>
                         ) : (
                             /* ── 취소 확인 모달 ── */
                             <>
                                 <div className="modal-icon-wrapper">
-                                    <AlertCircle size={40} color="#FDA4AF" strokeWidth={2.5}/>
+                                    <AlertCircle size={40} color="#FDA4AF" strokeWidth={2.5} />
                                 </div>
                                 <h3 className="modal-title">예약을 취소하시겠습니까?</h3>
                                 <p className="modal-desc">취소하시면 해당 시간의 상담은 자동으로 사라집니다.</p>
                                 <div className="modal-btns-modern">
-                                    <button className="btn-confirm" onClick={confirmCancel}>네, 취소합니다</button>
-                                    <button className="btn-back" onClick={closeModal}>아니오</button>
+                                    <button className="btn-confirm" onClick={confirmCancel}>
+                                        네, 취소합니다
+                                    </button>
+                                    <button className="btn-back" onClick={closeModal}>
+                                        아니오
+                                    </button>
                                 </div>
                             </>
                         )}
@@ -167,11 +219,26 @@ export default function ReservationHistoryPage() {
             )}
 
             <nav className="mobile-bottom-nav">
-                <Link to="/" className="nav-item"><Home size={24}/><span>홈</span></Link>
-                <Link to="/reservation" className="nav-item active"><Calendar size={24}/><span>예약 관리</span></Link>
-                <Link to="/ai-diary" className="nav-item"><BookOpen size={24}/><span>AI 일기</span></Link>
-                <Link to="/healing" className="nav-item"><Heart size={24}/><span>힐링 라운지</span></Link>
-                <Link to="/mypage" className="nav-item"><User size={24}/><span>마이페이지</span></Link>
+                <Link to="/" className="nav-item">
+                    <Home size={24} />
+                    <span>홈</span>
+                </Link>
+                <Link to="/reservation" className="nav-item active">
+                    <Calendar size={24} />
+                    <span>예약 관리</span>
+                </Link>
+                <Link to="/ai-diary" className="nav-item">
+                    <BookOpen size={24} />
+                    <span>AI 일기</span>
+                </Link>
+                <Link to="/healing" className="nav-item">
+                    <Heart size={24} />
+                    <span>힐링 라운지</span>
+                </Link>
+                <Link to="/mypage" className="nav-item">
+                    <User size={24} />
+                    <span>마이페이지</span>
+                </Link>
             </nav>
             <Footer />
         </div>

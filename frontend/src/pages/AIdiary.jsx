@@ -20,7 +20,7 @@ import {
     Menu,
 } from 'lucide-react';
 
-export default function App() {
+export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
     const navigate = useNavigate();
     const [diaryText, setDiaryText] = useState('');
     const [selectedEmotion, setSelectedEmotion] = useState(null);
@@ -129,7 +129,14 @@ export default function App() {
 
     return (
         <div className="mw3-root">
-            <Header activeTab={activeTab} setActiveTab={handleTabChange} />
+            <Header
+                activeTab={activeTab}
+                setActiveTab={handleTabChange}
+                userName={userName}
+                setUserName={setUserName}
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+            />
             <main className="mw3-main">
                 {/* Left Section */}
                 <div className="mw3-left">

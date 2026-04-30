@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import '../static/CounselorMessages.css';
 
-const App = () => {
+const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
     /* ── 1. 초기 데이터 ── */
     const initialInquiries = [
         {
@@ -70,11 +70,8 @@ const App = () => {
 
     /* ── 3. 필터링 ── */
     const filteredInquiries = inquiries.filter((inquiry) => {
-        const matchesSearch = inquiry.sender
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase());
-        const matchesStatus =
-            statusFilter === 'all' ? true : inquiry.status === statusFilter;
+        const matchesSearch = inquiry.sender.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === 'all' ? true : inquiry.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
 
@@ -96,9 +93,7 @@ const App = () => {
         if (!replyText.trim() || !selectedInquiryId) return;
         setInquiries((prev) =>
             prev.map((inquiry) =>
-                inquiry.id === selectedInquiryId
-                    ? { ...inquiry, status: 'completed', myReply: replyText }
-                    : inquiry
+                inquiry.id === selectedInquiryId ? { ...inquiry, status: 'completed', myReply: replyText } : inquiry
             )
         );
         setReplyText('');
@@ -116,22 +111,23 @@ const App = () => {
 
     return (
         <div className="mwci-root">
-            <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+            <Header
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                userName={userName}
+                setUserName={setUserName}
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+            />
             {/* ── 메인 바디 ── */}
             <main className="mwci-main">
                 {/* 왼쪽: 문의 목록 */}
-                <section
-                    className={`mwci-list-section ${
-                        selectedInquiryId ? 'mwci-list-section--hidden' : ''
-                    }`}
-                >
+                <section className={`mwci-list-section ${selectedInquiryId ? 'mwci-list-section--hidden' : ''}`}>
                     <div className="mwci-list-toolbar">
                         <div className="mwci-list-title-row">
                             <h2 className="mwci-list-title">
                                 받은 문의
-                                <span className="mwci-list-count-badge">
-                                    {filteredInquiries.length}
-                                </span>
+                                <span className="mwci-list-count-badge">{filteredInquiries.length}</span>
                             </h2>
                         </div>
 
@@ -147,10 +143,7 @@ const App = () => {
                                     className="mwci-search-input"
                                 />
                                 {searchTerm && (
-                                    <button
-                                        onClick={() => setSearchTerm('')}
-                                        className="mwci-search-clear-btn"
-                                    >
+                                    <button onClick={() => setSearchTerm('')} className="mwci-search-clear-btn">
                                         <X size={14} />
                                     </button>
                                 )}
@@ -169,16 +162,10 @@ const App = () => {
 
                                 {isFilterOpen && (
                                     <div className="mwci-filter-dropdown">
-                                        <button
-                                            onClick={() => changeFilter('all')}
-                                            className="mwci-filter-option"
-                                        >
+                                        <button onClick={() => changeFilter('all')} className="mwci-filter-option">
                                             전체보기
                                             {statusFilter === 'all' && (
-                                                <Check
-                                                    size={14}
-                                                    className="mwci-filter-check-green"
-                                                />
+                                                <Check size={14} className="mwci-filter-check-green" />
                                             )}
                                         </button>
                                         <button
@@ -187,10 +174,7 @@ const App = () => {
                                         >
                                             안 읽은 거 (미답변)
                                             {statusFilter === 'pending' && (
-                                                <Check
-                                                    size={14}
-                                                    className="mwci-filter-check-rose"
-                                                />
+                                                <Check size={14} className="mwci-filter-check-rose" />
                                             )}
                                         </button>
                                         <button
@@ -199,10 +183,7 @@ const App = () => {
                                         >
                                             읽은 거 (답변완료)
                                             {statusFilter === 'completed' && (
-                                                <Check
-                                                    size={14}
-                                                    className="mwci-filter-check-green"
-                                                />
+                                                <Check size={14} className="mwci-filter-check-green" />
                                             )}
                                         </button>
                                     </div>
@@ -219,9 +200,7 @@ const App = () => {
                                     key={inquiry.id}
                                     onClick={() => setSelectedInquiryId(inquiry.id)}
                                     className={`mwci-inquiry-card ${
-                                        selectedInquiryId === inquiry.id
-                                            ? 'mwci-inquiry-card--selected'
-                                            : ''
+                                        selectedInquiryId === inquiry.id ? 'mwci-inquiry-card--selected' : ''
                                     }`}
                                 >
                                     <div className="mwci-card-top-row">
@@ -242,9 +221,7 @@ const App = () => {
                                         <span className="mwci-card-dot"></span>
                                         <span className="mwci-card-tag">#{inquiry.tag}</span>
                                     </div>
-                                    {inquiry.status === 'pending' && (
-                                        <div className="mwci-card-pending-bar" />
-                                    )}
+                                    {inquiry.status === 'pending' && <div className="mwci-card-pending-bar" />}
                                 </div>
                             ))
                         ) : (
@@ -253,9 +230,7 @@ const App = () => {
                                     <Search size={24} />
                                 </div>
                                 <p className="mwci-empty-title">문의 내역이 없습니다</p>
-                                <p className="mwci-empty-desc">
-                                    필터 설정을 변경하거나 다른 검색어로 시도해 보세요.
-                                </p>
+                                <p className="mwci-empty-desc">필터 설정을 변경하거나 다른 검색어로 시도해 보세요.</p>
                             </div>
                         )}
                     </div>
@@ -264,9 +239,7 @@ const App = () => {
                 {/* 오른쪽: 상세 / 답변 */}
                 <section
                     className={`mwci-detail-section ${
-                        selectedInquiryId
-                            ? ''
-                            : 'mwci-detail-section--hidden mwci-detail-section--empty'
+                        selectedInquiryId ? '' : 'mwci-detail-section--hidden mwci-detail-section--empty'
                     }`}
                 >
                     {!selectedInquiry ? (
@@ -274,18 +247,13 @@ const App = () => {
                             <div className="mwci-detail-placeholder-icon">
                                 <MessageSquare size={32} />
                             </div>
-                            <p className="mwci-detail-placeholder-text">
-                                상담 문의를 선택하여 내용을 확인하세요.
-                            </p>
+                            <p className="mwci-detail-placeholder-text">상담 문의를 선택하여 내용을 확인하세요.</p>
                         </div>
                     ) : (
                         <div className="mwci-detail-panel">
                             {/* 모바일 상단 바 */}
                             <div className="mwci-detail-mobile-topbar">
-                                <button
-                                    onClick={() => setSelectedInquiryId(null)}
-                                    className="mwci-back-btn"
-                                >
+                                <button onClick={() => setSelectedInquiryId(null)} className="mwci-back-btn">
                                     <ArrowLeft size={20} />
                                 </button>
                                 <span className="mwci-mobile-topbar-title">문의 상세</span>
@@ -297,21 +265,15 @@ const App = () => {
                                 <div>
                                     <div className="mwci-sender-row">
                                         <div className="mwci-sender-info">
-                                            <div className="mwci-sender-avatar">
-                                                {selectedInquiry.sender[0]}
-                                            </div>
+                                            <div className="mwci-sender-avatar">{selectedInquiry.sender[0]}</div>
                                             <div>
                                                 <div className="mwci-sender-name-row">
-                                                    <h4 className="mwci-sender-name">
-                                                        {selectedInquiry.sender}님
-                                                    </h4>
+                                                    <h4 className="mwci-sender-name">{selectedInquiry.sender}님</h4>
                                                     <span className="mwci-sender-tag-badge">
                                                         #{selectedInquiry.tag}
                                                     </span>
                                                 </div>
-                                                <p className="mwci-sender-date">
-                                                    {selectedInquiry.date} 수신
-                                                </p>
+                                                <p className="mwci-sender-date">{selectedInquiry.date} 수신</p>
                                             </div>
                                         </div>
                                     </div>
@@ -322,51 +284,37 @@ const App = () => {
                                     <div className="mwci-inquiry-deco-icon">
                                         <MessageSquare size={20} />
                                     </div>
-                                    <h5 className="mwci-inquiry-content-title">
-                                        {selectedInquiry.title}
-                                    </h5>
-                                    <p className="mwci-inquiry-content-text">
-                                        {selectedInquiry.content}
-                                    </p>
+                                    <h5 className="mwci-inquiry-content-title">{selectedInquiry.title}</h5>
+                                    <p className="mwci-inquiry-content-text">{selectedInquiry.content}</p>
                                 </div>
 
                                 {/* 답변 완료 */}
-                                {selectedInquiry.status === 'completed' &&
-                                    selectedInquiry.myReply && (
-                                        <div className="mwci-reply-completed-wrap">
-                                            <div className="mwci-reply-divider">
-                                                <div className="mwci-divider-line"></div>
-                                                <div className="mwci-divider-label">
-                                                    <CheckCircle size={14} />
-                                                    <span className="mwci-divider-text">
-                                                        나의 답변
-                                                    </span>
-                                                </div>
-                                                <div className="mwci-divider-line"></div>
+                                {selectedInquiry.status === 'completed' && selectedInquiry.myReply && (
+                                    <div className="mwci-reply-completed-wrap">
+                                        <div className="mwci-reply-divider">
+                                            <div className="mwci-divider-line"></div>
+                                            <div className="mwci-divider-label">
+                                                <CheckCircle size={14} />
+                                                <span className="mwci-divider-text">나의 답변</span>
                                             </div>
-
-                                            <div className="mwci-reply-bubble-row">
-                                                <div className="mwci-reply-coach-avatar">코</div>
-                                                <div className="mwci-reply-bubble">
-                                                    <p className="mwci-reply-bubble-text">
-                                                        {selectedInquiry.myReply}
-                                                    </p>
-                                                    <div className="mwci-reply-bubble-tail"></div>
-                                                </div>
-                                            </div>
-                                            <p className="mwci-reply-sent-label">
-                                                상담사 답변 완료
-                                            </p>
+                                            <div className="mwci-divider-line"></div>
                                         </div>
-                                    )}
+
+                                        <div className="mwci-reply-bubble-row">
+                                            <div className="mwci-reply-coach-avatar">코</div>
+                                            <div className="mwci-reply-bubble">
+                                                <p className="mwci-reply-bubble-text">{selectedInquiry.myReply}</p>
+                                                <div className="mwci-reply-bubble-tail"></div>
+                                            </div>
+                                        </div>
+                                        <p className="mwci-reply-sent-label">상담사 답변 완료</p>
+                                    </div>
+                                )}
 
                                 {/* 미답변 안내 */}
                                 {selectedInquiry.status === 'pending' && (
                                     <div className="mwci-pending-hint">
-                                        <AlertCircle
-                                            size={18}
-                                            className="mwci-pending-hint-icon"
-                                        />
+                                        <AlertCircle size={18} className="mwci-pending-hint-icon" />
                                         <p className="mwci-pending-hint-text">
                                             {selectedInquiry.tag === '일정변경'
                                                 ? '일정 변경 시 가능한 대체 시간대를 최소 2개 이상 구체적으로 제안해 주세요.'
@@ -419,9 +367,7 @@ const App = () => {
                                                     <Paperclip size={20} />
                                                 </button>
                                             </div>
-                                            <span className="mwci-char-count">
-                                                {replyText.length} 자
-                                            </span>
+                                            <span className="mwci-char-count">{replyText.length} 자</span>
                                         </div>
                                     </>
                                 ) : (

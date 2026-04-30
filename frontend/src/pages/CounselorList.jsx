@@ -57,7 +57,7 @@ const counselorData = [
     },
 ];
 
-export default function CounselorListPage() {
+export default function CounselorListPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('전체');
     const [liked, setLiked] = useState({}); // { [id]: true/false }
@@ -88,7 +88,14 @@ export default function CounselorListPage() {
 
     return (
         <div className="full-page-wrapper">
-            <Header activeTab="search" setActiveTab={() => {}} />
+            <Header
+                activeTab="search"
+                setActiveTab={() => {}}
+                userName={userName}
+                setUserName={setUserName}
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+            />
             <div className="counselor-list-container wide">
                 <header className="clist-search-header">
                     <h2 className="clist-search-title">전문가 찾기</h2>

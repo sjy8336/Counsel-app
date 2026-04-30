@@ -4,7 +4,7 @@ import { Mail, Lock, ChevronRight, BookHeart, Eye, EyeOff, User } from 'lucide-r
 import { login } from '../api/auth';
 import '../static/Login.css';
 
-export default function LoginPage() {
+export default function LoginPage({ setUserName, setIsLoggedIn }) {
     const [id, setId] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +29,9 @@ export default function LoginPage() {
             }
             // 로그인 시간 저장 (UTC ms)
             localStorage.setItem('login_time', Date.now().toString());
+            // 상태 즉시 반영
+            setUserName(result.user.full_name || result.user.username || '');
+            setIsLoggedIn(true);
             alert(`${result.user.full_name}님, 환영합니다!`);
             // role에 따라 이동 경로 분기
             if (result.user.role === 'counselor') {

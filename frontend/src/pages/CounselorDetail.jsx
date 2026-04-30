@@ -41,7 +41,7 @@ const detailedCounselorData = {
     },
 };
 
-export default function CounselorDetailPage() {
+export default function CounselorDetailPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
     const { id } = useParams();
     const navigate = useNavigate();
     const counselor = detailedCounselorData[id] || detailedCounselorData['1'];
@@ -149,7 +149,14 @@ export default function CounselorDetailPage() {
 
     return (
         <div className="full-page-wrapper">
-            <Header activeTab="search" setActiveTab={() => {}} />
+            <Header
+                activeTab="search"
+                setActiveTab={() => {}}
+                userName={userName}
+                setUserName={setUserName}
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+            />
 
             <div className="detail-split-container">
                 <section className="detail-left">

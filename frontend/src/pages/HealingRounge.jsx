@@ -5,7 +5,7 @@ import Footer from '../components/footer.jsx';
 import MobileTap from '../components/mobileTap.jsx';
 import '../static/HealingRounge.css';
 
-export default function HealingLounge() {
+export default function HealingLounge({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
     // 차와 향 추천 데이터
     const teaAndScentContents = [
         {
@@ -121,7 +121,16 @@ export default function HealingLounge() {
     return (
         <div className="hr-root">
             {/* PC Header (hidden on mobile) */}
-            {!isMobile && <Header activeTab="lounge" setActiveTab={() => {}} />}
+            {!isMobile && (
+                <Header
+                    activeTab="lounge"
+                    setActiveTab={() => {}}
+                    userName={userName}
+                    setUserName={setUserName}
+                    isLoggedIn={isLoggedIn}
+                    setIsLoggedIn={setIsLoggedIn}
+                />
+            )}
             {/* MobileTap (only on mobile) */}
             {isMobile && <MobileTap activeTab="lounge" setActiveTab={() => {}} />}
 
