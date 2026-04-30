@@ -1,4 +1,7 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { isTokenExpired } from './utils/jwt';
+
 import Home from './pages/home';
 import LoginPage from './pages/Login';
 import SignUp from './pages/SignUp';
@@ -23,41 +26,70 @@ import Fail from './pages/Fail';
 import CounselorMessages from './pages/CounselorMessages';
 
 function App() {
-    // localStorage에서 user 정보 파싱
-    let nickname = '';
-    try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        nickname = user?.full_name || user?.username || '';
-    } catch (e) {
-        nickname = '';
-    }
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // 1. 가드 로직: 현재 페이지가 로그인 관련 페이지라면 아무것도 하지 않음
+        const isAuthPage = ['/login', '/signup', '/find-password'].includes(location.pathname);
+        if (isAuthPage) return;
+
+        // 2. 홈 화면(/)이 로그인 없이도 보는 페이지라면 통과
+        if (location.pathname === '/') return;
+
+        const token = localStorage.getItem('access_token');
+
+        // 3. 토큰 검사 (무한 루프 방지를 위해 조건문을 깐깐하게 작성)
+        if (!token || isTokenExpired(token)) {
+            console.warn('인증 만료 또는 토큰 없음 -> 로그인 이동');
+
+            // 데이터 정리
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('login_time');
+
+            // 4. 현재 위치가 이미 /login이 아닐 때만 이동 (루프 확정 차단)
+            if (location.pathname !== '/login') {
+                navigate('/login', { replace: true });
+            }
+        }
+    }, [location.pathname]); // navigate를 의존성에서 빼서 불필요한 재실행 방지
+
+    // 닉네임 로직 (useMemo로 최적화해서 렌더링 부하 줄임)
+    const nickname = useMemo(() => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            return user?.full_name || user?.username || '';
+        } catch (e) {
+            return '';
+        }
+    }, []);
+
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Home nickname={nickname} />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/mypage" element={<MyPage />} />
-                <Route path="/find-password" element={<FindPwPage />} />
-                <Route path="/reserve" element={<ReservationPage />} />
-                <Route path="/counselors" element={<CounselorListPage />} />
-                <Route path="/counselor/:id" element={<CounselorDetailPage />} />
-                <Route path="/CounselorMyPage" element={<CounselorMyPage />} />
-                <Route path="/counselorUpload" element={<CounselorUpload />} />
-                <Route path="/diary" element={<Diary />} />
-                <Route path="/healing" element={<HealingRounge />} />
-                <Route path="/schedule" element={<Schedule />} />
-                <Route path="/CounselorPlanner" element={<CounselorPlanner />} />
-                <Route path="/CounselorClient" element={<CounselorClient />} />
-                <Route path="/counselorhome" element={<CounselorHome />} />
-                <Route path="/AIdiary" element={<AIDiary />} />
-                <Route path="/survey" element={<Survey />} />
-                <Route path="/payment" element={<Payment />} />
-                <Route path="/payment/success" element={<Success />} />
-                <Route path="/payment/fail" element={<Fail />} />
-                <Route path="/CounselorMessages" element={<CounselorMessages />} />
-            </Routes>
-        </BrowserRouter>
+        <Routes>
+            <Route path="/" element={<Home nickname={nickname} />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/mypage" element={<MyPage />} />
+            <Route path="/find-password" element={<FindPwPage />} />
+            <Route path="/reserve" element={<ReservationPage />} />
+            <Route path="/counselors" element={<CounselorListPage />} />
+            <Route path="/counselor/:id" element={<CounselorDetailPage />} />
+            <Route path="/CounselorMyPage" element={<CounselorMyPage />} />
+            <Route path="/counselorUpload" element={<CounselorUpload />} />
+            <Route path="/diary" element={<Diary />} />
+            <Route path="/healing" element={<HealingRounge />} />
+            <Route path="/schedule" element={<Schedule />} />
+            <Route path="/CounselorPlanner" element={<CounselorPlanner />} />
+            <Route path="/CounselorClient" element={<CounselorClient />} />
+            <Route path="/counselorhome" element={<CounselorHome />} />
+            <Route path="/AIdiary" element={<AIDiary />} />
+            <Route path="/survey" element={<Survey />} />
+            <Route path="/payment" element={<Payment />} />
+            <Route path="/payment/success" element={<Success />} />
+            <Route path="/payment/fail" element={<Fail />} />
+            <Route path="/CounselorMessages" element={<CounselorMessages />} />
+        </Routes>
     );
 }
 

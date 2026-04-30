@@ -25,7 +25,7 @@ export default function LoginPage() {
             }
             localStorage.setItem('user', JSON.stringify(result.user));
             if (result.access_token) {
-                localStorage.setItem('token', result.access_token);
+                localStorage.setItem('access_token', result.access_token); // header.jsx와 통일
             }
             // 로그인 시간 저장 (UTC ms)
             localStorage.setItem('login_time', Date.now().toString());
