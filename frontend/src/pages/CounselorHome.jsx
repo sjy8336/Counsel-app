@@ -10,18 +10,21 @@ const CounselorHome = () => {
     // [수정] 이름을 가져오는 로직을 더 강화했습니다.
     const getCounselorName = () => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
-        
+
         // 1. user 객체 안에 name이 있는 경우
         if (storedUser?.name) return storedUser.name;
         // 2. user 객체 안에 username이 있는 경우
         if (storedUser?.username) return storedUser.username;
         // 3. user 자체가 문자열인 경우 (혹시 모르니)
         if (typeof storedUser === 'string') return storedUser;
-        
+
         return '상담사'; // 정 안되면 기본값
     };
 
     const userName = getCounselorName();
+    // Header props용 더미 setter, 상태값
+    const [headerUserName, setHeaderUserName] = useState(userName);
+    const [isLoggedIn, setIsLoggedIn] = useState(!!userName);
 
     const getToday = () => {
         const now = new Date();
@@ -39,8 +42,8 @@ const CounselorHome = () => {
     const sessionCount = todaySessions.length;
 
     const [reservations, setReservations] = useState([
-        { id: 1, name: '최민수', type: '심리 상담', date: '5월 27일 (화) 오후 2:00', dday: 2,  status: '확정' },
-        { id: 2, name: '김지아', type: '심리 상담', date: '6월 3일 (화) 오후 3:00',  dday: 9,  status: '대기' },
+        { id: 1, name: '최민수', type: '심리 상담', date: '5월 27일 (화) 오후 2:00', dday: 2, status: '확정' },
+        { id: 2, name: '김지아', type: '심리 상담', date: '6월 3일 (화) 오후 3:00', dday: 9, status: '대기' },
         { id: 3, name: '이하늘', type: '초기 면담', date: '6월 10일 (화) 오전 11:00', dday: 16, status: '대기' },
     ]);
 
@@ -52,27 +55,33 @@ const CounselorHome = () => {
     };
 
     const handleConfirm = (id, name) => {
-        setReservations(prev =>
-            prev.map(r => r.id === id ? { ...r, status: '확정' } : r)
-        );
+        setReservations((prev) => prev.map((r) => (r.id === id ? { ...r, status: '확정' } : r)));
         showToast(`${name} 내담자 예약이 승인되었습니다.`, 'success');
     };
 
     const handleReject = (id, name) => {
         showToast(`${name} 내담자 예약이 거절되었습니다.`, 'error');
-        setReservations(prev => prev.filter(r => r.id !== id));
+        setReservations((prev) => prev.filter((r) => r.id !== id));
     };
 
     return (
         <div className="counselor-main">
-            <Header activeTab="" setActiveTab={() => {}} />
+            <Header
+                activeTab=""
+                setActiveTab={() => {}}
+                userName={headerUserName}
+                setUserName={setHeaderUserName}
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+            />
             <div className="counselor-container">
-
                 {/* 배너 - 이제 userName 변수가 실제 이름을 찾아 출력합니다[cite: 2] */}
                 <section className="banner-card">
                     <div className="banner-text">
                         <p className="banner-date">{getToday()}</p>
-                        <h1>{userName}님, 오늘 상담은 <span className="point-color">총 {sessionCount}건</span>입니다.</h1>
+                        <h1>
+                            {userName}님, 오늘 상담은 <span className="point-color">총 {sessionCount}건</span>입니다.
+                        </h1>
                         <p className="banner-sub">오늘도 내담자들의 마음을 따뜻하게 안아주세요.</p>
                     </div>
                 </section>
@@ -81,17 +90,27 @@ const CounselorHome = () => {
                 <div className="stats-container">
                     <div className="stat-card">
                         <span className="stat-label">이번 달 상담</span>
-                        <strong>24<em>건</em></strong>
-                        <p className="stat-note">지난달보다 <b>+3건</b> 많아요</p>
+                        <strong>
+                            24<em>건</em>
+                        </strong>
+                        <p className="stat-note">
+                            지난달보다 <b>+3건</b> 많아요
+                        </p>
                     </div>
                     <div className="stat-card">
                         <span className="stat-label">이번 주 예정</span>
-                        <strong>8<em>건</em></strong>
-                        <p className="stat-note">내일 <b>2건</b> 포함</p>
+                        <strong>
+                            8<em>건</em>
+                        </strong>
+                        <p className="stat-note">
+                            내일 <b>2건</b> 포함
+                        </p>
                     </div>
                     <div className="stat-card accent-rose clickable" onClick={() => navigate('/CounselorMessages')}>
                         <span className="stat-label">미답변 문의</span>
-                        <strong>3<em>건</em></strong>
+                        <strong>
+                            3<em>건</em>
+                        </strong>
                         <p className="stat-note">확인이 필요해요 →</p>
                     </div>
                 </div>
@@ -121,7 +140,9 @@ const CounselorHome = () => {
                             <div className="work-card highlight">
                                 <div className="card-header">작성 대기 중인 상담 일지</div>
                                 <div className="card-body">
-                                    <strong>1<span>건</span></strong>
+                                    <strong>
+                                        1<span>건</span>
+                                    </strong>
                                     <p>최민수 님 (5.19 상담)</p>
                                     <button className="go-btn primary" onClick={() => navigate('/CounselorClient')}>
                                         지금 작성하기
@@ -131,7 +152,9 @@ const CounselorHome = () => {
                             <div className="work-card">
                                 <div className="card-header">신규 매칭 내담자</div>
                                 <div className="card-body">
-                                    <strong>2<span>명</span></strong>
+                                    <strong>
+                                        2<span>명</span>
+                                    </strong>
                                     <p>사전 질문지가 도착했습니다.</p>
                                     <button className="go-btn secondary" onClick={() => navigate('/CounselorClient')}>
                                         설문지 확인하기
@@ -166,14 +189,16 @@ const CounselorHome = () => {
                                 </div>
                                 <p className="res-date">📅 {r.date}</p>
                                 {r.status === '대기' && (
-                                    <div className="res-actions" onClick={e => e.stopPropagation()}>
-                                        <button className="res-btn confirm" onClick={() => handleConfirm(r.id, r.name)}>승인</button>
-                                        <button className="res-btn reject"  onClick={() => handleReject(r.id, r.name)}>거절</button>
+                                    <div className="res-actions" onClick={(e) => e.stopPropagation()}>
+                                        <button className="res-btn confirm" onClick={() => handleConfirm(r.id, r.name)}>
+                                            승인
+                                        </button>
+                                        <button className="res-btn reject" onClick={() => handleReject(r.id, r.name)}>
+                                            거절
+                                        </button>
                                     </div>
                                 )}
-                                {r.status === '확정' && i !== 0 && (
-                                    <p className="res-confirmed">✓ 승인 완료</p>
-                                )}
+                                {r.status === '확정' && i !== 0 && <p className="res-confirmed">✓ 승인 완료</p>}
                             </div>
                         ))}
                     </aside>
