@@ -10,14 +10,11 @@ const CounselorHome = () => {
     // [수정] 이름을 가져오는 로직을 더 강화했습니다.
     const getCounselorName = () => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
-
-        // 1. user 객체 안에 name이 있는 경우
+        // 1. user 객체에 full_name, name, username 순서로 우선 사용
+        if (storedUser?.full_name) return storedUser.full_name;
         if (storedUser?.name) return storedUser.name;
-        // 2. user 객체 안에 username이 있는 경우
         if (storedUser?.username) return storedUser.username;
-        // 3. user 자체가 문자열인 경우 (혹시 모르니)
         if (typeof storedUser === 'string') return storedUser;
-
         return '상담사'; // 정 안되면 기본값
     };
 

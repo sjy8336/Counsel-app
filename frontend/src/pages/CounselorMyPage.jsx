@@ -656,13 +656,24 @@ const App = () => {
         },
     ];
 
+    // 로그인한 상담사 이름 가져오기
+    const getCounselorName = () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) return '';
+            return user.full_name || user.name || user.username || '';
+        } catch {
+            return '';
+        }
+    };
+
     const renderDashboard = () => (
         <>
             <header className="mw-header">
                 <div className="mw-profile-section">
                     <div className="mw-profile-img">🧔‍♂️</div>
                     <div>
-                        <h2 className="mw-welcome">안녕하세요, 이은지 상담사님!</h2>
+                        <h2 className="mw-welcome">안녕하세요, {getCounselorName()} 상담사님!</h2>
                         <p className="mw-welcome-sub">오늘도 따뜻한 상담 부탁드립니다 🌿</p>
                     </div>
                 </div>
