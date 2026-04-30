@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { deleteAccount } from '../api/auth';
 import { getUserInfo, updateUserInfo, changePassword } from '../api/user';
+import { getFavorites } from '../api/favorite';
 import {
     Settings,
     Bell,
@@ -8,23 +9,15 @@ import {
     ChevronRight,
     CalendarHeart,
     MessageSquareHeart,
-    FileText,
-    Clock,
-    LayoutDashboard,
-    Heart,
     History,
     Wallet,
-    PlusCircle,
     Calendar,
-    Headset,
     Ticket,
-    Video,
     MessagesSquare,
     ArrowLeft,
     User,
     ShieldCheck,
     UserX,
-    CreditCard,
     Mail,
     Phone,
     Camera,
@@ -35,19 +28,122 @@ import {
     ToggleRight,
     ToggleLeft,
     CalendarDays,
-    CreditCard as PaymentIcon,
-    Smile,
-    Frown,
-    Meh,
+    Heart,
     ClipboardList,
-    Stethoscope,
     Target,
     Hash,
+    Lightbulb,
+    Check,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../static/MyPage.css';
 
+const notifSettingsData = [
+    { key: 'session', title: '상담 일정 알림', desc: '예약된 상담 시간 및 변동 사항 안내' },
+    { key: 'service', title: '서비스 공지사항', desc: '점검 안내 및 주요 이용 정보' },
+    { key: 'marketing', title: '이벤트 및 혜택 알림', desc: '새로운 프로그램 및 할인 쿠폰 정보' },
+];
+
+const NotificationSettings = ({ notifSettings, toggleNotif }) => {
+    return (
+        <div className="ns-card">
+            <header className="ns-header">
+                <div className="ns-header-icon-box">
+                    <Bell size={20} />
+                </div>
+                <h1 className="ns-header-title">알림 설정</h1>
+            </header>
+
+            <main className="ns-list">
+                {notifSettingsData.map((item) => {
+                    const isActive = notifSettings[item.key];
+                    return (
+                        <div key={item.key} className="ns-toggle-item">
+                            <div className="ns-item-text">
+                                <p className="ns-item-title">{item.title}</p>
+                                <p className="ns-item-desc">{item.desc}</p>
+                            </div>
+                            <button
+                                onClick={() => toggleNotif(item.key)}
+                                className={`ns-toggle-btn ${isActive ? 'is-on' : 'is-off'}`}
+                            >
+                                {isActive ? (
+                                    <ToggleRight size={48} strokeWidth={1.2} />
+                                ) : (
+                                    <ToggleLeft size={48} strokeWidth={1.2} />
+                                )}
+                            </button>
+                        </div>
+                    );
+                })}
+            </main>
+
+            <footer className="ns-footer-box">
+                <AlertCircle size={18} className="ns-footer-icon" />
+                <p className="ns-footer-text">
+                    기기 전체 알림이 꺼져있을 경우 앱 설정을 켜도 알림이 전송되지 않습니다. 휴대폰의{' '}
+                    <span className="ns-footer-highlight">설정 &gt; 알림</span> 메뉴에서 마인드웰의 알림 허용 상태를
+                    확인해 주세요.
+                </p>
+            </footer>
+        </div>
+    );
+};
+
 export default function App() {
+        // 고객센터(고객지원) 내용 렌더링 함수
+    const renderSupportCenter = () => {
+        return (
+            <div className="fade-in">
+                <h3 className="mypage-section-title">고객센터</h3>
+                <div className="mwp-card support-center-card">
+                    <h4 className="support-title">무엇을 도와드릴까요?</h4>
+                    <div className="support-contact-block">
+                        <div className="support-contact-item">
+                            <span className="support-contact-label">1:1 문의</span>
+                            <span className="support-contact-desc">마이페이지 &gt; <b>문의내역</b>에서 상담/결제/기타 문의를 남겨주시면 신속히 답변드리겠습니다.</span>
+                        </div>
+                        <div className="support-contact-item">
+                            <span className="support-contact-label">전화번호</span>
+                            <span className="support-contact-desc"><a href="tel:0212345678" className="support-link">02-1234-5678</a> (평일 10:00~18:00)</span>
+                        </div>
+                        <div className="support-contact-item">
+                            <span className="support-contact-label">센터 위치</span>
+                            <span className="support-contact-desc">서울특별시 강남구 테헤란로 123 4F (강남역 5번 출구)</span>
+                        </div>
+                    </div>
+                    <div className="support-faq-section">
+                        <h5 className="support-faq-title">자주 묻는 질문 (FAQ)</h5>
+                        <ul className="support-faq-list">
+                            <li>
+                                <b>Q. 상담 예약은 어떻게 하나요?</b><br />
+                                A. 마이페이지 &gt; 상담 히스토리 또는 상담사 상세 페이지에서 예약 가능합니다.
+                            </li>
+                            <li>
+                                <b>Q. 결제 영수증은 어디서 확인하나요?</b><br />
+                                A. 마이페이지 &gt; 이용권/결제 메뉴에서 결제 내역과 영수증을 확인할 수 있습니다.
+                            </li>
+                            <li>
+                                <b>Q. 환불은 어떻게 진행되나요?</b><br />
+                                A. 1:1 문의 또는 고객센터로 연락주시면 환불 정책에 따라 신속히 처리해드립니다.
+                            </li>
+                            <li>
+                                <b>Q. 상담 내역과 기록은 안전하게 보관되나요?</b><br />
+                                A. 모든 상담 기록은 암호화되어 안전하게 보관되며, 본인과 담당 상담사만 열람할 수 있습니다.
+                            </li>
+                            <li>
+                                <b>Q. 상담사 변경이나 일정 변경은 어떻게 하나요?</b><br />
+                                A. 마이페이지 &gt; 문의내역 또는 고객센터로 요청해주시면 도와드립니다.
+                            </li>
+                        </ul>
+                    </div>
+                    <div className="support-footer-msg">
+                        언제든 문의해주시면 친절하게 안내해드리겠습니다.<br />마인드웰 고객센터를 이용해주셔서 감사합니다.
+                    </div>
+                </div>
+            </div>
+        );
+    };
     const navigate = useNavigate();
     const [activeMenu, setActiveMenu] = useState('dashboard');
     const [activeSubMenu, setActiveSubMenu] = useState(null);
@@ -63,23 +159,26 @@ export default function App() {
     const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [userInfo, setUserInfo] = useState({
         name: '',
-        id: '', // PK
-        username: '', // 로그인 아이디
+        id: '',
+        username: '',
         email: '',
         phone: '',
         birth: '',
+        gender: '',
     });
+    const [openInquiryId, setOpenInquiryId] = useState(null);
+    const [pwFields, setPwFields] = useState({ current: '', new1: '', new2: '' });
+    const [pwLoading, setPwLoading] = useState(false);
+    const [favoritesList, setFavoritesList] = useState([]);
 
-    // 로그인한 사용자 정보 localStorage에서 불러오고, DB에서 최신 정보 fetch
+    const completedConsultations = 12;
+
     useEffect(() => {
         const user = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
         if (user) {
             const userObj = JSON.parse(user);
-            setUserInfo((prev) => ({
-                ...prev,
-                id: userObj.id,
-            }));
-            // DB에서 최신 정보 fetch
+            setUserInfo((prev) => ({ ...prev, id: userObj.id }));
             getUserInfo(userObj.id).then((data) => {
                 setUserInfo((prev) => ({
                     ...prev,
@@ -87,53 +186,27 @@ export default function App() {
                     username: data.username,
                     email: data.email,
                     phone: data.phone_number,
+                    birth: data.birth || '',
+                    gender: data.gender || '',
                 }));
             });
+            // 찜내역 불러오기
+            getFavorites(token)
+                .then((data) => {
+                    setFavoritesList(data.favorites || []);
+                })
+                .catch(() => {
+                    setFavoritesList([]);
+                });
         }
     }, []);
 
-    // 로그아웃 핸들러
-    const handleLogout = () => {
-        localStorage.removeItem('user');
-        navigate('/');
-    };
-
-    // 계정 영구 삭제 핸들러
-    const handleDeleteAccount = async () => {
-        if (!withdrawAgree) {
-            alert('유의사항 동의가 필요합니다.');
-            return;
-        }
-        if (!userInfo.id) {
-            alert('로그인 정보가 없습니다.');
-            return;
-        }
-        if (!window.confirm('정말로 계정을 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
-        setWithdrawLoading(true);
-        try {
-            // userInfo.id는 반드시 PK(int)여야 하며, 혹시 string일 경우를 대비해 변환
-            await deleteAccount(Number(userInfo.id));
-            alert('계정이 영구 삭제되었습니다.');
-            handleLogout();
-        } catch (e) {
-            alert('계정 삭제에 실패했습니다.');
-        } finally {
-            setWithdrawLoading(false);
-        }
-    };
-
-    // 비밀번호 변경 관련 상태
-    const [pwFields, setPwFields] = useState({
-        current: '',
-        new1: '',
-        new2: '',
-    });
-    const [pwLoading, setPwLoading] = useState(false);
-
     const menuItems = [
         { id: 'history', label: '상담 히스토리', icon: History },
-        { id: 'tickets', label: '상담권/결제', icon: Wallet },
-        { id: 'diary', label: '마음 리포트', icon: FileText },
+        { id: 'inquiry', label: '문의내역', icon: MessagesSquare },
+        { id: 'favorites', label: '찜내역', icon: Heart },
+        { id: 'tickets', label: '이용권/결제', icon: Wallet },
+        { id: 'support', label: '고객센터', icon: Settings },
         { id: 'profile', label: '계정 설정', icon: Settings },
     ];
 
@@ -145,6 +218,87 @@ export default function App() {
 
     const toggleNotif = (key) => {
         setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        navigate('/');
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!withdrawAgree) {
+            alert('유의사항 동의가 필요합니다.');
+            return;
+        }
+        if (!userInfo.id) {
+            alert('로그인 정보가 없습니다.');
+            return;
+        }
+        if (!window.confirm('정말로 계정을 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+            return;
+        }
+        setWithdrawLoading(true);
+        try {
+            await deleteAccount(Number(userInfo.id));
+            alert('계정이 영구 삭제되었습니다.');
+            handleLogout();
+        } catch (e) {
+            alert('계정 삭제에 실패했습니다.');
+        } finally {
+            setWithdrawLoading(false);
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        try {
+            await updateUserInfo({
+                id: userInfo.id,
+                full_name: userInfo.name,
+                email: userInfo.email,
+                phone_number: userInfo.phone,
+            });
+            alert('개인정보가 성공적으로 수정되었습니다.');
+        } catch (e) {
+            alert('개인정보 수정에 실패했습니다.');
+        }
+    };
+
+    const handleChangePassword = async () => {
+        if (!pwFields.current || !pwFields.new1 || !pwFields.new2) {
+            alert('모든 비밀번호 입력란을 채워주세요.');
+            return;
+        }
+        if (pwFields.new1.length < 8 || !/[A-Za-z]/.test(pwFields.new1) || !/[0-9]/.test(pwFields.new1)) {
+            alert('새 비밀번호는 8자 이상, 영문+숫자를 포함해야 합니다.');
+            return;
+        }
+        if (pwFields.new1 !== pwFields.new2) {
+            alert('새 비밀번호가 일치하지 않습니다.');
+            return;
+        }
+        setPwLoading(true);
+        try {
+            await changePassword({
+                user_id: userInfo.id,
+                current_password: pwFields.current,
+                new_password: pwFields.new1,
+            });
+            alert('비밀번호가 성공적으로 변경되었습니다.');
+            setPwFields({ current: '', new1: '', new2: '' });
+        } catch (e) {
+            if (e?.response?.data?.detail) {
+                alert(e.response.data.detail);
+            } else {
+                alert('비밀번호 변경에 실패했습니다.');
+            }
+        } finally {
+            setPwLoading(false);
+        }
+    };
+
+    const handleUnfavorite = (id, e) => {
+        e.stopPropagation();
+        setFavoritesList((prev) => prev.filter((item) => item.id !== id));
     };
 
     const renderHistoryDetail = () => {
@@ -210,7 +364,6 @@ export default function App() {
                     <button onClick={() => setSelectedConsultation(null)} className="back-button">
                         <ArrowLeft size={16} /> 전체 목록으로
                     </button>
-
                     <div className="report-card">
                         <div className="report-header">
                             <div>
@@ -227,7 +380,6 @@ export default function App() {
                                 </div>
                             </div>
                         </div>
-
                         <div className="report-body">
                             <section className="report-section">
                                 <h4 className="section-title">
@@ -238,7 +390,6 @@ export default function App() {
                                     <p className="summary-text">{selectedConsultation.summary}</p>
                                 </div>
                             </section>
-
                             <section className="report-section">
                                 <h4 className="section-title">
                                     <div className="title-indicator"></div>
@@ -248,7 +399,6 @@ export default function App() {
                                     <p className="feedback-text">{selectedConsultation.feedback}</p>
                                 </div>
                             </section>
-
                             <section className="action-step-card">
                                 <h4 className="action-step-title">
                                     <Target size={20} />
@@ -257,7 +407,6 @@ export default function App() {
                                 <p className="action-step-content">"{selectedConsultation.nextStep}"</p>
                             </section>
                         </div>
-
                         <div className="report-footer">
                             <p className="privacy-notice">이 기록은 오직 소현님과 담당 상담사만 확인할 수 있습니다.</p>
                         </div>
@@ -268,10 +417,6 @@ export default function App() {
 
         return (
             <div className="fade-in">
-                <button onClick={() => handleMenuClick('dashboard')} className="history-back-button">
-                    <ArrowLeft size={16} /> 대시보드
-                </button>
-
                 <div className="history-header">
                     <div>
                         <h3 className="history-title">상담 히스토리</h3>
@@ -281,7 +426,6 @@ export default function App() {
                         <span className="history-total-badge">총 12회 상담 완료</span>
                     </div>
                 </div>
-
                 <div className="history-list-container">
                     {historyList.map((item) => (
                         <div key={item.id} onClick={() => setSelectedConsultation(item)} className="history-item-card">
@@ -300,7 +444,6 @@ export default function App() {
                                     <p className="history-item-topic">상담 주제: {item.topic}</p>
                                 </div>
                             </div>
-
                             <div className="history-item-right">
                                 <div className="history-link-text">
                                     <p>상담 기록지 보기</p>
@@ -315,237 +458,215 @@ export default function App() {
     };
 
     const renderTicketsDetail = () => {
-        const paymentHistory = [
-            { id: 1, title: '마음 돌봄 5회권 패키지', date: '2024.04.10', amount: '250,000원', status: '결제완료' },
-            { id: 2, title: '1:1 집중 상담 1회권', date: '2024.03.15', amount: '60,000원', status: '결제완료' },
-        ];
-
         return (
             <div className="fade-in">
-                <button onClick={() => handleMenuClick('dashboard')} className="payment-back-button">
-                    <ArrowLeft size={16} /> 대시보드
-                </button>
-                <h3 className="payment-main-title">상담권/결제 상세</h3>
-
-                <div className="payment-grid-layout">
-                    {/* 왼쪽: 상담권 보유 및 구매 섹션 */}
-                    <div className="payment-main-content bg-white">
-                        <div className="ticket-status-card">
-                            <div>
-                                <p className="ticket-status-label">현재 사용 가능한 상담권</p>
-                                <p className="ticket-status-count">{ticketCount}회</p>
-                            </div>
-                            <div className="ticket-wallet-icon">
-                                <Wallet size={40} className="text-amber-300" />
-                            </div>
-                        </div>
-
-                        <button className="payment-primary-btn">
-                            <PlusCircle size={20} />
-                            추가 결제하기
-                        </button>
-
-                        <h4 className="payment-section-title">
-                            <PlusCircle size={18} className="text-[#8BA888]" /> 상담권 구매하기
-                        </h4>
-                        <div className="purchase-options-grid">
-                            <button className="purchase-card featured">
-                                <p className="purchase-card-tag">가장 인기있는</p>
-                                <p className="purchase-card-name">5회 패키지</p>
-                                <p className="purchase-card-price">250,000원</p>
-                            </button>
-                            <button className="purchase-card">
-                                <p className="purchase-card-tag">부담 없이 시작하는</p>
-                                <p className="purchase-card-name">1회 체험권</p>
-                                <p className="purchase-card-price">60,000원</p>
-                            </button>
-                        </div>
+                <main className="mwp-main">
+                    <div className="mwp-title-section">
+                        <h2 className="mwp-page-title">멤버십 및 결제</h2>
                     </div>
 
-                    {/* 오른쪽: 최근 결제 내역 섹션 */}
-                    <div className="payment-side-content bg-white">
-                        <h4 className="payment-section-title">
-                            <PaymentIcon size={18} className="text-[#8BA888]" /> 최근 결제 내역
-                        </h4>
-                        <div className="payment-history-list">
-                            {paymentHistory.map((item) => (
-                                <div key={item.id} className="payment-history-item">
-                                    <p className="history-item-date">{item.date}</p>
-                                    <p className="history-item-title">{item.title}</p>
-                                    <div className="history-item-info">
-                                        <span className="history-item-status">{item.status}</span>
-                                        <span className="history-item-amount">{item.amount}</span>
+                    <div className="mwp-layout mwp-section-gap">
+                        <div className="mwp-left">
+                            <section className="mwp-card mwp-status-card mwp-ai-glow">
+                                <div className="mwp-status-top">
+                                    <div className="mwp-status-title-group">
+                                        <div className="mwp-status-badge-row">
+                                            <span className="mwp-active-badge">Active</span>
+                                            <h3 className="mwp-status-title">AI 감정 일기 이용 중</h3>
+                                        </div>
+                                        <p className="mwp-status-desc">
+                                            매일 기록된 감정 데이터는 다음 상담 시 전문가에게 분석 리포트로 전달됩니다.
+                                        </p>
+                                    </div>
+                                    <div className="mwp-billing-info">
+                                        <p className="mwp-billing-label">Next Billing</p>
+                                        <p className="mwp-billing-date">2026. 05. 27</p>
                                     </div>
                                 </div>
-                            ))}
+
+                                <div className="mwp-stats-grid">
+                                    <div className="mwp-stat-item">
+                                        <div className="mwp-stat-icon">
+                                            <i className="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                                        </div>
+                                        <div className="mwp-stat-inner">
+                                            <p className="mwp-stat-label">이용 플랜</p>
+                                            <p className="mwp-stat-value-name">프리미엄 플러스</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mwp-stat-item mwp-stat-item--highlight">
+                                        <div className="mwp-stat-icon mwp-stat-icon--green">
+                                            <i className="fa-solid fa-ticket text-lg"></i>
+                                        </div>
+                                        <div className="mwp-stat-inner">
+                                            <p className="mwp-stat-label mwp-stat-label--green">잔여 이용권</p>
+                                            <p className="mwp-stat-value">
+                                                12 <span className="mwp-stat-value-sub">회 남음</span>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mwp-stat-item">
+                                        <div className="mwp-stat-icon mwp-stat-icon--amber">
+                                            <i className="fa-solid fa-calendar-check text-lg"></i>
+                                        </div>
+                                        <div className="mwp-stat-inner">
+                                            <p className="mwp-stat-label">이번 달 기록</p>
+                                            <p className="mwp-stat-value">
+                                                18 <span className="mwp-stat-value-sub">/ 30일</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mwp-status-actions">
+                                    <button className="mwp-cancel-link">이용 해지</button>
+                                    <button className="mwp-plan-change-btn">플랜 변경하기</button>
+                                </div>
+                            </section>
+
+                            <section className="mwp-pass-section">
+                                <h3 className="mwp-pass-section-title">
+                                    <i className="fa-solid fa-ticket mwp-pass-section-icon"></i>
+                                    AI 일기 감정 이용권 구매
+                                </h3>
+
+                                <div className="mwp-pass-list">
+                                    <div className="mwp-card mwp-pass-card">
+                                        <div className="mwp-pass-inner">
+                                            <div className="mwp-pass-info">
+                                                <div className="mwp-pass-text">
+                                                    <h4 className="mwp-pass-name">AI 일기 3회 이용권</h4>
+                                                    <p className="mwp-pass-desc">가벼운 마음 정리를 위한 입문용 플랜</p>
+                                                </div>
+                                            </div>
+                                            <div className="mwp-pass-price-wrap">
+                                                <span className="mwp-price-amount">15,000원</span>
+                                            </div>
+                                            <button className="mwp-btn-primary mwp-buy-btn">구매하기</button>
+                                        </div>
+                                    </div>
+
+                                    <div className="mwp-card mwp-pass-card mwp-pass-card--best">
+                                        <div className="mwp-pass-inner">
+                                            <div className="mwp-pass-info">
+                                                <div className="mwp-pass-text">
+                                                    <div className="mwp-pass-name-row">
+                                                        <h4 className="mwp-pass-name">AI 일기 5회 이용권</h4>
+                                                    </div>
+                                                    <p className="mwp-pass-desc">심층 분석 리포트가 포함된 인기 플랜</p>
+                                                </div>
+                                            </div>
+                                            <div className="mwp-pass-price-wrap">
+                                                <span className="mwp-price-amount">22,000원</span>
+                                            </div>
+                                            <button className="mwp-btn-primary mwp-buy-btn">구매하기</button>
+                                        </div>
+                                    </div>
+
+                                    <div className="mwp-card mwp-pass-card">
+                                        <div className="mwp-pass-inner">
+                                            <div className="mwp-pass-info">
+                                                <div className="mwp-pass-text">
+                                                    <h4 className="mwp-pass-name">AI 일기 10회 이용권</h4>
+                                                    <p className="mwp-pass-desc">
+                                                        장기적인 변화를 원하는 분들을 위한 프리미엄 플랜
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="mwp-pass-price-wrap">
+                                                <span className="mwp-price-amount">39,000원</span>
+                                            </div>
+                                            <button className="mwp-btn-primary mwp-buy-btn">구매하기</button>
+                                        </div>
+                                    </div>
+
+                                    <div className="mwp-card mwp-pass-card mwp-pass-card--premium">
+                                        <div className="mwp-pass-inner">
+                                            <div className="mwp-pass-info">
+                                                <div className="mwp-pass-text">
+                                                    <div className="mwp-pass-name-row">
+                                                        <h4 className="mwp-pass-name">AI 일기 30회 이용권</h4>
+                                                    </div>
+                                                    <p className="mwp-pass-desc">
+                                                        한 달간 매일 기록하며 성장을 확인하는 마스터 플랜
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="mwp-pass-price-wrap">
+                                                <span className="mwp-price-amount">99,000원</span>
+                                            </div>
+                                            <button className="mwp-btn-primary mwp-buy-btn">구매하기</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
-                        <button className="payment-view-all-btn">전체 결제 내역 보기</button>
+
+                        <aside className="mwp-sidebar">
+                            <div className="mwp-card mwp-sidebar-card">
+                                <h5 className="mwp-sidebar-card-title">
+                                    <i className="fa-solid fa-circle-info"></i>
+                                    이용권 안내 사항
+                                </h5>
+                                <div className="mwp-sidebar-info-list">
+                                    <div className="mwp-sidebar-info-item">
+                                        <div className="mwp-sidebar-icon">
+                                            <i className="fa-solid fa-calendar-check"></i>
+                                        </div>
+                                        <div className="mwp-sidebar-item-inner">
+                                            <p className="mwp-sidebar-item-title">유효 기간</p>
+                                            <p className="mwp-sidebar-item-desc">
+                                                구매일로부터 90일 이내에 사용 가능합니다.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="mwp-sidebar-info-item">
+                                        <div className="mwp-sidebar-icon">
+                                            <i className="fa-solid fa-rotate"></i>
+                                        </div>
+                                        <div className="mwp-sidebar-item-inner">
+                                            <p className="mwp-sidebar-item-title">자동 갱신 안내</p>
+                                            <p className="mwp-sidebar-item-desc">
+                                                횟수 차감형 이용권은 자동 갱신되지 않습니다.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mwp-card mwp-sidebar-card">
+                                <h5 className="mwp-sidebar-card-title">
+                                    <i className="fa-solid fa-location-arrow"></i>
+                                    센터 이용 정보
+                                </h5>
+                                <div className="mwp-sidebar-info-list mwp-sidebar-info-list--lg">
+                                    <div className="mwp-sidebar-info-item">
+                                        <div className="mwp-sidebar-icon">
+                                            <i className="fa-solid fa-location-dot"></i>
+                                        </div>
+                                        <div className="mwp-sidebar-item-inner">
+                                            <p className="mwp-sidebar-item-title">마인드웰 강남 센터</p>
+                                            <p className="mwp-sidebar-item-desc">
+                                                서울특별시 강남구 테헤란로 123 4F (강남역 5번 출구)
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 고객센터 배너 제거됨 */}
+                        </aside>
                     </div>
-                </div>
+                </main>
             </div>
         );
-    };
-
-    const renderDiaryDetail = () => {
-        return (
-            <div className="fade-in">
-                <button onClick={() => handleMenuClick('dashboard')} className="report-detail-back-btn">
-                    <ArrowLeft size={16} /> 대시보드
-                </button>
-                <h3 className="report-detail-main-title">마음 리포트 상세</h3>
-
-                <div className="report-detail-grid">
-                    {/* 왼쪽 영역: 감정 분석 및 AI 코멘트 */}
-                    <div className="report-detail-left-col">
-                        <div className="report-detail-card main-chart-card">
-                            <div className="chart-header">
-                                <div>
-                                    <h4 className="chart-title">주간 감정 흐름 분석</h4>
-                                    <p className="chart-subtitle">최근 7일간 소현님의 마음 날씨입니다.</p>
-                                </div>
-                                <div className="emotion-status-badge">
-                                    <Smile size={16} className="text-[#8BA888]" />
-                                    <span>평온함</span>
-                                </div>
-                            </div>
-
-                            {/* 그래프 영역 */}
-                            <div className="emotion-chart-container">
-                                <div className="chart-bar h-40-pct"></div>
-                                <div className="chart-bar h-60-pct"></div>
-                                <div className="chart-bar h-30-pct bg-dim"></div>
-                                <div className="chart-bar h-85-pct bg-active"></div>
-                                <div className="chart-bar h-70-pct bg-active"></div>
-                                <div className="chart-bar h-50-pct"></div>
-                                <div className="chart-bar h-90-pct bg-active"></div>
-                            </div>
-                            <div className="chart-labels">
-                                {['월', '화', '수', '목', '금', '토', '일'].map((d) => (
-                                    <span key={d}>{d}</span>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="report-detail-card ai-comment-card">
-                            <h4 className="ai-comment-title">
-                                <MessagesSquare size={20} className="text-[#8BA888]" /> AI 마음 코멘트
-                            </h4>
-                            <div className="ai-comment-bubble">
-                                <p>
-                                    "소현님, 이번 주에는 평소보다 직장에서의 인간관계에 대한 고민이 많으셨네요. 하지만
-                                    상담을 통해 감정을 객관화하려는 노력이 엿보여요. 목요일 이후로 감정 상태가 눈에 띄게
-                                    회복된 것은 아주 긍정적인 신호입니다. 자신을 다독이는 시간을 조금 더 가져보세요."
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 오른쪽 영역: 에너지 바 및 추천 테라피 */}
-                    <div className="report-detail-right-col">
-                        <div className="report-detail-card energy-card">
-                            <h4 className="energy-title">현재 마음 에너지</h4>
-                            <div className="energy-item-list">
-                                <div className="energy-item">
-                                    <div className="energy-info">
-                                        <span className="label">회복 탄력성</span>
-                                        <span className="value text-primary">72%</span>
-                                    </div>
-                                    <div className="progress-bar">
-                                        <div className="progress-fill" style={{ width: '72%' }}></div>
-                                    </div>
-                                </div>
-                                <div className="energy-item">
-                                    <div className="energy-info">
-                                        <span className="label">스트레스 조절</span>
-                                        <span className="value text-muted">48%</span>
-                                    </div>
-                                    <div className="progress-bar">
-                                        <div className="progress-fill bg-warning" style={{ width: '48%' }}></div>
-                                    </div>
-                                </div>
-                                <div className="energy-item">
-                                    <div className="energy-info">
-                                        <span className="label">자아 긍정</span>
-                                        <span className="value text-primary">65%</span>
-                                    </div>
-                                    <div className="progress-bar">
-                                        <div className="progress-fill" style={{ width: '65%' }}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="report-detail-card therapy-card">
-                            <h4 className="therapy-title">추천 테라피</h4>
-                            <div className="therapy-content-box">
-                                <div className="therapy-icon-wrapper">
-                                    <Clock size={20} />
-                                </div>
-                                <div>
-                                    <p className="therapy-name">명상 10분</p>
-                                    <p className="therapy-desc">호흡에 집중해 보세요</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    // 개인정보 수정 저장
-    const handleSaveProfile = async () => {
-        try {
-            await updateUserInfo({
-                id: userInfo.id,
-                full_name: userInfo.name,
-                email: userInfo.email,
-                phone_number: userInfo.phone,
-            });
-            alert('개인정보가 성공적으로 수정되었습니다.');
-        } catch (e) {
-            alert('개인정보 수정에 실패했습니다.');
-        }
-    };
-
-    // 비밀번호 변경 핸들러
-    const handleChangePassword = async () => {
-        if (!pwFields.current || !pwFields.new1 || !pwFields.new2) {
-            alert('모든 비밀번호 입력란을 채워주세요.');
-            return;
-        }
-        if (pwFields.new1.length < 8 || !/[A-Za-z]/.test(pwFields.new1) || !/[0-9]/.test(pwFields.new1)) {
-            alert('새 비밀번호는 8자 이상, 영문+숫자를 포함해야 합니다.');
-            return;
-        }
-        if (pwFields.new1 !== pwFields.new2) {
-            alert('새 비밀번호가 일치하지 않습니다.');
-            return;
-        }
-        setPwLoading(true);
-        try {
-            await changePassword({
-                user_id: userInfo.id,
-                current_password: pwFields.current,
-                new_password: pwFields.new1,
-            });
-            alert('비밀번호가 성공적으로 변경되었습니다.');
-            setPwFields({ current: '', new1: '', new2: '' });
-        } catch (e) {
-            if (e?.response?.data?.detail) {
-                alert(e.response.data.detail);
-            } else {
-                alert('비밀번호 변경에 실패했습니다.');
-            }
-        } finally {
-            setPwLoading(false);
-        }
     };
 
     const renderPersonalEdit = () => {
         return (
-            <div className="fade-in w-full">
-                {/* 프로필 및 기본 정보 섹션 */}
+            <div className="fade-in mp-w-full">
                 <div className="profile-edit-section">
                     <div className="profile-upper-layout">
                         <div className="profile-image-container">
@@ -563,35 +684,66 @@ export default function App() {
                             <p className="profile-change-text">프로필 사진 변경</p>
                             <p className="profile-change-sub">나를 잘 나타내는 사진을 등록해 주세요.</p>
                         </div>
-
                         <div className="profile-info-fields">
-                            <div>
-                                <label className="input-label">이름</label>
-                                <div className="relative-input-box">
-                                    <User className="input-icon" size={20} />
-                                    <input
-                                        type="text"
-                                        className="custom-input"
-                                        value={userInfo.name}
-                                        onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
-                                    />
+                            <div className="profile-info-row">
+                                <div className="profile-info-half">
+                                    <label className="input-label">이름</label>
+                                    <div className="relative-input-box">
+                                        <User className="input-icon" size={20} />
+                                        <input
+                                            type="text"
+                                            className="custom-input"
+                                            value={userInfo.name}
+                                            onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="profile-info-half">
+                                    <label className="input-label">성별</label>
+                                    <div className="relative-input-box">
+                                        <input
+                                            type="text"
+                                            className="custom-input bg-readonly"
+                                            value={
+                                                userInfo.gender === 'female'
+                                                    ? '여성'
+                                                    : userInfo.gender === 'male'
+                                                      ? '남성'
+                                                      : ''
+                                            }
+                                            readOnly
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="input-label">휴대폰 번호</label>
-                                <div className="relative-input-box">
-                                    <Phone className="input-icon" size={20} />
-                                    <input
-                                        type="tel"
-                                        className="custom-input"
-                                        value={userInfo.phone}
-                                        onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
-                                    />
+                            <div className="profile-info-row">
+                                <div className="profile-info-half">
+                                    <label className="input-label">생년월일</label>
+                                    <div className="relative-input-box">
+                                        <Calendar className="input-icon" size={20} />
+                                        <input
+                                            type="date"
+                                            className="custom-input"
+                                            value={userInfo.birth}
+                                            onChange={(e) => setUserInfo({ ...userInfo, birth: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="profile-info-half">
+                                    <label className="input-label">휴대폰 번호</label>
+                                    <div className="relative-input-box">
+                                        <Phone className="input-icon" size={20} />
+                                        <input
+                                            type="tel"
+                                            className="custom-input"
+                                            value={userInfo.phone}
+                                            onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                     <div className="profile-readonly-grid">
                         <div className="grid-col-1">
                             <label className="input-label">아이디</label>
@@ -612,17 +764,15 @@ export default function App() {
                                 <Mail className="input-icon" size={20} />
                                 <input
                                     type="email"
-                                    className="custom-input bg-readonly"
+                                    className="custom-input"
                                     value={userInfo.email}
-                                    readOnly
+                                    onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
                                 />
                             </div>
-                            <p className="input-helper-text">* 이메일은 가입 시 고유 정보로 변경할 수 없습니다.</p>
+                            <p className="input-helper-text">* 이메일은 수정 가능합니다.</p>
                         </div>
                     </div>
                 </div>
-
-                {/* 보안 설정 섹션 (비밀번호 변경) */}
                 <div className="profile-edit-section">
                     <h4 className="security-section-title">
                         <div className="security-icon-box">
@@ -679,7 +829,7 @@ export default function App() {
                             </div>
                         </div>
                         <button
-                            className="profile-save-full-btn mt-2"
+                            className="profile-save-full-btn mp-mt-2"
                             onClick={handleChangePassword}
                             disabled={pwLoading}
                             style={{ opacity: pwLoading ? 0.6 : 1 }}
@@ -688,109 +838,114 @@ export default function App() {
                         </button>
                     </div>
                 </div>
-
-                <button className="profile-save-full-btn" onClick={handleSaveProfile}>
-                    <CheckCircle2 size={24} />
-                    변경 사항 안전하게 저장하기
-                </button>
-            </div>
-        );
-    };
-
-    const renderNotificationEdit = () => {
-        const settings = [
-            { key: 'session', title: '상담 일정 알림', desc: '예약된 상담 시간 및 변동 사항을 알려드려요.' },
-            { key: 'report', title: '마음 리포트 알림', desc: '분석이 완료된 나만의 리포트 도착 소식을 알려드려요.' },
-            { key: 'service', title: '서비스 공지사항', desc: '점검 안내 등 서비스 이용에 필요한 정보를 알려드려요.' },
-            { key: 'marketing', title: '이벤트 및 혜택 알림', desc: '새로운 프로그램과 할인 쿠폰 정보를 받아보세요.' },
-        ];
-
-        return (
-            <div className="fade-in w-full">
-                <div className="notif-settings-container">
-                    <div className="notif-list-wrapper">
-                        {settings.map((item) => (
-                            <div key={item.key} className="notif-toggle-item group">
-                                <div className="notif-item-content">
-                                    <p className="notif-item-title">{item.title}</p>
-                                    <p className="notif-item-desc">{item.desc}</p>
-                                </div>
-                                <button
-                                    onClick={() => toggleNotif(item.key)}
-                                    className={`notif-toggle-btn ${notifSettings[item.key] ? 'active' : 'inactive'}`}
-                                >
-                                    {notifSettings[item.key] ? (
-                                        <ToggleRight size={56} strokeWidth={1.2} />
-                                    ) : (
-                                        <ToggleLeft size={56} strokeWidth={1.2} />
-                                    )}
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="notif-alert-box">
-                        <AlertCircle size={24} className="notif-alert-icon" />
-                        <p className="notif-alert-text">
-                            기기 전체 알림이 꺼져있을 경우 앱 설정을 켜도 알림이 전송되지 않을 수 있습니다. 휴대폰의{' '}
-                            <span className="notif-alert-highlight">설정 {' > '} 알림</span> 메뉴에서 마인드웰의 '알림
-                            허용' 상태를 확인해 주세요.
-                        </p>
-                    </div>
+                <div className="profile-save-btn-row">
+                    <button className="profile-save-full-btn" onClick={handleSaveProfile}>
+                        <CheckCircle2 size={20} />
+                        변경 사항 안전하게 저장하기
+                    </button>
                 </div>
             </div>
         );
     };
 
+    const renderNotificationEdit = () => {
+        return <NotificationSettings notifSettings={notifSettings} toggleNotif={toggleNotif} />;
+    };
+
     const renderQuitService = () => {
         return (
-            <div className="fade-in w-full text-center">
-                <div className="withdraw-container">
-                    <div className="withdraw-header">
-                        <div className="withdraw-icon-box">
-                            <UserX size={48} />
-                        </div>
-                        <h4 className="withdraw-title">정말 마인드웰을 떠나시나요?</h4>
-                        <p className="withdraw-subtitle">탈퇴하시면 지금까지 쌓아온 소중한 기록들이 사라집니다.</p>
+            <div className="wd-page-container">
+                <div className="wd-inner-wrapper">
+                    <div className="wd-header">
+                        <button className="wd-back-btn" onClick={() => setActiveSubMenu(null)}>
+                            <ArrowLeft size={16} /> 계정 설정으로 돌아가기
+                        </button>
+                        <h2 className="wd-page-title">서비스 탈퇴</h2>
+                        <p className="wd-page-subtitle">탈퇴 시 소중한 기록들이 모두 삭제됩니다.</p>
                     </div>
-
-                    <div className="withdraw-notice-box">
-                        <div className="withdraw-notice-item">
-                            <span className="notice-number">1</span>
-                            <p className="notice-text">
-                                보유 중인 모든 상담권({ticketCount}회)과 포인트가 즉시 소멸되며 환불이 불가능합니다.
-                            </p>
+                    <div className="wd-withdraw-wrapper wd-fade-in">
+                        <div className="wd-top-grid">
+                            <div className="wd-notice-card">
+                                <h4 className="wd-card-title">탈퇴 시 삭제되는 항목</h4>
+                                <div className="wd-notice-list">
+                                    <div className="wd-notice-item">
+                                        <div className="wd-notice-bullet" />
+                                        <div>
+                                            <p className="wd-notice-label">보유 이용권 및 포인트 즉시 소멸</p>
+                                            <p className="wd-notice-sub">환불 불가 — 탈퇴 전 사용을 권장드려요.</p>
+                                        </div>
+                                    </div>
+                                    <div className="wd-notice-item">
+                                        <div className="wd-notice-bullet" />
+                                        <div>
+                                            <p className="wd-notice-label">상담 히스토리 전체 삭제</p>
+                                            <p className="wd-notice-sub">
+                                                기록은 복구되지 않으며, 영구적으로 제거됩니다.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="wd-notice-item">
+                                        <div className="wd-notice-bullet" />
+                                        <div>
+                                            <p className="wd-notice-label">동일 정보로 30일간 재가입 불가</p>
+                                            <p className="wd-notice-sub">이메일과 전화번호 기준으로 제한됩니다.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="wd-stats-column">
+                                <div className="wd-stat-card">
+                                    <p className="wd-stat-label">잔여 이용권</p>
+                                    <div>
+                                        <span className="wd-stat-value">{ticketCount}</span>
+                                        <span className="wd-stat-unit">회</span>
+                                    </div>
+                                    <p className="wd-stat-warning">탈퇴 시 환불 불가</p>
+                                </div>
+                                <div className="wd-stat-card">
+                                    <p className="wd-stat-label">완료한 상담</p>
+                                    <div>
+                                        <span className="wd-stat-value">{completedConsultations}</span>
+                                        <span className="wd-stat-unit">회</span>
+                                    </div>
+                                    <p className="wd-stat-warning">기록 전체 삭제</p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="withdraw-notice-item">
-                            <span className="notice-number">2</span>
-                            <p className="notice-text">
-                                지금까지 작성된 모든 마음 리포트와 상담 히스토리(기록지)가 영구 삭제됩니다.
-                            </p>
-                        </div>
-                        <div className="withdraw-notice-item">
-                            <span className="notice-number">3</span>
-                            <p className="notice-text">탈퇴 후 30일간은 동일한 정보로 재가입이 불가능합니다.</p>
+                        <div className="wd-bottom-card">
+                            <label className="wd-agree-box">
+                                <div className="wd-checkbox-wrapper">
+                                    <input
+                                        type="checkbox"
+                                        checked={withdrawAgree}
+                                        onChange={(e) => setWithdrawAgree(e.target.checked)}
+                                    />
+                                    <div className="wd-check-display">
+                                        {withdrawAgree && <Check size={11} strokeWidth={4} />}
+                                    </div>
+                                </div>
+                                <span className="wd-agree-text">위 유의사항을 모두 확인하였으며 이에 동의합니다.</span>
+                            </label>
+                            <button
+                                className="wd-delete-btn"
+                                onClick={handleDeleteAccount}
+                                disabled={!withdrawAgree || withdrawLoading}
+                            >
+                                {withdrawLoading ? '처리 중...' : '마인드웰 계정 영구 삭제'}
+                            </button>
+                            <div className="wd-suggestion-box">
+                                <Lightbulb size={16} className="wd-suggestion-icon" />
+                                <p>
+                                    탈퇴 대신{' '}
+                                    <span className="wd-highlight" onClick={() => setActiveSubMenu('notification')}>
+                                        알림 설정
+                                    </span>
+                                    이나 <span className="wd-highlight">상담 일시 중지</span>를 이용해 보세요. 언제든지
+                                    다시 돌아오실 수 있어요.
+                                </p>
+                            </div>
                         </div>
                     </div>
-
-                    <label className="withdraw-agree-label group">
-                        <input
-                            type="checkbox"
-                            className="withdraw-checkbox"
-                            checked={withdrawAgree}
-                            onChange={(e) => setWithdrawAgree(e.target.checked)}
-                        />
-                        <span className="withdraw-agree-text">위 유의사항을 모두 확인하였으며, 이에 동의합니다.</span>
-                    </label>
-
-                    <button
-                        className="withdraw-submit-btn"
-                        onClick={handleDeleteAccount}
-                        disabled={!withdrawAgree || withdrawLoading}
-                        style={{ opacity: !withdrawAgree || withdrawLoading ? 0.6 : 1 }}
-                    >
-                        {withdrawLoading ? '처리 중...' : '마인드웰 계정 영구 삭제'}
-                    </button>
                 </div>
             </div>
         );
@@ -806,10 +961,14 @@ export default function App() {
             quit: { title: '서비스 탈퇴', desc: '탈퇴 시 소중한 기록들이 모두 삭제됩니다.' },
         };
 
+        if (activeSubMenu === 'quit') {
+            return renderQuitService();
+        }
+
         const current = details[activeSubMenu];
 
         return (
-            <div className="fade-in w-full">
+            <div className="fade-in mp-w-full">
                 <div className="submenu-container">
                     <div className="submenu-header-section">
                         <button onClick={() => setActiveSubMenu(null)} className="submenu-back-btn">
@@ -818,13 +977,104 @@ export default function App() {
                         <h3 className="submenu-main-title">{current.title}</h3>
                         <p className="submenu-description">{current.desc}</p>
                     </div>
-
                     <div className="submenu-content-area">
                         {activeSubMenu === 'personal' && renderPersonalEdit()}
                         {activeSubMenu === 'notification' && renderNotificationEdit()}
-                        {activeSubMenu === 'quit' && renderQuitService()}
                     </div>
                 </div>
+            </div>
+        );
+    };
+
+    const renderInquiryList = () => {
+        const inquiryList = [
+            {
+                id: 1,
+                title: '상담 예약 관련 문의',
+                content: '상담 예약이 정상적으로 되었는지 확인 부탁드립니다.',
+                date: '2026.04.20',
+                status: '답변 완료',
+                answer: '안녕하세요. 상담 예약이 정상적으로 완료되었습니다. 예약 시간에 맞춰 방문해 주세요.',
+            },
+            {
+                id: 2,
+                title: '결제 환불 요청',
+                content: '결제한 이용권 환불이 가능한가요?',
+                date: '2026.04.15',
+                status: '처리 중',
+                answer: null,
+            },
+            {
+                id: 3,
+                title: '상담사 변경 문의',
+                content: '상담사 변경을 원합니다.',
+                date: '2026.04.10',
+                status: '답변 완료',
+                answer: '상담사 변경이 완료되었습니다. 새로운 상담사와의 일정을 확인해 주세요.',
+            },
+        ];
+
+        return (
+            <div className="fade-in">
+                <h3 className="mypage-section-title">문의내역</h3>
+                <ul className="mypage-list mypage-list-grid">
+                    {inquiryList.map((item) => (
+                        <li key={item.id} className="mypage-list-item">
+                            <div className="mypage-list-title">{item.title}</div>
+                            <div className="mypage-list-meta">
+                                {item.date} <span className="mypage-list-status">{item.status}</span>
+                            </div>
+                            <div className="mypage-list-content">{item.content}</div>
+                            {item.answer && (
+                                <button
+                                    className="inquiry-answer-btn"
+                                    onClick={() => setOpenInquiryId(openInquiryId === item.id ? null : item.id)}
+                                >
+                                    {openInquiryId === item.id ? '답변 닫기' : '답변 보기'}
+                                </button>
+                            )}
+                            {item.answer && openInquiryId === item.id && (
+                                <div className="inquiry-answer-box">
+                                    <div className="inquiry-answer-label">관리자 답변</div>
+                                    <div className="inquiry-answer-content">{item.answer}</div>
+                                </div>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        );
+    };
+
+    const renderFavoritesList = () => {
+        return (
+            <div className="fade-in">
+                <h3 className="mypage-section-title">찜내역</h3>
+                <ul className="mypage-list mypage-list-grid">
+                    {favoritesList.map((item) => (
+                        <li
+                            key={item.id}
+                            className="mypage-list-item mypage-favorite-item"
+                            onClick={() => navigate('/counselor-detail/' + item.id)}
+                        >
+                            <Heart
+                                size={22}
+                                color="#e74c3c"
+                                fill="#e74c3c"
+                                className="mypage-favorite-heart"
+                                onClick={(e) => handleUnfavorite(item.id, e)}
+                                title="찜 취소"
+                            />
+                            <div className="mypage-favorite-content">
+                                <div className="mypage-list-title">
+                                    {item.name} <span className="mypage-list-type">[{item.type}]</span>
+                                </div>
+                                <div className="mypage-list-meta">{item.date}</div>
+                                <div className="mypage-list-content">{item.desc}</div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
             </div>
         );
     };
@@ -837,18 +1087,18 @@ export default function App() {
         switch (activeMenu) {
             case 'history':
                 return renderHistoryDetail();
+            case 'inquiry':
+                return renderInquiryList();
+            case 'favorites':
+                return renderFavoritesList();
             case 'tickets':
                 return renderTicketsDetail();
-            case 'diary':
-                return renderDiaryDetail();
+            case 'support':
+                return renderSupportCenter();
             case 'profile':
                 return (
                     <div className="fade-in">
-                        <button onClick={() => handleMenuClick('dashboard')} className="account-main-back-btn">
-                            <ArrowLeft size={16} /> 돌아가기
-                        </button>
                         <h3 className="account-main-title">계정 설정</h3>
-
                         <div className="setting-items-list">
                             {[
                                 { key: 'personal', label: '개인정보 수정 및 보안', icon: User, type: 'personal' },
@@ -857,7 +1107,7 @@ export default function App() {
                             ].map((item) => (
                                 <div
                                     key={item.key}
-                                    className="setting-item-card group"
+                                    className="setting-item-card"
                                     onClick={() => setActiveSubMenu(item.key)}
                                 >
                                     <div className="setting-item-left">
@@ -870,7 +1120,6 @@ export default function App() {
                                 </div>
                             ))}
                         </div>
-
                         <div className="account-logout-section">
                             <button className="account-logout-btn" onClick={handleLogout}>
                                 <LogOut size={20} />
@@ -882,13 +1131,12 @@ export default function App() {
             default:
                 return (
                     <div className="fade-in">
-                        {/* 상단 상태 그리드 */}
                         <div className="dash-status-grid">
                             <div className="dash-status-item" onClick={() => handleMenuClick('tickets')}>
                                 <div className="status-icon-box bg-amber">
                                     <Wallet size={18} />
                                 </div>
-                                <p className="status-label">잔여 상담권</p>
+                                <p className="status-label">잔여 이용권</p>
                                 <p className="status-value">
                                     {ticketCount}
                                     <span className="unit">회</span>
@@ -913,7 +1161,7 @@ export default function App() {
                                 </p>
                             </div>
                         </div>
-                        {/* 다음 상담 예약 히어로 카드 */}
+
                         <div className="dash-hero-card">
                             <div className="hero-content">
                                 <div className="hero-icon-wrapper">
@@ -925,18 +1173,17 @@ export default function App() {
                                         <p className="hero-subtitle">Next Session</p>
                                     </div>
                                     <h3 className="hero-main-title">5월 20일(수) 오후 2:00</h3>
-                                    <p className="hero-desc">이은지 상담사와 1:1 상담 예정</p>
+                                    <p className="mypage-hero-desc">이은지 상담사와 1:1 상담 예정</p>
                                 </div>
                             </div>
                             <button className="hero-action-btn">
-                                상담 상세 보기
-                                <ChevronRight size={18} />
+                                상담 상세 보기 <ChevronRight size={18} />
                             </button>
                         </div>
-                        {/* 최근 상담 기록 리스트 */}
+
                         <div className="dash-section-header">
                             <h3 className="section-title">
-                                <History size={20} className="text-[#8BA888]" /> 최근 상담 기록
+                                <History size={20} className="mp-history-title-icon" /> 최근 상담 기록
                             </h3>
                             <button onClick={() => handleMenuClick('history')} className="section-more-btn">
                                 전체보기
@@ -979,23 +1226,23 @@ export default function App() {
                                 </div>
                             ))}
                         </div>
-                        {/* 상담권 구매 배너 */}
-                        <div className="dash-purchase-banner group" onClick={() => handleMenuClick('tickets')}>
+
+                        <div className="dash-purchase-banner" onClick={() => handleMenuClick('tickets')}>
                             <div className="purchase-info">
                                 <div className="purchase-icon-box">
                                     <Ticket size={18} />
                                 </div>
                                 <div className="purchase-text">
                                     <p className="title">더 많은 위로가 필요하신가요?</p>
-                                    <p className="desc">상담권을 충전하고 마음 케어를 이어가세요.</p>
+                                    <p className="desc">이용권을 충전하고 마음 케어를 이어가세요.</p>
                                 </div>
                             </div>
                             <div className="purchase-action-btn">
-                                {ticketCount > 0 ? '상담권 추가 충전하기' : '상담권 충전하기'}
+                                {ticketCount > 0 ? '이용권 추가 충전하기' : '이용권 충전하기'}
                                 <ChevronRight size={14} />
                             </div>
                         </div>
-                        {/* 모바일 전용 하단 메뉴 */}
+
                         <section className="mobile-only-menu">
                             <h4 className="mobile-menu-label">전체 메뉴</h4>
                             <div className="mobile-menu-group">
@@ -1004,24 +1251,16 @@ export default function App() {
                                     <ChevronRight size={16} />
                                 </div>
                                 <div onClick={() => handleMenuClick('tickets')} className="mobile-menu-item border-b">
-                                    <span>상담권/결제</span>
-                                    <ChevronRight size={16} />
-                                </div>
-                                <div onClick={() => handleMenuClick('diary')} className="mobile-menu-item">
-                                    <span>마음 리포트</span>
+                                    <span>이용권/결제</span>
                                     <ChevronRight size={16} />
                                 </div>
                             </div>
-                            <div className="mobile-menu-group mt-4">
+                            <div className="mobile-menu-group mp-mt-4">
                                 <div onClick={() => handleMenuClick('profile')} className="mobile-menu-item border-b">
                                     <span>계정 설정</span>
                                     <ChevronRight size={16} />
                                 </div>
-                                <div
-                                    className="mobile-menu-item text-rose"
-                                    onClick={handleLogout}
-                                    style={{ cursor: 'pointer' }}
-                                >
+                                <div className="mobile-menu-item text-rose mp-cursor-pointer" onClick={handleLogout}>
                                     <span>로그아웃</span>
                                 </div>
                             </div>
@@ -1033,19 +1272,17 @@ export default function App() {
 
     return (
         <div className="mypage-layout-root">
-            {/* 사이드바 영역 */}
             <aside className="mypage-sidebar">
-                <div className="sidebar-logo-section" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+                <div className="sidebar-logo-section mp-cursor-pointer" onClick={() => navigate('/')}>
                     <h1 className="sidebar-brand-logo">MINDWELL</h1>
                     <p className="sidebar-brand-sub">Mental Health Care</p>
                 </div>
-
                 <nav className="sidebar-nav-list">
                     <div
                         onClick={() => handleMenuClick('dashboard')}
                         className={`sidebar-nav-item ${activeMenu === 'dashboard' ? 'is-active' : ''}`}
                     >
-                        <LayoutDashboard size={20} />
+                        <Settings size={20} />
                         <span>대시보드</span>
                     </div>
                     {menuItems.map((item) => (
@@ -1059,27 +1296,16 @@ export default function App() {
                         </div>
                     ))}
                 </nav>
-
                 <div className="sidebar-footer-nav">
-                    <div className="sidebar-nav-item is-cs-link">
-                        <Headset size={20} className="icon-stone" />
-                        <span>고객센터</span>
-                    </div>
-                    <div
-                        className="sidebar-nav-item is-logout-link"
-                        onClick={handleLogout}
-                        style={{ cursor: 'pointer' }}
-                    >
+                    {/* 고객센터 사이드바 제거됨 */}
+                    <div className="sidebar-nav-item is-logout-link mp-cursor-pointer" onClick={handleLogout}>
                         <LogOut size={20} />
                         <span>로그아웃</span>
                     </div>
                 </div>
             </aside>
 
-            {/* 메인 콘텐츠 영역 */}
             <main className="mypage-content-area">
-                {/* <Header/> */}
-
                 <div className="user-welcome-header">
                     <div className="user-profile-summary" onClick={() => handleMenuClick('dashboard')}>
                         <div className="user-avatar-box">
@@ -1092,16 +1318,12 @@ export default function App() {
                             <p className="user-status-msg">마음 근육을 키운 지 42일째 되는 날이에요. 🌿</p>
                         </div>
                     </div>
-
                     <button className="user-notif-check-btn">
                         <Bell size={18} className="icon-green" />
                         알림 확인
                     </button>
                 </div>
-
                 <div className="dynamic-render-content">{renderContent()}</div>
-
-                {/* <Footer/> */}
             </main>
         </div>
     );

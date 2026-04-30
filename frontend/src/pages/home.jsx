@@ -1,266 +1,281 @@
-import React, { useState, useEffect } from 'react';
-import Header from '../components/header.jsx';
-import Footer from '../components/footer.jsx';
-import MobileTap from '../components/mobileTap.jsx';
-import {
-    Bell,
-    Calendar,
-    Video,
-    ChevronRight,
-    Home,
-    UserCircle,
-    Coffee,
-    Activity,
-    CalendarHeart,
-    Search,
-    BookOpen,
-    Sparkles,
-    TrendingUp,
-    Smile,
-    Frown,
-    Zap,
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import '../static/Home.css';
+import React, { useState } from 'react';
+import { Calendar, ChevronRight, PenTool, MapPin, Clock, Heart, Coffee, User, Lock } from 'lucide-react';
+import '../static/home.css';
+import Header from '../components/header';
+import Footer from '../components/footer';
+import MobileTap from '../components/mobileTap';
 
-export default function App() {
+// --- 마음 챙김 가이드 데이터 ---
+const MIND_GUIDES = [
+    {
+        id: 1,
+        category: 'SLEEP CARE',
+        title: '깊은 밤, 숙면을 돕는 릴렉스 가이드',
+        imgUrl: 'https://cdn.pixabay.com/photo/2016/01/20/11/11/baby-1151351_1280.jpg',
+        fallbackImg: 'https://images.unsplash.com/photo-1513694490325-24b4c241dfb3?q=80&w=800&auto=format&fit=crop',
+        readTime: '15 min read',
+        likes: 412,
+        alt: '평온한 침실과 은은한 조명',
+    },
+    {
+        id: 2,
+        category: 'PSYCHOLOGY',
+        title: "심리학자가 들려주는 '불안'을 다스리는 법",
+        imgUrl: 'https://images.unsplash.com/photo-1499209974431-9dac3adaf471?q=80&w=1200&auto=format&fit=crop',
+        fallbackImg: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop',
+        readTime: '7 min read',
+        likes: 189,
+        alt: '평화로운 숲속 아침 풍경',
+    },
+    {
+        id: 3,
+        category: 'DAILY LIFE',
+        title: '퇴근 길, 지친 마음을 위로하는 플레이리스트',
+        imgUrl: 'https://images.unsplash.com/photo-1459749411177-042180ce673c?q=80&w=1200&auto=format&fit=crop',
+        fallbackImg: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop',
+        readTime: '5 min read',
+        likes: 312,
+        alt: '레코드 플레이어와 따뜻한 차 한잔',
+    },
+    {
+        id: 4,
+        category: 'RELATIONSHIP',
+        title: "건강한 관계를 위한 '거절'의 기술",
+        imgUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1200&auto=format&fit=crop',
+        fallbackImg: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=800&auto=format&fit=crop',
+        readTime: '12 min read',
+        likes: 156,
+        alt: '차분하게 대화하는 두 사람',
+    },
+];
+
+// --- GuideCard 컴포넌트 ---
+const GuideCard = ({ guide }) => (
+    <div className="mwl-guide-card">
+        <div className="mwl-guide-card__img-wrap">
+            <img
+                src={guide.imgUrl}
+                className="mwl-guide-card__img"
+                alt={guide.alt}
+                onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = guide.fallbackImg;
+                }}
+            />
+            <div className="mwl-guide-card__category-badge">{guide.category}</div>
+        </div>
+        <h4 className="mwl-guide-card__title">{guide.title}</h4>
+        <div className="mwl-guide-card__meta">
+            <span className="mwl-guide-card__meta-item">
+                <Clock size={12} /> {guide.readTime}
+            </span>
+            <span className="mwl-guide-card__meta-item">
+                <Heart size={12} className="mwl-guide-card__heart-icon" /> {guide.likes}
+            </span>
+        </div>
+    </div>
+);
+
+// --- Home 컴포넌트 ---
+const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
     const [activeTab, setActiveTab] = useState('home');
-    const [userName, setUserName] = useState('');
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const user = localStorage.getItem('user');
-        if (user) {
-            const userObj = JSON.parse(user);
-            setUserName(userObj.full_name || userObj.username || '');
-        } else {
-            setUserName('');
-        }
-    }, []);
-
-    // 데이터 구성
-
-    const emotionStats = [
-        { label: '행복/기쁨', value: 65, color: '#8BA888', icon: Smile },
-        { label: '스트레스', value: 20, color: '#FCD34D', icon: Zap },
-        { label: '불안/우울', value: 15, color: '#FDA4AF', icon: Frown },
-    ];
-
-    // record-btn 클릭 핸들러
-    const handleRecordClick = () => {
-        const user = localStorage.getItem('user');
-        if (!user) {
-            alert('로그인 후 이용 가능합니다.');
-            navigate('/login');
-            return;
-        }
-        // 로그인 상태라면 실제 기록 페이지로 이동 등 추가 동작 구현 가능
-    };
-
     return (
-        <div className="app-container">
-            <Header activeTab={activeTab} setActiveTab={setActiveTab} />
-            {/* 2. 모바일 전용 검색바 */}
-            <section className="mobile-search-section">
-                <div className="search-container">
-                    <div className="search-input-wrapper">
-                        <Search className="search-icon" size={20} />
-                        <input type="text" placeholder="전문가 찾기" className="search-input" />
-                    </div>
-                </div>
-            </section>
-
-            {/* 3. 메인 콘텐츠 */}
-            <main className="main-content">
-                <div className="main-grid">
-                    {/* 콘텐츠 영역 (좌측/중앙) */}
-                    <div className="content-col">
-                        {/* Hero 카드 */}
-                        <section className="hero-section">
-                            <div className="hero-content">
-                                <div>
-                                    <span className="emotion-badge">Emotion Care</span>
-                                    <h2 className="hero-title">
-                                        {userName && (
-                                            <>
-                                                {userName}님, <br />
-                                            </>
-                                        )}
-                                        지금 마음은 <span className="highlight-text">안녕</span>한가요?
-                                    </h2>
-                                    <p className="home-hero-desc">
-                                        오늘의 감정을 기록하면 AI가 소현님의 마음 상태를 분석해 가장 따뜻한 처방을
-                                        내려드려요.
-                                    </p>
-                                </div>
-                                <div className="hero-emoji">😊</div>
-                            </div>
-                            <button className="record-btn" onClick={handleRecordClick}>
-                                <Sparkles size={20} />
-                                <span>오늘의 마음 기록하기</span>
+        <div className="mwl-root">
+            <Header
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                userName={userName}
+                setUserName={setUserName}
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+            />
+            <main className="mwl-main">
+                {/* Left Column */}
+                <div className="mwl-col-left">
+                    {/* Welcome Banner */}
+                    <section className="mwl-banner">
+                        <div className="mwl-banner__body">
+                            <span className="mwl-banner__badge">EMOTION CARE</span>
+                            <h2 className="mwl-banner__title">
+                                {isLoggedIn && userName ? (
+                                    <>
+                                        {userName}님,
+                                        <br />
+                                    </>
+                                ) : null}
+                                지금 마음은 안녕한가요?
+                            </h2>
+                            <p className="mwl-banner__desc">
+                                오늘의 감정을 기록하면 AI가 {isLoggedIn && userName ? `${userName}님의` : ''}마음 상태를
+                                분석해
+                                <br />
+                                가장 따뜻한 처방을 내려드려요.
+                            </p>
+                            <button className="mwl-banner__cta">
+                                <PenTool size={18} />
+                                오늘의 마음 기록하기
                             </button>
-                        </section>
+                        </div>
+                        <div className="mwl-banner__emoji-wrap">
+                            <div className="mwl-banner__emoji-circle">😊</div>
+                            <div className="mwl-banner__emoji-badge">✨</div>
+                        </div>
+                    </section>
 
-                        {/* AI 감정 리포트 */}
-                        <section className="report-section">
-                            <div className="report-header">
-                                <div>
-                                    <h3 className="report-title">
-                                        <TrendingUp className="report-icon" size={22} />
-                                        이번 주 감정 리포트
-                                    </h3>
-                                </div>
-                                <div className="report-date">5월 14일 ~ 5월 20일</div>
+                    {/* 마음 챙김 가이드 */}
+                    <section className="mwl-guide-section">
+                        <div className="mwl-guide-section__header">
+                            <div>
+                                <h3 className="mwl-guide-section__title">마음 챙김 가이드</h3>
+                                <p className="mwl-guide-section__subtitle">
+                                    {isLoggedIn && userName ? `${userName}님의` : ''} 최근 상담 주제와 관련된 추천
+                                    콘텐츠입니다.
+                                </p>
                             </div>
+                            <button className="mwl-guide-section__more-btn">
+                                전체보기 <ChevronRight size={14} />
+                            </button>
+                        </div>
+                        <div className="mwl-guide-grid">
+                            {MIND_GUIDES.map((guide) => (
+                                <GuideCard key={guide.id} guide={guide} />
+                            ))}
+                        </div>
+                    </section>
 
-                            <div className="report-grid">
-                                <div className="donut-chart-container">
-                                    <svg className="donut-svg">
-                                        <circle
-                                            cx="88"
-                                            cy="88"
-                                            r="70"
-                                            stroke="#F1F5F9"
-                                            strokeWidth="24"
-                                            fill="transparent"
-                                        />
-                                        <circle
-                                            cx="88"
-                                            cy="88"
-                                            r="70"
-                                            stroke="#8BA888"
-                                            strokeWidth="24"
-                                            fill="transparent"
-                                            strokeDasharray="440"
-                                            strokeDashoffset={440 - (440 * 65) / 100}
-                                            strokeLinecap="round"
-                                        />
-                                        <circle
-                                            cx="88"
-                                            cy="88"
-                                            r="70"
-                                            stroke="#FCD34D"
-                                            strokeWidth="24"
-                                            fill="transparent"
-                                            strokeDasharray="440"
-                                            strokeDashoffset={440 - (440 * 20) / 100}
-                                            transform="rotate(234, 88, 88)"
-                                            strokeLinecap="round"
-                                        />
-                                    </svg>
-                                    <div className="donut-text-container">
-                                        <span className="donut-value">65%</span>
-                                        <span className="donut-label">맑음</span>
+                    {/* Bottom Grid */}
+                    <div className="mwl-bottom-grid">
+                        {/* AI 맞춤 추천 */}
+                        <div className="mwl-widget-card">
+                            <div>
+                                <div className="mwl-widget-card__icon-row">
+                                    <div className="mwl-widget-card__icon-box mwl-widget-card__icon-box--green">
+                                        <User size={16} className="mwl-widget-card__icon--green" />
                                     </div>
+                                    <span className="mwl-widget-card__label">AI 맞춤 추천</span>
                                 </div>
-
-                                <div className="stats-list">
-                                    {emotionStats.map((stat, idx) => (
-                                        <div key={idx} className="stat-item">
-                                            <div className="stat-info">
-                                                <div className="stat-icon-wrap" style={{ color: stat.color }}>
-                                                    <stat.icon size={18} />
-                                                </div>
-                                                <span className="stat-label">{stat.label}</span>
-                                            </div>
-                                            <span className="stat-value-text">{stat.value}%</span>
-                                        </div>
-                                    ))}
-                                </div>
+                                <p className="mwl-widget-card__desc">
+                                    최근 일기 데이터를 통해
+                                    <br />
+                                    <span className="mwl-widget-card__counselor-name">박민우 상담사</span>님을 찾았어요.
+                                </p>
                             </div>
-                        </section>
+                            <button className="mwl-widget-card__cta">
+                                전문가 찾기 <ChevronRight size={14} />
+                            </button>
+                        </div>
 
-                        <div className="card-grid">
-                            {/* AI 맞춤 추천 */}
-                            <section className="recommend-section">
-                                <div className="recommend-content">
-                                    <div className="card-header">
-                                        <div className="card-icon">
-                                            <Activity size={18} />
-                                        </div>
-                                        <h3 className="card-title">AI 맞춤 추천</h3>
+                        {/* 오늘의 힐링 */}
+                        <div className="mwl-widget-card">
+                            <div>
+                                <div className="mwl-widget-card__icon-row">
+                                    <div className="mwl-widget-card__icon-box mwl-widget-card__icon-box--amber">
+                                        <Coffee size={16} className="mwl-widget-card__icon--amber" />
                                     </div>
-                                    <p className="recommend-text">
-                                        최근 일기 데이터를 통해 <br />
-                                        <strong className="recommend-expert">박민우 코치</strong>님을 찾았어요.
+                                    <span className="mwl-widget-card__label">오늘의 힐링</span>
+                                </div>
+                                <div className="mwl-widget-card__healing-body">
+                                    <div className="mwl-widget-card__healing-icon-box">
+                                        <Coffee size={28} className="mwl-widget-card__healing-icon" />
+                                    </div>
+                                    <h4 className="mwl-widget-card__healing-title">카모마일 차 한 잔</h4>
+                                    <p className="mwl-widget-card__healing-desc">
+                                        긴장을 풀어주는 향긋한 차 한 잔 어때요?
                                     </p>
                                 </div>
-                                <button className="recommend-btn">
-                                    <span>전문가 찾기</span>
-                                    <ChevronRight size={16} className="arrow-icon" />
-                                </button>
-                            </section>
-
-                            {/* 오늘의 힐링 */}
-                            <section className="healing-section">
-                                <div className="card-header healing-header">
-                                    <div className="card-icon healing-icon">
-                                        <Coffee size={18} />
-                                    </div>
-                                    <h3 className="card-title">오늘의 힐링</h3>
-                                </div>
-                                <div className="healing-content">
-                                    <div className="healing-icon-large">
-                                        <Coffee size={32} />
-                                    </div>
-                                    <h4 className="healing-title">카모마일 차 한 잔</h4>
-                                    <p className="healing-desc">긴장을 풀어주는 향긋한 차 한 잔 어때요?</p>
-                                </div>
-                            </section>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* 서브 컬럼 (사이드바) */}
-                    <div className="sidebar-col">
-                        <section className="reservation-section">
-                            <div className="reservation-header">
-                                <h3 className="reservation-title">
-                                    <CalendarHeart size={20} className="res-title-icon" />
-                                    <span>예약 현황</span>
-                                </h3>
-                                <button className="view-all-btn">전체보기</button>
-                            </div>
-
-                            <div className="reservation-list">
-                                {/* 메인 예약 카드 */}
-                                <div className="main-reservation-card">
-                                    <div className="res-card-top">
-                                        <div className="res-icon">
-                                            <Video size={24} />
-                                        </div>
-                                        <span className="res-dday">D-2</span>
-                                    </div>
-                                    <div className="res-info">
-                                        <p className="res-type">화상 심리 상담</p>
-                                        <h4 className="res-name">이은지 코치님</h4>
-                                    </div>
-                                    <div className="res-date-wrap">
-                                        <Calendar size={18} className="res-date-icon" />
-                                        <span className="res-date-text">5월 20일 (수) 오후 2:00</span>
-                                    </div>
-                                </div>
-
-                                {/* 다음 예약 */}
-                                <div className="next-reservation-card">
-                                    <div className="next-res-content">
-                                        <div className="next-res-icon">
-                                            <Activity size={22} />
-                                        </div>
-                                        <div className="next-res-info">
-                                            <p className="next-res-label">Next Week</p>
-                                            <p className="next-res-title">정기 명상 세션</p>
-                                            <p className="next-res-date">5월 27일 (수)</p>
-                                        </div>
-                                        <ChevronRight size={18} className="next-res-arrow" />
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
+                {/* Right Column */}
+                <div className="mwl-col-right">
+                    <div className="mwl-sidebar-header">
+                        <h3 className="mwl-sidebar-header__title">
+                            <Calendar size={18} /> 예약 현황
+                        </h3>
+                        <button className="mwl-sidebar-header__btn">전체보기</button>
                     </div>
+
+                    {/* Primary Appointment */}
+                    <div className={isLoggedIn ? 'mwl-appt-primary' : 'mwl-appt-primary--login-required'}>
+                        {isLoggedIn ? (
+                            <>
+                                <div className="mwl-appt-primary__top-row">
+                                    <div className="mwl-appt-primary__map-icon-box">
+                                        <MapPin size={20} />
+                                    </div>
+                                    <span className="mwl-appt-primary__d-badge">D-2</span>
+                                </div>
+                                <p className="mwl-appt-primary__type">대면 심리 상담</p>
+                                <h4 className="mwl-appt-primary__name">이은지 상담사님</h4>
+                                <div className="mwl-appt-primary__datetime-box">
+                                    <Calendar size={14} />
+                                    5월 20일 (수) 오후 2:00
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="mwl-appt-primary__lock-icon">
+                                    <Lock size={24} />
+                                </div>
+                                <span>
+                                    상담 예약 및 관리 기능은
+                                    <br />
+                                    <strong>로그인 후</strong> 이용할 수 있습니다.
+                                </span>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Upcoming */}
+                    {isLoggedIn && (
+                        <div className="mwl-upcoming-list">
+                            <h4 className="mwl-upcoming-list__label">다가오는 예약</h4>
+                            <div className="mwl-appt-card">
+                                <div className="mwl-appt-card__top">
+                                    <div className="mwl-appt-card__info">
+                                        <div className="mwl-appt-card__icon-box">
+                                            <MapPin size={16} />
+                                        </div>
+                                        <div>
+                                            <h5 className="mwl-appt-card__type">정기 대면 상담</h5>
+                                            <p className="mwl-appt-card__counselor">김준서 상담사님</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight size={16} className="mwl-appt-card__chevron" />
+                                </div>
+                                <div className="mwl-appt-card__datetime">
+                                    <Calendar size={12} className="mwl-appt-card__cal-icon" />
+                                    5월 27일 (수) 오후 4:00
+                                </div>
+                            </div>
+                            <div className="mwl-appt-card mwl-appt-card--dimmed">
+                                <div className="mwl-appt-card__top">
+                                    <div className="mwl-appt-card__info">
+                                        <div className="mwl-appt-card__icon-box">
+                                            <MapPin size={16} />
+                                        </div>
+                                        <div>
+                                            <h5 className="mwl-appt-card__type">심리 인지 검사</h5>
+                                            <p className="mwl-appt-card__counselor">최유리 상담사님</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight size={16} className="mwl-appt-card__chevron" />
+                                </div>
+                                <div className="mwl-appt-card__datetime">
+                                    <Calendar size={12} className="mwl-appt-card__cal-icon" />
+                                    6월 03일 (수) 오후 1:30
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
             <Footer />
             <MobileTap />
         </div>
     );
-}
+};
+
+export default Home;

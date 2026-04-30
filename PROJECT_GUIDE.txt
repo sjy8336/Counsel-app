@@ -155,6 +155,10 @@ FastAPI 실행할 때
 cd backend
 uvicorn app.main:app --reload
 
+가상환경키는 명령어
+# 가상환경 활성화 (zsh/macOS 기준)
+source venv/bin/activate
+
 ---------------------------------------------------------------------
 깃 저장소, 브랜치 생성 및 연결
 
@@ -210,7 +214,7 @@ git pull
 
 # 3. 내 작업 브랜치로 이동
 git checkout feature/ui
-
+git
 # 4. 깃허브의 dev 브랜치 내용을 내 작업 브랜치로 바로 합치기
 git merge dev
 

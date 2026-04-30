@@ -1,330 +1,671 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../static/CounselorMyPage.css';
 import {
     LayoutDashboard,
-    Clock,
-    Database,
-    User,
-    Settings,
     Bell,
+    Settings,
     LogOut,
-    MapPin,
-    Check,
-    X,
-    ChevronRight,
     HeadphonesIcon,
-    ArrowLeft,
-    Calendar,
+    ChevronRight,
     MessageCircle,
-    Search,
-    Users,
     MessageSquare,
     AlertCircle,
-    ShieldCheck,
     HelpCircle,
     FileText,
-    ClipboardList,
-    Send,
-    MoreVertical,
+    User,
+    Check,
+    X,
+    Calendar,
+    Clock,
+    Menu,
+    Trash2,
+    UserCog,
+    BellRing,
+    ChevronDown,
+    ChevronLeft,
 } from 'lucide-react';
 
-const todaySchedules = [
-    {
-        id: 1,
-        time: '10:00',
-        name: '김소현',
-        room: '상담 1실',
-        status: '상담 예정',
-        note: '대인관계 갈등 심화',
-        age: '24세',
-        gender: '여성',
-    },
-    {
-        id: 2,
-        time: '14:00',
-        name: '이민준',
-        room: '상담 3실',
-        status: '상담 예정',
-        note: '직장 스트레스',
-        age: '31세',
-        gender: '남성',
-    },
-    {
-        id: 3,
-        time: '16:30',
-        name: '박지영',
-        room: '상담 2실',
-        status: '상담 완료',
-        note: '불안 증세 완화 중',
-        age: '29세',
-        gender: '여성',
-    },
-];
+const uid = () => Date.now() + Math.random();
+const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+const timeOptions = Array.from({ length: 30 }, (_, index) => {
+    const totalMinutes = 9 * 60 + index * 30;
+    const hour = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+    const minute = String(totalMinutes % 60).padStart(2, '0');
+    return `${hour}:${minute}`;
+});
 
-const clientConsultationHistory = [
-    {
-        id: 501,
-        date: '2024.05.10',
-        session: '11회차',
-        type: '대면',
-        title: '자존감 향상 및 자기 수용',
-        content: '지난 과제였던 자기 긍정 일기를 성실히 작성함. 사회적 상황에서의 회피 반응이 소폭 감소한 것으로 보임.',
-    },
-    {
-        id: 502,
-        date: '2024.04.26',
-        session: '10회차',
-        type: '화상',
-        title: '가족 관계 내 경계 설정',
-        content:
-            '부모님과의 갈등 상황에서 자신의 감정을 차분하게 전달하는 연습을 진행함. 정서적 독립에 대한 욕구가 강해짐.',
-    },
-    {
-        id: 503,
-        date: '2024.04.12',
-        session: '9회차',
-        type: '대면',
-        title: '초기 불안 증세 조절',
-        content: '호흡 명상을 통해 신체화 증상을 완화하는 기법을 익힘. 수면의 질이 이전보다 개선되었다고 보고함.',
-    },
-];
-
-const pendingRequests = [
-    { id: 101, name: '정현우', date: '2024.05.25', topic: '무기력증 및 우울감', age: '32세', gender: '남성' },
-    { id: 102, name: '한수지', date: '2024.05.26', topic: '사회적 불안 장애', age: '26세', gender: '여성' },
-];
-
-const unreadMessages = [
-    { id: 201, name: '최유진', content: '선생님, 오늘 숙제 다 했어요!', time: '10분 전' },
-    { id: 202, name: '김소현', content: '상담실 위치가 바뀐 건가요?', time: '35분 전' },
-    { id: 203, name: '이민준', content: '오늘 조금 늦을 것 같습니다.', time: '1시간 전' },
-];
-
-const notificationList = [
-    {
-        id: 301,
-        title: '시스템 공지',
-        content: '내일 오후 2시부터 서버 점검이 예정되어 있습니다.',
-        time: '오전 09:00',
-        type: 'notice',
-    },
-    { id: 302, title: '예약 확정', content: '한수지 님의 대면 상담이 승인되었습니다.', time: '어제', type: 'booking' },
-    { id: 303, title: '메시지함', content: '내담자들과의 최근 대화 내용을 확인하세요.', time: '2일 전', type: 'msg' },
-];
-
-const clientCharts = [
-    { id: 1, name: '김소현', age: '24세', lastVisit: '2024.05.20', count: 12, condition: '주의' },
-    { id: 2, name: '이민준', age: '31세', lastVisit: '2024.05.21', count: 4, condition: '양호' },
-    { id: 3, name: '박지영', age: '29세', lastVisit: '2024.05.15', count: 8, condition: '집중관리' },
-    { id: 4, name: '정현우', age: '32세', lastVisit: '2024.05.22', count: 1, condition: '신규' },
-];
-
-const consultationThreads = [
-    {
-        id: 1,
-        date: '2024년 5월 22일',
-        inquiry: {
-            title: '상담실 위치 변경 관련 문의',
-            content:
-                '안녕하세요 선생님! 다름이 아니라 상담실 위치가 바뀐 건지 여쭤보려고요. 이번 주 상담 때 어디로 가야 할지 확인 부탁드립니다.',
-            time: '오후 2:15',
-            status: '답변완료',
-        },
-        response: {
-            content:
-                '네, 소현 님! 이번 주부터는 2층 1실이 아니라 3층 4실에서 진행하게 되었습니다. 안내 문자가 늦어서 죄송합니다. 3층 엘리베이터에서 내리시면 바로 보이실 거예요.',
-            time: '오후 2:20',
-        },
-    },
-    {
-        id: 2,
-        date: '2024년 5월 20일',
-        inquiry: {
-            title: '다음 상담 일정 조정 요청',
-            content:
-                '선생님 안녕하세요. 다음 주 수요일 상담이 예정되어 있는데, 회사 일정이 급하게 잡혀서 목요일이나 금요일로 변경 가능할까요?',
-            time: '오전 10:30',
-            status: '답변완료',
-        },
-        response: {
-            content:
-                '안녕하세요 소현 님. 목요일 오후 3시 또는 금요일 오전 11시 중 편하신 시간으로 변경 도와드릴게요. 어느 시간이 괜찮으실까요?',
-            time: '오전 11:05',
-        },
-    },
-    {
-        id: 3,
-        date: '2024년 5월 18일',
-        inquiry: {
-            title: '과제 관련 질문',
-            content:
-                '지난 시간에 받은 감정 일기 작성하는 것 관련해서 궁금한 점이 있어요. 하루에 여러 번 작성해도 되나요?',
-            time: '오후 9:45',
-            status: '답변완료',
-        },
-        response: {
-            content:
-                '물론입니다! 하루에 여러 번 작성하셔도 좋아요. 오히려 감정 변화를 더 세밀하게 관찰하실 수 있어 도움이 될 거예요.',
-            time: '오후 10:12',
-        },
-    },
-];
-
-const conditionBadgeClass = (c) => {
-    if (c === '주의') return 'mw-badge mw-badge-pending';
-    if (c === '집중관리') return 'mw-badge mw-badge-critical';
-    return 'mw-badge mw-badge-done';
+const formatMonthValue = (value) => {
+    if (!value) return '';
+    const [year, month] = value.split('-');
+    return `${year}년 ${Number(month)}월`;
 };
 
-const SimpleHeader = ({ title, sub }) => (
-    <div style={{ marginBottom: '32px' }}>
+const formatDateValue = (value) => {
+    if (!value) return '';
+    const [year, month, day] = value.split('-');
+    return `${year}년 ${Number(month)}월 ${Number(day)}일`;
+};
+
+const isTimeBefore = (leftTime, rightTime) => {
+    if (!leftTime || !rightTime) return false;
+    return leftTime < rightTime;
+};
+
+const isTodayDate = (year, month, day) => {
+    const today = new Date();
+    return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+};
+
+const useOutsideClose = (open, ref, onClose) => {
+    useEffect(() => {
+        if (!open) return undefined;
+        const handleMouseDown = (event) => {
+            if (ref.current && !ref.current.contains(event.target)) {
+                onClose();
+            }
+        };
+        document.addEventListener('mousedown', handleMouseDown);
+        return () => document.removeEventListener('mousedown', handleMouseDown);
+    }, [open, onClose, ref]);
+};
+
+const MonthPicker = ({ value, onChange, icon = true, placeholder = '', className = '' }) => {
+    const [open, setOpen] = useState(false);
+    const [viewYear, setViewYear] = useState(() => {
+        if (value) return Number(value.split('-')[0]);
+        return new Date().getFullYear();
+    });
+    const ref = useRef(null);
+    const months = Array.from({ length: 12 }, (_, index) => index + 1);
+
+    useOutsideClose(open, ref, () => setOpen(false));
+
+    const handleSelect = (year, month) => {
+        onChange(`${year}-${String(month).padStart(2, '0')}`);
+        setOpen(false);
+    };
+
+    return (
+        <div className={`mw-monthpicker-wrap ${className}`.trim()} ref={ref}>
+            <button
+                type="button"
+                className={`mw-monthpicker-input${value ? ' filled' : ''}`}
+                onClick={() => setOpen((prev) => !prev)}
+            >
+                {icon && (
+                    <span className="mw-picker-input-icon">
+                        <Calendar size={15} />
+                    </span>
+                )}
+                <span>{value ? formatMonthValue(value) : placeholder || '연/월 선택'}</span>
+                <ChevronDown size={14} className={`mw-picker-input-chevron${open ? ' open' : ''}`} />
+            </button>
+
+            {open && (
+                <div className="mw-picker-popover mw-monthpicker-modal">
+                    <div className="mw-picker-popover-head">
+                        <div>
+                            <div className="mw-picker-popover-eyebrow">Month</div>
+                            <div className="mw-picker-popover-title">{viewYear}년</div>
+                        </div>
+                        <div className="mw-picker-nav">
+                            <button
+                                type="button"
+                                className="mw-picker-nav-btn"
+                                onClick={() => setViewYear((year) => year - 1)}
+                            >
+                                <ChevronLeft size={14} />
+                            </button>
+                            <button
+                                type="button"
+                                className="mw-picker-nav-btn"
+                                onClick={() => setViewYear((year) => year + 1)}
+                            >
+                                <ChevronRight size={14} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="mw-monthpicker-months">
+                        {months.map((month) => {
+                            const selected =
+                                value &&
+                                Number(value.split('-')[0]) === viewYear &&
+                                Number(value.split('-')[1]) === month;
+
+                            return (
+                                <button
+                                    key={month}
+                                    type="button"
+                                    className={`mw-monthpicker-month${selected ? ' selected' : ''}`}
+                                    onClick={() => handleSelect(viewYear, month)}
+                                >
+                                    {month}월
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const DatePicker = ({ value, onChange, icon = true, placeholder = '', className = '' }) => {
+    const [open, setOpen] = useState(false);
+    const initialDate = value ? new Date(value) : new Date();
+    const [viewYear, setViewYear] = useState(initialDate.getFullYear());
+    const [viewMonth, setViewMonth] = useState(initialDate.getMonth());
+    const ref = useRef(null);
+
+    useOutsideClose(open, ref, () => setOpen(false));
+
+    useEffect(() => {
+        if (!value) return;
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return;
+        setViewYear(parsed.getFullYear());
+        setViewMonth(parsed.getMonth());
+    }, [value]);
+
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const blanks = Array.from({ length: firstDay }, (_, index) => index);
+    const days = Array.from({ length: daysInMonth }, (_, index) => index + 1);
+
+    const handlePrevMonth = () => {
+        const next = new Date(viewYear, viewMonth - 1, 1);
+        setViewYear(next.getFullYear());
+        setViewMonth(next.getMonth());
+    };
+
+    const handleNextMonth = () => {
+        const next = new Date(viewYear, viewMonth + 1, 1);
+        setViewYear(next.getFullYear());
+        setViewMonth(next.getMonth());
+    };
+
+    const handleSelect = (day) => {
+        const nextValue = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        onChange(nextValue);
+        setOpen(false);
+    };
+
+    return (
+        <div className={`mw-monthpicker-wrap ${className}`.trim()} ref={ref}>
+            <button
+                type="button"
+                className={`mw-monthpicker-input${value ? ' filled' : ''}`}
+                onClick={() => setOpen((prev) => !prev)}
+            >
+                {icon && (
+                    <span className="mw-picker-input-icon">
+                        <Calendar size={15} />
+                    </span>
+                )}
+                <span>{value ? formatDateValue(value) : placeholder || '날짜 선택'}</span>
+                <ChevronDown size={14} className={`mw-picker-input-chevron${open ? ' open' : ''}`} />
+            </button>
+
+            {open && (
+                <div className="mw-picker-popover mw-datepicker-modal">
+                    <div className="mw-picker-popover-head">
+                        <div>
+                            <div className="mw-picker-popover-eyebrow">Date</div>
+                            <div className="mw-picker-popover-title">
+                                {viewYear}년 {viewMonth + 1}월
+                            </div>
+                        </div>
+                        <div className="mw-picker-nav">
+                            <button type="button" className="mw-picker-nav-btn" onClick={handlePrevMonth}>
+                                <ChevronLeft size={14} />
+                            </button>
+                            <button type="button" className="mw-picker-nav-btn" onClick={handleNextMonth}>
+                                <ChevronRight size={14} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="mw-datepicker-weekdays">
+                        {dayLabels.map((dayLabel) => (
+                            <span key={dayLabel}>{dayLabel}</span>
+                        ))}
+                    </div>
+
+                    <div className="mw-datepicker-grid">
+                        {blanks.map((blank) => (
+                            <div key={`blank-${blank}`} className="mw-datepicker-blank" />
+                        ))}
+                        {days.map((day) => {
+                            const selected =
+                                value ===
+                                `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                            const isToday = isTodayDate(viewYear, viewMonth, day);
+
+                            return (
+                                <button
+                                    key={day}
+                                    type="button"
+                                    className={`mw-datepicker-day${selected ? ' selected' : ''}${isToday ? ' today' : ''}`}
+                                    onClick={() => handleSelect(day)}
+                                >
+                                    {day}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const TimePicker = ({ value, onChange, minTime = '', disabled = false, className = '' }) => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useOutsideClose(open, ref, () => setOpen(false));
+
+    const availableTimes = timeOptions.filter((time) => !minTime || time >= minTime);
+
+    return (
+        <div className={`mw-monthpicker-wrap ${className}`.trim()} ref={ref}>
+            <button
+                type="button"
+                className={`mw-monthpicker-input mw-timepicker-input${value ? ' filled' : ''}${disabled ? ' disabled' : ''}`}
+                onClick={() => {
+                    if (!disabled) setOpen((prev) => !prev);
+                }}
+                disabled={disabled}
+            >
+                <span className="mw-picker-input-icon">
+                    <Clock size={15} />
+                </span>
+                <span>{value || '시간 선택'}</span>
+                <ChevronDown size={14} className={`mw-picker-input-chevron${open ? ' open' : ''}`} />
+            </button>
+
+            {open && (
+                <div className="mw-picker-popover mw-timepicker-modal">
+                    <div className="mw-picker-popover-head">
+                        <div>
+                            <div className="mw-picker-popover-eyebrow">Time</div>
+                            <div className="mw-picker-popover-title">{value || '시간 선택'}</div>
+                        </div>
+                    </div>
+
+                    <div className="mw-timepicker-list">
+                        {availableTimes.map((time) => (
+                            <button
+                                key={time}
+                                type="button"
+                                className={`mw-timepicker-option${value === time ? ' selected' : ''}`}
+                                onClick={() => {
+                                    onChange(time);
+                                    setOpen(false);
+                                }}
+                            >
+                                {time}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const initCareers = [
+    {
+        id: 1,
+        startDate: '2019-03',
+        endDate: '2022-06',
+        isCurrent: false,
+        description: '서울심리상담센터 상담사',
+    },
+    {
+        id: 2,
+        startDate: '2022-07',
+        endDate: '',
+        isCurrent: true,
+        description: '마인드웰 서울 강남센터 수석 상담사',
+    },
+];
+
+const initEducations = [
+    {
+        id: 1,
+        startDate: '2013-03',
+        endDate: '2017-02',
+        school: '서울대학교 심리학과',
+        degree: '학사',
+    },
+    {
+        id: 2,
+        startDate: '2017-03',
+        endDate: '2019-02',
+        school: '서울대학교 심리학과',
+        degree: '석사',
+    },
+];
+
+const initCertificates = [
+    { id: 1, name: '임상심리전문가 1급', issuer: '한국심리학회', date: '2019-06' },
+    { id: 2, name: '상담심리사 1급', issuer: '한국상담심리학회', date: '2020-03' },
+];
+
+const initWorkDays = [
+    { day: '월', active: true, startTime: '09:00', endTime: '18:00' },
+    { day: '화', active: true, startTime: '09:00', endTime: '18:00' },
+    { day: '수', active: true, startTime: '09:00', endTime: '18:00' },
+    { day: '목', active: true, startTime: '09:00', endTime: '18:00' },
+    { day: '금', active: true, startTime: '09:00', endTime: '18:00' },
+    { day: '토', active: false, startTime: '09:00', endTime: '18:00' },
+    { day: '일', active: false, startTime: '09:00', endTime: '18:00' },
+];
+
+const initNotifications = [
+    {
+        id: 1,
+        group: '오늘',
+        items: [
+            {
+                id: 101,
+                type: 'schedule',
+                title: '오늘 상담 일정',
+                desc: '10:00 김소현 • 상담 1실 / 14:00 이민준 • 상담 3실',
+                time: '오전 8:00',
+                unread: true,
+            },
+            {
+                id: 102,
+                type: 'booking',
+                title: '예약 확정',
+                desc: '한수지 님의 대면 상담이 승인되었습니다.',
+                time: '오전 9:10',
+                unread: true,
+            },
+            {
+                id: 103,
+                type: 'msg',
+                title: '새 메시지',
+                desc: '이민준 님: 오늘 조금 늦을 것 같습니다.',
+                time: '오전 9:45',
+                unread: true,
+            },
+        ],
+    },
+    {
+        id: 2,
+        group: '어제',
+        items: [
+            {
+                id: 104,
+                type: 'booking',
+                title: '예약 확정',
+                desc: '정현우 님의 화상 상담이 확정되었습니다.',
+                time: '오후 3:20',
+                unread: false,
+            },
+            {
+                id: 105,
+                type: 'notice',
+                title: '시스템 공지',
+                desc: '내일 오후 2시부터 서버 점검이 예정되어 있습니다.',
+                time: '오전 9:00',
+                unread: false,
+            },
+        ],
+    },
+    {
+        id: 3,
+        group: '이번 주',
+        items: [
+            {
+                id: 106,
+                type: 'schedule',
+                title: '예약 취소',
+                desc: '박지영 님이 5월 22일 상담을 취소했습니다.',
+                time: '5월 21일',
+                unread: false,
+            },
+        ],
+    },
+];
+
+const initNotifSettings = [
+    {
+        id: 'schedule',
+        label: '상담 일정 알림',
+        desc: '오늘 예정된 상담 일정을 알려드립니다.',
+        on: true,
+    },
+    {
+        id: 'booking',
+        label: '예약 확정 알림',
+        desc: '새로운 예약이 확정되면 알려드립니다.',
+        on: true,
+    },
+    {
+        id: 'cancel',
+        label: '예약 취소 알림',
+        desc: '내담자가 예약을 취소하면 알려드립니다.',
+        on: true,
+    },
+    {
+        id: 'msg',
+        label: '메시지 알림',
+        desc: '읽지 않은 메시지가 있을 때 알려드립니다.',
+        on: false,
+    },
+    {
+        id: 'notice',
+        label: '시스템 공지 알림',
+        desc: '서비스 점검 및 공지사항을 알려드립니다.',
+        on: true,
+    },
+    {
+        id: 'marketing',
+        label: '마케팅 알림',
+        desc: '이벤트 및 혜택 소식을 알려드립니다.',
+        on: false,
+    },
+];
+
+const NotifIcon = ({ type }) => {
+    const iconMap = {
+        schedule: <Calendar size={15} />,
+        booking: <Check size={15} />,
+        msg: <MessageSquare size={15} />,
+        notice: <AlertCircle size={15} />,
+    };
+    return <div className="mw-item-avatar notif">{iconMap[type] || <Bell size={15} />}</div>;
+};
+
+const PageHeader = ({ title, sub }) => (
+    <div className="mw-page-header">
         <h2 className="mw-page-title">{title}</h2>
-        <p className="mw-page-sub">{sub}</p>
+        {sub && <p className="mw-page-sub">{sub}</p>}
+    </div>
+);
+
+const Toggle = ({ on, onChange }) => (
+    <button className={`mw-toggle${on ? ' on' : ''}`} onClick={onChange} aria-label="toggle">
+        <span className="mw-toggle-thumb" />
+    </button>
+);
+
+const BackHeader = ({ title, onBack }) => (
+    <div className="mw-subview-header">
+        <button className="mw-back-btn" onClick={onBack}>
+            <ChevronRight size={15} style={{ transform: 'rotate(180deg)' }} /> 설정
+        </button>
+        <h2 className="mw-page-title" style={{ margin: 0 }}>
+            {title}
+        </h2>
     </div>
 );
 
 const App = () => {
-    const [activeMenu, setActiveMenu] = useState('dashboard');
-    const [currentView, setCurrentView] = useState('dashboard');
-    const [selectedClient, setSelectedClient] = useState(null);
-    const [activeChat, setActiveChat] = useState(null);
-    const [showMoreMenu, setShowMoreMenu] = useState(false);
     const navigate = useNavigate();
 
-    // 로고 클릭 시 홈으로 이동
-    const goHome = () => {
-        navigate('/');
-        setActiveMenu('dashboard');
-        setCurrentView('dashboard');
-        setSelectedClient(null);
-        setActiveChat(null);
+    const [searchParams] = useSearchParams();
+    const [activeMenu, setActiveMenu] = useState(searchParams.get('tab') || 'dashboard');
+    const [settingsView, setSettingsView] = useState(null);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    // 등록 여부를 localStorage에서 관리
+    const [registered, setRegistered] = useState(() => {
+        return localStorage.getItem('counselor_registered') === 'true';
+    });
+    const [careers, setCareers] = useState(initCareers);
+    const [educations, setEducations] = useState(initEducations);
+    const [certificates, setCertificates] = useState(initCertificates);
+    const [workDays, setWorkDays] = useState(initWorkDays);
+    const [holidays, setHolidays] = useState(['2024-06-01', '2024-06-15']);
+    const [newHoliday, setNewHoliday] = useState('');
+    const [notifications, setNotifications] = useState(initNotifications);
+    const [notifSettings, setNotifSettings] = useState(initNotifSettings);
+    const [deleteStep, setDeleteStep] = useState(1);
+    const [deleteInput, setDeleteInput] = useState('');
+
+    const addCareer = () =>
+        setCareers((prev) => [...prev, { id: uid(), startDate: '', endDate: '', isCurrent: false, description: '' }]);
+
+    const removeCareer = (id) => setCareers((prev) => prev.filter((career) => career.id !== id));
+    const updateCareer = (id, key, value) =>
+        setCareers((prev) => prev.map((career) => (career.id === id ? { ...career, [key]: value } : career)));
+    const toggleCareerCurrent = (id) =>
+        setCareers((prev) =>
+            prev.map((career) => (career.id === id ? { ...career, isCurrent: !career.isCurrent, endDate: '' } : career))
+        );
+
+    const addEducation = () =>
+        setEducations((prev) => [...prev, { id: uid(), startDate: '', endDate: '', school: '', degree: '' }]);
+    const removeEducation = (id) => setEducations((prev) => prev.filter((education) => education.id !== id));
+    const updateEducation = (id, key, value) =>
+        setEducations((prev) =>
+            prev.map((education) => (education.id === id ? { ...education, [key]: value } : education))
+        );
+
+    const addCertificate = () => setCertificates((prev) => [...prev, { id: uid(), name: '', issuer: '', date: '' }]);
+    const removeCertificate = (id) => setCertificates((prev) => prev.filter((certificate) => certificate.id !== id));
+    const updateCertificate = (id, key, value) =>
+        setCertificates((prev) =>
+            prev.map((certificate) => (certificate.id === id ? { ...certificate, [key]: value } : certificate))
+        );
+
+    const toggleWorkDay = (index) => {
+        const next = [...workDays];
+        next[index].active = !next[index].active;
+        setWorkDays(next);
     };
 
-    const navTo = (id) => {
-        setActiveMenu(id);
-        setSelectedClient(null);
-        setActiveChat(null);
-        if (id === 'history') setCurrentView('scheduleDetail');
-        else if (id === 'notifications') setCurrentView('notifications');
-        else setCurrentView('dashboard');
+    const updateWorkTime = (index, key, value) => {
+        const next = [...workDays];
+        next[index][key] = value;
+        if (key === 'startTime' && isTimeBefore(next[index].endTime, value)) {
+            next[index].endTime = value;
+        }
+        setWorkDays(next);
     };
 
-    const renderChatView = () => (
-        <div className="mw-chat-container">
-            <div className="mw-chat-header">
-                <div className="mw-item-info" style={{ flex: 1 }}>
-                    <ArrowLeft
-                        size={22}
-                        style={{ cursor: 'pointer', color: 'var(--mw-sub)' }}
-                        onClick={() => setCurrentView('messageDetail')}
-                    />
-                    <div className="mw-item-avatar mw-item-avatar-primary" style={{ width: 42, height: 42 }}>
-                        👤
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <p className="mw-item-name">{activeChat?.sender || '내담자'}</p>
-                        <p className="mw-item-sub">문의 {consultationThreads.length}건</p>
-                    </div>
-                </div>
-                <div style={{ position: 'relative' }}>
-                    <MoreVertical
-                        size={20}
-                        style={{ cursor: 'pointer', color: 'var(--mw-sub)' }}
-                        onClick={() => setShowMoreMenu(!showMoreMenu)}
-                    />
-                    {showMoreMenu && (
-                        <div className="mw-more-menu">
-                            {[
-                                { icon: <ShieldCheck size={16} />, label: '내담자 정보 보기' },
-                                { icon: <AlertCircle size={16} />, label: '알림 설정' },
-                            ].map(({ icon, label }) => (
-                                <div key={label} className="mw-more-menu-item" onClick={() => setShowMoreMenu(false)}>
-                                    {icon}
-                                    <span>{label}</span>
-                                </div>
-                            ))}
-                            <div className="mw-more-menu-item danger" onClick={() => setShowMoreMenu(false)}>
-                                <X size={16} />
-                                <span>신고하기</span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-            <div className="mw-chat-body">
-                {consultationThreads.map((thread) => (
-                    <div key={thread.id}>
-                        <div className="mw-chat-date-divider">
-                            <span className="mw-chat-date-chip">{thread.date}</span>
-                        </div>
-                        <div className="mw-chat-thread">
-                            <div className="mw-chat-thread-header">
-                                <h4 className="mw-chat-thread-title">{thread.inquiry.title}</h4>
-                                <span className="mw-badge-green">{thread.inquiry.status}</span>
-                            </div>
-                            <p className="mw-chat-thread-content">{thread.inquiry.content}</p>
-                            <div className="mw-chat-thread-time">
-                                <Clock size={13} color="var(--mw-sub)" />
-                                <span className="mw-text-sub-sm">{thread.inquiry.time}</span>
-                            </div>
-                            {thread.response && (
-                                <div className="mw-chat-reply">
-                                    <div className="mw-chat-reply-header">
-                                        <div className="mw-chat-reply-badge">✓</div>
-                                        <span className="mw-chat-reply-label">상담사 답변</span>
-                                    </div>
-                                    <p className="mw-chat-reply-content">{thread.response.content}</p>
-                                    <span className="mw-text-sub-sm">{thread.response.time}</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <div className="mw-chat-footer">
-                <input className="mw-input mw-input-bare" style={{ flex: 1 }} placeholder="답변을 입력하세요..." />
-                <button className="mw-send-btn">
-                    <Send size={18} />
-                </button>
-            </div>
-        </div>
-    );
+    const addHoliday = () => {
+        if (newHoliday && !holidays.includes(newHoliday)) {
+            setHolidays((prev) => [...prev, newHoliday]);
+            setNewHoliday('');
+        }
+    };
 
-    const renderNotifications = () => (
-        <>
-            <SimpleHeader title="알림 센터" sub="최근 발생한 소식을 확인하세요." />
-            <div className="mw-list-card">
-                {notificationList.map((item) => (
-                    <div
-                        key={item.id}
-                        className="mw-list-item"
-                        onClick={() => item.type === 'msg' && setCurrentView('messageDetail')}
-                    >
-                        <div className="mw-item-info">
-                            <div className="mw-item-avatar mw-item-avatar-primary">
-                                {item.type === 'notice' ? (
-                                    <AlertCircle size={20} />
-                                ) : item.type === 'booking' ? (
-                                    <Calendar size={20} />
-                                ) : (
-                                    <MessageSquare size={20} />
-                                )}
-                            </div>
-                            <div>
-                                <p className="mw-item-name">{item.title}</p>
-                                <p className="mw-item-sub">{item.content}</p>
-                            </div>
-                        </div>
-                        <div className="mw-inline-row">
-                            <span className="mw-text-sub-sm">{item.time}</span>
-                            <ChevronRight size={16} color="var(--mw-sub)" />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </>
-    );
+    const handleNotifClick = (groupId, itemId) =>
+        setNotifications((prev) =>
+            prev.map((group) =>
+                group.id === groupId
+                    ? {
+                          ...group,
+                          items: group.items.map((item) => (item.id === itemId ? { ...item, unread: false } : item)),
+                      }
+                    : group
+            )
+        );
+
+    const toggleNotifSetting = (id) =>
+        setNotifSettings((prev) =>
+            prev.map((setting) => (setting.id === id ? { ...setting, on: !setting.on } : setting))
+        );
+
+    const go = (menu) => {
+        setActiveMenu(menu);
+        setSettingsView(null);
+        setSidebarOpen(false);
+        if (menu !== 'settings') setSettingsOpen(false);
+    };
+
+    // 로고 클릭 시 CounselorHome.jsx로 이동
+    const handleLogoClick = () => {
+        navigate('/counselorhome');
+    };
+
+    const goSettings = (view) => {
+        // 등록이 안 되어 있어도 무조건 settings/profile로 진입 (이동 막음)
+        setActiveMenu('settings');
+        setSettingsView(view);
+        setSidebarOpen(false);
+    };
+
+    const handleLogout = () => {
+        ['access_token', 'user'].forEach((key) => {
+            localStorage.removeItem(key);
+            sessionStorage.removeItem(key);
+        });
+        navigate('/login');
+    };
+
+    const navItems = [
+        { id: 'dashboard', icon: <LayoutDashboard size={17} />, label: '대시보드' },
+        { id: 'notifications', icon: <Bell size={17} />, label: '알림센터' },
+    ];
+
+    const tabItems = [
+        { id: 'dashboard', icon: <LayoutDashboard size={19} />, label: '홈' },
+        { id: 'notifications', icon: <Bell size={19} />, label: '알림' },
+        { id: 'settings', icon: <Settings size={19} />, label: '설정' },
+        { id: 'customer', icon: <HeadphonesIcon size={19} />, label: '고객' },
+    ];
+
+    const settingsMenuItems = [
+        {
+            id: 'profile',
+            icon: <UserCog size={16} />,
+            label: registered ? '상담사 프로필 수정' : '상담사 등록하기',
+            sub: registered ? '프로필 정보를 수정합니다.' : '상담사 정보를 처음 등록합니다.',
+        },
+        {
+            id: 'notifSettings',
+            icon: <BellRing size={16} />,
+            label: '알림 설정',
+            sub: '받을 알림 종류를 설정합니다.',
+        },
+        {
+            id: 'deleteAccount',
+            icon: <Trash2 size={16} />,
+            label: '회원 탈퇴',
+            sub: '계정 및 모든 데이터를 삭제합니다.',
+            danger: true,
+        },
+    ];
+
+    // 로그인한 상담사 이름 가져오기
+    const getCounselorName = () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) return '';
+            return user.full_name || user.name || user.username || '';
+        } catch {
+            return '';
+        }
+    };
 
     const renderDashboard = () => (
         <>
@@ -332,170 +673,569 @@ const App = () => {
                 <div className="mw-profile-section">
                     <div className="mw-profile-img">🧔‍♂️</div>
                     <div>
-                        <h2 className="mw-welcome-text">안녕하세요, 이은지 상담사님!</h2>
-                        <p className="mw-welcome-sub">
-                            오늘 예정된 대면 상담은 3건입니다. 센터 환경을 점검해 주세요. 🌿
-                        </p>
+                        <h2 className="mw-welcome">안녕하세요, {getCounselorName()} 상담사님!</h2>
+                        <p className="mw-welcome-sub">오늘도 따뜻한 상담 부탁드립니다 🌿</p>
                     </div>
                 </div>
-                <button className="mw-notif-btn" onClick={() => setCurrentView('notifications')}>
-                    <Bell size={18} /> 알림 확인
+                <button className="mw-notif-btn" onClick={() => go('notifications')}>
+                    <Bell size={14} /> 알림 확인
                 </button>
             </header>
 
             <div className="mw-stats-grid">
-                <div
-                    className="mw-stat-card"
-                    onClick={() => {
-                        setActiveMenu('history');
-                        setCurrentView('scheduleDetail');
-                    }}
-                >
-                    <div className="mw-stat-icon" style={{ backgroundColor: '#E8F5E9' }}>
-                        <Calendar size={18} color="#66BB6A" />
+                {[
+                    {
+                        icon: <Calendar size={15} color="#66BB6A" />,
+                        bg: '#E8F5E9',
+                        label: '오늘 예정 상담',
+                        value: '3 건',
+                    },
+                    {
+                        icon: <Clock size={15} color="#FFB74D" />,
+                        bg: '#FFF5E6',
+                        label: '승인 대기 요청',
+                        value: '2 건',
+                    },
+                    {
+                        icon: <MessageCircle size={15} color="#EF5350" />,
+                        bg: '#FFEBEE',
+                        label: '읽지 않은 메시지',
+                        value: '5 건',
+                    },
+                ].map(({ icon, bg, label, value }) => (
+                    <div key={label} className="mw-stat-card" onClick={() => go('notifications')}>
+                        <div className="mw-stat-icon" style={{ background: bg }}>
+                            {icon}
+                        </div>
+                        <p className="mw-stat-label">{label}</p>
+                        <p className="mw-stat-value">{value}</p>
+                        <span className="mw-stat-chevron">
+                            <ChevronRight size={14} />
+                        </span>
                     </div>
-                    <p className="mw-stat-label">오늘 예정 상담</p>
-                    <p className="mw-stat-value">3 건</p>
-                    <ChevronRight
-                        size={16}
-                        style={{ position: 'absolute', right: 24, bottom: 24, color: 'var(--mw-sub)' }}
-                    />
-                </div>
-                <div
-                    className="mw-stat-card"
-                    onClick={() => {
-                        setActiveMenu('report');
-                        setCurrentView('pendingDetail');
-                    }}
-                >
-                    <div className="mw-stat-icon" style={{ backgroundColor: '#FFF5E6' }}>
-                        <Clock size={18} color="#FFB74D" />
-                    </div>
-                    <p className="mw-stat-label">승인 대기 요청</p>
-                    <p className="mw-stat-value">2 건</p>
-                    <ChevronRight
-                        size={16}
-                        style={{ position: 'absolute', right: 24, bottom: 24, color: 'var(--mw-sub)' }}
-                    />
-                </div>
-                <div className="mw-stat-card" onClick={() => setCurrentView('messageDetail')}>
-                    <div className="mw-stat-icon" style={{ backgroundColor: '#FFEBEE' }}>
-                        <MessageCircle size={18} color="#EF5350" />
-                    </div>
-                    <p className="mw-stat-label">읽지 않은 메시지</p>
-                    <p className="mw-stat-value">5 건</p>
-                    <ChevronRight
-                        size={16}
-                        style={{ position: 'absolute', right: 24, bottom: 24, color: 'var(--mw-sub)' }}
-                    />
-                </div>
+                ))}
             </div>
 
-            <div
-                className="mw-banner"
-                onClick={() => {
-                    setActiveMenu('payment');
-                    setCurrentView('dashboard');
-                }}
-            >
-                <div>
-                    <div className="mw-banner-label">NEXT SESSION</div>
-                    <h3 className="mw-banner-title">오후 2:00 이민준 님</h3>
-                    <p className="mw-banner-sub">대면 상담 • 상담 3실 • 4회차 진행 예정</p>
+            <div className="mw-next-session" onClick={() => go('notifications')}>
+                <div className="mw-next-session-icon">
+                    <User size={24} color="#fff" />
                 </div>
-                <button className="mw-banner-btn">
-                    내담자 차트 확인 <ChevronRight size={18} />
+                <div className="mw-next-session-body">
+                    <div className="mw-next-session-label">NEXT SESSION</div>
+                    <div className="mw-next-session-name">오후 2:00 이민준 님</div>
+                    <div className="mw-next-session-sub">대면 상담 • 상담 3실 • 4회차 진행 예정</div>
+                </div>
+                <button className="mw-next-session-btn">
+                    내담자 관리 <ChevronRight size={14} />
                 </button>
             </div>
+        </>
+    );
 
-            <div className="mw-section-header">
-                <h3 className="mw-section-title">
-                    <Clock size={22} /> 오늘의 상담 일정
-                </h3>
-            </div>
+    const renderNotifications = () => (
+        <>
+            <PageHeader title="알림 센터" sub="상담 일정, 예약 확정 등 최근 알림을 확인하세요." />
             <div className="mw-list-card">
-                {todaySchedules.map((item) => (
-                    <div
-                        key={item.id}
-                        className="mw-list-item"
-                        onClick={() => {
-                            setSelectedClient(item);
-                            setCurrentView('clientHistory');
-                        }}
-                    >
-                        <div className="mw-item-info">
-                            <div className="mw-item-avatar" style={{ width: 50, fontWeight: 800 }}>
-                                {item.time}
+                {notifications.map((group) => (
+                    <div key={group.id}>
+                        <div className="mw-notif-group-label">{group.group}</div>
+                        {group.items.map((item) => (
+                            <div
+                                key={item.id}
+                                className={`mw-notif-item${item.unread ? ' unread' : ''}`}
+                                onClick={() => handleNotifClick(group.id, item.id)}
+                            >
+                                <NotifIcon type={item.type} />
+                                <div className="mw-notif-content">
+                                    <div className="mw-notif-title">{item.title}</div>
+                                    <div className="mw-notif-desc">{item.desc}</div>
+                                </div>
+                                <div className="mw-notif-meta">
+                                    <span className="mw-notif-time">{item.time}</span>
+                                    {item.unread && <span className="mw-notif-dot" />}
+                                </div>
                             </div>
-                            <div>
-                                <p className="mw-item-name">
-                                    {item.name} 님{' '}
-                                    <span style={{ fontSize: 12, color: 'var(--mw-sub)', fontWeight: 'normal' }}>
-                                        | {item.room}
-                                    </span>
-                                </p>
-                                <p className="mw-item-sub-primary">{item.note}</p>
-                            </div>
-                        </div>
-                        <div className="mw-inline-row mw-text-sub-sm">
-                            <MapPin size={14} /> 대면 상담
-                        </div>
+                        ))}
                     </div>
                 ))}
             </div>
         </>
     );
 
-    const renderClientHistory = () => (
+    const renderSettingsList = () => (
         <>
-            <div className="mw-client-detail-header">
-                <div className="mw-profile-img-lg">👤</div>
-                <div>
-                    <h2 className="mw-page-title" style={{ marginBottom: 4 }}>
-                        {selectedClient?.name} 내담자 기록
-                    </h2>
-                    <p className="mw-page-sub" style={{ marginBottom: 0 }}>
-                        {selectedClient?.gender} / {selectedClient?.age} • 현재 12회차 진행 중
-                    </p>
-                </div>
-            </div>
-            <div className="mw-stats-grid">
-                <div className="mw-stat-card mw-stat-card-sm">
-                    <p className="mw-stat-label">총 상담 횟수</p>
-                    <p className="mw-stat-value-md">12회</p>
-                </div>
-                <div className="mw-stat-card mw-stat-card-sm">
-                    <p className="mw-stat-label">주요 호소 문제</p>
-                    <p className="mw-stat-value-sm">대인관계 스트레스</p>
-                </div>
-                <div className="mw-stat-card mw-stat-card-sm">
-                    <p className="mw-stat-label">상태 분류</p>
-                    <span className="mw-badge mw-badge-pending" style={{ display: 'inline-block', marginTop: 4 }}>
-                        주의 관찰
-                    </span>
-                </div>
-            </div>
-            <div className="mw-section-header">
-                <h3 className="mw-section-title">
-                    <ClipboardList size={22} /> 상담 기록 리스트
-                </h3>
-            </div>
+            <PageHeader title="설정" sub="계정 및 서비스 환경을 설정합니다." />
             <div className="mw-list-card">
-                {clientConsultationHistory.map((h) => (
-                    <div key={h.id} className="mw-history-item">
-                        <div className="mw-history-header">
-                            <div className="mw-inline-row">
-                                <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--mw-primary)' }}>
-                                    {h.session}
-                                </span>
-                                <span style={{ fontSize: 14, color: 'var(--mw-sub)' }}>|</span>
-                                <span style={{ fontSize: 15, fontWeight: 700 }}>{h.title}</span>
+                {settingsMenuItems.map((item) => (
+                    <div key={item.id} className="mw-list-item" onClick={() => goSettings(item.id)}>
+                        <div className="mw-item-info">
+                            <div className={`mw-item-avatar${item.danger ? ' danger-icon' : ' notif'}`}>
+                                {item.icon}
                             </div>
-                            <span className="mw-text-sub-sm">
-                                {h.date} ({h.type})
-                            </span>
+                            <div>
+                                <p className={`mw-item-name${item.danger ? ' danger-text' : ''}`}>{item.label}</p>
+                                <p className="mw-item-sub">{item.sub}</p>
+                            </div>
                         </div>
-                        <p className="mw-history-content">{h.content}</p>
+                        <ChevronRight size={15} color="var(--mw-sub)" />
+                    </div>
+                ))}
+            </div>
+        </>
+    );
+
+    const renderProfile = () => (
+        <>
+            <BackHeader
+                title={registered ? '상담사 프로필 수정' : '상담사 등록하기'}
+                onBack={() => setSettingsView(null)}
+            />
+
+            {!registered ? (
+                <div className="mw-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
+                    <div className="mw-register-icon">👤</div>
+                    <h3 className="mw-register-title">상담사 프로필을 등록해주세요</h3>
+                    <p className="mw-register-sub">
+                        내담자가 상담사님의 정보를 확인하고 예약할 수 있도록
+                        <br />
+                        프로필 정보를 입력해주세요.
+                    </p>
+                    <button
+                        className="mw-btn mw-btn-primary"
+                        style={{ padding: '13px 28px', fontSize: 14 }}
+                        onClick={() => navigate('/counselorUpload')}
+                    >
+                        상담사 등록하기
+                    </button>
+                </div>
+            ) : (
+                <>
+                    <div className="mw-settings-card">
+                        <div className="mw-card-title">
+                            <User size={15} color="var(--mw-primary)" /> 기본 정보
+                        </div>
+                        <div className="mw-profile-upload">
+                            <div className="mw-profile-img-lg">
+                                🧔‍♂️
+                                <button className="mw-profile-edit-btn">
+                                    <Settings size={11} />
+                                </button>
+                            </div>
+                            <div>
+                                <p style={{ fontSize: 11, color: 'var(--mw-sub)', marginBottom: 3 }}>프로필 사진</p>
+                                <p style={{ fontSize: 12, fontWeight: 600 }}>사진을 클릭하여 업로드</p>
+                            </div>
+                        </div>
+
+                        <div className="mw-grid-2">
+                            {[
+                                ['이름', '이은지'],
+                                ['연락처', '010-1234-5678'],
+                                ['전화번호', '02-1234-5678'],
+                                ['전문 분야', '성인 우울, 불안 장애'],
+                            ].map(([label, value]) => (
+                                <div key={label}>
+                                    <label className="mw-field-label">{label}</label>
+                                    <input className="mw-input" defaultValue={value} />
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mw-section-divider" style={{ marginTop: 14 }}>
+                            <div className="mw-sub-section-header">
+                                <span className="mw-field-label" style={{ margin: 0 }}>
+                                    경력 사항
+                                </span>
+                                <button className="mw-btn-outline-sm" onClick={addCareer}>
+                                    + 추가
+                                </button>
+                            </div>
+                            {careers.map((career) => (
+                                <div key={career.id} className="mw-row-card">
+                                    <div className="mw-career-grid">
+                                        <div>
+                                            <label className="mw-field-label-sm">시작</label>
+                                            <MonthPicker
+                                                value={career.startDate}
+                                                onChange={(value) => updateCareer(career.id, 'startDate', value)}
+                                                className="mw-input-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="mw-field-label-sm">종료</label>
+                                            <MonthPicker
+                                                value={career.endDate}
+                                                onChange={(value) => updateCareer(career.id, 'endDate', value)}
+                                                className="mw-input-sm"
+                                                icon={!career.isCurrent}
+                                                placeholder={career.isCurrent ? '진행중' : ''}
+                                                disabled={career.isCurrent}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="mw-field-label-sm">경력 내용</label>
+                                            <input
+                                                type="text"
+                                                className="mw-input mw-input-sm"
+                                                value={career.description}
+                                                onChange={(event) =>
+                                                    updateCareer(career.id, 'description', event.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <button className="mw-btn-icon" onClick={() => removeCareer(career.id)}>
+                                            <X size={12} />
+                                        </button>
+                                    </div>
+                                    <div className="mw-checkbox-row">
+                                        <input
+                                            type="checkbox"
+                                            checked={career.isCurrent}
+                                            onChange={() => toggleCareerCurrent(career.id)}
+                                        />
+                                        <label>현재 진행중</label>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mw-section-divider">
+                            <div className="mw-sub-section-header">
+                                <span className="mw-field-label" style={{ margin: 0 }}>
+                                    자격증
+                                </span>
+                                <button className="mw-btn-outline-sm" onClick={addCertificate}>
+                                    + 추가
+                                </button>
+                            </div>
+                            {certificates.map((certificate) => (
+                                <div key={certificate.id} className="mw-row-card">
+                                    <div className="mw-cert-grid">
+                                        <div>
+                                            <label className="mw-field-label-sm">자격증명</label>
+                                            <input
+                                                type="text"
+                                                className="mw-input mw-input-sm"
+                                                value={certificate.name}
+                                                onChange={(event) =>
+                                                    updateCertificate(certificate.id, 'name', event.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="mw-field-label-sm">발급 기관</label>
+                                            <input
+                                                type="text"
+                                                className="mw-input mw-input-sm"
+                                                value={certificate.issuer}
+                                                onChange={(event) =>
+                                                    updateCertificate(certificate.id, 'issuer', event.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="mw-field-label-sm">취득일</label>
+                                            <MonthPicker
+                                                value={certificate.date}
+                                                onChange={(value) => updateCertificate(certificate.id, 'date', value)}
+                                                className="mw-input-sm"
+                                            />
+                                        </div>
+                                        <button
+                                            className="mw-btn-icon"
+                                            onClick={() => removeCertificate(certificate.id)}
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mw-section-divider">
+                            <div className="mw-sub-section-header">
+                                <span className="mw-field-label" style={{ margin: 0 }}>
+                                    학력 사항
+                                </span>
+                                <button className="mw-btn-outline-sm" onClick={addEducation}>
+                                    + 추가
+                                </button>
+                            </div>
+                            {educations.map((education) => (
+                                <div key={education.id} className="mw-row-card">
+                                    <div className="mw-edu-grid">
+                                        <div>
+                                            <label className="mw-field-label-sm">시작</label>
+                                            <MonthPicker
+                                                value={education.startDate}
+                                                onChange={(value) => updateEducation(education.id, 'startDate', value)}
+                                                className="mw-input-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="mw-field-label-sm">졸업</label>
+                                            <MonthPicker
+                                                value={education.endDate}
+                                                onChange={(value) => updateEducation(education.id, 'endDate', value)}
+                                                className="mw-input-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="mw-field-label-sm">학교 / 전공</label>
+                                            <input
+                                                type="text"
+                                                className="mw-input mw-input-sm"
+                                                value={education.school}
+                                                onChange={(event) =>
+                                                    updateEducation(education.id, 'school', event.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="mw-field-label-sm">학위</label>
+                                            <input
+                                                type="text"
+                                                className="mw-input mw-input-sm"
+                                                value={education.degree}
+                                                onChange={(event) =>
+                                                    updateEducation(education.id, 'degree', event.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <button className="mw-btn-icon" onClick={() => removeEducation(education.id)}>
+                                            <X size={12} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mw-grid-2">
+                            {[
+                                ['상담소명', '마인드웰 서울 강남센터'],
+                                ['상담소 주소', '서울시 강남구 테헤란로 123'],
+                            ].map(([label, value]) => (
+                                <div key={label}>
+                                    <label className="mw-field-label">{label}</label>
+                                    <input className="mw-input" defaultValue={value} />
+                                </div>
+                            ))}
+                        </div>
+
+                        <div style={{ marginTop: 12, marginBottom: 14 }}>
+                            <label className="mw-field-label">자기소개</label>
+                            <textarea
+                                className="mw-textarea"
+                                defaultValue="안녕하세요. 10년 경력의 임상심리전문가 이은지입니다."
+                            />
+                        </div>
+                        <button className="mw-btn mw-btn-primary" style={{ maxWidth: 130 }}>
+                            프로필 저장
+                        </button>
+                    </div>
+
+                    <div className="mw-settings-card">
+                        <div className="mw-card-title">
+                            <Clock size={15} color="var(--mw-primary)" /> 상담 시간 설정
+                        </div>
+                        <label className="mw-field-label" style={{ marginBottom: 12 }}>
+                            요일별 운영 시간
+                        </label>
+                        {workDays.map((day, index) => (
+                            <div key={day.day} className={`mw-day-row${!day.active ? ' inactive' : ''}`}>
+                                <div className="mw-day-grid">
+                                    <div className={`mw-day-chip${day.active ? ' active' : ''}`}>{day.day}</div>
+                                    <div>
+                                        <label className="mw-field-label-sm">시작</label>
+                                        <TimePicker
+                                            className="mw-input-sm"
+                                            disabled={!day.active}
+                                            value={day.startTime}
+                                            onChange={(value) => updateWorkTime(index, 'startTime', value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="mw-field-label-sm">종료</label>
+                                        <TimePicker
+                                            className="mw-input-sm"
+                                            disabled={!day.active}
+                                            minTime={day.startTime}
+                                            value={day.endTime}
+                                            onChange={(value) => updateWorkTime(index, 'endTime', value)}
+                                        />
+                                    </div>
+                                    <div className="mw-checkbox-row">
+                                        <input
+                                            type="checkbox"
+                                            checked={!day.active}
+                                            onChange={() => toggleWorkDay(index)}
+                                        />
+                                        <label>쉬는 날</label>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+
+                        <label className="mw-field-label" style={{ marginTop: 18, marginBottom: 9 }}>
+                            휴무일 설정
+                        </label>
+                        <div className="mw-flex-gap" style={{ marginBottom: 9 }}>
+                            <DatePicker
+                                value={newHoliday}
+                                onChange={setNewHoliday}
+                                className="mw-date-input"
+                                icon
+                                placeholder="휴무일 선택"
+                            />
+                            <button className="mw-btn-add" onClick={addHoliday}>
+                                + 추가
+                            </button>
+                        </div>
+                        <div className="mw-holiday-list">
+                            {holidays.length === 0 ? (
+                                <p className="mw-holiday-empty">등록된 휴무일이 없습니다</p>
+                            ) : (
+                                <div className="mw-holiday-chips">
+                                    {[...holidays].sort().map((date, index) => (
+                                        <div key={date} className="mw-holiday-chip">
+                                            <Calendar size={11} color="var(--mw-primary)" />
+                                            <span>{date}</span>
+                                            <X
+                                                size={11}
+                                                style={{ cursor: 'pointer', color: 'var(--mw-sub)' }}
+                                                onClick={() =>
+                                                    setHolidays(
+                                                        holidays.filter((_, innerIndex) => innerIndex !== index)
+                                                    )
+                                                }
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <button className="mw-btn mw-btn-primary" style={{ maxWidth: 130, marginTop: 14 }}>
+                            시간 저장
+                        </button>
+                    </div>
+                </>
+            )}
+        </>
+    );
+
+    const renderNotifSettings = () => (
+        <>
+            <BackHeader title="알림 설정" onBack={() => setSettingsView(null)} />
+            <p className="mw-page-sub" style={{ marginBottom: 20 }}>
+                받고 싶은 알림 종류를 선택하세요.
+            </p>
+            <div className="mw-list-card">
+                {notifSettings.map((setting) => (
+                    <div key={setting.id} className="mw-notif-setting-item">
+                        <div>
+                            <p className="mw-item-name" style={{ marginBottom: 2 }}>
+                                {setting.label}
+                            </p>
+                            <p className="mw-item-sub">{setting.desc}</p>
+                        </div>
+                        <Toggle on={setting.on} onChange={() => toggleNotifSetting(setting.id)} />
+                    </div>
+                ))}
+            </div>
+        </>
+    );
+
+    const renderDeleteAccount = () => (
+        <>
+            <BackHeader
+                title="회원 탈퇴"
+                onBack={() => {
+                    setSettingsView(null);
+                    setDeleteStep(1);
+                    setDeleteInput('');
+                }}
+            />
+            {deleteStep === 1 ? (
+                <div className="mw-settings-card">
+                    <div className="mw-delete-icon-wrap">
+                        <div className="mw-delete-icon">
+                            <Trash2 size={26} color="var(--mw-danger)" />
+                        </div>
+                    </div>
+                    <h3 className="mw-delete-title">탈퇴 전 꼭 확인하세요</h3>
+                    <div className="mw-delete-warn-list">
+                        {[
+                            '모든 상담 기록과 내담자 데이터가 영구 삭제됩니다.',
+                            '삭제된 데이터는 복구가 불가능합니다.',
+                            '진행 중인 상담이 있는 경우 내담자에게 별도 안내가 필요합니다.',
+                            '탈퇴 후 동일 이메일로 재가입 시 기존 데이터는 복원되지 않습니다.',
+                        ].map((text, index) => (
+                            <div key={index} className="mw-delete-warn-item">
+                                <span className="mw-delete-warn-dot" />
+                                <span>{text}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mw-btn-row" style={{ marginTop: 26 }}>
+                        <button
+                            className="mw-btn mw-btn-secondary"
+                            style={{ flex: 1 }}
+                            onClick={() => setSettingsView(null)}
+                        >
+                            취소
+                        </button>
+                        <button className="mw-btn mw-btn-danger" style={{ flex: 1 }} onClick={() => setDeleteStep(2)}>
+                            다음 단계
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <div className="mw-settings-card">
+                    <h3 className="mw-delete-confirm-title">탈퇴를 확인해주세요</h3>
+                    <p className="mw-delete-confirm-sub">
+                        아래 입력창에 <strong style={{ color: 'var(--mw-danger)' }}>탈퇴합니다</strong>를 입력하면
+                        탈퇴가 진행됩니다.
+                    </p>
+                    <input
+                        className="mw-input mw-delete-input"
+                        placeholder="탈퇴합니다"
+                        value={deleteInput}
+                        onChange={(event) => setDeleteInput(event.target.value)}
+                    />
+                    <div className="mw-btn-row" style={{ marginTop: 18 }}>
+                        <button
+                            className="mw-btn mw-btn-secondary"
+                            style={{ flex: 1 }}
+                            onClick={() => setDeleteStep(1)}
+                        >
+                            이전
+                        </button>
+                        <button
+                            className="mw-btn mw-btn-danger"
+                            style={{ flex: 1, opacity: deleteInput === '탈퇴합니다' ? 1 : 0.4 }}
+                            disabled={deleteInput !== '탈퇴합니다'}
+                            onClick={() => alert('회원 탈퇴가 완료되었습니다.')}
+                        >
+                            탈퇴하기
+                        </button>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+
+    const renderCustomer = () => (
+        <>
+            <PageHeader title="고객 지원" sub="이용 중 불편한 점이 있으신가요?" />
+            <div className="mw-support-grid">
+                {[
+                    { icon: <HelpCircle size={21} />, label: '자주 묻는 질문' },
+                    { icon: <MessageCircle size={21} />, label: '1:1 문의하기' },
+                    { icon: <FileText size={21} />, label: '가이드북' },
+                ].map(({ icon, label }) => (
+                    <div key={label} className="mw-support-card">
+                        <div className="mw-support-icon">{icon}</div>
+                        <p className="mw-support-label">{label}</p>
                     </div>
                 ))}
             </div>
@@ -503,257 +1243,119 @@ const App = () => {
     );
 
     const renderContent = () => {
-        if (currentView === 'notifications') return renderNotifications();
-        if (currentView === 'clientHistory') return renderClientHistory();
-        if (currentView === 'directChat') return renderChatView();
-        if (currentView === 'messageDetail')
-            return (
-                <>
-                    <SimpleHeader title="메시지함" sub="내담자들과의 최근 대화 내용을 확인하세요." />
-                    <div className="mw-list-card">
-                        {unreadMessages.map((msg) => (
-                            <div
-                                key={msg.id}
-                                className="mw-list-item"
-                                onClick={() => {
-                                    setActiveChat({ sender: msg.name });
-                                    setCurrentView('directChat');
-                                }}
-                            >
-                                <div className="mw-item-info">
-                                    <div className="mw-item-avatar" style={{ color: 'var(--mw-primary)' }}>
-                                        <MessageSquare size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="mw-item-name">{msg.name} 님</p>
-                                        <p className="mw-item-sub">{msg.content}</p>
-                                    </div>
-                                </div>
-                                <span className="mw-text-sub-sm">{msg.time}</span>
-                            </div>
-                        ))}
-                    </div>
-                </>
-            );
+        if (activeMenu === 'settings') {
+            if (settingsView === 'profile') return renderProfile();
+            if (settingsView === 'notifSettings') return renderNotifSettings();
+            if (settingsView === 'deleteAccount') return renderDeleteAccount();
+            return renderSettingsList();
+        }
 
         switch (activeMenu) {
-            case 'dashboard':
-                return renderDashboard();
-            case 'history':
-                return (
-                    <>
-                        <SimpleHeader
-                            title="오늘 예정 상담 상세"
-                            sub="상담 일정을 클릭하면 해당 내담자의 상세 기록을 볼 수 있습니다."
-                        />
-                        <div className="mw-list-card">
-                            {todaySchedules.map((item) => (
-                                <div key={item.id} className="mw-list-item">
-                                    <div className="mw-item-info">
-                                        <div className="mw-time-col">{item.time}</div>
-                                        <div>
-                                            <p className="mw-item-name">
-                                                {item.name} 내담자{' '}
-                                                <span style={{ fontSize: 13, color: 'var(--mw-sub)', fontWeight: 400 }}>
-                                                    ( {item.room} )
-                                                </span>
-                                            </p>
-                                            <p
-                                                className="mw-item-sub"
-                                                style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-                                            >
-                                                <MapPin size={14} /> 대면 상담
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="mw-inline-row">
-                                        <span
-                                            className={
-                                                item.status === '상담 완료' ? 'mw-badge mw-badge-done' : 'mw-badge'
-                                            }
-                                        >
-                                            {item.status}
-                                        </span>
-                                        <ChevronRight size={18} color="var(--mw-sub)" />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                );
-            case 'payment':
-                return (
-                    <>
-                        <SimpleHeader
-                            title="내담자 차트 데이터베이스"
-                            sub="관리 중인 내담자의 상담 이력과 상태를 관리합니다."
-                        />
-                        <div className="mw-search-wrap">
-                            <input
-                                className="mw-input mw-input-bare"
-                                placeholder="내담자 이름 혹은 연락처로 검색하세요."
-                            />
-                            <Search size={20} className="mw-search-icon" />
-                        </div>
-                        <div className="mw-list-card">
-                            {clientCharts.map((c) => (
-                                <div
-                                    key={c.id}
-                                    className="mw-list-item"
-                                    onClick={() => {
-                                        setSelectedClient(c);
-                                        setCurrentView('clientHistory');
-                                    }}
-                                >
-                                    <div className="mw-item-info">
-                                        <div className="mw-item-avatar">
-                                            <User size={20} />
-                                        </div>
-                                        <div>
-                                            <p className="mw-item-name">
-                                                {c.name} ({c.age})
-                                            </p>
-                                            <p className="mw-item-sub">
-                                                최근 방문: {c.lastVisit} | 총 {c.count}회 상담
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="mw-inline-row">
-                                        <span className={conditionBadgeClass(c.condition)}>{c.condition}</span>
-                                        <ChevronRight size={18} color="var(--mw-sub)" />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                );
-            case 'report':
-                return (
-                    <>
-                        <SimpleHeader title="승인 대기 요청 상세" sub="새로운 상담 신청 내역을 검토하세요." />
-                        <div className="mw-request-grid">
-                            {pendingRequests.map((req) => (
-                                <div key={req.id} className="mw-detail-card">
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                                        <h4 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>
-                                            {req.name} ({req.gender}, {req.age})
-                                        </h4>
-                                        <span className="mw-badge">대기중</span>
-                                    </div>
-                                    <p style={{ fontSize: 14, color: 'var(--mw-sub)', margin: '0 0 8px' }}>
-                                        신청일: {req.date}
-                                    </p>
-                                    <p className="mw-text-primary-bold">"{req.topic}"</p>
-                                    <div className="mw-btn-row">
-                                        <button className="mw-btn-accept">
-                                            <Check size={16} /> 수락
-                                        </button>
-                                        <button className="mw-btn-decline">
-                                            <X size={16} /> 반려
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                );
-            case 'settings':
-                return (
-                    <>
-                        <SimpleHeader title="시스템 설정" sub="관리자 프로필 및 센터 운영 환경을 설정합니다." />
-                        <div className="mw-detail-card">
-                            <h4 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 20px' }}>내 프로필 설정</h4>
-                            <div className="mw-settings-profile-row">
-                                <div className="mw-profile-img-xl">🧔‍♂️</div>
-                                <div style={{ flex: 1 }}>
-                                    <p className="mw-field-label">상담사 성함</p>
-                                    <input className="mw-input mw-input-bare" defaultValue="이은지" />
-                                </div>
-                            </div>
-                            <div className="mw-settings-row">
-                                <div>
-                                    <p className="mw-field-label">전문 분야</p>
-                                    <input className="mw-input mw-input-bare" defaultValue="성인 우울, 불안 장애" />
-                                </div>
-                                <div>
-                                    <p className="mw-field-label">소속 센터</p>
-                                    <input className="mw-input mw-input-bare" defaultValue="마인드웰 서울 강남센터" />
-                                </div>
-                            </div>
-                            <button className="mw-btn-accept" style={{ maxWidth: 120, marginTop: 20 }}>
-                                저장하기
-                            </button>
-                        </div>
-                    </>
-                );
-            case 'customer':
-                return (
-                    <>
-                        <SimpleHeader title="고객 지원" sub="이용 중 불편한 점이 있으신가요?" />
-                        <div className="mw-support-grid">
-                            {[
-                                { icon: <HelpCircle size={24} />, label: '자주 묻는 질문' },
-                                { icon: <MessageCircle size={24} />, label: '1:1 문의하기' },
-                                { icon: <FileText size={24} />, label: '가이드북' },
-                            ].map(({ icon, label }) => (
-                                <div key={label} className="mw-support-card">
-                                    <div className="mw-support-icon">{icon}</div>
-                                    <p style={{ fontWeight: 700, margin: 0 }}>{label}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                );
             case 'notifications':
                 return renderNotifications();
+            case 'customer':
+                return renderCustomer();
             default:
                 return renderDashboard();
         }
     };
 
-    const navItems = [
-        { id: 'dashboard', icon: <LayoutDashboard size={20} />, label: '대시보드' },
-        { id: 'history', icon: <Clock size={20} />, label: '오늘의 일정' },
-        { id: 'payment', icon: <Database size={20} />, label: '내담자 차트' },
-        { id: 'report', icon: <User size={20} />, label: '신규 접수' },
-        { id: 'notifications', icon: <Bell size={20} />, label: '알림센터' },
-        { id: 'settings', icon: <Settings size={20} />, label: '설정' },
-    ];
-
     return (
-        <div className="mw-container">
-            <aside className="mw-sidebar">
-                <div className="mw-logo" onClick={goHome}>
-                    <h1 className="mw-logo-title">MINDWELL</h1>
-                    <p className="mw-logo-sub">COUNSELOR ADMIN</p>
+        <div className="mw-app">
+            <div className="mw-mobile-header">
+                <button className="mw-mobile-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                    <Menu size={21} />
+                </button>
+                <span className="mw-mobile-logo">MINDWELL</span>
+                <button className="mw-mobile-menu-btn" onClick={() => go('notifications')}>
+                    <Bell size={19} />
+                </button>
+            </div>
+
+            {sidebarOpen && <div className="mw-overlay visible" onClick={() => setSidebarOpen(false)} />}
+
+            <aside className={`mw-sidebar${sidebarOpen ? ' open' : ''}`}>
+                <div className="mw-logo" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
+                    <div className="mw-logo-title">MINDWELL</div>
+                    <div className="mw-logo-sub">COUNSELOR ADMIN</div>
                 </div>
+
                 <nav className="mw-nav">
                     {navItems.map((item) => (
                         <div
                             key={item.id}
                             className={`mw-nav-item${activeMenu === item.id ? ' active' : ''}`}
-                            onClick={() => navTo(item.id)}
+                            onClick={() => go(item.id)}
                         >
                             {item.icon}
                             <span>{item.label}</span>
                         </div>
                     ))}
+                    <div
+                        className={`mw-nav-item${activeMenu === 'settings' ? ' active' : ''}`}
+                        onClick={() => {
+                            setSettingsOpen((open) => !open);
+                            setActiveMenu('settings');
+                            setSettingsView(null);
+                            setSidebarOpen(false);
+                        }}
+                    >
+                        <Settings size={17} />
+                        <span style={{ flex: 1 }}>설정</span>
+                        <ChevronDown
+                            size={13}
+                            style={{
+                                transition: 'transform .2s',
+                                transform: settingsOpen ? 'rotate(180deg)' : 'none',
+                            }}
+                        />
+                    </div>
+
+                    {settingsOpen && (
+                        <div className="mw-nav-submenu">
+                            {settingsMenuItems.map((item) => (
+                                <div
+                                    key={item.id}
+                                    className={`mw-nav-subitem${settingsView === item.id ? ' active' : ''}${item.danger ? ' danger' : ''}`}
+                                    onClick={() => goSettings(item.id)}
+                                >
+                                    {item.icon}
+                                    <span>{item.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </nav>
+
                 <div className="mw-sidebar-footer">
                     <div
                         className={`mw-footer-item${activeMenu === 'customer' ? ' active' : ''}`}
-                        onClick={() => navTo('customer')}
+                        onClick={() => go('customer')}
                     >
-                        <HeadphonesIcon size={20} />
+                        <HeadphonesIcon size={17} />
                         <span>고객센터</span>
                     </div>
-                    <div className="mw-footer-item danger">
-                        <LogOut size={20} />
+                    <div className="mw-footer-item danger" onClick={handleLogout}>
+                        <LogOut size={17} />
                         <span>로그아웃</span>
                     </div>
                 </div>
             </aside>
+
             <main className="mw-main">{renderContent()}</main>
+
+            <nav className="mw-bottom-tab">
+                {tabItems.map((item) => (
+                    <div
+                        key={item.id}
+                        className={`mw-tab-item${activeMenu === item.id ? ' active' : ''}`}
+                        onClick={() => go(item.id)}
+                    >
+                        <span className="mw-tab-icon">{item.icon}</span>
+                        <span className="mw-tab-label">{item.label}</span>
+                    </div>
+                ))}
+            </nav>
         </div>
     );
 };

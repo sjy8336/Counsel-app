@@ -1,12 +1,14 @@
 from app.schemas.user import UserUpdate, ChangePasswordRequest
+from app.core.jwt import create_access_token
 from passlib.context import CryptContext
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.user import User
+from app.models.favorite import Favorite
+from app.core.deps import get_current_user
 from app.schemas.user import UserCreate, LoginRequest
 from app.crud import crud
-from app.api import deps
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -46,8 +48,10 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
         full_name=user_in.full_name,
         username=user_in.username,
         email=user_in.email,
-        hashed_password=hashed_pw, # 실제 해시값 저장
+        hashed_password=hashed_pw,
         phone_number=user_in.phone_number,
+        birth_date=user_in.birth_date,
+        gender=user_in.gender,
         role=user_in.role
     )
     db.add(new_user)
@@ -67,7 +71,10 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
             detail="아이디 또는 비밀번호가 일치하지 않습니다."
         )
 
-    # 3. 로그인 성공 응답 (나중에는 여기서 JWT 토큰을 보내줄 거예요)
+    # 3. JWT 토큰 발급
+    access_token = create_access_token({"sub": str(user.id)})
+
+    # 4. 로그인 성공 응답 (토큰 포함)
     return {
         "message": "로그인 성공!",
         "user": {
@@ -75,7 +82,9 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
             "username": user.username,
             "full_name": user.full_name,
             "role": user.role
-        }
+        },
+        "access_token": access_token,
+        "token_type": "bearer"
     }
 
 @router.get("/check-id/{username}")
@@ -153,11 +162,55 @@ def change_password(req: ChangePasswordRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="비밀번호 변경 중 오류 발생")
 
 @router.get("/me")
-def get_me(current_user: User = Depends(deps.get_current_active_user)):
+def get_me(current_user=Depends(get_current_user)):
+    # JWT 인증된 유저 정보 반환
+    user = current_user
+    if not user:
+        raise HTTPException(status_code=404, detail="유저를 찾을 수 없습니다.")
     return {
-        "id": current_user.id,
-        "full_name": current_user.full_name,
-        "email": current_user.email,
-        "role": current_user.role,  # 'counselor', 'client', 'admin'
+        "id": user.id,
+        "full_name": user.full_name,
+        "email": user.email,
+        "phone_number": user.phone_number,
+        "role": user.role,  # 'counselor', 'client', 'admin'
         "profile_image": "default.png"
     }
+
+@router.post("/favorites/{counselor_id}")
+def toggle_favorite(counselor_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    print(f"[DEBUG] toggle_favorite 진입: current_user={getattr(current_user, 'id', None)}, counselor_id={counselor_id}")
+    try:
+        favorite = db.query(Favorite).filter(
+            Favorite.client_id == current_user.id,
+            Favorite.counselor_id == counselor_id
+        ).first()
+        print(f"[DEBUG] 기존 favorite: {favorite}")
+        if favorite:
+            db.delete(favorite)
+            db.commit()
+            print("[DEBUG] 찜 삭제 완료")
+            return {"message": "찜하기 취소됨", "is_favorite": False}
+        else:
+            new_fav = Favorite(client_id=current_user.id, counselor_id=counselor_id)
+            db.add(new_fav)
+            db.commit()
+            print("[DEBUG] 찜 추가 완료")
+            return {"message": "찜하기 성공", "is_favorite": True}
+    except Exception as e:
+        print(f"[ERROR] toggle_favorite 예외: {e}")
+        raise HTTPException(status_code=500, detail=f"찜 처리 중 오류: {e}")
+
+# 찜 목록 조회
+@router.get("/favorites")
+def get_favorites(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    favorites = db.query(Favorite).filter(Favorite.client_id == current_user.id).all()
+    result = []
+    for fav in favorites:
+        counselor = db.query(User).filter(User.id == fav.counselor_id).first()
+        result.append({
+            "id": fav.id,
+            "counselor_id": fav.counselor_id,
+            "counselor_name": counselor.full_name if counselor else None,
+            # 필요하다면 추가 정보도 여기에
+        })
+    return {"favorites": result}

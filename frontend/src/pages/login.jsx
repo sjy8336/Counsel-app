@@ -4,7 +4,7 @@ import { Mail, Lock, ChevronRight, BookHeart, Eye, EyeOff, User } from 'lucide-r
 import { login } from '../api/auth';
 import '../static/Login.css';
 
-export default function LoginPage() {
+export default function LoginPage({ setUserName, setIsLoggedIn }) {
     const [id, setId] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -19,15 +19,31 @@ export default function LoginPage() {
                 console.warn('로그인 응답에 id(PK)가 없습니다:', result.user);
             } else {
                 console.log('로그인 응답 user:', result.user);
+                // role, username 등 주요 정보 명확히 출력
+                console.log('user.role:', result.user.role);
+                console.log('user.username:', result.user.username);
             }
             localStorage.setItem('user', JSON.stringify(result.user));
+            if (result.access_token) {
+                localStorage.setItem('access_token', result.access_token); // header.jsx와 통일
+            }
+            // 로그인 시간 저장 (UTC ms)
+            localStorage.setItem('login_time', Date.now().toString());
+            // 상태 즉시 반영
+            setUserName(result.user.full_name || result.user.username || '');
+            setIsLoggedIn(true);
             alert(`${result.user.full_name}님, 환영합니다!`);
-            navigate('/');
+            // role에 따라 이동 경로 분기
+            if (result.user.role === 'counselor') {
+                navigate('/counselorhome');
+            } else {
+                navigate('/');
+            }
         } catch (error) {
             console.error('3. 로그인 에러 발생!');
             console.log('에러 객체 전체:', error);
             console.log('백엔드 메시지:', error.response?.data);
-            alert(error.response?.data?.detail || "로그인에 실패했습니다.");
+            alert(error.response?.data?.detail || '로그인에 실패했습니다.');
         }
         console.log('Login attempt:', id);
     };

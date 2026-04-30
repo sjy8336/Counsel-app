@@ -15,14 +15,14 @@
     min-height: 750px;
     background: white;
     border-radius: 24px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
     overflow: hidden;
 }
 
 /* 좌측 브랜딩 */
 .branding-area {
     flex: 1;
-    background: linear-gradient(135deg, #BDC7B9 0%, #8BA888 100%);
+    background: linear-gradient(135deg, #bdc7b9 0%, #8ba888 100%);
     padding: 60px 40px;
     display: flex;
     flex-direction: column;
@@ -53,8 +53,15 @@
     justify-content: center;
 }
 
-.form-title { font-size: 1.8rem; margin-bottom: 8px; font-weight: 700; }
-.form-subtitle { color: #666; margin-bottom: 30px; }
+.form-title {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.form-subtitle {
+    color: #666;
+    margin-bottom: 30px;
+}
 
 /* 역할 선택 전체 컨테이너 */
 .role-selection-wrapper {
@@ -76,11 +83,13 @@
     cursor: pointer;
     transition: all 0.2s ease;
 }
-.role-card:hover {background: #e9ecef;}
+.role-card:hover {
+    background: #e9ecef;
+}
 /* 활성화(선택) 되었을 때 */
 .role-card.active {
     background: white;
-    border-color: #8BA888; /* MINDWELL 포인트 컬러 */
+    border-color: #8ba888; /* MINDWELL 포인트 컬러 */
     box-shadow: 0 4px 12px rgba(139, 168, 136, 0.1);
 }
 
@@ -90,7 +99,9 @@
     transition: color 0.2s;
     flex-shrink: 0;
 }
-.role-card.active .role-card-icon {color: #8BA888;}
+.role-card.active .role-card-icon {
+    color: #8ba888;
+}
 
 /* 텍스트 영역 */
 .role-card-text {
@@ -104,17 +115,25 @@
     font-weight: 700;
     color: #444;
 }
-.role-card.active .role-card-title {color: #111;}
+.role-card.active .role-card-title {
+    color: #111;
+}
 
 .role-card-desc {
     font-size: 11px;
     color: #888;
     margin-top: 2px;
 }
-.role-card.active .role-card-desc {color: #666;}
+.role-card.active .role-card-desc {
+    color: #666;
+}
 
 /* 모바일 대응: 가로로 좁아지면 세로 배치 */
-@media (max-width: 480px) {.role-selection-wrapper {flex-direction: column;}}
+@media (max-width: 480px) {
+    .role-selection-wrapper {
+        flex-direction: column;
+    }
+}
 
 /* 입력 필드 레이아웃 */
 .input-field-group {
@@ -154,11 +173,13 @@
 
 .form-input:focus {
     background: white;
-    border-color: #8BA888;
+    border-color: #8ba888;
     outline: none;
 }
 
-.error-input {border-color: #ff8787 !important;}
+.error-input {
+    border-color: #ff8787 !important;
+}
 
 /* 비밀번호 눈 아이콘 버튼 */
 .password-toggle {
@@ -185,12 +206,15 @@
     white-space: nowrap;
 }
 
-.check-button:disabled { background: #ccc; cursor: default; }
+.check-button:disabled {
+    background: #ccc;
+    cursor: default;
+}
 
 .submit-button {
     width: 100%;
     padding: 15px;
-    background: #8BA888;
+    background: #8ba888;
     color: white;
     border: none;
     border-radius: 12px;
@@ -200,20 +224,32 @@
     justify-content: center;
     align-items: center;
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 0;
+    margin-bottom: 18px; /* 하단 안내문구와의 간격 추가 */
     cursor: pointer;
 }
 
 /* 유효성 메시지 */
-.validation-msg { font-size: 0.75rem; margin-top: 4px; font-weight: 500; }
-.msg-error { color: #fa5252; }
-.msg-success { color: #40c057; }
+.validation-msg {
+    font-size: 0.75rem;
+    margin-top: 4px;
+    font-weight: 500;
+}
+.msg-error {color: #fa5252;}
+.msg-success {color: #40c057;}
 
 /* 모바일 대응 */
 @media (max-width: 768px) {
-    .signup-card { flex-direction: column; min-height: auto; }
-    .branding-area { display: none; }
-    .form-area { padding: 30px 20px; }
+    .signup-card {
+        flex-direction: column;
+        min-height: auto;
+    }
+    .branding-area {
+        display: none;
+    }
+    .form-area {
+        padding: 30px 20px;
+    }
 }
 
 .input-wrapper {
@@ -227,7 +263,7 @@
     right: 12px;
     background: none;
     border: none;
-    color: #4A90E2; /* 파란색 글씨 */
+    color: #4a90e2; /* 파란색 글씨 */
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -236,4 +272,294 @@
 .inner-check-button:disabled {
     color: #ccc;
     cursor: default;
+}
+
+/* --- 생년월일 커스텀 달력 스타일 --- */
+.custom-calendar-popup {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 20px; 
+    box-shadow: 0 15px 40px rgba(139, 168, 136, 0.2); 
+    border: 1px solid #f0eee9;
+    padding: 20px;
+    z-index: 1000;
+}
+
+.cal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+/* 년도/월 선택 셀렉트 박스 스타일 */
+.cal-title-group {display: flex; gap: 5px;}
+
+.cal-select {
+    border: none;
+    background: #faf7f2;
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    outline: none;
+    appearance: none; 
+    text-align: center;
+}
+.cal-select:hover {background: #f1ede4;}
+
+.cal-nav-btn {
+    background: none;
+    border: none;
+    color: #8ba888; 
+    cursor: pointer;
+    padding: 4px;
+    transition: 0.2s;
+}
+
+.cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 10px;
+}
+
+.cal-weekday {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: #8ba888; /* 요일은 확실하게 포인트 컬러! */
+}
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.cal-day:hover:not(.empty) {
+    background: #faf7f2;
+    color: #8ba888;
+    font-weight: 700;
+}
+
+.cal-day.selected {
+    background: #8ba888 !important;
+    color: white !important;
+    font-weight: 700;
+}
+.cal-day.empty { cursor: default; }
+.pointer-cursor {cursor: pointer;}
+
+/* --- 성별 라디오 버튼 스타일 --- */
+.gender-radio-group {
+    display: flex;
+    gap: 12px;
+}
+
+.gender-radio {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    background: #f1f3f5;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1.5px solid #faf7f2;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+.gender-radio:hover {background: #e9ecef;}
+
+.gender-radio.checked {
+    background: #ffffff;
+    border-color: #8ba888;
+    color: #1e293b;
+    box-shadow: 0 4px 12px rgba(139, 168, 136, 0.1);
+}
+
+.gender-radio input[type='radio'] {
+    display: none; /* 실제 라디오 버튼은 숨김 */
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 개인정보 동의 카드 전체 컨테이너 */
+.policy-section-card {
+    background: #f6fbf7; /* 연그린 계열, 전체 톤과 어울리게 */
+    border: 1.5px solid #d2e3d0; /* 연그린 테두리 */
+    border-radius: 18px;
+    padding: 16px;
+    margin: 10px 0 30px 0;
+    transition: all 0.3s ease;
+}
+
+/* 상단 헤더 영역 */
+.policy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.policy-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+}
+
+.policy-icon {
+    color: #8ba888; /* 포인트 컬러 세이지 그린 */
+}
+
+.policy-arrow {
+    color: #94a3b8;
+    transition: transform 0.3s ease;
+}
+
+.policy-arrow.active {
+    transform: rotate(180deg);
+}
+
+/* 상세 내용 박스 (애니메이션 포함) */
+.policy-detail-content {
+    margin-top: 14px;
+    padding: 14px;
+    background: #fafdff;
+    border-radius: 12px;
+    border: 1px solid #e3f1e7;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.policy-detail-item {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.policy-detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.policy-dot {
+    width: 4px;
+    height: 4px;
+    background: #8ba888;
+    border-radius: 50%;
+    margin-top: 8px;
+    flex-shrink: 0;
+}
+
+.policy-detail-item p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #64748b;
+    font-weight: 400;
+}
+
+/* 하단 체크박스 영역 (레이아웃 고정 핵심) */
+.policy-agree-footer {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    height: 24px; /* 높이 고정으로 버튼 흔들림 방지 */
+}
+
+.custom-checkbox-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.custom-checkbox-box {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    background: white;
+    border: 2px solid #cbd5e1;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.custom-checkbox-box.checked {
+    background: #8ba888;
+    border-color: #8ba888;
+}
+
+.custom-checkbox-box input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+}
+
+/* 체크 아이콘 Absolute 배치로 흔들림 방지 */
+.custom-check-icon {
+    color: white;
+    position: absolute;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.custom-check-icon.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.custom-checkbox-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
