@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react'; // useEffect 추가
+import { useLocation } from 'react-router-dom'; // useLocation 추가
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
 import MobileTap from '../components/mobileTap.jsx';
@@ -131,6 +132,9 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const [selectedId, setSelectedId] = useState(1);
     const [clients, setClients] = useState(INIT_CLIENTS);
 
+    // 페이지 이동 시 넘어온 데이터 확인용[cite: 4]
+    const location = useLocation();
+
     // 모달 상태
     const [logModal, setLogModal] = useState({ open: false, editId: null, content: '' });
     const [surveyModal, setSurveyModal] = useState(false);
@@ -138,6 +142,20 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
 
     const [openLogId, setOpenLogId] = useState(null);
     const [quickMemo, setQuickMemo] = useState('');
+
+    // 추가된 로직: 데이터가 넘어왔을 때 자동으로 해당 내담자 선택[cite: 4]
+    useEffect(() => {
+        if (location.state && location.state.selectedClientName) {
+            const targetName = location.state.selectedClientName;
+            // 이름이 일치하는 내담자 찾기
+            const targetClient = clients.find((c) => c.name === targetName);
+            
+            if (targetClient) {
+                setSelectedId(targetClient.id);
+                setSearch(targetName); // 검색창에도 해당 이름을 넣어 필터링되게 함
+            }
+        }
+    }, [location.state, clients]); // location.state나 clients 정보가 바뀔 때마다 실행[cite: 4]
 
     const filtered = clients.filter((c) => c.name.includes(search));
     const client = clients.find((c) => c.id === selectedId);
@@ -242,7 +260,6 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                     {client.gender} · {client.birth} | {client.phone}
                                 </small>
                             </h2>
-                            {/* <p className="cc-phone"> </p> */}
                             <button className="cc-btn cc-btn--outline" onClick={() => setSurveyModal(true)}>
                                 📋 사전 설문지 확인
                             </button>
