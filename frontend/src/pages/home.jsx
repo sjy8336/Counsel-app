@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, ChevronRight, PenTool, MapPin, Clock, Heart, Coffee, User, Lock } from 'lucide-react';
 import '../static/home.css';
 import Header from '../components/header';
@@ -79,6 +80,7 @@ const GuideCard = ({ guide }) => (
 // --- Home 컴포넌트 ---
 const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
     const [activeTab, setActiveTab] = useState('home');
+    const navigate = useNavigate();
     return (
         <div className="mwl-root">
             <Header
@@ -111,7 +113,7 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                                 <br />
                                 가장 따뜻한 처방을 내려드려요.
                             </p>
-                            <button className="mwl-banner__cta">
+                            <button className="mwl-banner__cta" onClick={() => navigate('/AIdiary')}>
                                 <PenTool size={18} />
                                 오늘의 마음 기록하기
                             </button>
@@ -132,7 +134,13 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                                     콘텐츠입니다.
                                 </p>
                             </div>
-                            <button className="mwl-guide-section__more-btn">
+                            <button
+                                className="mwl-guide-section__more-btn"
+                                onClick={() => {
+                                    window.scrollTo(0, 0);
+                                    navigate('/healing');
+                                }}
+                            >
                                 전체보기 <ChevronRight size={14} />
                             </button>
                         </div>
@@ -160,7 +168,13 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                                     <span className="mwl-widget-card__counselor-name">박민우 상담사</span>님을 찾았어요.
                                 </p>
                             </div>
-                            <button className="mwl-widget-card__cta">
+                            <button
+                                className="mwl-widget-card__cta"
+                                onClick={() => {
+                                    window.scrollTo(0, 0);
+                                    navigate('/counselors');
+                                }}
+                            >
                                 전문가 찾기 <ChevronRight size={14} />
                             </button>
                         </div>
@@ -194,11 +208,14 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                         <h3 className="mwl-sidebar-header__title">
                             <Calendar size={18} /> 예약 현황
                         </h3>
-                        <button className="mwl-sidebar-header__btn">전체보기</button>
+                    
                     </div>
 
                     {/* Primary Appointment */}
-                    <div className={isLoggedIn ? 'mwl-appt-primary' : 'mwl-appt-primary--login-required'}>
+                    <div className={isLoggedIn ? 'mwl-appt-primary' : 'mwl-appt-primary--login-required'}
+                        onClick={() => navigate('/reserve')}
+                        style={{ cursor: 'pointer' }}
+                    >
                         {isLoggedIn ? (
                             <>
                                 <div className="mwl-appt-primary__top-row">
