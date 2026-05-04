@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { deleteAccount } from '../api/auth';
 import { getUserInfo, updateUserInfo, changePassword } from '../api/user';
 import { getFavorites } from '../api/favorite';
+import { isTokenExpired } from '../utils/jwt';
 import {
     Settings,
     Bell,
@@ -91,7 +92,7 @@ const NotificationSettings = ({ notifSettings, toggleNotif }) => {
 };
 
 export default function App() {
-        // 고객센터(고객지원) 내용 렌더링 함수
+    // 고객센터(고객지원) 내용 렌더링 함수
     const renderSupportCenter = () => {
         return (
             <div className="fade-in">
@@ -101,44 +102,62 @@ export default function App() {
                     <div className="support-contact-block">
                         <div className="support-contact-item">
                             <span className="support-contact-label">1:1 문의</span>
-                            <span className="support-contact-desc">마이페이지 &gt; <b>문의내역</b>에서 상담/결제/기타 문의를 남겨주시면 신속히 답변드리겠습니다.</span>
+                            <span className="support-contact-desc">
+                                마이페이지 &gt; <b>문의내역</b>에서 상담/결제/기타 문의를 남겨주시면 신속히
+                                답변드리겠습니다.
+                            </span>
                         </div>
                         <div className="support-contact-item">
                             <span className="support-contact-label">전화번호</span>
-                            <span className="support-contact-desc"><a href="tel:0212345678" className="support-link">02-1234-5678</a> (평일 10:00~18:00)</span>
+                            <span className="support-contact-desc">
+                                <a href="tel:0212345678" className="support-link">
+                                    02-1234-5678
+                                </a>{' '}
+                                (평일 10:00~18:00)
+                            </span>
                         </div>
                         <div className="support-contact-item">
                             <span className="support-contact-label">센터 위치</span>
-                            <span className="support-contact-desc">서울특별시 강남구 테헤란로 123 4F (강남역 5번 출구)</span>
+                            <span className="support-contact-desc">
+                                서울특별시 강남구 테헤란로 123 4F (강남역 5번 출구)
+                            </span>
                         </div>
                     </div>
                     <div className="support-faq-section">
                         <h5 className="support-faq-title">자주 묻는 질문 (FAQ)</h5>
                         <ul className="support-faq-list">
                             <li>
-                                <b>Q. 상담 예약은 어떻게 하나요?</b><br />
+                                <b>Q. 상담 예약은 어떻게 하나요?</b>
+                                <br />
                                 A. 마이페이지 &gt; 상담 히스토리 또는 상담사 상세 페이지에서 예약 가능합니다.
                             </li>
                             <li>
-                                <b>Q. 결제 영수증은 어디서 확인하나요?</b><br />
+                                <b>Q. 결제 영수증은 어디서 확인하나요?</b>
+                                <br />
                                 A. 마이페이지 &gt; 이용권/결제 메뉴에서 결제 내역과 영수증을 확인할 수 있습니다.
                             </li>
                             <li>
-                                <b>Q. 환불은 어떻게 진행되나요?</b><br />
+                                <b>Q. 환불은 어떻게 진행되나요?</b>
+                                <br />
                                 A. 1:1 문의 또는 고객센터로 연락주시면 환불 정책에 따라 신속히 처리해드립니다.
                             </li>
                             <li>
-                                <b>Q. 상담 내역과 기록은 안전하게 보관되나요?</b><br />
-                                A. 모든 상담 기록은 암호화되어 안전하게 보관되며, 본인과 담당 상담사만 열람할 수 있습니다.
+                                <b>Q. 상담 내역과 기록은 안전하게 보관되나요?</b>
+                                <br />
+                                A. 모든 상담 기록은 암호화되어 안전하게 보관되며, 본인과 담당 상담사만 열람할 수
+                                있습니다.
                             </li>
                             <li>
-                                <b>Q. 상담사 변경이나 일정 변경은 어떻게 하나요?</b><br />
+                                <b>Q. 상담사 변경이나 일정 변경은 어떻게 하나요?</b>
+                                <br />
                                 A. 마이페이지 &gt; 문의내역 또는 고객센터로 요청해주시면 도와드립니다.
                             </li>
                         </ul>
                     </div>
                     <div className="support-footer-msg">
-                        언제든 문의해주시면 친절하게 안내해드리겠습니다.<br />마인드웰 고객센터를 이용해주셔서 감사합니다.
+                        언제든 문의해주시면 친절하게 안내해드리겠습니다.
+                        <br />
+                        마인드웰 고객센터를 이용해주셔서 감사합니다.
                     </div>
                 </div>
             </div>
@@ -175,7 +194,7 @@ export default function App() {
 
     useEffect(() => {
         const user = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
         if (user) {
             const userObj = JSON.parse(user);
             setUserInfo((prev) => ({ ...prev, id: userObj.id }));
@@ -191,12 +210,26 @@ export default function App() {
                 }));
             });
             // 찜내역 불러오기
+            if (!token || isTokenExpired(token)) {
+                alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                navigate('/login');
+                return;
+            }
             getFavorites(token)
                 .then((data) => {
                     setFavoritesList(data.favorites || []);
                 })
-                .catch(() => {
-                    setFavoritesList([]);
+                .catch((err) => {
+                    if (err?.response?.status === 401) {
+                        alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('user');
+                        navigate('/login');
+                    } else {
+                        setFavoritesList([]);
+                    }
                 });
         }
     }, []);
