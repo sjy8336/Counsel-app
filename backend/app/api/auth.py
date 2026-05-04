@@ -179,6 +179,10 @@ def get_me(current_user=Depends(get_current_user)):
 @router.post("/favorites/{counselor_id}")
 def toggle_favorite(counselor_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     print(f"[DEBUG] toggle_favorite 진입: current_user={getattr(current_user, 'id', None)}, counselor_id={counselor_id}")
+    # counselor_id가 실제 존재하는 상담사(유저)인지 확인
+    counselor = db.query(User).filter(User.id == counselor_id).first()
+    if not counselor:
+        raise HTTPException(status_code=404, detail='존재하지 않는 상담사입니다.')
     try:
         favorite = db.query(Favorite).filter(
             Favorite.client_id == current_user.id,

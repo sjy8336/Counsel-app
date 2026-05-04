@@ -57,7 +57,7 @@ const counselorData = [
     },
 ];
 
-export default function CounselorListPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
+export default function CounselorListPage({ userName, setUserName, isLoggedIn, setIsLoggedIn, onFavoriteChange }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('전체');
     const [liked, setLiked] = useState({}); // { [id]: true/false }
@@ -108,6 +108,9 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
         try {
             const res = await toggleFavorite(id, token);
             setLiked((prev) => ({ ...prev, [id]: res.is_favorite }));
+            if (typeof onFavoriteChange === 'function') {
+                onFavoriteChange(id, res.is_favorite);
+            }
         } catch (err) {
             // 401 에러가 난다면 콘솔에 찍어서 확인해봅시다.
             console.error('찜 에러 상세:', err.response);

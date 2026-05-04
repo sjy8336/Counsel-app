@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { deleteAccount } from '../api/auth';
 import { getUserInfo, updateUserInfo, changePassword } from '../api/user';
-import { getFavorites } from '../api/favorite';
+import { getFavorites, toggleFavorite } from '../api/favorite';
+import CounselorListPage from './CounselorList';
 import { isTokenExpired } from '../utils/jwt';
 import {
     Settings,
@@ -329,9 +330,23 @@ export default function App() {
         }
     };
 
-    const handleUnfavorite = (id, e) => {
+    // 찜 해제 시 실제 DB에서도 삭제, 그리고 CounselorList에 반영할 수 있도록 콜백 지원
+    const handleUnfavorite = async (id, e, onUpdate) => {
         e.stopPropagation();
-        setFavoritesList((prev) => prev.filter((item) => item.id !== id));
+        // 1. 프론트에서 먼저 optimistic update로 바로 제거
+        setFavoritesList((prev) => prev.filter((item) => String(item.id || item.counselor_id) !== String(id)));
+        if (typeof onUpdate === 'function') onUpdate(id, false);
+        // 2. 서버에 실제 찜 해제 요청
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            alert('로그인 후 이용 가능한 기능입니다.');
+            return;
+        }
+        try {
+            await toggleFavorite(id, token); // 서버에 찜 토글 요청
+        } catch (err) {
+            alert('찜 해제 처리 중 오류가 발생했습니다.');
+        }
     };
 
     const renderHistoryDetail = () => {
@@ -1079,34 +1094,116 @@ export default function App() {
         );
     };
 
+    // 더미데이터를 상단에 선언하거나 import 필요
+    const counselorData = [
+        {
+            id: 1,
+            name: '이은지 상담사',
+            category: '개인 심리',
+            field: '우울, 불안, 공황',
+            price: '60,000원',
+            intro: '감정 일기 분석을 통해 당신의 마음을 함께 들여다봅니다.',
+        },
+        {
+            id: 2,
+            name: '김태현 상담사',
+            category: '직장',
+            field: '스트레스, 번아웃',
+            price: '60,000원',
+            intro: '직장 내 대인관계와 커리어 고민에 솔루션을 드립니다.',
+        },
+        {
+            id: 3,
+            name: '박소담 상담사',
+            category: '진로',
+            field: '취업불안, 진로고민',
+            price: '60,000원',
+            intro: '나를 사랑하는 법, 작은 기록부터 시작해봐요.',
+        },
+        {
+            id: 4,
+            name: '정다은 상담사',
+            category: '개인 심리',
+            field: '자존감, 강박',
+            price: '60,000원',
+            intro: '막막한 미래, 당신의 강점을 찾는 솔루션을 제공합니다.',
+        },
+        {
+            id: 5,
+            name: '한지우 상담사',
+            category: '직장',
+            field: '소통, 대인관계',
+            price: '60,000원',
+            intro: '오늘의 감정이 내일의 평온이 되도록 돕겠습니다.',
+        },
+        {
+            id: 6,
+            name: '최민준 상담사',
+            category: '진로',
+            field: '진로고민, 번아웃',
+            price: '60,000원',
+            intro: '지친 마음을 회복하고 다시 나아갈 힘을 드립니다.',
+        },
+    ];
+
     const renderFavoritesList = () => {
         return (
             <div className="fade-in">
-                <h3 className="mypage-section-title">찜내역</h3>
+                <h3 className="mypage-section-title">찜 목록</h3>
                 <ul className="mypage-list mypage-list-grid">
-                    {favoritesList.map((item) => (
-                        <li
-                            key={item.id}
-                            className="mypage-list-item mypage-favorite-item"
-                            onClick={() => navigate('/counselor-detail/' + item.id)}
-                        >
-                            <Heart
-                                size={22}
-                                color="#e74c3c"
-                                fill="#e74c3c"
-                                className="mypage-favorite-heart"
-                                onClick={(e) => handleUnfavorite(item.id, e)}
-                                title="찜 취소"
-                            />
-                            <div className="mypage-favorite-content">
-                                <div className="mypage-list-title">
-                                    {item.name} <span className="mypage-list-type">[{item.type}]</span>
+                    {favoritesList.map((item) => {
+                        const counselor = counselorData.find(
+                            (c) => String(c.id) === String(item.counselor_id || item.id)
+                        );
+                        const counselorName = counselor ? counselor.name : item.counselor_name || '알 수 없는 상담사';
+                        const field = counselor ? counselor.field : item.field;
+                        const category = counselor ? counselor.category : item.category;
+                        const intro = counselor ? counselor.intro : item.intro;
+                        const price = counselor ? counselor.price : item.price;
+                        const avatarInitial = counselorName.slice(0, 1);
+
+                        return (
+                            <li
+                                key={item.id || item.counselor_id}
+                                className="mypage-list-item mypage-favorite-item"
+                                onClick={() => navigate('/counselor-detail/' + (item.id || item.counselor_id))}
+                            >
+                                {/* 하트 — 우측 상단 고정 */}
+                                <div
+                                    className="mypage-favorite-heart"
+                                    onClick={(e) =>
+                                        handleUnfavorite(item.counselor_id ? item.counselor_id : item.id, e)
+                                    }
+                                    title="찜 취소"
+                                >
+                                    <Heart size={14} color="#e74c3c" fill="#e74c3c" />
                                 </div>
-                                <div className="mypage-list-meta">{item.date}</div>
-                                <div className="mypage-list-content">{item.desc}</div>
-                            </div>
-                        </li>
-                    ))}
+
+                                {/* 아바타 이니셜 */}
+                                <div className="mypage-favorite-avatar">{avatarInitial}</div>
+
+                                <div className="mypage-favorite-content">
+                                    <div className="mypage-list-title">{counselorName}</div>
+                                    <div className="mypage-list-meta">
+                                        {category && <span className="mypage-list-category">{category}</span>}
+                                        {field &&
+                                            field.split(',').map((f, i) => (
+                                                <span key={i} className="mypage-list-field">
+                                                    {f.trim()}
+                                                </span>
+                                            ))}
+                                    </div>
+                                    {intro && <div className="mypage-list-intro">{intro}</div>}
+                                    {price && (
+                                        <div className="mypage-list-price">
+                                            <span className="price-value">{price}</span>
+                                            <span className="mypage-list-cta">상세보기</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </li>
+                        );
+                    })}
                 </ul>
             </div>
         );
@@ -1123,7 +1220,11 @@ export default function App() {
             case 'inquiry':
                 return renderInquiryList();
             case 'favorites':
-                return renderFavoritesList();
+                // 찜 해제 시 CounselorListPage의 liked 상태도 동기화
+                return renderFavoritesList((id, isFav) => {
+                    // CounselorListPage가 마운트되어 있다면 liked 상태를 동기화할 수 있도록
+                    // (라우팅 구조에 따라 필요시 전역 상태/컨텍스트로도 가능)
+                });
             case 'tickets':
                 return renderTicketsDetail();
             case 'support':
