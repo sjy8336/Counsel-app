@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { toggleFavorite } from '../api/favorite';
+import React, { useState, useEffect } from 'react';
+import { toggleFavorite, getFavorites } from '../api/favorite';
 import { useNavigate } from 'react-router-dom';
 import { Search, User, Heart } from 'lucide-react';
 import Header from '../components/header';
@@ -63,10 +63,43 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
     const [liked, setLiked] = useState({}); // { [id]: true/false }
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const fetchLikes = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            try {
+                const favList = await getFavorites(token);
+                console.log('1. 서버 응답 데이터 확인:', favList);
+
+                const initialLikes = {};
+                if (favList && Array.isArray(favList.favorites)) {
+                    favList.favorites.forEach((fav) => {
+                        const cId = Number(fav.counselor_id);
+                        if (cId) {
+                            initialLikes[cId] = true;
+                        }
+                    });
+                }
+
+                console.log('2. 변환된 liked 객체:', initialLikes);
+                setLiked(initialLikes);
+            } catch (err) {
+                console.error('찜 목록 로드 실패:', err);
+                // 401 에러(세션만료) 시 처리
+                if (err.response?.status === 401) {
+                    localStorage.removeItem('access_token');
+                    // navigate('/login'); // 필요시 활성화
+                }
+            }
+        };
+        fetchLikes();
+    }, []); // 빈 배열: 컴포넌트 마운트 시 1회 실행
+
     const handleLike = async (id, e) => {
         e.stopPropagation();
         const user = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
         if (!user || !token) {
             alert('로그인 후 이용 가능한 기능입니다.');
             navigate('/login');
@@ -76,6 +109,8 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
             const res = await toggleFavorite(id, token);
             setLiked((prev) => ({ ...prev, [id]: res.is_favorite }));
         } catch (err) {
+            // 401 에러가 난다면 콘솔에 찍어서 확인해봅시다.
+            console.error('찜 에러 상세:', err.response);
             alert('찜 처리 중 오류가 발생했습니다.');
         }
     };

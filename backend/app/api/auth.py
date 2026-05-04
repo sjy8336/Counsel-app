@@ -203,14 +203,18 @@ def toggle_favorite(counselor_id: int, db: Session = Depends(get_db), current_us
 # 찜 목록 조회
 @router.get("/favorites")
 def get_favorites(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    print(f"[DEBUG] get_favorites 호출: user_id={current_user.id}") # 로그 추가
     favorites = db.query(Favorite).filter(Favorite.client_id == current_user.id).all()
+    print(f"[DEBUG] DB에서 찾은 찜 개수: {len(favorites)}") # 로그 추가
     result = []
     for fav in favorites:
+        # 상담사 정보 가져오기
         counselor = db.query(User).filter(User.id == fav.counselor_id).first()
+        # counselor가 DB에 없더라도 일단 리스트에 담아서 프론트에 보내줘야 하트가 유지됩니다!
         result.append({
             "id": fav.id,
             "counselor_id": fav.counselor_id,
-            "counselor_name": counselor.full_name if counselor else None,
-            # 필요하다면 추가 정보도 여기에
+            "counselor_name": counselor.full_name if counselor else "알 수 없는 상담사"
         })
+    print(f"[DEBUG] 최종 리턴 데이터: {result}") # 로그 추가
     return {"favorites": result}

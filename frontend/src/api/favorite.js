@@ -14,6 +14,7 @@ export const toggleFavorite = async (counselor_id, token) => {
 
 // 찜 목록 가져오기
 export const getFavorites = async (token) => {
+    console.log('getFavorites 호출 토큰:', token);
     const response = await axios.get(`${API_URL}/favorites`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
     });

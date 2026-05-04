@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toggleFavorite } from '../api/favorite';
+import { isTokenExpired } from '../utils/jwt';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     User,
@@ -71,9 +72,16 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
 
     const handleLike = async () => {
         const user = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
         if (!user || !token) {
             alert('로그인 후 이용 가능한 기능입니다.');
+            navigate('/login');
+            return;
+        }
+        if (isTokenExpired(token)) {
+            alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
             navigate('/login');
             return;
         }
@@ -81,7 +89,15 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
             const res = await toggleFavorite(id, token);
             setLiked(res.is_favorite);
         } catch (err) {
-            alert('찜 처리 중 오류가 발생했습니다.');
+            // 401 Unauthorized 처리
+            if (err?.response?.status === 401) {
+                alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                navigate('/login');
+            } else {
+                alert('찜 처리 중 오류가 발생했습니다.');
+            }
         }
     };
 
