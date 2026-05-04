@@ -1,796 +1,389 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-    Camera,
-    Plus,
-    Trash2,
-    ChevronRight,
-    Save,
-    User,
-    Briefcase,
-    GraduationCap,
-    CheckCircle2,
-    MapPin,
-    Building2,
-    Mail,
-    Phone,
-    X,
-} from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+
+import { User, Award, BookOpen, CheckCircle2, Trash2, Calendar, ChevronDown, Plus, X, Camera, MapPin, Save, AlertCircle } from 'lucide-react';
+import DatePicker from '../components/DatePicker.jsx';
+import YearMonthPicker from '../components/YearMonthPicker.jsx';
+
 import '../static/CounselorUpload.css';
-import Header from '../components/header';
-import MobileTap from '../components/mobileTap';
-import Footer from '../components/footer';
-import { registerCounselorProfile } from '../api/counselor';
-import { getMyInfo } from '../api/user';
+import Header from '../components/header.jsx';
+import Footer from '../components/footer.jsx';
+import MobileTap from '../components/mobileTap.jsx';
 
-// 이미지 업로드 API 함수 (임시 구현, 실제 경로/응답에 맞게 수정 필요)
-async function uploadProfileImage(file, token) {
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await fetch('/api/upload/profile-image', {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-    });
-    if (!res.ok) throw new Error('이미지 업로드 실패');
-    const data = await res.json();
-    // data.url 또는 data.profile_img_url 등 실제 응답에 맞게 수정
-    return data.url || data.profile_img_url;
-}
+const App = () => {
+  // ── State ──
+  const [activeTab, setActiveTab] = useState('basic');
+  const [profileImage, setProfileImage] = useState(null);
+  const fileInputRef = useRef(null);
+  const [expertType, setExpertType] = useState([]);
+  const [customExpertise, setCustomExpertise] = useState('');
+  const [certificates, setCertificates] = useState([{ id: 1, year: '', month: '', name: '', issuer: '' }]);
+  const [educations, setEducations] = useState([{ id: 1, startYear: '', startMonth: '', endYear: '', endMonth: '', school: '', major: '' }]);
+  const [experiences, setExperiences] = useState([{ id: 1, period: '', content: '' }]);
 
-/* ── 상수 ──────────────────────────────────────────── */
-const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
-const HOURS = Array.from({ length: 13 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
-const SPECIALTIES = [
-    '개인 심리 상담',
-    '취업 컨설팅',
-    '진로 설계',
-    '직무 스트레스',
-    '면접 공포증',
-    '자존감 회복',
-    '대인관계',
-    '번아웃 증후군',
-    '정서 조절',
-];
+  // 기본정보 입력값 상태
+  const [basicName, setBasicName] = useState("");
+  const [basicPhone, setBasicPhone] = useState("");
+  const [basicCenter, setBasicCenter] = useState("");
+  const [basicAddress, setBasicAddress] = useState("");
+  const [basicWarn, setBasicWarn] = useState("");
+  const [showWarn, setShowWarn] = useState({
+    name: false,
+    phone: false,
+    center: false,
+    address: false,
+  });
 
-const CURRENT_YEAR = new Date().getFullYear();
-const CURRENT_MONTH = (new Date().getMonth() + 1).toString().padStart(2, '0');
-const YEARS = Array.from({ length: 20 }, (_, i) => String(CURRENT_YEAR - i));
-const MONTHS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+  const days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+  const [weeklySchedule, setWeeklySchedule] = useState(
+    days.reduce((acc, day) => ({ ...acc, [day]: { active: day !== '토요일' && day !== '일요일', slots: [{ start: '10:00', end: '19:00' }] } }), {})
+  );
 
-const TABS = [
-    { id: 'basic', label: '기본 정보', icon: <User size={20} /> },
-    { id: 'professional', label: '전문 분야', icon: <Briefcase size={20} /> },
-    { id: 'history', label: '경력 및 학력', icon: <GraduationCap size={20} /> },
-];
-const NEXT = { basic: 'professional', professional: 'history' };
+  // ── Constants ──
+  const currentYear = new Date().getFullYear();
+  const yearOptions  = Array.from({ length: 40 }, (_, i) => currentYear - i);
+  const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
+  const timeOptions  = Array.from({ length: 11 }, (_, i) => `${10 + i}:00`);
+  const expertiseList = ['개인심리','취업상담','진로상담','대인관계','가족상담','우울/불안','연애/결혼','공황/장애','트라우마','중독상담','번아웃','스트레스','자존감향상','성격상담','학업/시험'];
 
-const mkSlot = () => ({ id: Date.now(), start: '09:00', end: '10:00' });
-const mkSchedule = () =>
-    Object.fromEntries(DAYS.map((d, i) => [d, { active: i < 5, slots: [{ id: 1, start: '09:00', end: '10:00' }] }]));
-const mkExp = () => ({
-    id: Date.now(),
-    fromY: '2024',
-    fromM: '01',
-    toY: '2025',
-    toM: '12',
-    present: false,
-    content: '',
-});
-const mkEdu = () => ({ id: Date.now(), school: '', major: '' });
+  // ── Handlers ──
+  const handleImageUpload = e => {
+    const file = e.target.files[0];
+    if (file) { const r = new FileReader(); r.onloadend = () => setProfileImage(r.result); r.readAsDataURL(file); }
+  };
 
-/* ── 경력 기간 피커 ────────────────────────────────── */
-function PeriodPicker({ exp, onChange }) {
-    const setField = (f, v) => onChange({ ...exp, [f]: v });
-    const togglePresent = () => onChange({ ...exp, present: !exp.present });
+  const toggleDayActive = day => setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], active: !p[day].active } }));
+  const updateTime = (day, idx, type, value) => {
+    const newSlots = [...weeklySchedule[day].slots];
+    newSlots[idx][type] = value;
+    setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], slots: newSlots } }));
+  };
+  const addTimeSlot    = day => setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], slots: [...p[day].slots, { start: '10:00', end: '19:00' }] } }));
+  const removeTimeSlot = (day, idx) => setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], slots: p[day].slots.filter((_, i) => i !== idx) } }));
 
-    // 종료 연도/월에서 미래 선택 방지
-    const toYearOptions = YEARS.filter((y) => Number(y) <= CURRENT_YEAR);
-    const toMonthOptions =
-        exp.toY === String(CURRENT_YEAR) ? MONTHS.filter((m) => Number(m) <= Number(CURRENT_MONTH)) : MONTHS;
+  const addCertificate    = () => setCertificates(p => [...p, { id: Date.now(), year: '', month: '', name: '', issuer: '' }]);
+  const removeCertificate = id => setCertificates(p => p.filter(c => c.id !== id));
+  const addEducation      = () => setEducations(p => [...p, { id: Date.now(), startYear: '', startMonth: '', endYear: '', endMonth: '', school: '', major: '' }]);
+  const removeEducation   = id => setEducations(p => p.filter(e => e.id !== id));
+  const addExperience     = () => setExperiences(p => [...p, { id: Date.now(), period: '', content: '' }]);
+  const removeExperience  = id => setExperiences(p => p.filter(e => e.id !== id));
 
-    // 시작 연도/월에서 미래 선택 방지
-    const fromYearOptions = YEARS.filter((y) => Number(y) <= CURRENT_YEAR);
-    const fromMonthOptions =
-        exp.fromY === String(CURRENT_YEAR) ? MONTHS.filter((m) => Number(m) <= Number(CURRENT_MONTH)) : MONTHS;
+  // ── DatePicker ──
+  // 프로필 사진 클릭 시 파일 선택창 열기
+  const handlePhotoClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+  const renderBasicInfo = () => (
+    <div className="cu-ep-basic cu-ep-animate">
+      <div className="cu-ep-photo-section">
+        <div className="cu-ep-photo-box" onClick={handlePhotoClick}>
+          {profileImage ? (
+            <img src={profileImage} alt="프로필" className="cu-ep-photo-img" />
+          ) : (
+            <User style={{ color: '#8BA888', width: '3.5rem', height: '3.5rem' }} />
+          )}
+          <div className="cu-ep-photo-overlay"><Plus style={{ color: '#fff', width: '1.5rem', height: '1.5rem' }} /></div>
+        </div>
+        <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" style={{ display: 'none' }} />
+        <p className="cu-ep-photo-hint">JPG, PNG 지원<br />권장 사이즈: 500x500px</p>
+      </div>
 
-    return (
-        <div className="period-picker">
-            <div className="period-row">
-                <span className="period-label">시작</span>
-                <div className="period-select-box">
-                    <select
-                        className="period-select"
-                        value={exp.fromY}
-                        onChange={(e) => setField('fromY', e.target.value)}
-                    >
-                        {fromYearOptions.map((y) => (
-                            <option key={y}>{y}</option>
-                        ))}
-                    </select>
-                    <span className="period-unit">년</span>
-                    <select
-                        className="period-select"
-                        value={exp.fromM}
-                        onChange={(e) => setField('fromM', e.target.value)}
-                    >
-                        {fromMonthOptions.map((m) => (
-                            <option key={m}>{m}</option>
-                        ))}
-                    </select>
-                    <span className="period-unit">월</span>
+      <div className="cu-ep-fields">
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">이름 <span className="cu-ep-required">*</span></label>
+          <input type="text" placeholder="이름을 입력하세요" className="cu-ep-input" value={basicName} onChange={e => { setBasicName(e.target.value); setShowWarn(w => ({ ...w, name: false })); }} />
+          {showWarn.name && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">아이디 <span className="cu-ep-label-badge">수정 불가</span></label>
+          <input type="text" value="expert_mindwell" readOnly className="cu-ep-input-ro" />
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">이메일</label>
+          <input type="email" placeholder="example@mindwell.com" className="cu-ep-input" />
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">개인 연락처 <span className="cu-ep-required">*</span></label>
+          <input type="tel" placeholder="010-0000-0000" className="cu-ep-input" value={basicPhone} onChange={e => { setBasicPhone(e.target.value); setShowWarn(w => ({ ...w, phone: false })); }} />
+          {showWarn.phone && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
+        </div>
+        <div className="cu-ep-divider">
+          <div className="cu-ep-field-group">
+            <label className="cu-ep-group-label"><MapPin style={{ width: '1rem', height: '1rem', color: '#8BA888' }} /> 상담소 정보</label>
+          </div>
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">상담소명 <span className="cu-ep-required">*</span></label>
+          <input type="text" placeholder="소속 상담소 이름을 입력하세요" className="cu-ep-input" value={basicCenter} onChange={e => { setBasicCenter(e.target.value); setShowWarn(w => ({ ...w, center: false })); }} />
+          {showWarn.center && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">상담소 전화번호</label>
+          <input type="tel" placeholder="02-000-0000" className="cu-ep-input" />
+        </div>
+        <div className="cu-ep-field cu-ep-span2">
+          <label className="cu-ep-label">상담소 주소 <span className="cu-ep-required">*</span></label>
+          <input type="text" placeholder="상담소가 위치한 상세 주소를 입력하세요" className="cu-ep-input" value={basicAddress} onChange={e => { setBasicAddress(e.target.value); setShowWarn(w => ({ ...w, address: false })); }} />
+          {showWarn.address && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
+        </div>
+      </div>
+    </div>
+  );
+// ...existing code...
+
+  const renderExpertise = () => (
+    <div className="cu-ep-expertise cu-ep-animate">
+      <section>
+        <h3 className="cu-ep-section-title">
+          <CheckCircle2 style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} />
+          전문 상담분야 <span className="cu-ep-section-hint">(중복 선택 가능)</span>
+        </h3>
+        <div className="cu-ep-chips">
+          {expertiseList.map(item => (
+            <button
+              key={item}
+              onClick={() => setExpertType(p => p.includes(item) ? p.filter(t => t !== item) : [...p, item])}
+              className={`cu-ep-chip${expertType.includes(item) ? ' cu-ep-chip-on' : ''}`}
+            >{item}</button>
+          ))}
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-custom-label">기타 전문분야 직접 입력</label>
+          <textarea value={customExpertise} onChange={e => setCustomExpertise(e.target.value)} placeholder="제시된 항목 외의 구체적인 상담 전문 분야가 있다면 입력해주세요." className="cu-ep-textarea" />
+        </div>
+      </section>
+
+      <section>
+        <h3 className="cu-ep-section-title">
+          <span className="cu-ep-schedule-bar" />주간 상담 일정
+        </h3>
+        <div className="cu-ep-schedule-list">
+          {days.map(day => {
+            const d = weeklySchedule[day];
+            return (
+              <div key={day} className={`cu-ep-schedule-row${d.active ? ' cu-ep-day-on' : ''}`}>
+                <div className="cu-ep-day-toggle">
+                  <button onClick={() => toggleDayActive(day)} className={`cu-ep-toggle-btn${d.active ? ' cu-ep-toggle-on' : ''}`}>
+                    <CheckCircle2 style={{ width: '1rem', height: '1rem' }} />
+                  </button>
+                  <span className={`cu-ep-day-label${d.active ? ' cu-ep-day-label-on' : ''}`}>{day}</span>
                 </div>
-
-                <span className="period-sep-text">~</span>
-
-                {exp.present ? (
-                    <button className="period-present-btn on" onClick={togglePresent}>
-                        현재
-                    </button>
-                ) : (
-                    <>
-                        <div className="period-select-box">
-                            <select
-                                className="period-select"
-                                value={exp.toY}
-                                onChange={(e) => setField('toY', e.target.value)}
-                            >
-                                {toYearOptions.map((y) => (
-                                    <option key={y}>{y}</option>
-                                ))}
+                <div className="cu-ep-slots">
+                  {d.active ? (
+                    <div className="cu-ep-slots-row">
+                      {d.slots.map((slot, idx) => (
+                        <div key={idx} className="cu-ep-slot">
+                          <div className="cu-ep-time-select">
+                            <select value={slot.start} onChange={e => updateTime(day, idx, 'start', e.target.value)}>
+                              {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
-                            <span className="period-unit">년</span>
-                            <select
-                                className="period-select"
-                                value={exp.toM}
-                                onChange={(e) => setField('toM', e.target.value)}
-                            >
-                                {toMonthOptions.map((m) => (
-                                    <option key={m}>{m}</option>
-                                ))}
+                            <ChevronDown className="cu-ep-dp-chevron" />
+                          </div>
+                          <span className="cu-ep-time-sep">~</span>
+                          <div className="cu-ep-time-select">
+                            <select value={slot.end} onChange={e => updateTime(day, idx, 'end', e.target.value)}>
+                              {timeOptions
+                                .filter(t => {
+                                  // 시작시간이 선택되어 있으면, 끝나는 시간은 시작시간보다 1시간 이후부터만 표시
+                                  if (!slot.start) return true;
+                                  const startHour = parseInt(slot.start.split(":")[0], 10);
+                                  const tHour = parseInt(t.split(":")[0], 10);
+                                  return tHour > startHour;
+                                })
+                                .map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
-                            <span className="period-unit">월</span>
+                            <ChevronDown className="cu-ep-dp-chevron" />
+                          </div>
+                          {d.slots.length > 1 && (
+                            <button onClick={() => removeTimeSlot(day, idx)} className="cu-ep-slot-rm">
+                              <X style={{ width: '0.875rem', height: '0.875rem' }} />
+                            </button>
+                          )}
                         </div>
-                        <button className="period-present-btn" onClick={togglePresent}>
-                            현재
-                        </button>
-                    </>
-                )}
+                      ))}
+                      <button onClick={() => addTimeSlot(day)} className="cu-ep-slot-add" title="시간 추가">
+                        <Plus style={{ width: '1rem', height: '1rem' }} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="cu-ep-day-off-msg">휴무일입니다.</div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+
+  const renderHistory = () => (
+    <div className="cu-ep-history cu-ep-animate">
+      {/* 자격증 */}
+      <section>
+        <div className="cu-ep-section-header">
+          <h3 className="cu-ep-section-title"><Award style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} /> 자격증</h3>
+          <button onClick={addCertificate} className="cu-ep-add-btn"><Plus style={{ width: '0.875rem', height: '0.875rem' }} /> 추가</button>
+        </div>
+        <div className="cu-ep-items">
+          {certificates.map(cert => (
+            <div key={cert.id} className="cu-ep-cert-item">
+              <div className="cu-ep-cert-date"><YearMonthPicker value={cert.yearMonth} onChange={v => setCertificates(p => p.map(c => c.id === cert.id ? { ...c, yearMonth: v } : c))} /></div>
+              <div className="cu-ep-item-field">
+                <label className="cu-ep-item-label">자격증명</label>
+                <input type="text" placeholder="자격증 이름을 입력하세요" className="cu-ep-item-input" />
+              </div>
+              <div className="cu-ep-item-field">
+                <label className="cu-ep-item-label">발급 기관</label>
+                <input type="text" placeholder="기관명" className="cu-ep-item-input" />
+              </div>
+              <button onClick={() => removeCertificate(cert.id)} className="cu-ep-rm-btn"><Trash2 style={{ width: '1rem', height: '1rem' }} /></button>
             </div>
+          ))}
         </div>
-    );
-}
+      </section>
 
-/* ── 메인 컴포넌트 ──────────────────────────────────── */
-export default function App() {
-    const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('basic');
-    const [errors, setErrors] = useState({});
+      {/* 학력 */}
+      <section>
+        <div className="cu-ep-section-header">
+          <h3 className="cu-ep-section-title"><BookOpen style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} /> 학력 사항</h3>
+          <button onClick={addEducation} className="cu-ep-add-btn"><Plus style={{ width: '0.875rem', height: '0.875rem' }} /> 추가</button>
+        </div>
+        <div className="cu-ep-edu-items">
+          {educations.map(edu => (
+            <div key={edu.id} className="cu-ep-edu-item">
+              <div className="cu-ep-edu-grid">
+                <div className="cu-ep-edu-dates">
+                  <YearMonthPicker value={edu.startYearMonth} onChange={v => setEducations(p => p.map(e => e.id === edu.id ? { ...e, startYearMonth: v } : e))} />
+                  <YearMonthPicker value={edu.endYearMonth} onChange={v => setEducations(p => p.map(e => e.id === edu.id ? { ...e, endYearMonth: v } : e))} />
+                </div>
+                <div className="cu-ep-edu-fields">
+                  <div className="cu-ep-edu-fields-inner">
+                    <div className="cu-ep-item-field">
+                      <label className="cu-ep-item-label">학교명</label>
+                      <input type="text" placeholder="학교명을 입력하세요" className="cu-ep-item-input" />
+                    </div>
+                    <div className="cu-ep-item-field">
+                      <label className="cu-ep-item-label">전공 및 학위</label>
+                      <input type="text" placeholder="전공 및 학위" className="cu-ep-item-input" />
+                    </div>
+                  </div>
+                  <div className="cu-ep-edu-rm-row">
+                    <button onClick={() => removeEducation(edu.id)} className="cu-ep-rm-btn"><Trash2 style={{ width: '1rem', height: '1rem' }} /></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-    const [basic, setBasic] = useState({
-        name: '',
-        phone: '',
-        email: '',
-        officeName: '',
-        officeAddress: '',
-        introduction: '', // 상담사 자기소개
-    });
+      {/* 경력 */}
+      <section>
+        <div className="cu-ep-section-header">
+          <h3 className="cu-ep-section-title"><User style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} /> 경력 사항</h3>
+          <button onClick={addExperience} className="cu-ep-add-btn"><Plus style={{ width: '0.875rem', height: '0.875rem' }} /> 추가</button>
+        </div>
+        <div className="cu-ep-items">
+          {experiences.map(exp => (
+            <div key={exp.id} className="cu-ep-exp-item">
+              <div className="cu-ep-exp-period">
+                <label className="cu-ep-item-label">기간</label>
+                <div className="cu-ep-edu-dates">
+                  <YearMonthPicker value={exp.startYearMonth} onChange={v => setExperiences(p => p.map(e => e.id === exp.id ? { ...e, startYearMonth: v } : e))} />
+                  <YearMonthPicker value={exp.endYearMonth} onChange={v => setExperiences(p => p.map(e => e.id === exp.id ? { ...e, endYearMonth: v } : e))} />
+                </div>
+              </div>
+              <div className="cu-ep-item-field">
+                <label className="cu-ep-item-label">활동 내용</label>
+                <input type="text" placeholder="소속 및 직책 등을 입력하세요" className="cu-ep-item-input" />
+              </div>
+              <button onClick={() => removeExperience(exp.id)} className="cu-ep-rm-btn"><Trash2 style={{ width: '1rem', height: '1rem' }} /></button>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
 
-    // 유저 정보 불러오기
-    useEffect(() => {
-        const fetchUser = async () => {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            try {
-                const user = await getMyInfo(token);
-                setBasic((b) => ({
-                    ...b,
-                    name: user.full_name || user.name || '',
-                    phone: user.phone_number || user.phone || '',
-                    email: user.email || '',
-                }));
-            } catch (e) {
-                // 실패 시 무시
-            }
-        };
-        fetchUser();
-    }, []);
-    // 사진 업로드 상태
-    const [photo, setPhoto] = useState(null); // File 객체
-    const [photoPreview, setPhotoPreview] = useState(null); // 미리보기 URL
-    const [profile, setProfile] = useState({
-        specialties: [],
-        customSpecialty: '',
-        weeklySchedule: mkSchedule(),
-        experience: [mkExp()],
-        education: [mkEdu()],
-    });
+  // ── Render ──
+  return (
+    <div className="cu-ep-page">
+      {/* 임시저장 플로팅 버튼 */}
+      <button className="cu-ep-float-btn" onClick={() => alert('임시 저장되었습니다.')}>
+        <Save style={{ width: '1rem', height: '1rem', color: '#8BA888' }} />
+        <span className="cu-ep-float-label">임시저장</span>
+      </button>
 
-    const setP = (patch) => setProfile((p) => ({ ...p, ...patch }));
+      {/* 헤더 교체: activeTab, setActiveTab 전달 */}
+      {/* 상담사 헤더가 보이도록 명시적으로 props 전달 */}
+      <Header
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isLoggedIn={true}
+        userName={"상담사"}
+        setUserName={() => {}}
+        setIsLoggedIn={() => {}}
+      />
 
-    /* ── 유효성 검사 ──────────────────────────────────── */
-    const validateBasic = () => {
-        const e = {};
-        if (!basic.name.trim()) e.name = '이름을 입력해 주세요.';
-        if (!basic.phone.trim()) e.phone = '연락처를 입력해 주세요.';
-        if (!basic.email.trim()) e.email = '이메일을 입력해 주세요.';
-        if (!basic.officeName.trim()) e.officeName = '상담소명을 입력해 주세요.';
-        if (!basic.officeAddress.trim()) e.officeAddress = '상담소 주소를 입력해 주세요.';
-        setErrors(e);
-        return Object.keys(e).length === 0;
-    };
-    const validateProfessional = () => {
-        const e = {};
-        if (profile.specialties.length === 0) e.specialties = '전문 분야를 한 개 이상 선택해 주세요.';
-        setErrors(e);
-        return Object.keys(e).length === 0;
-    };
+      {/* 메인 */}
+      <main className="cu-ep-main">
+        <div className="cu-ep-page-title">
+          <h2>전문가 프로필 등록</h2>
+          <p>상담사님의 전문성을 보여줄 수 있도록 상세하게 작성 부탁드립니다.</p>
+        </div>
 
-    const handleNext = () => {
-        if (activeTab === 'basic' && !validateBasic()) return;
-        if (activeTab === 'professional' && !validateProfessional()) return;
-        setErrors({});
-        setActiveTab(NEXT[activeTab]);
-    };
+        {/* 탭 */}
+        <div className="cu-ep-tabs">
+          {[{ id: 'basic', label: '기본 정보' }, { id: 'expertise', label: '전문 분야' }, { id: 'history', label: '학력/경력' }].map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`cu-ep-tab-btn${activeTab === tab.id ? ' cu-ep-tab-active' : ''}`}>{tab.label}</button>
+          ))}
+        </div>
 
-    /* ── 전화번호 포맷 ────────────────────────────────── */
-    const handlePhone = (e) => {
-        const v = e.target.value.replace(/\D/g, '');
-        const f =
-            v.length > 7
-                ? `${v.slice(0, 3)}-${v.slice(3, 7)}-${v.slice(7, 11)}`
-                : v.length > 3
-                  ? `${v.slice(0, 3)}-${v.slice(3)}`
-                  : v;
-        setBasic((b) => ({ ...b, phone: f }));
-        if (errors.phone) setErrors((e) => ({ ...e, phone: undefined }));
-    };
+        {/* 컨텐츠 */}
+        <div className="cu-ep-content">
+          {activeTab === 'basic'      && renderBasicInfo()}
+          {activeTab === 'expertise'  && renderExpertise()}
+          {activeTab === 'history'    && renderHistory()}
 
-    /* ── 전문 분야 ────────────────────────────────────── */
-    const toggleSpecialty = (s) => {
-        const next = profile.specialties.includes(s)
-            ? profile.specialties.filter((x) => x !== s)
-            : [...profile.specialties, s];
-        setP({ specialties: next });
-        if (errors.specialties && next.length > 0) setErrors((e) => ({ ...e, specialties: undefined }));
-    };
-    const addCustom = () => {
-        const s = profile.customSpecialty.trim();
-        if (s && !profile.specialties.includes(s))
-            setP({ specialties: [...profile.specialties, s], customSpecialty: '' });
-    };
-
-    /* ── 일정 ─────────────────────────────────────────── */
-    const setDay = (day, patch) =>
-        setP({ weeklySchedule: { ...profile.weeklySchedule, [day]: { ...profile.weeklySchedule[day], ...patch } } });
-    const toggleDay = (day) => setDay(day, { active: !profile.weeklySchedule[day].active });
-    const addSlot = (day) => setDay(day, { slots: [...profile.weeklySchedule[day].slots, mkSlot()] });
-    const removeSlot = (day, id) => {
-        if (profile.weeklySchedule[day].slots.length > 1)
-            setDay(day, { slots: profile.weeklySchedule[day].slots.filter((s) => s.id !== id) });
-    };
-    const changeTime = (day, id, f, v) =>
-        setDay(day, { slots: profile.weeklySchedule[day].slots.map((s) => (s.id === id ? { ...s, [f]: v } : s)) });
-
-    /* ── 경력 ─────────────────────────────────────────── */
-    const addExp = () => setP({ experience: [...profile.experience, mkExp()] });
-    const removeExp = (id) => {
-        if (profile.experience.length > 1) setP({ experience: profile.experience.filter((e) => e.id !== id) });
-    };
-    const updateExp = (id, patch) =>
-        setP({ experience: profile.experience.map((e) => (e.id === id ? { ...e, ...patch } : e)) });
-
-    /* ── 학력 ─────────────────────────────────────────── */
-    const addEdu = () => setP({ education: [...profile.education, mkEdu()] });
-    const removeEdu = (id) => {
-        if (profile.education.length > 1) setP({ education: profile.education.filter((e) => e.id !== id) });
-    };
-
-    /* ── 기본 입력 헬퍼 ───────────────────────────────── */
-    // 모든 입력란 항상 수정 가능
-    const basicInput = (field, label, icon, type = 'text', ph = '') => (
-        <div className="input-group">
-            <label className="input-label">
-                {icon}
-                {label}
-            </label>
-            <input
-                className={`input${errors[field] ? ' error' : ''}`}
-                type={type}
-                placeholder={ph}
-                value={basic[field]}
-                onChange={(e) => {
-                    setBasic((b) => ({ ...b, [field]: e.target.value }));
-                    if (errors[field]) setErrors((er) => ({ ...er, [field]: undefined }));
+          <div className="cu-ep-nav">
+            <div className="cu-ep-nav-hint">
+              <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#cbd5e1', flexShrink: 0 }} /> 관리자 승인 후 노출됩니다.
+            </div>
+            <div className="cu-ep-nav-btns">
+              {activeTab !== 'basic' && (
+                <button onClick={() => setActiveTab(activeTab === 'history' ? 'expertise' : 'basic')} className="cu-ep-btn-prev">이전</button>
+              )}
+              <button
+                onClick={() => {
+                  if (activeTab === 'basic') {
+                    const warnObj = {
+                      name: !basicName.trim(),
+                      phone: !basicPhone.trim(),
+                      center: !basicCenter.trim(),
+                      address: !basicAddress.trim(),
+                    };
+                    setShowWarn(warnObj);
+                    if (warnObj.name || warnObj.phone || warnObj.center || warnObj.address) return;
+                    setActiveTab('expertise');
+                  } else if (activeTab === 'expertise') setActiveTab('history');
+                  else alert('등록 신청이 완료되었습니다.');
                 }}
-            />
-            {errors[field] && <span className="field-error">{errors[field]}</span>}
+                className="cu-ep-btn-next"
+              >
+                {activeTab === 'history' ? '등록 신청하기' : '다음 단계'}
+              </button>
+            </div>
+          </div>
         </div>
-    );
+      </main>
 
-    // 상담사 프로필 등록
-    const handleRegister = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            alert('로그인이 필요합니다.');
-            return;
-        }
-        let profileImgUrl = '';
-        // 1. 사진 업로드 (있을 때만)
-        if (photo) {
-            try {
-                profileImgUrl = await uploadProfileImage(photo, token);
-            } catch (err) {
-                alert('프로필 사진 업로드에 실패했습니다.');
-                return;
-            }
-        }
-        // 2. 프로필
-        const profileData = {
-            profile_img_url: profileImgUrl,
-            center_name: basic.officeName,
-            center_address: basic.officeAddress,
-            bio: basic.introduction,
-        };
-        // 3. 전문분야
-        const specialties = profile.specialties.map((s) => ({ specialty_name: s }));
-        // 4. 경력
-        const experiences = profile.experience.map((exp) => ({
-            company_name: exp.company_name || '',
-            start_date: `${exp.fromY}-${exp.fromM}-01`,
-            end_date: exp.present ? null : `${exp.toY}-${exp.toM}-01`,
-            is_current: exp.present,
-            description: exp.content,
-        }));
-        // 5. 학력
-        const educations = profile.education.map((edu) => ({
-            school_name: edu.school || '',
-            major: edu.major || '',
-            degree_type: null, // UI에 학위 구분이 없으므로 null
-        }));
-        // 6. 일정
-        const schedules = [];
-        Object.entries(profile.weeklySchedule).forEach(([day, val]) => {
-            if (val.active) {
-                val.slots.forEach((slot) => {
-                    schedules.push({
-                        day_of_week: day,
-                        start_time: slot.start,
-                        end_time: slot.end,
-                        is_holiday: false,
-                    });
-                });
-            } else {
-                schedules.push({
-                    day_of_week: day,
-                    start_time: '00:00',
-                    end_time: '00:00',
-                    is_holiday: true,
-                });
-            }
-        });
-        const req = { profile: profileData, specialties, experiences, educations, schedules };
-        try {
-            // 0. user 테이블 정보도 업데이트
-            const user = await getMyInfo(token);
-            const { updateUserInfo } = await import('../api/user');
-            await updateUserInfo({
-                id: user.id,
-                full_name: basic.name,
-                phone_number: basic.phone,
-                email: basic.email,
-            });
-            // 1. 상담사 프로필 등록
-            await registerCounselorProfile(req, token);
-            alert('상담사 프로필이 성공적으로 등록되었습니다!');
-            localStorage.setItem('counselor_registered', 'true');
-            navigate('/counselormypage');
-        } catch (e) {
-            alert('프로필 등록에 실패했습니다.');
-        }
-    };
+      {/* 모바일탭 교체 */}
+      <MobileTap />
 
-    /* ── 렌더 ─────────────────────────────────────────── */
-    return (
-        <div className="app">
-            <Header />
-            <main>
-                <div className="page-header">
-                    <h2>전문가 프로필 등록</h2>
-                    <p>상담사님의 전문성을 마음웰 회원들에게 소개해 주세요.</p>
-                </div>
+      {/* 푸터 교체 */}
+      <Footer />
+    </div>
+  );
+};
 
-                {/* Step Nav */}
-                <div className="step-nav">
-                    {TABS.map((tab) => (
-                        <button key={tab.id} className="step-btn" onClick={() => setActiveTab(tab.id)}>
-                            <div className={`step-icon ${activeTab === tab.id ? 'active' : ''}`}>{tab.icon}</div>
-                            <span className={`step-label ${activeTab === tab.id ? 'active' : ''}`}>{tab.label}</span>
-                        </button>
-                    ))}
-                </div>
-
-                <section className="card">
-                    {/* ── Tab 1 : 기본 정보 ───────────────────── */}
-                    {activeTab === 'basic' && (
-                        <div className="tab-content basic-layout">
-                            <div className="photo-wrapper">
-                                <div className="photo-box" style={{ position: 'relative' }}>
-                                    {photoPreview ? (
-                                        <img
-                                            src={photoPreview}
-                                            alt="프로필 미리보기"
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'cover',
-                                                borderRadius: '50%',
-                                            }}
-                                        />
-                                    ) : (
-                                        <>
-                                            <Camera size={28} />
-                                            <span>사진 업로드</span>
-                                        </>
-                                    )}
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        style={{ display: 'none' }}
-                                        id="profile-photo-input"
-                                        onChange={(e) => {
-                                            const file = e.target.files[0];
-                                            if (file) {
-                                                setPhoto(file);
-                                                setPhotoPreview(URL.createObjectURL(file));
-                                            }
-                                        }}
-                                    />
-                                </div>
-                                <button
-                                    className="photo-add-btn"
-                                    onClick={() => document.getElementById('profile-photo-input').click()}
-                                    type="button"
-                                >
-                                    <Plus size={14} />
-                                </button>
-                                {photoPreview && (
-                                    <button
-                                        className="photo-add-btn"
-                                        style={{ background: '#f87171', marginLeft: 8 }}
-                                        onClick={() => {
-                                            setPhoto(null);
-                                            setPhotoPreview(null);
-                                            document.getElementById('profile-photo-input').value = '';
-                                        }}
-                                        type="button"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="form-fields">
-                                <div className="grid-2">
-                                    {basicInput('name', '이름', null, 'text', '성함을 입력해 주세요')}
-                                    {basicInput('phone', '연락처', <Phone size={11} />, 'text', '010-0000-0000')}
-                                </div>
-                                {basicInput('email', '이메일', <Mail size={11} />, 'email', 'example@mindwell.com')}
-                                <div className="section-divider">
-                                    {basicInput(
-                                        'officeName',
-                                        '상담소명',
-                                        <Building2 size={11} />,
-                                        'text',
-                                        '소속 상담소 또는 센터명'
-                                    )}
-                                    {basicInput(
-                                        'officeAddress',
-                                        '상담소 주소',
-                                        <MapPin size={11} />,
-                                        'text',
-                                        '상담 진행 주소'
-                                    )}
-                                </div>
-                                {/* 상담사 자기소개 입력란 */}
-                                <div className="input-group">
-                                    <label className="input-label">상담사 자기소개</label>
-                                    <textarea
-                                        className="input"
-                                        style={{ minHeight: '80px', resize: 'none' }}
-                                        value={basic.introduction}
-                                        onChange={(e) => setBasic({ ...basic, introduction: e.target.value })}
-                                        placeholder="상담사님의 전문 분야, 상담 철학, 주요 경력 등을 자유롭게 소개해 주세요."
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── Tab 2 : 전문 분야 ───────────────────── */}
-                    {activeTab === 'professional' && (
-                        <div className="tab-content professional-wrap">
-                            <div>
-                                <h3 className="section-title">
-                                    <span className="bar bar-main" />
-                                    전문 상담 분야{' '}
-                                    <span style={{ fontWeight: 500, color: '#94A3B8', fontSize: '0.85rem' }}>
-                                        (중복 선택 가능)
-                                    </span>
-                                </h3>
-                                <div className="specialty-grid">
-                                    {SPECIALTIES.map((item) => {
-                                        const on = profile.specialties.includes(item);
-                                        return (
-                                            <button
-                                                key={item}
-                                                className={`chip ${on ? 'selected' : ''}`}
-                                                onClick={() => toggleSpecialty(item)}
-                                            >
-                                                <span>{item}</span>
-                                                <span className={`chip-check ${on ? 'on' : ''}`}>
-                                                    {on && <CheckCircle2 size={13} strokeWidth={2.5} />}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                {errors.specialties && (
-                                    <p className="field-error" style={{ marginBottom: '0.75rem' }}>
-                                        {errors.specialties}
-                                    </p>
-                                )}
-
-                                <div className="custom-box">
-                                    <label className="custom-box-label">
-                                        목록에 없는 분야가 있으신가요? 직접 입력해 주세요.
-                                    </label>
-                                    <div className="custom-row">
-                                        <input
-                                            className="input"
-                                            type="text"
-                                            value={profile.customSpecialty}
-                                            onChange={(e) => setP({ customSpecialty: e.target.value })}
-                                            onKeyDown={(e) => e.key === 'Enter' && addCustom()}
-                                            placeholder="예: 다문화 상담, 예술 치료 등"
-                                        />
-                                        <button className="add-btn" onClick={addCustom}>
-                                            <Plus size={14} />
-                                            추가
-                                        </button>
-                                    </div>
-                                    {profile.specialties.filter((s) => !SPECIALTIES.includes(s)).length > 0 && (
-                                        <div className="tag-list">
-                                            {profile.specialties
-                                                .filter((s) => !SPECIALTIES.includes(s))
-                                                .map((s) => (
-                                                    <span key={s} className="tag">
-                                                        {s}
-                                                        <span className="tag-del" onClick={() => toggleSpecialty(s)}>
-                                                            <X size={11} />
-                                                        </span>
-                                                    </span>
-                                                ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* 주간 일정 */}
-                            <div className="schedule-section">
-                                <h3 className="section-title">
-                                    <span className="bar bar-accent2" />
-                                    주간 상담 일정
-                                </h3>
-                                <div className="schedule-list">
-                                    {DAYS.map((day) => {
-                                        const { active, slots } = profile.weeklySchedule[day];
-                                        return (
-                                            <div key={day} className={`schedule-row ${active ? '' : 'inactive'}`}>
-                                                <div className="day-col">
-                                                    <button
-                                                        className={`day-check ${active ? 'on' : ''}`}
-                                                        onClick={() => toggleDay(day)}
-                                                    >
-                                                        {active && <CheckCircle2 size={12} strokeWidth={2.5} />}
-                                                    </button>
-                                                    <span className={`day-label ${active ? '' : 'off'}`}>
-                                                        {day}요일
-                                                    </span>
-                                                    {!active && <span className="rest-badge">휴무</span>}
-                                                </div>
-
-                                                <div className="slots-col">
-                                                    {active ? (
-                                                        slots.map((slot, i) => (
-                                                            <div key={slot.id} className="time-row">
-                                                                <div className="time-select-box">
-                                                                    <select
-                                                                        className="time-select"
-                                                                        value={slot.start}
-                                                                        onChange={(e) =>
-                                                                            changeTime(
-                                                                                day,
-                                                                                slot.id,
-                                                                                'start',
-                                                                                e.target.value
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        {HOURS.map((h) => (
-                                                                            <option key={h}>{h}</option>
-                                                                        ))}
-                                                                    </select>
-                                                                    <span className="time-sep">~</span>
-                                                                    <select
-                                                                        className="time-select"
-                                                                        value={slot.end}
-                                                                        onChange={(e) =>
-                                                                            changeTime(
-                                                                                day,
-                                                                                slot.id,
-                                                                                'end',
-                                                                                e.target.value
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        {HOURS.map((h) => (
-                                                                            <option key={h}>{h}</option>
-                                                                        ))}
-                                                                    </select>
-                                                                </div>
-                                                                {slots.length > 1 && (
-                                                                    <button
-                                                                        className="time-del"
-                                                                        onClick={() => removeSlot(day, slot.id)}
-                                                                    >
-                                                                        <X size={14} />
-                                                                    </button>
-                                                                )}
-                                                                {i === slots.length - 1 && (
-                                                                    <button
-                                                                        className="time-add"
-                                                                        onClick={() => addSlot(day)}
-                                                                    >
-                                                                        <Plus size={12} />
-                                                                        시간 추가
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        ))
-                                                    ) : (
-                                                        <span className="no-slots">상담 일정이 없습니다.</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── Tab 3 : 경력 및 학력 ─────────────────── */}
-                    {activeTab === 'history' && (
-                        <div className="tab-content history-wrap">
-                            {/* 경력 */}
-                            <div>
-                                <div className="add-row">
-                                    <h3 className="section-title">
-                                        <span className="bar bar-main" />
-                                        상담 및 관련 경력
-                                    </h3>
-                                    <button className="add-link add-link-main" onClick={addExp}>
-                                        <Plus size={14} />
-                                        추가하기
-                                    </button>
-                                </div>
-                                <div className="section-block">
-                                    {profile.experience.map((exp) => (
-                                        <div key={exp.id} className="exp-row">
-                                            <div
-                                                style={{
-                                                    flex: 1,
-                                                    minWidth: 0,
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    gap: '0.625rem',
-                                                }}
-                                            >
-                                                <PeriodPicker
-                                                    exp={exp}
-                                                    onChange={(patch) => updateExp(exp.id, patch)}
-                                                />
-                                                <div className="exp-content">
-                                                    <label className="input-label-sm">활동 내용</label>
-                                                    <input
-                                                        className="input"
-                                                        type="text"
-                                                        placeholder="활동 내용을 입력해 주세요"
-                                                        value={exp.content}
-                                                        onChange={(e) => updateExp(exp.id, { content: e.target.value })}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <button
-                                                className="del-btn"
-                                                onClick={() => removeExp(exp.id)}
-                                                disabled={profile.experience.length <= 1}
-                                            >
-                                                <Trash2 size={17} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* 학력 */}
-                            <div className="edu-section">
-                                <div className="add-row">
-                                    <h3 className="section-title">
-                                        <span className="bar bar-accent2" />
-                                        학력
-                                    </h3>
-                                    <button className="add-link add-link-accent2" onClick={addEdu}>
-                                        <Plus size={14} />
-                                        추가하기
-                                    </button>
-                                </div>
-                                <div className="section-block">
-                                    {profile.education.map((edu) => (
-                                        <div key={edu.id} className="edu-row">
-                                            <div className="edu-fields">
-                                                <div className="input-group">
-                                                    <label className="input-label-sm">학교명</label>
-                                                    <input
-                                                        className="input"
-                                                        type="text"
-                                                        placeholder="학교명을 입력해 주세요"
-                                                    />
-                                                </div>
-                                                <div className="input-group">
-                                                    <label className="input-label-sm">전공 및 학위</label>
-                                                    <input
-                                                        className="input"
-                                                        type="text"
-                                                        placeholder="전공 / 학위를 입력해 주세요"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <button
-                                                className="del-btn"
-                                                onClick={() => removeEdu(edu.id)}
-                                                disabled={profile.education.length <= 1}
-                                            >
-                                                <Trash2 size={17} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </section>
-
-                {/* 하단 버튼 */}
-                <div className="footer-btns">
-                    <button className="skip-btn">나중에 하기</button>
-                    {activeTab !== 'history' ? (
-                        <button className="cta-btn" onClick={handleNext}>
-                            다음 단계로 <ChevronRight size={18} />
-                        </button>
-                    ) : (
-                        <button className="cta-btn" onClick={handleRegister}>
-                            <Save size={17} /> 프로필 등록 완료
-                        </button>
-                    )}
-                </div>
-            </main>
-
-            <MobileTap />
-            <Footer />
-        </div>
-    );
-}
+export default App;
