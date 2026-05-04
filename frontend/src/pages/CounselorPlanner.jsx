@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import MobileTap from '../components/mobileTap';
@@ -25,23 +26,21 @@ import {
 import '../static/CounselorPlanner.css';
 
 const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = React.useState('reservation');
-    // userName, isLoggedIn 등은 상위(App)에서 props로 전달
-    // --- 1. 상태 관리 (States) ---
     const [viewMode, setViewMode] = useState('calendar');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedReservation, setSelectedReservation] = useState(null);
     const [selectedDateDetails, setSelectedDateDetails] = useState(null);
 
     const [showBlockInput, setShowBlockInput] = useState(false);
-    const [showAddReservation, setShowAddReservation] = useState(false); // 일정 직접 추가 모달 상태
+    const [showAddReservation, setShowAddReservation] = useState(false);
 
-    // 입력 필드 상태
     const [newClientName, setNewClientName] = useState('');
-    const [manualSelectedDate, setManualSelectedDate] = useState(''); // 직접 추가 시 선택된 날짜
+    const [manualSelectedDate, setManualSelectedDate] = useState('');
     const [startTime, setStartTime] = useState('09:00');
     const [endTime, setEndTime] = useState('10:00');
-    const [activePicker, setActivePicker] = useState(null); // 'start' | 'end' | null
+    const [activePicker, setActivePicker] = useState(null);
 
     const [reservations, setReservations] = useState([
         {
@@ -91,7 +90,6 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
         { date: '2026-04-23', time: '10:00 - 12:00', reason: '외부 세미나' },
     ]);
 
-    // --- 2. 상수 및 설정 (Constants) ---
     const colors = {
         main: '#8BA888',
         background: '#FDFBF7',
@@ -109,7 +107,6 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
         timeOptions.push(`${hour}:30`);
     }
 
-    // --- 3. 핸들러 및 유틸리티 함수 (Handlers & Utils) ---
     const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
     const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
@@ -121,13 +118,23 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
         return { firstDay, days, year, month };
     };
 
-    // 일정 직접 추가 핸들러
+    // 내담자 관리 페이지로 이동하며 내담자 이름을 전달하는 함수[cite: 4]
+    const handleGoToClientChart = (clientName) => {
+        navigate('/CounselorClient', { state: { selectedClientName: clientName } });
+    };
+
+    // 수정된 부분: 일정 추가 완료 시 내담자 관리 페이지로 이동 로직 삽입[cite: 4]
     const handleManualAddReservation = () => {
-        if (!newClientName || !manualSelectedDate) return;
+        if (!newClientName || !manualSelectedDate) {
+            alert('상담 날짜와 내담자 성함을 모두 입력해 주세요.');
+            return;
+        }
+
+        const addedName = newClientName; // 이동 시 사용할 이름 저장
 
         const newRes = {
             id: Date.now(),
-            client: newClientName,
+            client: addedName,
             date: manualSelectedDate,
             time: `${startTime} - ${endTime}`,
             type: '상담',
@@ -136,12 +143,18 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
             topic: '직접 추가된 일정입니다.',
         };
 
-        setReservations([...reservations, newRes]);
+        setReservations(prev => [...prev, newRes]);
         setNewClientName('');
+        setManualSelectedDate('');
+        setStartTime('09:00');
+        setEndTime('10:00');
         setShowAddReservation(false);
+        setSelectedDateDetails(null);
+
+        // 추가 성공 후 바로 내담자 관리 페이지로 이동하며 이름 전달[cite: 4]
+        handleGoToClientChart(addedName);
     };
 
-    // 예약 승인(확정) 핸들러
     const handleApproveReservation = (id) => {
         setReservations(reservations.map((res) => (res.id === id ? { ...res, status: '확정됨' } : res)));
         if (selectedReservation?.id === id) {
@@ -149,7 +162,6 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
         }
     };
 
-    // 예약 거절(삭제) 핸들러
     const handleRejectReservation = (id) => {
         setReservations(reservations.filter((res) => res.id !== id));
         setSelectedReservation(null);
@@ -165,7 +177,6 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
         }
     };
 
-    // --- 4. 하위 컴포넌트 (Sub-components) ---
     const TimePicker = ({ value, onChange, label, isActive, setIsActive }) => (
         <div className="mwc-timepicker-wrap">
             <label className="mwc-timepicker-label">{label}</label>
@@ -203,11 +214,9 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
         </div>
     );
 
-    // --- 5. 렌더링 함수 (Render Functions) ---
     const renderDetailModal = () => {
         if (!selectedReservation && !selectedDateDetails && !showAddReservation) return null;
 
-        // 1. 예약 상세 보기 모달
         if (selectedReservation) {
             return (
                 <div className="mwc-modal-overlay" onClick={() => setSelectedReservation(null)}>
@@ -282,7 +291,12 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                                         >
                                             닫기
                                         </button>
-                                        <button className="mwc-journal-btn">일지 작성</button>
+                                        <button 
+                                            className="mwc-journal-btn"
+                                            onClick={() => handleGoToClientChart(selectedReservation.client)}
+                                        >
+                                            일지 작성
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -292,7 +306,6 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
             );
         }
 
-        // 2. 날짜 클릭 시 상세 관리/일정 추가 모달
         if (selectedDateDetails) {
             const isOff = offDays.includes(selectedDateDetails);
             const dayBlocks = blockedSlots.filter((b) => b.date === selectedDateDetails);
@@ -327,14 +340,11 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                             </div>
 
                             <div className="mwc-date-modal-sections">
-                                {/* 일정 직접 추가 섹션 */}
                                 {showAddReservation ? (
                                     <div className="mwc-add-res-panel">
                                         <div>
                                             <p className="mwc-add-res-panel-title">직접 일정 추가</p>
                                         </div>
-
-                                        {/* 날짜 선택 추가 */}
                                         <div>
                                             <label className="mwc-field-label">상담 날짜</label>
                                             <div className="mwc-input-wrap">
@@ -347,7 +357,6 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                                                 />
                                             </div>
                                         </div>
-
                                         <div>
                                             <label className="mwc-field-label">내담자 성함</label>
                                             <input
@@ -392,7 +401,7 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                                 ) : (
                                     <button
                                         onClick={() => {
-                                            setManualSelectedDate(selectedDateDetails); // 기본값으로 현재 열린 날짜 설정
+                                            setManualSelectedDate(selectedDateDetails);
                                             setShowAddReservation(true);
                                         }}
                                         className="mwc-add-schedule-btn"
@@ -581,7 +590,14 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
             calendarDays.push(
                 <div
                     key={d}
-                    onClick={() => !isPast && setSelectedDateDetails(dateString)}
+                    onClick={() => {
+                        if (!isPast) {
+                            setSelectedReservation(null); 
+                            setSelectedDateDetails(dateString);
+                            setManualSelectedDate(dateString);
+                            setShowAddReservation(true);
+                        }
+                    }}
                     className={`mwc-calendar-cell${isPast ? ' mwc-calendar-cell--past' : ''}${isOff ? ' mwc-calendar-cell--off' : ''}`}
                 >
                     <div className="mwc-cell-top">
@@ -676,7 +692,6 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
         </div>
     );
 
-    // --- 6. 최종 메인 뷰 (Main View) ---
     return (
         <div className="planner-root">
             <Header
@@ -689,6 +704,8 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
             />
 
             <main className="mwc-main">
+                {renderDetailModal()}
+
                 <div className="mwc-page-header">
                     <div>
                         <h2 className="mwc-page-title">상담 일정 관리</h2>
@@ -742,8 +759,9 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                                     <button
                                         onClick={() => {
                                             const todayStr = new Date().toISOString().split('T')[0];
-                                            setSelectedDateDetails(todayStr); // 모달 활성화용
-                                            setManualSelectedDate(todayStr); // 입력 필드 초기값
+                                            setSelectedReservation(null); 
+                                            setSelectedDateDetails(todayStr); 
+                                            setManualSelectedDate(todayStr); 
                                             setShowAddReservation(true);
                                         }}
                                         className="mwc-add-btn"
