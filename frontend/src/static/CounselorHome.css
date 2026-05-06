@@ -140,6 +140,7 @@
 
 .stat-card.accent-rose strong { color: var(--rose); }
 .stat-card.accent-rose .stat-note b { color: #e8687a; }
+.stat-card.clickable { cursor: pointer; }
 
 /* ══ 메인 2단 ══ */
 .main-content {

@@ -240,7 +240,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                         {c.birth} · {c.gender}
                                     </span>
                                 </div>
-                                <span className={`cc-status-badge ${STATUS_CLASS[c.status]}`}>{c.status}</span>
+                                <p className={`cc-status-badge ${STATUS_CLASS[c.status]}`} style={{color: c.status === '진행 중' ? '#5a8a57' : c.status === '대기 중' ? '#b97a2a' : '#6b7280'}}>{c.status}</p>
                             </li>
                         ))}
                     </ul>
@@ -251,25 +251,26 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                     {/* 프로필 카드 */}
                     <div className="cc-profile-card">
                         <div className="cc-profile-info">
-                            <span className={`cc-status-badge large ${STATUS_CLASS[client.status]}`}>
+                            <span className={`cc-status-badge large ${STATUS_CLASS[client.status]}`} style={{display:'inline-block', width:'fit-content', color: client.status === '진행 중' ? '#5a8a57' : client.status === '대기 중' ? '#b97a2a' : '#6b7280'}}>
                                 {client.status}
                             </span>
                             <h2>
                                 {client.name}{' '}
-                                <small>
-                                    {client.gender} · {client.birth} | {client.phone}
-                                </small>
+                                <small>{client.gender} · {client.birth}</small>
                             </h2>
+                            <p className="cc-profile-phone">{client.phone}</p>
+                        </div>
+                        <div style={{display:'flex', flexDirection:'column', gap:'8px', alignItems:'stretch'}}>
                             <button className="cc-btn cc-btn--outline" onClick={() => setSurveyModal(true)}>
-                                📋 사전 설문지 확인
+                                    사전 설문지 확인
+                            </button>
+                            <button
+                                className="cc-btn cc-btn--primary"
+                                onClick={() => setLogModal({ open: true, editId: null, content: '' })}
+                            >
+                                + 새 일지 작성
                             </button>
                         </div>
-                        <button
-                            className="cc-btn cc-btn--primary"
-                            onClick={() => setLogModal({ open: true, editId: null, content: '' })}
-                        >
-                            + 새 일지 작성
-                        </button>
                     </div>
 
                     {/* 히스토리 목록 */}

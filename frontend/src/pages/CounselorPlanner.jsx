@@ -90,16 +90,6 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
         { date: '2026-04-23', time: '10:00 - 12:00', reason: '외부 세미나' },
     ]);
 
-    const colors = {
-        main: '#8BA888',
-        background: '#FDFBF7',
-        subBackground: '#FAF7F2',
-        accent1: '#FDA4AF',
-        accent2: '#F59E0B',
-        textMain: '#1E293B',
-        textSub: '#64748B',
-    };
-
     const timeOptions = [];
     for (let i = 9; i < 24; i++) {
         const hour = i.toString().padStart(2, '0');
@@ -118,23 +108,27 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
         return { firstDay, days, year, month };
     };
 
-    // 내담자 관리 페이지로 이동하며 내담자 이름을 전달하는 함수[cite: 4]
+    // 내담자 차트로 데이터 넘기며 이동[cite: 5]
     const handleGoToClientChart = (clientName) => {
-        navigate('/CounselorClient', { state: { selectedClientName: clientName } });
+        const clientReservations = reservations.filter(r => r.client === clientName);
+        navigate('/CounselorClient', {
+            state: {
+                selectedClientName: clientName,
+                clientReservations: clientReservations,
+            }
+        });
     };
 
-    // 수정된 부분: 일정 추가 완료 시 내담자 관리 페이지로 이동 로직 삽입[cite: 4]
+    // 일정 추가 후 캘린더에 즉시 반영하는 로직[cite: 5]
     const handleManualAddReservation = () => {
         if (!newClientName || !manualSelectedDate) {
             alert('상담 날짜와 내담자 성함을 모두 입력해 주세요.');
             return;
         }
 
-        const addedName = newClientName; // 이동 시 사용할 이름 저장
-
         const newRes = {
             id: Date.now(),
-            client: addedName,
+            client: newClientName,
             date: manualSelectedDate,
             time: `${startTime} - ${endTime}`,
             type: '상담',
@@ -145,14 +139,8 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
 
         setReservations(prev => [...prev, newRes]);
         setNewClientName('');
-        setManualSelectedDate('');
-        setStartTime('09:00');
-        setEndTime('10:00');
         setShowAddReservation(false);
-        setSelectedDateDetails(null);
-
-        // 추가 성공 후 바로 내담자 관리 페이지로 이동하며 이름 전달[cite: 4]
-        handleGoToClientChart(addedName);
+        // 여기서 바로 navigate를 쓰지 않고, 사용자가 상세 내역의 '일지 작성' 버튼을 누를 때 넘어가도록 흐름 유지
     };
 
     const handleApproveReservation = (id) => {
@@ -238,20 +226,14 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                             </div>
                             <div className="mwc-res-details">
                                 <div className="mwc-res-detail-row">
-                                    <div className="mwc-res-detail-icon">
-                                        <CalendarIcon size={18} />
-                                    </div>
+                                    <div className="mwc-res-detail-icon"><CalendarIcon size={18} /></div>
                                     <div>
                                         <p className="mwc-res-detail-label">날짜 및 시간</p>
-                                        <p className="mwc-res-detail-value">
-                                            {selectedReservation.date} | {selectedReservation.time}
-                                        </p>
+                                        <p className="mwc-res-detail-value">{selectedReservation.date} | {selectedReservation.time}</p>
                                     </div>
                                 </div>
                                 <div className="mwc-res-detail-row">
-                                    <div className="mwc-res-detail-icon">
-                                        <Info size={18} />
-                                    </div>
+                                    <div className="mwc-res-detail-icon"><Info size={18} /></div>
                                     <div>
                                         <p className="mwc-res-detail-label">상담 주제</p>
                                         <p className="mwc-res-detail-value">{selectedReservation.topic}</p>
@@ -259,9 +241,7 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                                 </div>
                                 <div className="mwc-res-status-row">
                                     <span className="mwc-res-status-label">진행 상태</span>
-                                    <span
-                                        className={`mwc-res-status-badge${selectedReservation.status === '확정됨' ? ' mwc-res-status-badge--confirmed' : ' mwc-res-status-badge--pending'}`}
-                                    >
+                                    <span className={`mwc-res-status-badge${selectedReservation.status === '확정됨' ? ' mwc-res-status-badge--confirmed' : ' mwc-res-status-badge--pending'}`}>
                                         {selectedReservation.status}
                                     </span>
                                 </div>
@@ -270,34 +250,11 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                             <div className="mwc-res-actions">
                                 {selectedReservation.status === '대기 중' ? (
                                     <div className="mwc-res-action-grid">
-                                        <button
-                                            onClick={() => handleRejectReservation(selectedReservation.id)}
-                                            className="mwc-reject-btn"
-                                        >
-                                            거절하기
-                                        </button>
-                                        <button
-                                            onClick={() => handleApproveReservation(selectedReservation.id)}
-                                            className="mwc-approve-btn"
-                                        >
-                                            <Check size={18} /> 승인하기
-                                        </button>
+                                        <button onClick={() => handleRejectReservation(selectedReservation.id)} className="mwc-reject-btn">거절하기</button>
+                                        <button onClick={() => handleApproveReservation(selectedReservation.id)} className="mwc-approve-btn"><Check size={18} /> 승인하기</button>
                                     </div>
                                 ) : (
-                                    <div className="mwc-res-action-grid">
-                                        <button
-                                            onClick={() => setSelectedReservation(null)}
-                                            className="mwc-close-btn-outline"
-                                        >
-                                            닫기
-                                        </button>
-                                        <button 
-                                            className="mwc-journal-btn"
-                                            onClick={() => handleGoToClientChart(selectedReservation.client)}
-                                        >
-                                            일지 작성
-                                        </button>
-                                    </div>
+                                    <button className="mwc-journal-btn" style={{width:'100%'}} onClick={() => handleGoToClientChart(selectedReservation.client)}>일지 작성</button>
                                 )}
                             </div>
                         </div>
@@ -313,135 +270,51 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
             const hasReservations = dayReservations.length > 0;
 
             return (
-                <div
-                    className="mwc-modal-overlay mwc-modal-overlay--date"
-                    onClick={() => {
-                        setSelectedDateDetails(null);
-                        setShowBlockInput(false);
-                        setActivePicker(null);
-                        setShowAddReservation(false);
-                    }}
-                >
+                <div className="mwc-modal-overlay mwc-modal-overlay--date" onClick={() => { setSelectedDateDetails(null); setShowBlockInput(false); setShowAddReservation(false); }}>
                     <div className="mwc-modal-box mwc-modal-box--date" onClick={(e) => e.stopPropagation()}>
                         <div className="mwc-modal-body--scroll">
                             <div className="mwc-date-modal-header">
                                 <h3 className="mwc-date-modal-title">{selectedDateDetails} 관리</h3>
-                                <button
-                                    onClick={() => {
-                                        setSelectedDateDetails(null);
-                                        setShowBlockInput(false);
-                                        setActivePicker(null);
-                                        setShowAddReservation(false);
-                                    }}
-                                    className="mwc-modal-close-btn"
-                                >
-                                    <X size={20} className="text-[#94A3B8]" />
-                                </button>
+                                <button onClick={() => { setSelectedDateDetails(null); setShowBlockInput(false); setShowAddReservation(false); }} className="mwc-modal-close-btn"><X size={20} className="text-[#94A3B8]" /></button>
                             </div>
 
                             <div className="mwc-date-modal-sections">
                                 {showAddReservation ? (
                                     <div className="mwc-add-res-panel">
-                                        <div>
-                                            <p className="mwc-add-res-panel-title">직접 일정 추가</p>
-                                        </div>
+                                        <div><p className="mwc-add-res-panel-title">직접 일정 추가</p></div>
                                         <div>
                                             <label className="mwc-field-label">상담 날짜</label>
                                             <div className="mwc-input-wrap">
                                                 <CalendarDays className="mwc-input-icon" size={16} />
-                                                <input
-                                                    type="date"
-                                                    value={manualSelectedDate}
-                                                    onChange={(e) => setManualSelectedDate(e.target.value)}
-                                                    className="mwc-date-input"
-                                                />
+                                                <input type="date" value={manualSelectedDate} onChange={(e) => setManualSelectedDate(e.target.value)} className="mwc-date-input" />
                                             </div>
                                         </div>
                                         <div>
                                             <label className="mwc-field-label">내담자 성함</label>
-                                            <input
-                                                type="text"
-                                                value={newClientName}
-                                                onChange={(e) => setNewClientName(e.target.value)}
-                                                placeholder="이름 입력"
-                                                className="mwc-text-input"
-                                            />
+                                            <input type="text" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} placeholder="이름 입력" className="mwc-text-input" />
                                         </div>
                                         <div className="mwc-time-row">
-                                            <TimePicker
-                                                label="시작 시간"
-                                                value={startTime}
-                                                onChange={setStartTime}
-                                                isActive={activePicker === 'start'}
-                                                setIsActive={(val) => setActivePicker(val ? 'start' : null)}
-                                            />
-                                            <TimePicker
-                                                label="종료 시간"
-                                                value={endTime}
-                                                onChange={setEndTime}
-                                                isActive={activePicker === 'end'}
-                                                setIsActive={(val) => setActivePicker(val ? 'end' : null)}
-                                            />
+                                            <TimePicker label="시작 시간" value={startTime} onChange={setStartTime} isActive={activePicker === 'start'} setIsActive={(val) => setActivePicker(val ? 'start' : null)} />
+                                            <TimePicker label="종료 시간" value={endTime} onChange={setEndTime} isActive={activePicker === 'end'} setIsActive={(val) => setActivePicker(val ? 'end' : null)} />
                                         </div>
                                         <div className="mwc-add-res-actions">
-                                            <button onClick={handleManualAddReservation} className="mwc-submit-btn">
-                                                <Check size={16} /> 추가 완료
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    setShowAddReservation(false);
-                                                    setActivePicker(null);
-                                                }}
-                                                className="mwc-cancel-btn"
-                                            >
-                                                취소
-                                            </button>
+                                            <button onClick={handleManualAddReservation} className="mwc-submit-btn"><Check size={16} /> 추가 완료</button>
+                                            <button onClick={() => setShowAddReservation(false)} className="mwc-cancel-btn">취소</button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <button
-                                        onClick={() => {
-                                            setManualSelectedDate(selectedDateDetails);
-                                            setShowAddReservation(true);
-                                        }}
-                                        className="mwc-add-schedule-btn"
-                                    >
-                                        <Plus size={18} /> 새 상담 일정 추가
-                                    </button>
+                                    <button onClick={() => { setManualSelectedDate(selectedDateDetails); setShowAddReservation(true); }} className="mwc-add-schedule-btn"><Plus size={18} /> 새 상담 일정 추가</button>
                                 )}
 
                                 <div>
-                                    <p className="mwc-section-title">
-                                        <User size={16} className="text-[#8BA888]" /> 내담자 예약 현황
-                                    </p>
+                                    <p className="mwc-section-title"><User size={16} className="text-[#8BA888]" /> 내담자 예약 현황</p>
                                     {hasReservations ? (
                                         <div className="mwc-reservation-list">
                                             {dayReservations.map((res) => (
-                                                <div key={res.id} className="mwc-reservation-item">
-                                                    <div>
-                                                        <span className="mwc-reservation-item-name">
-                                                            {res.client}님
-                                                        </span>
-                                                        <span className="mwc-reservation-item-time">{res.time}</span>
-                                                        {res.status === '대기 중' && (
-                                                            <span className="mwc-reservation-item-pending">대기</span>
-                                                        )}
-                                                    </div>
+                                                <div key={res.id} className="mwc-reservation-item" onClick={() => setSelectedReservation(res)}>
+                                                    <div><span className="mwc-reservation-item-name">{res.client}님</span><span className="mwc-reservation-item-time">{res.time}</span></div>
                                                     <div className="mwc-reservation-item-btns">
-                                                        {res.status === '대기 중' && (
-                                                            <button
-                                                                onClick={() => handleApproveReservation(res.id)}
-                                                                className="mwc-item-approve-btn"
-                                                            >
-                                                                <Check size={14} />
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            onClick={() => handleRejectReservation(res.id)}
-                                                            className="mwc-item-delete-btn"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleRejectReservation(res.id); }} className="mwc-item-delete-btn"><Trash2 size={14} /></button>
                                                     </div>
                                                 </div>
                                             ))}
@@ -451,61 +324,28 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                                     )}
                                 </div>
 
-                                <div
-                                    className={`mwc-off-box${isOff ? ' mwc-off-box--active' : ' mwc-off-box--normal'}${hasReservations ? ' mwc-off-box--disabled' : ''}`}
-                                >
+                                {/* 휴무 설정 복구[cite: 5] */}
+                                <div className={`mwc-off-box${isOff ? ' mwc-off-box--active' : ' mwc-off-box--normal'}${hasReservations ? ' mwc-off-box--disabled' : ''}`}>
                                     <div className="mwc-off-box-inner">
                                         <div className="mwc-off-box-left">
-                                            <CalendarOff
-                                                className={isOff ? 'text-[#FDA4AF]' : 'text-[#94A3B8]'}
-                                                size={20}
-                                            />
-                                            <div>
-                                                <p className="mwc-off-box-label">일일 휴무</p>
-                                                <p className="mwc-off-box-sub">
-                                                    {hasReservations ? '예약이 있어 휴무 설정 불가' : '전체 휴무 지정'}
-                                                </p>
-                                            </div>
+                                            <CalendarOff className={isOff ? 'text-[#FDA4AF]' : 'text-[#94A3B8]'} size={20} />
+                                            <div><p className="mwc-off-box-label">일일 휴무</p><p className="mwc-off-box-sub">{hasReservations ? '예약이 있어 휴무 설정 불가' : '전체 휴무 지정'}</p></div>
                                         </div>
-                                        <button
-                                            disabled={hasReservations}
-                                            onClick={() =>
-                                                isOff
-                                                    ? setOffDays(offDays.filter((d) => d !== selectedDateDetails))
-                                                    : setOffDays([...offDays, selectedDateDetails])
-                                            }
-                                            className={`mwc-off-toggle-btn${isOff ? ' mwc-off-toggle-btn--active' : hasReservations ? ' mwc-off-toggle-btn--disabled' : ' mwc-off-toggle-btn--normal'}`}
-                                        >
-                                            {isOff ? '취소' : hasReservations ? '예약 있음' : '설정'}
+                                        <button disabled={hasReservations} onClick={() => isOff ? setOffDays(offDays.filter((d) => d !== selectedDateDetails)) : setOffDays([...offDays, selectedDateDetails])} className={`mwc-off-toggle-btn${isOff ? ' mwc-off-toggle-btn--active' : ' mwc-off-toggle-btn--normal'}`}>
+                                            {isOff ? '취소' : '설정'}
                                         </button>
                                     </div>
                                 </div>
 
+                                {/* 타임슬롯 차단 복구[cite: 5] */}
                                 <div>
-                                    <p className="mwc-section-title">
-                                        <Clock size={16} /> 예약 불가 시간
-                                    </p>
+                                    <p className="mwc-section-title"><Clock size={16} /> 예약 불가 시간</p>
                                     {dayBlocks.length > 0 && (
                                         <div className="mwc-block-list">
                                             {dayBlocks.map((block, idx) => (
                                                 <div key={idx} className="mwc-block-item">
                                                     <span className="mwc-block-item-time">{block.time}</span>
-                                                    <button
-                                                        onClick={() =>
-                                                            setBlockedSlots(
-                                                                blockedSlots.filter(
-                                                                    (b) =>
-                                                                        !(
-                                                                            b.date === block.date &&
-                                                                            b.time === block.time
-                                                                        )
-                                                                )
-                                                            )
-                                                        }
-                                                        className="mwc-block-remove-btn"
-                                                    >
-                                                        <X size={14} />
-                                                    </button>
+                                                    <button onClick={() => setBlockedSlots(blockedSlots.filter((b) => b !== block))} className="mwc-block-remove-btn"><X size={14} /></button>
                                                 </div>
                                             ))}
                                         </div>
@@ -514,53 +354,20 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                                     {showBlockInput ? (
                                         <div className="mwc-block-input-panel">
                                             <div className="mwc-time-row">
-                                                <TimePicker
-                                                    label="시작"
-                                                    value={startTime}
-                                                    onChange={setStartTime}
-                                                    isActive={activePicker === 'start'}
-                                                    setIsActive={(val) => setActivePicker(val ? 'start' : null)}
-                                                />
-                                                <TimePicker
-                                                    label="종료"
-                                                    value={endTime}
-                                                    onChange={setEndTime}
-                                                    isActive={activePicker === 'end'}
-                                                    setIsActive={(val) => setActivePicker(val ? 'end' : null)}
-                                                />
+                                                <TimePicker label="시작" value={startTime} onChange={setStartTime} isActive={activePicker === 'start'} setIsActive={(v) => setActivePicker(v ? 'start' : null)} />
+                                                <TimePicker label="종료" value={endTime} onChange={setEndTime} isActive={activePicker === 'end'} setIsActive={(v) => setActivePicker(v ? 'end' : null)} />
                                             </div>
                                             <div className="mwc-block-actions">
-                                                <button onClick={handleAddBlock} className="mwc-block-submit-btn">
-                                                    불가 시간 등록
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setShowBlockInput(false);
-                                                        setActivePicker(null);
-                                                    }}
-                                                    className="mwc-cancel-btn"
-                                                >
-                                                    취소
-                                                </button>
+                                                <button onClick={handleAddBlock} className="mwc-block-submit-btn">불가 시간 등록</button>
+                                                <button onClick={() => setShowBlockInput(false)} className="mwc-cancel-btn">취소</button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <button onClick={() => setShowBlockInput(true)} className="mwc-add-block-btn">
-                                            + 시간대 예약 막기
-                                        </button>
+                                        <button onClick={() => setShowBlockInput(true)} className="mwc-add-block-btn">+ 시간대 예약 막기</button>
                                     )}
                                 </div>
                             </div>
-                            <button
-                                onClick={() => {
-                                    setSelectedDateDetails(null);
-                                    setShowBlockInput(false);
-                                    setShowAddReservation(false);
-                                }}
-                                className="mwc-modal-confirm-btn"
-                            >
-                                확인
-                            </button>
+                            <button onClick={() => setSelectedDateDetails(null)} className="mwc-modal-confirm-btn">확인</button>
                         </div>
                     </div>
                 </div>
@@ -574,59 +381,28 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        for (let i = 0; i < firstDay; i++) {
-            calendarDays.push(<div key={`empty-${i}`} className="mwc-calendar-cell-empty"></div>);
-        }
+        for (let i = 0; i < firstDay; i++) calendarDays.push(<div key={`empty-${i}`} className="mwc-calendar-cell-empty"></div>);
 
         for (let d = 1; d <= days; d++) {
             const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const dayDate = new Date(year, month, d);
-            const isPast = dayDate < today;
             const dayReservations = reservations.filter((r) => r.date === dateString);
             const isOff = offDays.includes(dateString);
             const dayBlocks = blockedSlots.filter((b) => b.date === dateString);
-            const isToday = today.toDateString() === dayDate.toDateString();
+            const isToday = today.toDateString() === new Date(year, month, d).toDateString();
 
             calendarDays.push(
-                <div
-                    key={d}
-                    onClick={() => {
-                        if (!isPast) {
-                            setSelectedReservation(null); 
-                            setSelectedDateDetails(dateString);
-                            setManualSelectedDate(dateString);
-                            setShowAddReservation(true);
-                        }
-                    }}
-                    className={`mwc-calendar-cell${isPast ? ' mwc-calendar-cell--past' : ''}${isOff ? ' mwc-calendar-cell--off' : ''}`}
-                >
+                <div key={d} onClick={() => { setSelectedDateDetails(dateString); setManualSelectedDate(dateString); }} className={`mwc-calendar-cell${isOff ? ' mwc-calendar-cell--off' : ''}`}>
                     <div className="mwc-cell-top">
-                        <span
-                            className={`mwc-cell-day${isToday ? ' mwc-cell-day--today' : isPast ? ' mwc-cell-day--past' : ''}${isOff && !isToday ? ' mwc-cell-day--off' : ''}`}
-                        >
-                            {d}
-                        </span>
+                        <span className={`mwc-cell-day${isToday ? ' mwc-cell-day--today' : ''}`}>{d}</span>
                         {isOff && <span className="mwc-cell-off-badge">휴무</span>}
                     </div>
                     <div className="mwc-cell-events">
-                        {dayReservations.slice(0, 2).map((res) => (
-                            <div
-                                key={res.id}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedReservation(res);
-                                }}
-                                className={`mwc-cell-event${isPast ? ' mwc-cell-event--past' : res.status === '대기 중' ? ' mwc-cell-event--pending' : ' mwc-cell-event--confirmed'}`}
-                            >
-                                <span className="mwc-cell-event-time">{res.time.split(' ')[0]}</span> {res.client}
+                        {dayReservations.map((res) => (
+                            <div key={res.id} onClick={(e) => { e.stopPropagation(); setSelectedReservation(res); }} className={`mwc-cell-event ${res.status === '대기 중' ? 'mwc-cell-event--pending' : 'mwc-cell-event--confirmed'}`}>
+                                {res.client}
                             </div>
                         ))}
-                        {dayBlocks.length > 0 && (
-                            <div className="mwc-cell-block">
-                                <Slash size={8} /> <span className="mwc-cell-block-label">{dayBlocks[0].time}</span>{' '}
-                                불가
-                            </div>
-                        )}
+                        {dayBlocks.length > 0 && <div className="mwc-cell-block"><Slash size={8} /> 불가</div>}
                     </div>
                 </div>
             );
@@ -634,141 +410,30 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
 
         return (
             <div className="mwc-calendar-grid">
-                {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
-                    <div key={day} className="mwc-calendar-weekday">
-                        {day}
-                    </div>
-                ))}
+                {['일', '월', '화', '수', '목', '금', '토'].map((day) => <div key={day} className="mwc-calendar-weekday">{day}</div>)}
                 {calendarDays}
             </div>
         );
     };
 
-    const renderList = () => (
-        <div className="mwc-list-grid">
-            {reservations.map((res) => (
-                <div key={res.id} onClick={() => setSelectedReservation(res)} className="mwc-list-card">
-                    <div className="mwc-list-card-left">
-                        <div className="mwc-list-avatar">
-                            <User className="text-[#8BA888]" size={20} />
-                        </div>
-                        <div>
-                            <div className="mwc-list-name-row">
-                                <h3 className="mwc-list-name">{res.client}님</h3>
-                                <div
-                                    className={`mwc-status-badge${res.status === '확정됨' ? ' mwc-status-badge--confirmed' : ' mwc-status-badge--pending'}`}
-                                >
-                                    {res.status}
-                                </div>
-                            </div>
-                            <div className="mwc-list-meta">
-                                <span className="mwc-list-meta-item">
-                                    <CalendarIcon size={12} /> {res.date}
-                                </span>
-                                <span className="mwc-list-meta-item">
-                                    <Clock size={12} /> {res.time}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="mwc-list-card-right">
-                        {res.status === '대기 중' && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleApproveReservation(res.id);
-                                }}
-                                className="mwc-list-approve-btn"
-                            >
-                                승인
-                            </button>
-                        )}
-                        <button className="mwc-list-arrow-btn">
-                            <ChevronRight className="text-[#94A3B8]" size={18} />
-                        </button>
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
-
     return (
         <div className="planner-root">
-            <Header
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                userName={userName}
-                setUserName={setUserName}
-                isLoggedIn={isLoggedIn}
-                setIsLoggedIn={setIsLoggedIn}
-            />
-
+            <Header activeTab={activeTab} setActiveTab={setActiveTab} userName={userName} setUserName={setUserName} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
             <main className="mwc-main">
                 {renderDetailModal()}
-
                 <div className="mwc-page-header">
-                    <div>
-                        <h2 className="mwc-page-title">상담 일정 관리</h2>
-                        <p className="mwc-page-subtitle">본인의 휴무와 상담 일정을 통합 관리합니다.</p>
-                    </div>
+                    <div><h2 className="mwc-page-title">상담 일정 관리</h2><p className="mwc-page-subtitle">본인의 휴무와 상담 일정을 통합 관리합니다.</p></div>
                     <div className="mwc-view-tabs">
-                        <button
-                            onClick={() => setViewMode('calendar')}
-                            className={`mwc-view-tab${viewMode === 'calendar' ? ' mwc-view-tab--active' : ''}`}
-                        >
-                            <CalendarIcon size={22} />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`mwc-view-tab${viewMode === 'list' ? ' mwc-view-tab--active' : ''}`}
-                        >
-                            <List size={22} />
-                        </button>
+                        <button onClick={() => setViewMode('calendar')} className={`mwc-view-tab${viewMode === 'calendar' ? ' mwc-view-tab--active' : ''}`}><CalendarIcon size={22} /></button>
+                        <button onClick={() => setViewMode('list')} className={`mwc-view-tab${viewMode === 'list' ? ' mwc-view-tab--active' : ''}`}><List size={22} /></button>
                     </div>
                 </div>
-
                 <div className="mwc-content">
                     {viewMode === 'calendar' ? (
                         <div className="mwc-calendar-view">
                             <div className="mwc-calendar-toolbar">
-                                <div className="mwc-calendar-nav">
-                                    <h3 className="mwc-calendar-month">
-                                        {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
-                                    </h3>
-                                    <div className="mwc-month-nav-btns">
-                                        <button onClick={prevMonth} className="mwc-month-nav-btn">
-                                            <ChevronLeft size={20} />
-                                        </button>
-                                        <button onClick={nextMonth} className="mwc-month-nav-btn">
-                                            <ChevronRight size={20} />
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="mwc-calendar-actions">
-                                    <div className="mwc-legend">
-                                        <div className="mwc-legend-item">
-                                            <span className="mwc-legend-dot mwc-legend-dot--confirmed"></span> 상담
-                                        </div>
-                                        <div className="mwc-legend-item">
-                                            <span className="mwc-legend-dot mwc-legend-dot--pending"></span> 대기
-                                        </div>
-                                        <div className="mwc-legend-item">
-                                            <span className="mwc-legend-dot mwc-legend-dot--off"></span> 휴무
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => {
-                                            const todayStr = new Date().toISOString().split('T')[0];
-                                            setSelectedReservation(null); 
-                                            setSelectedDateDetails(todayStr); 
-                                            setManualSelectedDate(todayStr); 
-                                            setShowAddReservation(true);
-                                        }}
-                                        className="mwc-add-btn"
-                                    >
-                                        + 일정 추가
-                                    </button>
-                                </div>
+                                <h3 className="mwc-calendar-month">{currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월</h3>
+                                <button onClick={() => { setSelectedDateDetails(new Date().toISOString().split('T')[0]); setShowAddReservation(true); }} className="mwc-add-btn">+ 일정 추가</button>
                             </div>
                             <div className="mwc-calendar-wrap">{renderCalendar()}</div>
                         </div>
@@ -776,16 +441,54 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                         <div className="mwc-list-view">
                             <div className="mwc-list-toolbar">
                                 <div className="mwc-search-wrap">
-                                    <Search className="mwc-search-icon" size={16} />
+                                    <Search size={16} className="mwc-search-icon" />
                                     <input type="text" placeholder="내담자 성함 검색" className="mwc-search-input" />
                                 </div>
                             </div>
-                            {renderList()}
+                            <div className="mwc-list-grid">
+                                {reservations.map(res => (
+                                    <div key={res.id} onClick={() => setSelectedReservation(res)} className="mwc-list-card">
+                                        <div className="mwc-list-card-left">
+                                            <div className="mwc-list-avatar">
+                                                <User size={22} className="text-[#8BA888]" />
+                                            </div>
+                                            <div>
+                                                <div className="mwc-list-name-row">
+                                                    <span className="mwc-list-name">{res.client}님</span>
+                                                    <span className={`mwc-status-badge ${res.status === '확정됨' ? 'mwc-status-badge--confirmed' : 'mwc-status-badge--pending'}`}>
+                                                        {res.status}
+                                                    </span>
+                                                </div>
+                                                <div className="mwc-list-meta">
+                                                    <span className="mwc-list-meta-item">
+                                                        <CalendarIcon size={12} /> {res.date}
+                                                    </span>
+                                                    <span className="mwc-list-meta-item">
+                                                        <Clock size={12} /> {res.time}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mwc-list-card-right">
+                                            {res.status === '대기 중' && (
+                                                <button
+                                                    className="mwc-list-approve-btn"
+                                                    onClick={(e) => { e.stopPropagation(); handleApproveReservation(res.id); }}
+                                                >
+                                                    <Check size={12} /> 승인
+                                                </button>
+                                            )}
+                                            <button className="mwc-list-arrow-btn">
+                                                <ChevronRight size={18} className="text-[#94A3B8]" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
             </main>
-
             <Footer />
             <MobileTap />
         </div>
