@@ -5,7 +5,7 @@ import { isTokenExpired } from './utils/jwt';
 import Home from './pages/home';
 import LoginPage from './pages/Login';
 import SignUp from './pages/SignUp';
-import MyPage from './pages/MyPage';
+import MyPage from './pages/mypage';
 import Diary from './pages/Diary';
 import HealingRounge from './pages/HealingRounge';
 import FindPwPage from './pages/FindPw';
