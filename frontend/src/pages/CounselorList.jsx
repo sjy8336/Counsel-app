@@ -61,7 +61,17 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('전체');
     const [liked, setLiked] = useState({}); // { [id]: true/false }
+    const [toast, setToast] = useState(null);
     const navigate = useNavigate();
+
+    // 토스트 표시 함수
+    const showToast = (msg) => setToast(msg);
+    useEffect(() => {
+        if (toast) {
+            const timer = setTimeout(() => setToast(null), 2500);
+            return () => clearTimeout(timer);
+        }
+    }, [toast]);
 
     useEffect(() => {
         const fetchLikes = async () => {
@@ -111,6 +121,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
             if (typeof onFavoriteChange === 'function') {
                 onFavoriteChange(id, res.is_favorite);
             }
+            showToast(res.is_favorite ? '찜이 추가되었습니다.' : '찜이 취소되었습니다.');
         } catch (err) {
             // 401 에러가 난다면 콘솔에 찍어서 확인해봅시다.
             console.error('찜 에러 상세:', err.response);
@@ -125,80 +136,87 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
     });
 
     return (
-        <div className="full-page-wrapper">
-            <Header
-                activeTab="search"
-                setActiveTab={() => {}}
-                userName={userName}
-                setUserName={setUserName}
-                isLoggedIn={isLoggedIn}
-                setIsLoggedIn={setIsLoggedIn}
-            />
-            <div className="counselor-list-container wide">
-                <header className="clist-search-header">
-                    <h2 className="clist-search-title">전문가 찾기</h2>
-                    <div className="clist-search-bar-wrapper">
-                        <Search className="clist-search-icon" size={20} />
-                        <input
-                            type="text"
-                            className="clist-search-input"
-                            placeholder="이름 혹은 고민 중인 분야를 입력하세요"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <div className="category-tabs">
-                        {['전체', '개인 심리', '직장', '진로'].map((cat) => (
-                            <button
-                                key={cat}
-                                className={`category-btn ${selectedCategory === cat ? 'active' : ''}`}
-                                onClick={() => setSelectedCategory(cat)}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
-                </header>
-
-                <main className="counselor-grid pc-full">
-                    {filteredCounselors.map((counselor) => (
-                        <div
-                            key={counselor.id}
-                            className="counselor-card"
-                            onClick={() => navigate(`/counselor/${counselor.id}`)}
-                        >
-                            <div className="card-top">
-                                <div className="profile-placeholder">
-                                    <User size={32} />
-                                </div>
-                                <button
-                                    className={`heart-btn${liked[counselor.id] ? ' liked' : ''}`}
-                                    onClick={(e) => handleLike(counselor.id, e)}
-                                    aria-label="좋아요"
-                                >
-                                    <Heart
-                                        size={22}
-                                        fill={liked[counselor.id] ? '#e74c3c' : 'none'}
-                                        color={liked[counselor.id] ? '#e74c3c' : '#bbb'}
-                                        strokeWidth={2.2}
-                                    />
-                                </button>
-                            </div>
-                            <div className="card-body">
-                                <span className="counselor-category-label">{counselor.category}</span>
-                                <h3 className="counselor-name">{counselor.name}</h3>
-                                <span className="counselor-field-tags">{counselor.field}</span>
-                                <p className="counselor-intro">{counselor.intro}</p>
-                            </div>
-                            <div className="card-footer">
-                                <span className="price-info">{counselor.price} / 50분</span>
-                                <button className="view-detail-btn">상세보기</button>
-                            </div>
+        <>
+            {toast && <div className="cld-mp-toast">{toast}</div>}
+            <div className="cld-full-page-wrapper">
+                <Header
+                    activeTab="search"
+                    setActiveTab={() => {}}
+                    userName={userName}
+                    setUserName={setUserName}
+                    isLoggedIn={isLoggedIn}
+                    setIsLoggedIn={setIsLoggedIn}
+                />
+                <div className="cld-counselor-list-container wide">
+                    <header className="cld-clist-search-header">
+                        <h2 className="cld-clist-search-title">전문가 찾기</h2>
+                        <div className="cld-clist-search-bar-wrapper">
+                            <Search className="cld-clist-search-icon" size={20} />
+                            <input
+                                type="text"
+                                className="cld-clist-search-input"
+                                placeholder="이름 혹은 고민 중인 분야를 입력하세요"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
                         </div>
-                    ))}
-                </main>
+                        <div className="cld-category-tabs">
+                            {['전체', '개인 심리', '직장', '진로'].map((cat) => (
+                                <button
+                                    key={cat}
+                                    className={`cld-category-btn ${selectedCategory === cat ? 'active' : ''}`}
+                                    onClick={() => setSelectedCategory(cat)}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+                    </header>
+
+                    <main className="cld-counselor-grid cld-pc-full">
+                        {filteredCounselors.map((counselor) => (
+                            <div
+                                key={counselor.id}
+                                className="cld-counselor-card"
+                                onClick={() =>
+                                    navigate(`/counselor/${counselor.id}`, {
+                                        state: { isLiked: !!liked[counselor.id] },
+                                    })
+                                }
+                            >
+                                <div className="cld-card-top">
+                                    <div className="cld-profile-placeholder">
+                                        <User size={32} />
+                                    </div>
+                                    <button
+                                        className={`cld-heart-btn${liked[counselor.id] ? ' liked' : ''}`}
+                                        onClick={(e) => handleLike(counselor.id, e)}
+                                        aria-label="좋아요"
+                                    >
+                                        <Heart
+                                            size={22}
+                                            fill={liked[counselor.id] ? '#e74c3c' : 'none'}
+                                            color={liked[counselor.id] ? '#e74c3c' : '#bbb'}
+                                            strokeWidth={2.2}
+                                        />
+                                    </button>
+                                </div>
+                                <div className="cld-card-body">
+                                    <span className="cld-counselor-category-label">{counselor.category}</span>
+                                    <h3 className="cld-counselor-name">{counselor.name}</h3>
+                                    <span className="cld-counselor-field-tags">{counselor.field}</span>
+                                    <p className="cld-counselor-intro">{counselor.intro}</p>
+                                </div>
+                                <div className="cld-card-footer">
+                                    <span className="cld-price-info">{counselor.price} / 50분</span>
+                                    <button className="cld-view-detail-btn">상세보기</button>
+                                </div>
+                            </div>
+                        ))}
+                    </main>
+                </div>
+                <Footer />
             </div>
-            <Footer />
-        </div>
+        </>
     );
 }

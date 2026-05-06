@@ -107,7 +107,7 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
     };
 
     return (
-        <div className="history-page-root">
+        <div className="res-history-page-root">
             <Header
                 activeTab="reservation"
                 setActiveTab={() => {}}
@@ -117,19 +117,19 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                 setIsLoggedIn={setIsLoggedIn}
             />
 
-            <main className="history-container">
-                <div className="history-top-section">
+            <main className="res-history-container">
+                <div className="res-history-top-section">
                     <h2>예약 관리</h2>
-                    <p className="sub-desc">
+                    <p className="res-sub-desc">
                         <strong>{userName}님,</strong> 상담사와 함께하는 일정을 관리하세요.
                     </p>
                 </div>
 
-                <nav className="history-tabs">
+                <nav className="res-history-tabs">
                     {['전체', '예약 대기', '예약 확정', '상담 완료', '예약 취소'].map((tab) => (
                         <button
                             key={tab}
-                            className={`tab-btn-modern ${filter === tab ? 'active' : ''}`}
+                            className={`res-tab-btn-modern ${filter === tab ? 'active' : ''}`}
                             onClick={() => setFilter(tab)}
                         >
                             {tab}
@@ -137,23 +137,25 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                     ))}
                 </nav>
 
-                <div className="history-list">
+                <div className="res-history-list">
                     {filteredData.map((item) => (
-                        <div key={item.id} className="history-list-item">
-                            <div className="item-main-info">
-                                <div className="date-badge-column">
-                                    <span className="date-display">{item.date}</span>
-                                    <span className={`status-tag ${getStatusClass(item.status)}`}>{item.status}</span>
+                        <div key={item.id} className="res-history-list-item">
+                            <div className="res-item-main-info">
+                                <div className="res-date-badge-column">
+                                    <span className="res-date-display">{item.date}</span>
+                                    <span className={`res-status-tag ${getStatusClass(item.status)}`}>
+                                        {item.status}
+                                    </span>
                                 </div>
-                                <div className="item-content-box">
-                                    <h3 className="counselor-name">
-                                        {item.name} <span className="type-tag">대면 상담</span>
+                                <div className="res-item-content-box">
+                                    <h3 className="res-counselor-name">
+                                        {item.name} <span className="res-type-tag">대면 상담</span>
                                     </h3>
-                                    <div className="item-details">
+                                    <div className="res-item-details">
                                         <span>
                                             <Clock size={16} /> {item.time}
                                         </span>
-                                        <span className="divider">|</span>
+                                        <span className="res-divider">|</span>
                                         <span>
                                             <MapPin size={16} /> {item.location}
                                         </span>
@@ -161,13 +163,16 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                                 </div>
                             </div>
 
-                            <div className="item-actions">
+                            <div className="res-item-actions">
                                 {(item.status === '예약 대기' || item.status === '예약 확정') && (
-                                    <button className="cancel-trigger-btn" onClick={() => handleCancelClick(item.id)}>
+                                    <button
+                                        className="res-cancel-trigger-btn"
+                                        onClick={() => handleCancelClick(item.id)}
+                                    >
                                         취소하기
                                     </button>
                                 )}
-                                <ChevronRight size={24} className="arrow-icon" />
+                                <ChevronRight size={24} className="res-arrow-icon" />
                             </div>
                         </div>
                     ))}
@@ -176,22 +181,22 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
 
             {/* 취소 확인 / 취소 불가 팝업 — portal처럼 DOM 최상위에서 렌더링 */}
             {isModalOpen && (
-                <div className="modal-overlay-modern" onClick={closeModal}>
-                    <div className="modal-content-modern" onClick={(e) => e.stopPropagation()}>
-                        <button className="modal-close-icon" onClick={closeModal}>
+                <div className="res-modal-overlay-modern" onClick={closeModal}>
+                    <div className="res-modal-content-modern" onClick={(e) => e.stopPropagation()}>
+                        <button className="res-modal-close-icon" onClick={closeModal}>
                             <X size={20} />
                         </button>
 
                         {blockedMessage ? (
                             /* ── 취소 불가 안내 모달 ── */
                             <>
-                                <div className="modal-icon-wrapper modal-icon-wrapper--warn">
+                                <div className="res-modal-icon-wrapper res-modal-icon-wrapper--warn">
                                     <AlertCircle size={40} color="#F59E0B" strokeWidth={2.5} />
                                 </div>
-                                <h3 className="modal-title">취소가 불가합니다</h3>
-                                <p className="modal-desc">{blockedMessage}</p>
-                                <div className="modal-btns-modern">
-                                    <button className="btn-confirm btn-confirm--single" onClick={closeModal}>
+                                <h3 className="res-modal-title">취소가 불가합니다</h3>
+                                <p className="res-modal-desc">{blockedMessage}</p>
+                                <div className="res-modal-btns-modern">
+                                    <button className="res-btn-confirm res-btn-confirm--single" onClick={closeModal}>
                                         확인
                                     </button>
                                 </div>
@@ -199,16 +204,16 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                         ) : (
                             /* ── 취소 확인 모달 ── */
                             <>
-                                <div className="modal-icon-wrapper">
+                                <div className="res-modal-icon-wrapper">
                                     <AlertCircle size={40} color="#FDA4AF" strokeWidth={2.5} />
                                 </div>
-                                <h3 className="modal-title">예약을 취소하시겠습니까?</h3>
-                                <p className="modal-desc">취소하시면 해당 시간의 상담은 자동으로 사라집니다.</p>
-                                <div className="modal-btns-modern">
-                                    <button className="btn-confirm" onClick={confirmCancel}>
+                                <h3 className="res-modal-title">예약을 취소하시겠습니까?</h3>
+                                <p className="res-modal-desc">취소하시면 해당 시간의 상담은 자동으로 사라집니다.</p>
+                                <div className="res-modal-btns-modern">
+                                    <button className="res-btn-confirm" onClick={confirmCancel}>
                                         네, 취소합니다
                                     </button>
-                                    <button className="btn-back" onClick={closeModal}>
+                                    <button className="res-btn-back" onClick={closeModal}>
                                         아니오
                                     </button>
                                 </div>
@@ -218,24 +223,24 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                 </div>
             )}
 
-            <nav className="mobile-bottom-nav">
-                <Link to="/" className="nav-item">
+            <nav className="res-mobile-bottom-nav">
+                <Link to="/" className="res-nav-item">
                     <Home size={24} />
                     <span>홈</span>
                 </Link>
-                <Link to="/reservation" className="nav-item active">
+                <Link to="/reservation" className="res-nav-item active">
                     <Calendar size={24} />
                     <span>예약 관리</span>
                 </Link>
-                <Link to="/ai-diary" className="nav-item">
+                <Link to="/ai-diary" className="res-nav-item">
                     <BookOpen size={24} />
                     <span>AI 일기</span>
                 </Link>
-                <Link to="/healing" className="nav-item">
+                <Link to="/healing" className="res-nav-item">
                     <Heart size={24} />
                     <span>힐링 라운지</span>
                 </Link>
-                <Link to="/mypage" className="nav-item">
+                <Link to="/mypage" className="res-nav-item">
                     <User size={24} />
                     <span>마이페이지</span>
                 </Link>

@@ -10,67 +10,67 @@
    ============================================ */
 
 /* PC에서는 하단 네비게이션 절대 보이지 않게 처리 */
-.mobile-bottom-nav {
+.res-mobile-bottom-nav {
     display: none;
 }
 
 /* ── 페이지 루트 ── */
-.history-page-root {
-    background-color: #FDFBF7;
+.res-history-page-root {
+    background-color: #fdfbf7;
     min-height: 100vh;
     padding-bottom: 60px;
 }
 
 /* ── 컨테이너: 가운데 정렬 ── */
-.history-container {
+.res-history-container {
     max-width: 860px;
     margin: 0 auto;
     padding: 60px 20px;
     display: flex;
     flex-direction: column;
-    align-items: center;   /* 모든 자식 가운데 정렬 */
+    align-items: center; /* 모든 자식 가운데 정렬 */
 }
 
 /* ── 상단 타이틀 영역 ── */
-.history-top-section {
+.res-history-top-section {
     text-align: center;
     margin-bottom: 32px;
     width: 100%;
 }
 
-.history-top-section h2 {
+.res-history-top-section h2 {
     font-size: 2.2rem;
-    color: #1E293B;
+    color: #1e293b;
     margin-bottom: 10px;
     font-weight: 800;
     letter-spacing: -0.5px;
 }
 
-.sub-desc {
+.res-sub-desc {
     font-size: 1.05rem;
-    color: #64748B;
+    color: #64748b;
 }
 
-.sub-desc strong {
-    color: #8BA888;
+.res-sub-desc strong {
+    color: #8ba888;
 }
 
 /* ── 필터 탭 (가운데 정렬 + 팔레트 색상) ── */
-.history-tabs {
+.res-history-tabs {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;   /* 탭 버튼들 가운데 */
+    justify-content: center; /* 탭 버튼들 가운데 */
     gap: 10px;
     margin-bottom: 32px;
     width: 100%;
 }
 
-.tab-btn-modern {
+.res-tab-btn-modern {
     padding: 9px 20px;
     border-radius: 50px;
-    border: 1.5px solid #D1D5DB;
+    border: 1.5px solid #d1d5db;
     background: white;
-    color: #64748B;
+    color: #64748b;
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -78,28 +78,28 @@
     white-space: nowrap;
 }
 
-.tab-btn-modern:hover {
-    border-color: #8BA888;
-    color: #8BA888;
-    background: #F0F5EF;
+.res-tab-btn-modern:hover {
+    border-color: #8ba888;
+    color: #8ba888;
+    background: #f0f5ef;
 }
 
-.tab-btn-modern.active {
-    background: #8BA888;
+.res-tab-btn-modern.active {
+    background: #8ba888;
     color: white;
-    border-color: #8BA888;
+    border-color: #8ba888;
     box-shadow: 0 3px 10px rgba(139, 168, 136, 0.35);
 }
 
 /* ── 리스트 ── */
-.history-list {
+.res-history-list {
     display: flex;
     flex-direction: column;
     gap: 18px;
     width: 100%;
 }
 
-.history-list-item {
+.res-history-list-item {
     background: white;
     border-radius: 20px;
     padding: 28px 32px;
@@ -107,31 +107,33 @@
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-    border: 1px solid #FAF7F2;
-    transition: box-shadow 0.2s, transform 0.2s;
+    border: 1px solid #faf7f2;
+    transition:
+        box-shadow 0.2s,
+        transform 0.2s;
 }
 
-.history-list-item:hover {
+.res-history-list-item:hover {
     box-shadow: 0 6px 24px rgba(139, 168, 136, 0.12);
     transform: translateY(-1px);
 }
 
 /* ── 날짜 + 상태 컬럼 ── */
-.date-badge-column {
+.res-date-badge-column {
     display: flex;
     flex-direction: column;
     gap: 8px;
     min-width: 130px;
 }
 
-.date-display {
+.res-date-display {
     font-size: 1.05rem;
     font-weight: 800;
-    color: #1E293B;
+    color: #1e293b;
 }
 
 /* ── 상태 태그 ── */
-.status-tag {
+.res-status-tag {
     padding: 5px 12px;
     border-radius: 6px;
     font-size: 0.82rem;
@@ -140,69 +142,83 @@
     width: fit-content;
 }
 
-.status-tag.confirmed  { background: #E8F5E3; color: #4A7C59; }   /* Sage 계열 */
-.status-tag.pending    { background: #FEF3C7; color: #D97706; }   /* Amber 계열 */
-.status-tag.completed  { background: #F1F5F9; color: #475569; }   /* Neutral */
-.status-tag.cancelled  { background: #FFE4E6; color: #E05A70; }   /* Rose 계열 */
+.res-status-tag.confirmed {
+    background: #e8f5e3;
+    color: #4a7c59;
+} /* Sage 계열 */
+.res-status-tag.pending {
+    background: #fef3c7;
+    color: #d97706;
+} /* Amber 계열 */
+.res-status-tag.completed {
+    background: #f1f5f9;
+    color: #475569;
+} /* Neutral */
+.res-status-tag.cancelled {
+    background: #ffe4e6;
+    color: #e05a70;
+} /* Rose 계열 */
 
 /* ── 상담사 이름 + 상세 ── */
-.item-main-info {
+.res-item-main-info {
     display: flex;
     align-items: center;
     gap: 28px;
     flex: 1;
 }
 
-.item-content-box {
+.res-item-content-box {
     flex: 1;
 }
 
-.counselor-name {
+.res-counselor-name {
     font-size: 1.2rem;
     margin-bottom: 8px;
-    color: #1E293B;
+    color: #1e293b;
     font-weight: 700;
 }
 
-.type-tag {
+.res-type-tag {
     font-size: 0.78rem;
     font-weight: 500;
-    color: #8BA888;
-    background: #EEF4EE;
+    color: #8ba888;
+    background: #eef4ee;
     padding: 3px 9px;
     border-radius: 20px;
     margin-left: 8px;
     vertical-align: middle;
 }
 
-.item-details {
+.res-item-details {
     display: flex;
     align-items: center;
     gap: 12px;
     font-size: 0.95rem;
-    color: #64748B;
+    color: #64748b;
 }
 
-.item-details span {
+.res-item-details span {
     display: flex;
     align-items: center;
     gap: 5px;
 }
 
-.divider { color: #CBD5E1; }
+.res-divider {
+    color: #cbd5e1;
+}
 
 /* ── 액션 영역 ── */
-.item-actions {
+.res-item-actions {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
 }
 
-.cancel-trigger-btn {
+.res-cancel-trigger-btn {
     background: none;
-    border: 1.5px solid #FDA4AF;
-    color: #E05A70;
+    border: 1.5px solid #fda4af;
+    color: #e05a70;
     font-size: 0.88rem;
     font-weight: 700;
     cursor: pointer;
@@ -212,26 +228,22 @@
     text-decoration: none;
 }
 
-.cancel-trigger-btn:hover {
-    background: #FDA4AF;
+.res-cancel-trigger-btn:hover {
+    background: #fda4af;
     color: white;
 }
 
-.arrow-icon {
-    color: #CBD5E1;
+.res-arrow-icon {
+    color: #cbd5e1;
     cursor: pointer;
     transition: color 0.2s;
 }
 
-.arrow-icon:hover {
-    color: #8BA888;
+.res-arrow-icon:hover {
+    color: #8ba888;
 }
 
-/* ============================================
-   모달 — position: fixed + z-index 최상위
-   (어떤 부모 위치에서 열려도 정중앙에 뜸)
-   ============================================ */
-.modal-overlay-modern {
+.res-modal-overlay-modern {
     position: fixed;
     top: 0;
     left: 0;
@@ -242,10 +254,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 99999;   /* 헤더·네비보다 반드시 위 */
+    z-index: 99999; /* 헤더·네비보다 반드시 위 */
 }
 
-.modal-content-modern {
+.res-modal-content-modern {
     background: white;
     padding: 44px 40px 36px;
     border-radius: 28px;
@@ -257,16 +269,22 @@
     animation: modal-pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes modal-pop {
-    from { opacity: 0; transform: scale(0.88) translateY(12px); }
-    to   { opacity: 1; transform: scale(1)    translateY(0);    }
+@keyframes res-modal-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.88) translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
-.modal-close-icon {
+.res-modal-close-icon {
     position: absolute;
     top: 18px;
     right: 18px;
-    background: #F1F5F9;
+    background: #f1f5f9;
     border: none;
     border-radius: 50%;
     width: 32px;
@@ -275,18 +293,18 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #64748B;
+    color: #64748b;
     transition: background 0.2s;
 }
 
-.modal-close-icon:hover {
-    background: #E2E8F0;
+.res-modal-close-icon:hover {
+    background: #e2e8f0;
 }
 
-.modal-icon-wrapper {
+.res-modal-icon-wrapper {
     width: 72px;
     height: 72px;
-    background: #FFF0F3;
+    background: #fff0f3;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -294,115 +312,119 @@
     margin: 0 auto 20px;
 }
 
-.modal-icon-wrapper--warn {
-    background: #FFFBEB;
+.res-modal-icon-wrapper--warn {
+    background: #fffbeb;
 }
 
-.modal-title {
+.res-modal-title {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #1E293B;
+    color: #1e293b;
     margin-bottom: 12px;
 }
 
-.modal-desc {
+.res-modal-desc {
     font-size: 0.95rem;
-    color: #64748B;
+    color: #64748b;
     line-height: 1.6;
     white-space: pre-line;
     margin-bottom: 28px;
 }
 
-.modal-btns-modern {
+.res-modal-btns-modern {
     display: flex;
     gap: 12px;
     justify-content: center;
 }
 
 /* 취소 확인 버튼 */
-.btn-confirm {
+.res-btn-confirm {
     flex: 1;
     padding: 13px 0;
     border-radius: 50px;
     border: none;
-    background: #FDA4AF;
+    background: #fda4af;
     color: white;
     font-size: 0.95rem;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s;
+    transition:
+        background 0.2s,
+        box-shadow 0.2s;
     max-width: 160px;
 }
 
-.btn-confirm:hover {
-    background: #E05A70;
+.res-btn-confirm:hover {
+    background: #e05a70;
     box-shadow: 0 4px 14px rgba(253, 164, 175, 0.45);
 }
 
 /* 단일 버튼일 때 꽉 채우기 */
-.btn-confirm--single {
+.res-btn-confirm--single {
     max-width: 200px;
-    background: #8BA888;
+    background: #8ba888;
 }
 
-.btn-confirm--single:hover {
-    background: #6D8B74;
+.res-btn-confirm--single:hover {
+    background: #6d8b74;
     box-shadow: 0 4px 14px rgba(139, 168, 136, 0.4);
 }
 
 /* 아니오 버튼 */
-.btn-back {
+.res-btn-back {
     flex: 1;
     padding: 13px 0;
     border-radius: 50px;
-    border: 1.5px solid #E2E8F0;
+    border: 1.5px solid #e2e8f0;
     background: white;
-    color: #64748B;
+    color: #64748b;
     font-size: 0.95rem;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
+    transition:
+        background 0.2s,
+        border-color 0.2s;
     max-width: 160px;
 }
 
-.btn-back:hover {
-    background: #F8FAFC;
-    border-color: #CBD5E1;
+.res-btn-back:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
 }
 
 /* ── 모바일 ── */
 @media (max-width: 768px) {
-    .history-list-item {
+    .res-history-list-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 18px;
         padding: 22px 20px;
     }
 
-    .item-main-info {
+    .res-item-main-info {
         flex-direction: column;
         align-items: flex-start;
         gap: 14px;
         width: 100%;
     }
 
-    .item-actions {
+    .res-item-actions {
         width: 100%;
         justify-content: flex-end;
-        border-top: 1px solid #F1F5F9;
+        border-top: 1px solid #f1f5f9;
         padding-top: 14px;
     }
 
-    .history-tabs {
+    .res-history-tabs {
         gap: 8px;
     }
 
-    .tab-btn-modern {
+    .res-tab-btn-modern {
         padding: 8px 16px;
         font-size: 0.85rem;
     }
 
-    .mobile-bottom-nav {
+    .res-mobile-bottom-nav {
         display: flex;
         position: fixed;
         bottom: 0;
@@ -410,23 +432,23 @@
         right: 0;
         height: 75px;
         background: white;
-        border-top: 1px solid #FAF7F2;
+        border-top: 1px solid #faf7f2;
         justify-content: space-around;
         align-items: center;
         z-index: 9999;
     }
 
-    .nav-item {
+    .res-nav-item {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 5px;
-        color: #94A3B8;
+        color: #94a3b8;
         text-decoration: none;
         font-size: 0.8rem;
     }
 
-    .nav-item.active {
-        color: #8BA888;
+    .res-nav-item.active {
+        color: #8ba888;
     }
 }
