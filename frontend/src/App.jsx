@@ -25,6 +25,7 @@ import Payment from './pages/Payment';
 import Success from './pages/Success';
 import Fail from './pages/Fail';
 import CounselorMessages from './pages/CounselorMessages';
+import ContactCoach from './pages/ContactCoach';
 
 
 function App() {
@@ -84,6 +85,7 @@ function App() {
 
     return (
         <Routes>
+            <Route path="/contact-coach" element={<ContactCoach />} />
             <Route
                 path="/"
                 element={

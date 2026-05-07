@@ -44,6 +44,10 @@ const detailedCounselorData = {
 
 export default function CounselorDetailPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
     const { id } = useParams();
+    // 페이지 진입 시 스크롤 맨 위로 이동
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
     const navigate = useNavigate();
     const location = useLocation();
     // location.state?.counselor가 있으면 우선 사용
@@ -349,7 +353,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                 </button>
                             </div>
 
-                            <button className="cld-inquiry-btn" onClick={() => navigate('/mypage')}>
+                            <button className="cld-inquiry-btn" onClick={() => navigate('/contact-coach', { state: { counselorName: counselor.name } })}>
                                 <MessageCircle size={18} /> 상담사에게 예약 문의하기
                             </button>
                         </div>

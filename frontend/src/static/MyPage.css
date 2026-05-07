@@ -206,7 +206,7 @@ img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .ns-header { padding: 0 0 1.2rem; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid #f3f4f6; }
 .ns-header-icon-box { padding: 0.625rem; border-radius: 1rem; background-color: var(--ns-sub-bg); display: flex; align-items: center; justify-content: center; color: var(--ns-main); }
 .ns-header-title { font-size: 1.125rem; font-weight: 700; color: var(--ns-text); margin: 0; }
-.ns-list { padding: 0; display: flex; flex-direction: column; gap: 1.1rem; margin-top: 1.2rem; }
+.ns-list { padding: 0; display: flex; flex-direction: column; gap: 1.1rem; margin-top: 1.2rem; margin-bottom: 2.2rem; }
 .ns-toggle-item { display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.2rem; border-radius: 1rem; background: #f8fafc; border: 1px solid #f3f4f6; transition: background-color 0.2s, border 0.2s; }
 .ns-toggle-item:hover { background-color: #f3f4f6; border: 1px solid #e5e7eb; }
 .ns-item-text { flex: 1; padding-right: 1rem; }

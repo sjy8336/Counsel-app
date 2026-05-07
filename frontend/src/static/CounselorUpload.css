@@ -1,3 +1,28 @@
+/* ===== 학력사항 한 줄 정렬 ===== */
+.cu-ep-edu-row-align {
+	align-items: flex-start;
+	display: grid;
+	grid-template-columns: 5fr 7fr;
+	gap: 1.25rem;
+}
+.cu-ep-edu-fields-row {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	height: 100%;
+}
+.cu-ep-edu-rm-row-top {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 0.5rem;
+	margin-top: 0;
+}
+.cu-ep-edu-label {
+	font-size: 0.75rem;
+	color: #64748b;
+	font-weight: 500;
+	margin-bottom: 0.25rem;
+}
 /* ===== 전역 경고 메시지(폼 하단) ===== */
 .cu-ep-warn-msg-global {
 	margin-top: 1.2rem;
