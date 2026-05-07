@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../static/CounselorMyPage.css';
+import axios from 'axios';
 import {
     LayoutDashboard,
     Bell,
@@ -515,10 +516,32 @@ const App = () => {
     const [settingsView, setSettingsView] = useState(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    // 등록 여부를 localStorage에서 관리
-    const [registered, setRegistered] = useState(() => {
-        return localStorage.getItem('counselor_registered') === 'true';
-    });
+    // 등록 여부를 항상 백엔드에서 확인
+    const [registered, setRegistered] = useState(false);
+    const [loadingRegistered, setLoadingRegistered] = useState(true);
+
+    // 상담사 프로필 등록 여부 확인 API 호출
+    const fetchRegistered = useCallback(async () => {
+        setLoadingRegistered(true);
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user || !user.id) {
+                setRegistered(false);
+                setLoadingRegistered(false);
+                return;
+            }
+            const res = await axios.get(`/api/counselor/profile/exists?user_id=${user.id}`);
+            setRegistered(res.data.exists === true);
+        } catch (e) {
+            setRegistered(false);
+        } finally {
+            setLoadingRegistered(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchRegistered();
+    }, [fetchRegistered]);
     const [careers, setCareers] = useState(initCareers);
     const [educations, setEducations] = useState(initEducations);
     const [certificates, setCertificates] = useState(initCertificates);
@@ -791,7 +814,11 @@ const App = () => {
                 onBack={() => setSettingsView(null)}
             />
 
-            {!registered ? (
+            {loadingRegistered ? (
+                <div className="mw-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
+                    <div className="mw-register-title">상태 확인 중...</div>
+                </div>
+            ) : !registered ? (
                 <div className="mw-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
                     <div className="mw-register-icon">👤</div>
                     <h3 className="mw-register-title">상담사 프로필을 등록해주세요</h3>
@@ -826,7 +853,7 @@ const App = () => {
                                 <p style={{ fontSize: 12, fontWeight: 600 }}>사진을 클릭하여 업로드</p>
                             </div>
                         </div>
-
+                        {/* 이하 기존 프로필 수정 UI 그대로 */}
                         <div className="mw-grid-2">
                             {[
                                 ['이름', '이은지'],
@@ -840,7 +867,6 @@ const App = () => {
                                 </div>
                             ))}
                         </div>
-
                         <div className="mw-section-divider" style={{ marginTop: 14 }}>
                             <div className="mw-sub-section-header">
                                 <span className="mw-field-label" style={{ margin: 0 }}>

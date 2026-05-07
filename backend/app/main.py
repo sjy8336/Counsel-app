@@ -4,11 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth
 from app.api import counselor
 from app.api import upload
+from app.api import payment
 
 from fastapi.staticfiles import StaticFiles
 import os
 
 app = FastAPI()
+
+app.include_router(payment.router, prefix="/api/payment", tags=["payment"])
 
 # CORS 설정
 app.add_middleware(
@@ -36,3 +39,4 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 @app.get("/")
 def read_root():
     return {"Hello": "Jiyoung's World"}
+
