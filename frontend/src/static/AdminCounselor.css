@@ -1,0 +1,115 @@
+/* src/static/AdminCounselor.css */
+
+:root {
+  --main-point: #8BA888;
+  --bg-warm: #FDFBF7;
+  --sub-bg: #FAF7F2;
+  --accent-rose: #FDA4AF;
+  --text-navy: #1E293B;
+  --white: #FFFFFF;
+  --border-light: #E2E8F0;
+}
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-warm);
+}
+
+/* 사이드바 고정 및 스타일 */
+.admin-sidebar {
+  width: 260px;
+  background-color: var(--text-navy);
+  color: var(--white);
+  padding: 40px 20px;
+  position: fixed;
+  height: 100vh;
+  left: 0; top: 0;
+  z-index: 100;
+}
+
+.admin-nav-item {
+  padding: 16px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #94a3b8;
+  margin-bottom: 12px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.admin-nav-item.active {
+  background-color: var(--main-point);
+  color: var(--white);
+}
+
+/* 메인 영역 간섭 방지 */
+.admin-main-content {
+  flex: 1;
+  margin-left: 260px; /* 사이드바 너비만큼 확실히 띄움 */
+  padding: 50px;
+}
+
+.admin-content-card {
+  background-color: var(--white);
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 10px 25px rgba(30, 41, 59, 0.05);
+  border: 1px solid var(--border-light);
+}
+
+/* 테이블 가독성 강화 */
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 25px;
+}
+
+.admin-table th {
+  background-color: var(--sub-bg);
+  padding: 15px;
+  text-align: left;
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.admin-table td {
+  padding: 18px 15px;
+  border-bottom: 1px solid var(--sub-bg);
+}
+
+/* 검색바 및 필터 디자인 */
+.admin-filter-bar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.admin-search-input {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  outline: none;
+}
+
+.admin-search-input:focus {
+  border-color: var(--main-point);
+}
+
+/* 버튼 스타일 통일 */
+.btn-examine {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1.5px solid var(--main-point);
+  color: var(--main-point);
+  background: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-examine:hover {
+  background: var(--main-point);
+  color: white;
+}

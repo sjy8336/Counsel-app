@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { isTokenExpired } from './utils/jwt';
 
 import Home from './pages/home';
+import AdminCounselor from './pages/AdminCounselor';
 import LoginPage from './pages/Login';
 import SignUp from './pages/SignUp';
 import MyPage from './pages/mypage';
@@ -24,6 +25,7 @@ import Payment from './pages/Payment';
 import Success from './pages/Success';
 import Fail from './pages/Fail';
 import CounselorMessages from './pages/CounselorMessages';
+
 
 function App() {
     const location = useLocation();
@@ -204,6 +206,7 @@ function App() {
                     />
                 }
             />
+            <Route path="/admin" element={<AdminCounselor />} />
         </Routes>
     );
 }
