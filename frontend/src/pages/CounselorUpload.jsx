@@ -18,7 +18,7 @@ const App = () => {
   const [customExpertise, setCustomExpertise] = useState('');
   const [certificates, setCertificates] = useState([{ id: 1, year: '', month: '', name: '', issuer: '' }]);
   const [educations, setEducations] = useState([{ id: 1, startYear: '', startMonth: '', endYear: '', endMonth: '', school: '', major: '' }]);
-  const [experiences, setExperiences] = useState([{ id: 1, period: '', content: '' }]);
+  const [experiences, setExperiences] = useState([{ id: 1, startYearMonth: '', endYearMonth: '', content: '', isCurrent: false }]);
 
   // 기본정보 입력값 상태
   const [basicName, setBasicName] = useState("");
@@ -64,8 +64,11 @@ const App = () => {
   const removeCertificate = id => setCertificates(p => p.filter(c => c.id !== id));
   const addEducation      = () => setEducations(p => [...p, { id: Date.now(), startYear: '', startMonth: '', endYear: '', endMonth: '', school: '', major: '' }]);
   const removeEducation   = id => setEducations(p => p.filter(e => e.id !== id));
-  const addExperience     = () => setExperiences(p => [...p, { id: Date.now(), period: '', content: '' }]);
+  const addExperience     = () => setExperiences(p => [...p, { id: Date.now(), startYearMonth: '', endYearMonth: '', content: '', isCurrent: false }]);
   const removeExperience  = id => setExperiences(p => p.filter(e => e.id !== id));
+  const handleExperienceChange = (id, field, value) => {
+    setExperiences(p => p.map(e => e.id === id ? { ...e, [field]: value } : e));
+  };
 
   // ── DatePicker ──
   // 프로필 사진 클릭 시 파일 선택창 열기
@@ -246,30 +249,43 @@ const App = () => {
       <section>
         <div className="cu-ep-section-header">
           <h3 className="cu-ep-section-title"><BookOpen style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} /> 학력 사항</h3>
-          <button onClick={addEducation} className="cu-ep-add-btn"><Plus style={{ width: '0.875rem', height: '0.875rem' }} /> 추가</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button onClick={addEducation} className="cu-ep-add-btn"><Plus style={{ width: '0.875rem', height: '0.875rem' }} /> 추가</button>
+            {educations.length > 1 && (
+              <button onClick={() => removeEducation(educations[educations.length-1].id)} className="cu-ep-rm-btn" title="마지막 학력 삭제"><Trash2 style={{ width: '1rem', height: '1rem' }} /></button>
+            )}
+          </div>
         </div>
         <div className="cu-ep-edu-items">
           {educations.map(edu => (
             <div key={edu.id} className="cu-ep-edu-item">
-              <div className="cu-ep-edu-grid">
-                <div className="cu-ep-edu-dates">
+              <div className="cu-ep-edu-grid-2x2" style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gridTemplateRows: '1fr 1fr',
+                gap: '1rem',
+                alignItems: 'start',
+                width: '100%'
+              }}>
+                {/* 입학일 */}
+                <div className="cu-ep-edu-field-group" style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div className="cu-ep-edu-label">입학일</div>
                   <YearMonthPicker value={edu.startYearMonth} onChange={v => setEducations(p => p.map(e => e.id === edu.id ? { ...e, startYearMonth: v } : e))} />
+                </div>
+                {/* 졸업일 */}
+                <div className="cu-ep-edu-field-group" style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div className="cu-ep-edu-label">졸업일</div>
                   <YearMonthPicker value={edu.endYearMonth} onChange={v => setEducations(p => p.map(e => e.id === edu.id ? { ...e, endYearMonth: v } : e))} />
                 </div>
-                <div className="cu-ep-edu-fields">
-                  <div className="cu-ep-edu-fields-inner">
-                    <div className="cu-ep-item-field">
-                      <label className="cu-ep-item-label">학교명</label>
-                      <input type="text" placeholder="학교명을 입력하세요" className="cu-ep-item-input" />
-                    </div>
-                    <div className="cu-ep-item-field">
-                      <label className="cu-ep-item-label">전공 및 학위</label>
-                      <input type="text" placeholder="전공 및 학위" className="cu-ep-item-input" />
-                    </div>
-                  </div>
-                  <div className="cu-ep-edu-rm-row">
-                    <button onClick={() => removeEducation(edu.id)} className="cu-ep-rm-btn"><Trash2 style={{ width: '1rem', height: '1rem' }} /></button>
-                  </div>
+                {/* 학교명 */}
+                <div className="cu-ep-item-field" style={{ display: 'flex', flexDirection: 'column' }}>
+                  <label className="cu-ep-item-label">학교명</label>
+                  <input type="text" placeholder="학교명을 입력하세요" className="cu-ep-item-input" />
+                </div>
+                {/* 전공 및 학위 */}
+                <div className="cu-ep-item-field" style={{ display: 'flex', flexDirection: 'column' }}>
+                  <label className="cu-ep-item-label">전공 및 학위</label>
+                  <input type="text" placeholder="전공 및 학위" className="cu-ep-item-input" />
                 </div>
               </div>
             </div>
@@ -285,19 +301,52 @@ const App = () => {
         </div>
         <div className="cu-ep-items">
           {experiences.map(exp => (
-            <div key={exp.id} className="cu-ep-exp-item">
-              <div className="cu-ep-exp-period">
-                <label className="cu-ep-item-label">기간</label>
-                <div className="cu-ep-edu-dates">
-                  <YearMonthPicker value={exp.startYearMonth} onChange={v => setExperiences(p => p.map(e => e.id === exp.id ? { ...e, startYearMonth: v } : e))} />
-                  <YearMonthPicker value={exp.endYearMonth} onChange={v => setExperiences(p => p.map(e => e.id === exp.id ? { ...e, endYearMonth: v } : e))} />
-                </div>
+            <div key={exp.id} className="cu-ep-exp-item" style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gridTemplateRows: '1fr 1fr',
+              gap: '1rem',
+              alignItems: 'start',
+              width: '100%',
+              position: 'relative',
+              background: '#fff',
+              borderRadius: '0.5rem',
+              padding: '1rem',
+              marginBottom: '1rem',
+              boxShadow: '0 1px 4px 0 rgba(0,0,0,0.04)'
+            }}>
+              {/* 시작일 */}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label className="cu-ep-item-label">시작일</label>
+                <YearMonthPicker value={exp.startYearMonth} onChange={v => handleExperienceChange(exp.id, 'startYearMonth', v)} />
               </div>
-              <div className="cu-ep-item-field">
+              {/* 종료일 */}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label className="cu-ep-item-label">종료일</label>
+                {exp.isCurrent ? (
+                  <input type="text" value="현재 진행중" readOnly className="cu-ep-item-input" style={{ width: '7.5rem', background: '#f3f4f6', color: '#8BA888', border: 'none', textAlign: 'center' }} />
+                ) : (
+                  <YearMonthPicker value={exp.endYearMonth} onChange={v => handleExperienceChange(exp.id, 'endYearMonth', v)} />
+                )}
+              </div>
+              {/* 활동 내용 */}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <label className="cu-ep-item-label">활동 내용</label>
-                <input type="text" placeholder="소속 및 직책 등을 입력하세요" className="cu-ep-item-input" />
+                <input type="text" placeholder="소속 및 직책 등을 입력하세요" className="cu-ep-item-input" value={exp.content} onChange={e => handleExperienceChange(exp.id, 'content', e.target.value)} />
               </div>
-              <button onClick={() => removeExperience(exp.id)} className="cu-ep-rm-btn"><Trash2 style={{ width: '1rem', height: '1rem' }} /></button>
+              {/* 현재진행중 체크박스 */}
+              <div style={{ display: 'flex', alignItems: 'center', marginTop: '1.2rem' }}>
+                <input
+                  type="checkbox"
+                  id={`current-${exp.id}`}
+                  checked={exp.isCurrent}
+                  onChange={e => handleExperienceChange(exp.id, 'isCurrent', e.target.checked)}
+                  style={{ marginRight: '0.5rem' }}
+                />
+                <label htmlFor={`current-${exp.id}`} style={{ fontSize: '0.95rem', color: '#666' }}>현재 진행중</label>
+              </div>
+              {/* 삭제 버튼 (우하단) */}
+              <button onClick={() => removeExperience(exp.id)} className="cu-ep-rm-btn" style={{ position: 'absolute', bottom: '0.5rem', right: '0.5rem', top: 'auto' }}><Trash2 style={{ width: '1rem', height: '1rem' }} /></button>
             </div>
           ))}
         </div>
@@ -335,7 +384,26 @@ const App = () => {
         {/* 탭 */}
         <div className="cu-ep-tabs">
           {[{ id: 'basic', label: '기본 정보' }, { id: 'expertise', label: '전문 분야' }, { id: 'history', label: '학력/경력' }].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`cu-ep-tab-btn${activeTab === tab.id ? ' cu-ep-tab-active' : ''}`}>{tab.label}</button>
+            <button
+              key={tab.id}
+              onClick={() => {
+                // Prevent moving to '전문 분야' or '학력/경력' if basic info is not valid
+                if ((tab.id === 'expertise' || tab.id === 'history') && activeTab === 'basic') {
+                  const warnObj = {
+                    name: !basicName.trim(),
+                    phone: !basicPhone.trim(),
+                    center: !basicCenter.trim(),
+                    address: !basicAddress.trim(),
+                  };
+                  setShowWarn(warnObj);
+                  if (warnObj.name || warnObj.phone || warnObj.center || warnObj.address) return;
+                }
+                setActiveTab(tab.id);
+              }}
+              className={`cu-ep-tab-btn${activeTab === tab.id ? ' cu-ep-tab-active' : ''}`}
+            >
+              {tab.label}
+            </button>
           ))}
         </div>
 
@@ -346,8 +414,9 @@ const App = () => {
           {activeTab === 'history'    && renderHistory()}
 
           <div className="cu-ep-nav">
-            <div className="cu-ep-nav-hint">
-              <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#cbd5e1', flexShrink: 0 }} /> 관리자 승인 후 노출됩니다.
+            <div className="cu-ep-nav-hint" style={{ color: '#8BA888', fontSize: '0.97rem' }}>
+              <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#8BA888', flexShrink: 0, marginRight: '0.3rem' }} />
+              관리자 승인까지는 최대 2~3일 소요될 수 있습니다.
             </div>
             <div className="cu-ep-nav-btns">
               {activeTab !== 'basic' && (

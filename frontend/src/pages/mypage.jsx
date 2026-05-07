@@ -37,7 +37,7 @@ import {
     Lightbulb,
     Check,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../static/MyPage.css';
 
 const notifSettingsData = [
@@ -89,76 +89,10 @@ const NotificationSettings = ({ notifSettings, toggleNotif }) => (
 );
 
 export default function App() {
-    const renderSupportCenter = () => (
-        <div className="fade-in">
-            <h3 className="mypage-section-title">고객센터</h3>
-            <div className="mwp-card support-center-card">
-                <h4 className="support-title">무엇을 도와드릴까요?</h4>
-                <div className="support-contact-block">
-                    <div className="support-contact-item">
-                        <span className="support-contact-label">1:1 문의</span>
-                        <span className="support-contact-desc">
-                            마이페이지 &gt; <b>문의내역</b>에서 상담/결제/기타 문의를 남겨주시면 신속히
-                            답변드리겠습니다.
-                        </span>
-                    </div>
-                    <div className="support-contact-item">
-                        <span className="support-contact-label">전화번호</span>
-                        <span className="support-contact-desc">
-                            <a href="tel:0212345678" className="support-link">
-                                02-1234-5678
-                            </a>{' '}
-                            (평일 10:00~18:00)
-                        </span>
-                    </div>
-                    <div className="support-contact-item">
-                        <span className="support-contact-label">센터 위치</span>
-                        <span className="support-contact-desc">
-                            서울특별시 강남구 테헤란로 123 4F (강남역 5번 출구)
-                        </span>
-                    </div>
-                </div>
-                <div className="support-faq-section">
-                    <h5 className="support-faq-title">자주 묻는 질문 (FAQ)</h5>
-                    <ul className="support-faq-list">
-                        <li>
-                            <b>Q. 상담 예약은 어떻게 하나요?</b>
-                            <br />
-                            A. 마이페이지 &gt; 상담 히스토리 또는 상담사 상세 페이지에서 예약 가능합니다.
-                        </li>
-                        <li>
-                            <b>Q. 결제 영수증은 어디서 확인하나요?</b>
-                            <br />
-                            A. 마이페이지 &gt; 이용권/결제 메뉴에서 결제 내역과 영수증을 확인할 수 있습니다.
-                        </li>
-                        <li>
-                            <b>Q. 환불은 어떻게 진행되나요?</b>
-                            <br />
-                            A. 1:1 문의 또는 고객센터로 연락주시면 환불 정책에 따라 신속히 처리해드립니다.
-                        </li>
-                        <li>
-                            <b>Q. 상담 내역과 기록은 안전하게 보관되나요?</b>
-                            <br />
-                            A. 모든 상담 기록은 암호화되어 안전하게 보관되며, 본인과 담당 상담사만 열람할 수 있습니다.
-                        </li>
-                        <li>
-                            <b>Q. 상담사 변경이나 일정 변경은 어떻게 하나요?</b>
-                            <br />
-                            A. 마이페이지 &gt; 문의내역 또는 고객센터로 요청해주시면 도와드립니다.
-                        </li>
-                    </ul>
-                </div>
-                <div className="support-footer-msg">
-                    언제든 문의해주시면 친절하게 안내해드리겠습니다.
-                    <br />
-                    마인드웰 고객센터를 이용해주셔서 감사합니다.
-                </div>
-            </div>
-        </div>
-    );
-
     const navigate = useNavigate();
-    const [activeMenu, setActiveMenu] = useState('dashboard');
+    const location = useLocation();
+    // 문의내역 버튼에서 온 경우만 inquiry, 기본은 dashboard
+    const [activeMenu, setActiveMenu] = useState(() => (location.state && location.state.showInquiry ? 'inquiry' : 'dashboard'));
     const [activeSubMenu, setActiveSubMenu] = useState(null);
     const [ticketCount, setTicketCount] = useState(2);
     const [selectedConsultation, setSelectedConsultation] = useState(null);
@@ -1229,7 +1163,7 @@ export default function App() {
                                     <span className="unit">회</span>
                                 </p>
                             </div>
-                            <div className="dash-status-item">
+                            <div className="dash-status-item" onClick={() => navigate('/reserve')}>
                                 <div className="status-icon-box bg-blue">
                                     <CalendarHeart size={18} />
                                 </div>
@@ -1262,7 +1196,7 @@ export default function App() {
                                     <p className="mypage-hero-desc">이은지 상담사와 1:1 상담 예정</p>
                                 </div>
                             </div>
-                            <button className="hero-action-btn">
+                            <button className="hero-action-btn" onClick={() => handleMenuClick('history')}>
                                 상담 상세 보기 <ChevronRight size={18} />
                             </button>
                         </div>
@@ -1358,7 +1292,7 @@ export default function App() {
             {toast && <div className="mp-toast">{toast}</div>}
 
             <aside className="mypage-sidebar">
-                <div className="sidebar-logo-section mp-cursor-pointer" onClick={() => navigate('/')}>
+                <div className="sidebar-logo-section mp-cursor-pointer" onClick={e => { e.stopPropagation(); navigate('/'); }}>
                     <h1 className="sidebar-brand-logo">MINDWELL</h1>
                     <p className="sidebar-brand-sub">Mental Health Care</p>
                 </div>
@@ -1402,7 +1336,7 @@ export default function App() {
                             <p className="user-status-msg">마음 근육을 키운 지 42일째 되는 날이에요. 🌿</p>
                         </div>
                     </div>
-                    <button className="user-notif-check-btn">
+                    <button className="user-notif-check-btn" onClick={() => { setActiveMenu('profile'); setActiveSubMenu('notification'); }}>
                         <Bell size={18} className="icon-green" />
                         알림 확인
                     </button>

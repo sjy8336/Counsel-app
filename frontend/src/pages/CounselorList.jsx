@@ -180,7 +180,19 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                                 className="cld-counselor-card"
                                 onClick={() =>
                                     navigate(`/counselor/${counselor.id}`, {
-                                        state: { isLiked: !!liked[counselor.id] },
+                                        state: {
+                                            isLiked: !!liked[counselor.id],
+                                            counselor: {
+                                                ...counselor,
+                                                // fields 배열로 변환 (CounselorDetail.jsx 호환)
+                                                fields: counselor.field ? counselor.field.split(',').map(f => f.trim()) : [],
+                                                description: counselor.intro || '',
+                                                availableTimes: ['10:00', '14:00', '16:00'], // 필요시 수정
+                                                history: [], // 필요시 수정
+                                                type: '대면', // 필요시 수정
+                                                major: '', // 필요시 수정
+                                            }
+                                        },
                                     })
                                 }
                             >
