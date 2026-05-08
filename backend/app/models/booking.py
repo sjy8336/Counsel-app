@@ -19,8 +19,13 @@ class Booking(Base):
 
     # 결제 정보
     payment_status = Column(
-        Enum('pending', 'completed', 'canceled', name='payment_status_enum'), 
+        Enum('pending', 'completed', 'canceled', name='payment_status_enum'),
         server_default='pending'
+    )
+    # 상담 상태
+    booking_status = Column(
+        Enum('waiting', 'confirmed', 'completed', 'canceled', name='booking_status_enum'),
+        server_default='waiting'
     )
     amount = Column(Integer, default=20000)
     order_id = Column(String(100), unique=True, nullable=True)

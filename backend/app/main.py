@@ -5,6 +5,7 @@ from app.api import auth
 from app.api import counselor
 from app.api import upload
 from app.api import payment
+from app.api import booking
 
 from fastapi.staticfiles import StaticFiles
 import os
@@ -12,6 +13,7 @@ import os
 app = FastAPI()
 
 app.include_router(payment.router, prefix="/api/payment", tags=["payment"])
+app.include_router(booking.router, prefix="/api/booking", tags=["booking"])
 
 # CORS 설정
 app.add_middleware(
