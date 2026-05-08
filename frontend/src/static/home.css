@@ -1,25 +1,3 @@
-/* 예약현황 로그인 필요 박스 (예약 박스와 동일한 크기/레이아웃) */
-.mwl-appt-primary--login-required {
-  background: linear-gradient(135deg, rgba(255,255,255,0.85) 70%, rgba(243,244,246,0.7) 100%) !important;
-  border-radius: 1.75rem !important;
-  min-height: 220px !important; /* 높이 줄임 */
-  padding: 1.5rem !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 1.1rem !important;
-  color: var(--mwl-color-gray-500) !important;
-  box-sizing: border-box !important;
-  position: relative !important;
-  overflow: hidden !important;
-  cursor: default !important;
-  box-shadow: 0 2px 12px 0 rgba(31, 38, 135, 0.04), 0 1.5px 6px 0 rgba(140, 140, 140, 0.03) !important;
-  border: 1.5px solid var(--mwl-color-gray-100) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  transition: box-shadow 0.2s, border 0.2s !important;
-}
 /* ===========================
    MINDWELL — Global Variables
    =========================== */
@@ -46,1035 +24,238 @@
   --mwl-color-green-50: #F0FDF4;
   --mwl-color-green-700: #15803D;
   --mwl-color-amber-50: #FFFBEB;
-
   --mwl-radius-xl: 1rem;
   --mwl-radius-2xl: 1.5rem;
   --mwl-radius-full: 9999px;
-
-  --mwl-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --mwl-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --mwl-shadow-green: 0 10px 15px -3px rgba(34, 68, 34, 0.1), 0 4px 6px -4px rgba(34, 68, 34, 0.1);
+  --mwl-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --mwl-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --mwl-shadow-green: 0 10px 15px -3px rgba(34,68,34,0.1), 0 4px 6px -4px rgba(34,68,34,0.1);
 }
 
 /* ===========================
    MINDWELL — Base
    =========================== */
-.mwl-root {
-  min-height: 100vh;
-  font-family: sans-serif;
-  background-color: var(--mwl-color-bg);
-  color: var(--mwl-color-text);
-}
+.mwl-root { min-height: 100vh; font-family: sans-serif; background-color: var(--mwl-color-bg); color: var(--mwl-color-text); }
 
 /* ===========================
    MINDWELL — Navigation
    =========================== */
-.mwl-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem 1.5rem;
-  background-color: var(--mwl-color-white);
-  border-bottom: 1px solid var(--mwl-color-gray-100);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-.mwl-nav__left {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.mwl-nav__logo {
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  color: var(--mwl-color-main);
-}
-
-.mwl-nav__links {
-  display: none;
-  gap: 2rem;
-  font-weight: 500;
-  font-size: 0.875rem;
-  opacity: 0.8;
-}
-
-.mwl-nav__links a {
-  text-decoration: none;
-  color: inherit;
-  transition: opacity 0.2s;
-}
-
-.mwl-nav__links a:hover {
-  opacity: 1;
-}
-
-.mwl-nav__right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.mwl-nav__bell-btn {
-  padding: 0.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  border-radius: 9999px;
-  transition: background-color 0.2s;
-  position: relative;
-}
-
-.mwl-nav__bell-btn:hover {
-  background-color: var(--mwl-color-gray-100);
-}
-
-.mwl-nav__bell-dot {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 0.5rem;
-  height: 0.5rem;
-  background-color: var(--mwl-color-rose-400);
-  border-radius: 9999px;
-  border: 2px solid var(--mwl-color-white);
-}
-
-.mwl-nav__user-pill {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: var(--mwl-color-gray-50);
-  padding: 0.375rem 0.5rem;
-  border-radius: 9999px;
-  border: 1px solid var(--mwl-color-gray-100);
-}
-
-.mwl-nav__avatar {
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 9999px;
-  background-color: var(--mwl-color-gray-200);
-  overflow: hidden;
-}
-
-.mwl-nav__username {
-  font-size: 0.75rem;
-  font-weight: 600;
-  display: none;
-}
-
-.mwl-nav__menu-btn {
-  padding: 0.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
+.mwl-nav { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; background-color: var(--mwl-color-white); border-bottom: 1px solid var(--mwl-color-gray-100); position: sticky; top: 0; z-index: 50; }
+.mwl-nav__left { display: flex; align-items: center; gap: 1.5rem; }
+.mwl-nav__logo { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.025em; color: var(--mwl-color-main); }
+.mwl-nav__links { display: none; gap: 2rem; font-weight: 500; font-size: 0.875rem; opacity: 0.8; }
+.mwl-nav__links a { text-decoration: none; color: inherit; transition: opacity 0.2s; }
+.mwl-nav__links a:hover { opacity: 1; }
+.mwl-nav__right { display: flex; align-items: center; gap: 0.75rem; }
+.mwl-nav__bell-btn { padding: 0.5rem; background: none; border: none; cursor: pointer; border-radius: 9999px; transition: background-color 0.2s; position: relative; }
+.mwl-nav__bell-btn:hover { background-color: var(--mwl-color-gray-100); }
+.mwl-nav__bell-dot { position: absolute; top: 0.5rem; right: 0.5rem; width: 0.5rem; height: 0.5rem; background-color: var(--mwl-color-rose-400); border-radius: 9999px; border: 2px solid var(--mwl-color-white); }
+.mwl-nav__user-pill { display: flex; align-items: center; gap: 0.5rem; background-color: var(--mwl-color-gray-50); padding: 0.375rem 0.5rem; border-radius: 9999px; border: 1px solid var(--mwl-color-gray-100); }
+.mwl-nav__avatar { width: 1.75rem; height: 1.75rem; border-radius: 9999px; background-color: var(--mwl-color-gray-200); overflow: hidden; }
+.mwl-nav__username { font-size: 0.75rem; font-weight: 600; display: none; }
+.mwl-nav__menu-btn { padding: 0.5rem; background: none; border: none; cursor: pointer; }
 
 /* ===========================
    MINDWELL — Main Layout
    =========================== */
-.mwl-main {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 1.5rem 1.5rem;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  align-items: start;
-}
-
-/* ===========================
-   MINDWELL — Left Column
-   =========================== */
-.mwl-col-left {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
+.mwl-main { max-width: 80rem; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: start; }
+.mwl-col-left { display: flex; flex-direction: column; gap: 2rem; }
 
 /* ===========================
    MINDWELL — Welcome Banner
    =========================== */
-.mwl-banner {
-  border-radius: 1.5rem;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  color: var(--mwl-color-white);
-  background-color: var(--mwl-color-main);
-  box-shadow: var(--mwl-shadow-green);
-}
-
-.mwl-banner__body {
-  z-index: 10;
-  max-width: 28rem;
-  text-align: center;
-}
-
-.mwl-banner__badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  margin-bottom: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background-color: rgba(255, 255, 255, 0.1);
-  text-transform: uppercase;
-}
-
-.mwl-banner__title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.375;
-  margin-bottom: 1rem;
-  color: var(--mwl-color-white);
-}
-
-.mwl-banner__desc {
-  color: rgba(240, 253, 244, 0.9);
-  margin-bottom: 2rem;
-  line-height: 1.625;
-  font-size: 0.75rem;
-}
-
-.mwl-banner__cta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 1rem;
-  color: var(--mwl-color-main);
-  font-weight: 700;
-  font-size: 0.875rem;
-  background-color: var(--mwl-color-white);
-  box-shadow: var(--mwl-shadow-lg);
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin: 0 auto;
-}
-
-.mwl-banner__cta:hover {
-  background-color: var(--mwl-color-green-50);
-}
-
-.mwl-banner__emoji-wrap {
-  margin-top: 2rem;
-  position: relative;
-}
-
-.mwl-banner__emoji-circle {
-  width: 6rem;
-  height: 6rem;
-  border-radius: 9999px;
-  background-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.25rem;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.mwl-banner__emoji-badge {
-  position: absolute;
-  bottom: -0.25rem;
-  right: -0.25rem;
-  width: 2rem;
-  height: 2rem;
-  background-color: var(--mwl-color-white);
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--mwl-shadow-sm);
-  font-size: 1.125rem;
-}
+.mwl-banner { border-radius: 1.5rem; padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: relative; overflow: hidden; color: var(--mwl-color-white); background-color: var(--mwl-color-main); box-shadow: var(--mwl-shadow-green); }
+.mwl-banner__body { z-index: 10; max-width: 28rem; text-align: center; }
+.mwl-banner__badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.3); background-color: rgba(255,255,255,0.1); text-transform: uppercase; }
+.mwl-banner__title { font-size: 1.5rem; font-weight: 700; line-height: 1.375; margin-bottom: 1rem; color: var(--mwl-color-white); }
+.mwl-banner__desc { color: rgba(240,253,244,0.9); margin-bottom: 2rem; line-height: 1.625; font-size: 0.75rem; }
+.mwl-banner__cta { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 1rem; color: var(--mwl-color-main); font-weight: 700; font-size: 0.875rem; background-color: var(--mwl-color-white); box-shadow: var(--mwl-shadow-lg); border: none; cursor: pointer; transition: background-color 0.2s; margin: 0 auto; }
+.mwl-banner__cta:hover { background-color: var(--mwl-color-green-50); }
+.mwl-banner__emoji-wrap { margin-top: 2rem; position: relative; }
+.mwl-banner__emoji-circle { width: 6rem; height: 6rem; border-radius: 9999px; background-color: rgba(255,255,255,0.2); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; font-size: 2.25rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); border: 1px solid rgba(255,255,255,0.2); }
+.mwl-banner__emoji-badge { position: absolute; bottom: -0.25rem; right: -0.25rem; width: 2rem; height: 2rem; background-color: var(--mwl-color-white); border-radius: 9999px; display: flex; align-items: center; justify-content: center; box-shadow: var(--mwl-shadow-sm); font-size: 1.125rem; }
 
 /* ===========================
    MINDWELL — Guide Section
    =========================== */
-.mwl-guide-section {
-  background-color: var(--mwl-color-white);
-  border-radius: 1.5rem;
-  padding: 1.5rem;
-  box-shadow: var(--mwl-shadow-sm);
-  border: 1px solid rgba(249, 250, 251, 1);
-}
-
-.mwl-guide-section__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 1.5rem;
-}
-
-.mwl-guide-section__title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.mwl-guide-section__subtitle {
-  font-size: 0.625rem;
-  color: var(--mwl-color-gray-400);
-}
-
-.mwl-guide-section__more-btn {
-  font-size: 0.625rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  opacity: 0.5;
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.mwl-guide-section__more-btn:hover {
-  opacity: 1;
-}
-
-.mwl-guide-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
+.mwl-guide-section { background-color: var(--mwl-color-white); border-radius: 1.5rem; padding: 1.5rem; box-shadow: var(--mwl-shadow-sm); border: 1px solid var(--mwl-color-gray-50); }
+.mwl-guide-section__header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; }
+.mwl-guide-section__title { font-size: 1.125rem; font-weight: 700; margin-bottom: 0.25rem; }
+.mwl-guide-section__subtitle { font-size: 0.625rem; color: var(--mwl-color-gray-400); }
+.mwl-guide-section__more-btn { font-size: 0.625rem; font-weight: 600; display: flex; align-items: center; gap: 0.25rem; opacity: 0.5; background: none; border: none; cursor: pointer; transition: opacity 0.2s; }
+.mwl-guide-section__more-btn:hover { opacity: 1; }
+.mwl-guide-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
 
 /* ===========================
    MINDWELL — Guide Card
    =========================== */
-.mwl-guide-card {
-  cursor: pointer;
-}
-
-.mwl-guide-card:hover .mwl-guide-card__img {
-  transform: scale(1.05);
-}
-
-.mwl-guide-card:hover .mwl-guide-card__title {
-  color: var(--mwl-color-green-700);
-}
-
-.mwl-guide-card__img-wrap {
-  aspect-ratio: 16 / 9;
-  border-radius: 1rem;
-  background-color: var(--mwl-color-gray-100);
-  margin-bottom: 0.75rem;
-  overflow: hidden;
-  position: relative;
-}
-
-.mwl-guide-card__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.mwl-guide-card__category-badge {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  background-color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(4px);
-  border-radius: 0.5rem;
-  font-size: 0.5625rem;
-  font-weight: 700;
-  color: var(--mwl-color-slate-800);
-}
-
-.mwl-guide-card__title {
-  font-weight: 700;
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
-  transition: color 0.2s;
-  line-height: 1.375;
-}
-
-.mwl-guide-card__meta {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.625rem;
-  color: var(--mwl-color-gray-400);
-}
-
-.mwl-guide-card__meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.mwl-guide-card__heart-icon {
-  color: var(--mwl-color-rose-400);
-}
+.mwl-guide-card { cursor: pointer; }
+.mwl-guide-card:hover .mwl-guide-card__img { transform: scale(1.05); }
+.mwl-guide-card:hover .mwl-guide-card__title { color: var(--mwl-color-green-700); }
+.mwl-guide-card__img-wrap { aspect-ratio: 16/9; border-radius: 1rem; background-color: var(--mwl-color-gray-100); margin-bottom: 0.75rem; overflow: hidden; position: relative; }
+.mwl-guide-card__img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.mwl-guide-card__category-badge { position: absolute; top: 0.75rem; left: 0.75rem; padding: 0.25rem 0.5rem; background-color: rgba(255,255,255,0.9); backdrop-filter: blur(4px); border-radius: 0.5rem; font-size: 0.5625rem; font-weight: 700; color: var(--mwl-color-slate-800); }
+.mwl-guide-card__title { font-weight: 700; font-size: 0.875rem; margin-bottom: 0.5rem; transition: color 0.2s; line-height: 1.375; }
+.mwl-guide-card__meta { display: flex; align-items: center; gap: 0.75rem; font-size: 0.625rem; color: var(--mwl-color-gray-400); }
+.mwl-guide-card__meta-item { display: flex; align-items: center; gap: 0.25rem; }
+.mwl-guide-card__heart-icon { color: var(--mwl-color-rose-400); }
 
 /* ===========================
-   MINDWELL — Bottom Grid
+   MINDWELL — Bottom Grid & Widget Cards
    =========================== */
-.mwl-bottom-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-/* ===========================
-   MINDWELL — Widget Cards (AI Recommend & Healing)
-   =========================== */
-.mwl-widget-card {
-  background-color: var(--mwl-color-white);
-  border-radius: 1.5rem;
-  padding: 1.5rem;
-  box-shadow: var(--mwl-shadow-sm);
-  border: 1px solid rgba(249, 250, 251, 1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.mwl-widget-card__icon-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.mwl-widget-card__icon-box {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mwl-widget-card__icon-box--green {
-  background-color: #F0F4F0;
-}
-
-.mwl-widget-card__icon-box--amber {
-  background-color: #FFF9F0;
-}
-
-.mwl-widget-card__icon--green {
-  color: var(--mwl-color-main);
-}
-
-.mwl-widget-card__icon--amber {
-  color: var(--mwl-color-accent2);
-}
-
-.mwl-widget-card__label {
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: var(--mwl-color-gray-400);
-  text-transform: uppercase;
-}
-
-.mwl-widget-card__desc {
-  font-size: 0.875rem;
-  line-height: 1.625;
-  margin-bottom: 1.5rem;
-}
-
-.mwl-widget-card__counselor-name {
-  font-weight: 700;
-  font-size: 1.125rem;
-}
-
-.mwl-widget-card__cta {
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--mwl-color-white);
-  background-color: var(--mwl-color-main);
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.mwl-widget-card__cta:hover {
-  opacity: 0.9;
-}
-
-/* Healing card center content */
-.mwl-widget-card__healing-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.5rem 0;
-}
-
-.mwl-widget-card__healing-icon-box {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 1rem;
-  background-color: var(--mwl-color-amber-50);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
-.mwl-widget-card__healing-icon {
-  color: var(--mwl-color-accent2);
-}
-
-.mwl-widget-card__healing-title {
-  font-weight: 700;
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
-}
-
-.mwl-widget-card__healing-desc {
-  font-size: 0.625rem;
-  color: var(--mwl-color-gray-400);
-  text-align: center;
-}
+.mwl-bottom-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+.mwl-widget-card { background-color: var(--mwl-color-white); border-radius: 1.5rem; padding: 1.5rem; box-shadow: var(--mwl-shadow-sm); border: 1px solid var(--mwl-color-gray-50); display: flex; flex-direction: column; justify-content: space-between; }
+.mwl-widget-card__icon-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
+.mwl-widget-card__icon-box { width: 2rem; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; }
+.mwl-widget-card__icon-box--green { background-color: #F0F4F0; }
+.mwl-widget-card__icon-box--amber { background-color: #FFF9F0; }
+.mwl-widget-card__icon--green { color: var(--mwl-color-main); }
+.mwl-widget-card__icon--amber { color: var(--mwl-color-accent2); }
+.mwl-widget-card__label { font-size: 0.625rem; font-weight: 700; color: var(--mwl-color-gray-400); text-transform: uppercase; }
+.mwl-widget-card__desc { font-size: 0.875rem; line-height: 1.625; margin-bottom: 1.5rem; }
+.mwl-widget-card__counselor-name { font-weight: 700; font-size: 1.125rem; }
+.mwl-widget-card__cta { width: 100%; padding: 0.75rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; color: var(--mwl-color-white); background-color: var(--mwl-color-main); border: none; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.mwl-widget-card__cta:hover { opacity: 0.9; }
+.mwl-widget-card__healing-body { display: flex; flex-direction: column; align-items: center; padding: 0.5rem 0; }
+.mwl-widget-card__healing-icon-box { width: 3rem; height: 3rem; border-radius: 1rem; background-color: var(--mwl-color-amber-50); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+.mwl-widget-card__healing-icon { color: var(--mwl-color-accent2); }
+.mwl-widget-card__healing-title { font-weight: 700; font-size: 0.875rem; margin-bottom: 0.25rem; }
+.mwl-widget-card__healing-desc { font-size: 0.625rem; color: var(--mwl-color-gray-400); text-align: center; }
 
 /* ===========================
    MINDWELL — Right Column
    =========================== */
-.mwl-col-right {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  position: static;
-  align-self: auto;
-}
-
-.mwl-sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 0.5rem;
-}
-
-.mwl-sidebar-header__title {
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: -0.025em;
-}
-
-.mwl-sidebar-header__btn {
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: var(--mwl-color-gray-400);
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.mwl-sidebar-header__btn:hover {
-  color: var(--mwl-color-gray-600);
-}
+.mwl-col-right { display: flex; flex-direction: column; gap: 1.5rem; position: static; align-self: auto; }
+.mwl-sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 0 0.5rem; }
+.mwl-sidebar-header__title { font-weight: 700; display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; text-transform: uppercase; letter-spacing: -0.025em; }
+.mwl-sidebar-header__btn { font-size: 0.625rem; font-weight: 700; color: var(--mwl-color-gray-400); background: none; border: none; cursor: pointer; transition: color 0.2s; }
+.mwl-sidebar-header__btn:hover { color: var(--mwl-color-gray-600); }
 
 /* ===========================
    MINDWELL — Primary Appointment Card
    =========================== */
-.mwl-appt-primary {
-  border-radius: 1.75rem;
-  padding: 1.5rem;
-  color: var(--mwl-color-white);
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  background-color: var(--mwl-color-main);
-  box-shadow: var(--mwl-shadow-green);
-}
+.mwl-appt-primary { border-radius: 1.75rem; padding: 1.5rem; color: var(--mwl-color-white); position: relative; overflow: hidden; cursor: pointer; background-color: var(--mwl-color-main); box-shadow: var(--mwl-shadow-green); }
+.mwl-appt-primary__top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+.mwl-appt-primary__map-icon-box { padding: 0.5rem; background-color: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border-radius: 0.75rem; }
+.mwl-appt-primary__d-badge { font-size: 0.625rem; font-weight: 700; background-color: rgba(0,0,0,0.1); padding: 0.25rem 0.5rem; border-radius: 0.375rem; text-transform: uppercase; }
+.mwl-appt-primary__type { font-size: 0.6875rem; font-weight: 500; opacity: 0.8; margin-bottom: 0.25rem; }
+.mwl-appt-primary__name { font-size: 1.125rem; font-weight: 700; margin-bottom: 1.5rem; }
+.mwl-appt-primary__datetime-box { background-color: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border-radius: 1rem; padding: 1rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.6875rem; font-weight: 500; }
 
-.mwl-appt-primary__top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
+/* ===========================
+   MINDWELL — 로그인 필요 박스 (비활성화 스타일)
+   =========================== */
+.mwl-appt-primary--login-required {
+    border-radius: 1.75rem;
+    min-height: 200px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    background-color: var(--mwl-color-gray-50);
+    border: 1.5px dashed var(--mwl-color-gray-200);
+    text-align: center;
+    cursor: default;
 }
-
-.mwl-appt-primary__map-icon-box {
-  padding: 0.5rem;
-  background-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(4px);
-  border-radius: 0.75rem;
-}
-
-.mwl-appt-primary__d-badge {
-  font-size: 0.625rem;
-  font-weight: 700;
-  background-color: rgba(0, 0, 0, 0.1);
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
-  text-transform: uppercase;
-}
-
-.mwl-appt-primary__type {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  opacity: 0.8;
-  margin-bottom: 0.25rem;
-}
-
-.mwl-appt-primary__name {
-  font-size: 1.125rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-}
-
-.mwl-appt-primary__datetime-box {
-  background-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(4px);
-  border-radius: 1rem;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.6875rem;
-  font-weight: 500;
-}
+.mwl-appt-login__icon { color: var(--mwl-color-gray-300); margin-bottom: 0.25rem; }
+.mwl-appt-login__title { font-size: 0.875rem; font-weight: 700; color: var(--mwl-color-gray-500); }
+.mwl-appt-login__desc { font-size: 0.6875rem; color: var(--mwl-color-gray-400); line-height: 1.6; }
+.mwl-appt-login__btn { margin-top: 0.5rem; padding: 0.45rem 1.25rem; border-radius: 9999px; border: 1px solid var(--mwl-color-gray-200); background-color: var(--mwl-color-white); color: var(--mwl-color-gray-500); font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.mwl-appt-login__btn:hover { border-color: var(--mwl-color-main); color: var(--mwl-color-main); background-color: var(--mwl-color-green-50); }
 
 /* ===========================
    MINDWELL — Upcoming Appointments
    =========================== */
-.mwl-upcoming-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.mwl-upcoming-list__label {
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: var(--mwl-color-gray-400);
-  padding: 0 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.mwl-appt-card {
-  background-color: var(--mwl-color-white);
-  border-radius: 1.75rem;
-  padding: 1.25rem;
-  border: 1px solid var(--mwl-color-gray-100);
-  box-shadow: var(--mwl-shadow-sm);
-  cursor: pointer;
-  transition: box-shadow 0.2s;
-}
-
-.mwl-appt-card:hover {
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-}
-
-.mwl-appt-card--dimmed {
-  opacity: 0.8;
-}
-
-.mwl-appt-card--dimmed:hover {
-  opacity: 1;
-}
-
-.mwl-appt-card__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-}
-
-.mwl-appt-card__info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.mwl-appt-card__icon-box {
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 0.75rem;
-  background-color: var(--mwl-color-gray-50);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--mwl-color-gray-400);
-}
-
-.mwl-appt-card__type {
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-.mwl-appt-card__counselor {
-  font-size: 0.625rem;
-  color: var(--mwl-color-gray-400);
-  margin-top: 0.125rem;
-}
-
-.mwl-appt-card__chevron {
-  color: var(--mwl-color-gray-300);
-}
-
-.mwl-appt-card__datetime {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--mwl-color-gray-500);
-  padding-left: 0.25rem;
-}
-
-.mwl-appt-card__cal-icon {
-  color: var(--mwl-color-gray-300);
-}
+.mwl-upcoming-list { display: flex; flex-direction: column; gap: 1rem; }
+.mwl-upcoming-list__label { font-size: 0.625rem; font-weight: 700; color: var(--mwl-color-gray-400); padding: 0 0.5rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.mwl-appt-card { background-color: var(--mwl-color-white); border-radius: 1.75rem; padding: 1.25rem; border: 1px solid var(--mwl-color-gray-100); box-shadow: var(--mwl-shadow-sm); cursor: pointer; transition: box-shadow 0.2s; }
+.mwl-appt-card:hover { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); }
+.mwl-appt-card--dimmed { opacity: 0.8; }
+.mwl-appt-card--dimmed:hover { opacity: 1; }
+.mwl-appt-card__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.mwl-appt-card__info { display: flex; align-items: center; gap: 0.75rem; }
+.mwl-appt-card__icon-box { width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background-color: var(--mwl-color-gray-50); display: flex; align-items: center; justify-content: center; color: var(--mwl-color-gray-400); }
+.mwl-appt-card__type { font-size: 0.875rem; font-weight: 700; }
+.mwl-appt-card__counselor { font-size: 0.625rem; color: var(--mwl-color-gray-400); margin-top: 0.125rem; }
+.mwl-appt-card__chevron { color: var(--mwl-color-gray-300); }
+.mwl-appt-card__datetime { display: flex; align-items: center; gap: 0.5rem; font-size: 0.6875rem; font-weight: 500; color: var(--mwl-color-gray-500); padding-left: 0.25rem; }
+.mwl-appt-card__cal-icon { color: var(--mwl-color-gray-300); }
 
 /* ===========================
    MINDWELL — Footer
    =========================== */
-.mwl-footer {
-  max-width: 80rem;
-  margin: 2.5rem auto 0;
-  padding: 3rem 1.5rem;
-  border-top: 1px solid var(--mwl-color-gray-100);
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2.5rem;
-  color: var(--mwl-color-slate-600);
-}
+.mwl-footer { max-width: 80rem; margin: 2.5rem auto 0; padding: 3rem 1.5rem; border-top: 1px solid var(--mwl-color-gray-100); display: grid; grid-template-columns: 1fr; gap: 2.5rem; color: var(--mwl-color-slate-600); }
+.mwl-footer__brand { grid-column: span 1; }
+.mwl-footer__logo { font-size: 1.25rem; font-weight: 700; color: var(--mwl-color-main); margin-bottom: 1.5rem; }
+.mwl-footer__tagline { font-size: 0.6875rem; line-height: 1.625; opacity: 0.7; }
+.mwl-footer__col-title { font-weight: 700; font-size: 0.875rem; margin-bottom: 1.5rem; }
+.mwl-footer__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem; font-size: 0.6875rem; opacity: 0.6; font-weight: 500; }
+.mwl-footer__list-item--highlight { color: var(--mwl-color-slate-900); opacity: 1; }
+.mwl-footer__bottom { grid-column: span 1; padding-top: 2.5rem; border-top: 1px solid var(--mwl-color-gray-50); display: flex; flex-direction: column; justify-content: space-between; align-items: center; gap: 1rem; font-size: 0.5625rem; opacity: 0.4; }
+.mwl-footer__social-links { display: flex; gap: 1rem; }
 
-.mwl-footer__brand {
-  grid-column: span 1;
-}
-
-.mwl-footer__logo {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--mwl-color-main);
-  margin-bottom: 1.5rem;
-}
-
-.mwl-footer__tagline {
-  font-size: 0.6875rem;
-  line-height: 1.625;
-  opacity: 0.7;
-}
-
-.mwl-footer__col-title {
-  font-weight: 700;
-  font-size: 0.875rem;
-  margin-bottom: 1.5rem;
-}
-
-.mwl-footer__list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  font-size: 0.6875rem;
-  opacity: 0.6;
-  font-weight: 500;
-}
-
-.mwl-footer__list-item--highlight {
-  color: var(--mwl-color-slate-900);
-  opacity: 1;
-}
-
-.mwl-footer__bottom {
-  grid-column: span 1;
-  padding-top: 2.5rem;
-  border-top: 1px solid var(--mwl-color-gray-50);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.5625rem;
-  opacity: 0.4;
-}
-
-.mwl-footer__social-links {
-  display: flex;
-  gap: 1rem;
-}
-
-/* ===========================
-   MINDWELL — Responsive (md: 768px)
-   =========================== */
 @media (min-width: 768px) {
-  .mwl-nav {
-    padding: 1.25rem 2.5rem;
-  }
-
-  .mwl-nav__logo {
-    font-size: 1.5rem;
-  }
-
-  .mwl-nav__left {
-    gap: 3rem;
-  }
-
-  .mwl-nav__right {
-    gap: 1.5rem;
-  }
-
-  .mwl-nav__user-pill {
-    gap: 0.75rem;
-    padding: 0.375rem 0.75rem;
-  }
-
-  .mwl-nav__avatar {
-    width: 2rem;
-    height: 2rem;
-  }
-
-  .mwl-nav__username {
-    display: inline;
-  }
-
-  .mwl-main {
-    padding: 2.5rem;
-  }
-
-  .mwl-banner {
-    border-radius: 2rem;
-    padding: 2.5rem;
-    flex-direction: row;
-  }
-
-  .mwl-banner__body {
-    text-align: left;
-  }
-
-  .mwl-banner__title {
-    font-size: 1.875rem;
-  }
-
-  .mwl-banner__desc {
-    font-size: 0.875rem;
-  }
-
-  .mwl-banner__cta {
-    margin: 0;
-  }
-
-  .mwl-banner__emoji-wrap {
-    margin-top: 0;
-  }
-
-  .mwl-banner__emoji-circle {
-    width: 8rem;
-    height: 8rem;
-    font-size: 3rem;
-  }
-
-  .mwl-banner__emoji-badge {
-    bottom: -0.5rem;
-    right: -0.5rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 1.25rem;
-  }
-
-  .mwl-guide-section {
-    border-radius: 2rem;
-    padding: 2rem;
-  }
-
-  .mwl-guide-section__title {
-    font-size: 1.25rem;
-  }
-
-  .mwl-guide-section__subtitle {
-    font-size: 0.75rem;
-  }
-
-  .mwl-guide-section__more-btn {
-    font-size: 0.75rem;
-  }
-
-  .mwl-guide-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .mwl-guide-card__category-badge {
-    font-size: 0.625rem;
-  }
-
-  .mwl-guide-card__meta {
-    font-size: 0.6875rem;
-  }
-
-  .mwl-bottom-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .mwl-widget-card {
-    border-radius: 2rem;
-    padding: 2rem;
-  }
-
-  .mwl-widget-card__label {
-    font-size: 0.75rem;
-  }
-
-  .mwl-widget-card__cta {
-    font-size: 0.8125rem;
-  }
-
-  .mwl-widget-card__healing-icon-box {
-    width: 4rem;
-    height: 4rem;
-  }
-
-  .mwl-widget-card__healing-title {
-    font-size: 1rem;
-  }
-
-  .mwl-widget-card__healing-desc {
-    font-size: 0.6875rem;
-  }
-
-  .mwl-appt-primary {
-    border-radius: 1.75rem;
-    padding: 1.5rem;
-  }
-
-  .mwl-appt-primary__name {
-    font-size: 1.25rem;
-  }
-
-  .mwl-appt-primary__datetime-box {
-    font-size: 0.75rem;
-  }
-
-  .mwl-appt-card {
-    border-radius: 1.75rem;
-  }
-
-  .mwl-appt-card__type {
-    font-size: 0.875rem;
-  }
-
-  .mwl-appt-card__datetime {
-    font-size: 0.6875rem;
-  }
-
-  .mwl-footer {
-    padding: 4rem 2.5rem;
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .mwl-footer__brand {
-    grid-column: span 2;
-  }
-
-  .mwl-footer__bottom {
-    grid-column: span 2;
-    flex-direction: row;
-  }
-
-  .mwl-footer__tagline {
-    font-size: 0.75rem;
-  }
-
-  .mwl-footer__list {
-    font-size: 0.75rem;
-  }
-
-  .mwl-footer__bottom {
-    font-size: 0.625rem;
-  }
+  .mwl-nav { padding: 1.25rem 2.5rem; }
+  .mwl-nav__logo { font-size: 1.5rem; }
+  .mwl-nav__left { gap: 3rem; }
+  .mwl-nav__right { gap: 1.5rem; }
+  .mwl-nav__user-pill { gap: 0.75rem; padding: 0.375rem 0.75rem; }
+  .mwl-nav__avatar { width: 2rem; height: 2rem; }
+  .mwl-nav__username { display: inline; }
+  .mwl-main { padding: 2.5rem; }
+  .mwl-banner { border-radius: 2rem; padding: 2.5rem; flex-direction: row; }
+  .mwl-banner__body { text-align: left; }
+  .mwl-banner__title { font-size: 1.875rem; }
+  .mwl-banner__desc { font-size: 0.875rem; }
+  .mwl-banner__cta { margin: 0; }
+  .mwl-banner__emoji-wrap { margin-top: 0; }
+  .mwl-banner__emoji-circle { width: 8rem; height: 8rem; font-size: 3rem; }
+  .mwl-banner__emoji-badge { bottom: -0.5rem; right: -0.5rem; width: 2.5rem; height: 2.5rem; font-size: 1.25rem; }
+  .mwl-guide-section { border-radius: 2rem; padding: 2rem; }
+  .mwl-guide-section__title { font-size: 1.25rem; }
+  .mwl-guide-section__subtitle { font-size: 0.75rem; }
+  .mwl-guide-section__more-btn { font-size: 0.75rem; }
+  .mwl-guide-grid { grid-template-columns: repeat(2, 1fr); }
+  .mwl-guide-card__category-badge { font-size: 0.625rem; }
+  .mwl-guide-card__meta { font-size: 0.6875rem; }
+  .mwl-bottom-grid { grid-template-columns: repeat(2, 1fr); }
+  .mwl-widget-card { border-radius: 2rem; padding: 2rem; }
+  .mwl-widget-card__label { font-size: 0.75rem; }
+  .mwl-widget-card__cta { font-size: 0.8125rem; }
+  .mwl-widget-card__healing-icon-box { width: 4rem; height: 4rem; }
+  .mwl-widget-card__healing-title { font-size: 1rem; }
+  .mwl-widget-card__healing-desc { font-size: 0.6875rem; }
+  .mwl-appt-primary { border-radius: 1.75rem; padding: 1.5rem; }
+  .mwl-appt-primary__name { font-size: 1.25rem; }
+  .mwl-appt-primary__datetime-box { font-size: 0.75rem; }
+  .mwl-appt-card { border-radius: 1.75rem; }
+  .mwl-appt-card__type { font-size: 0.875rem; }
+  .mwl-appt-card__datetime { font-size: 0.6875rem; }
+  .mwl-footer { padding: 4rem 2.5rem; grid-template-columns: repeat(2, 1fr); }
+  .mwl-footer__brand { grid-column: span 2; }
+  .mwl-footer__bottom { grid-column: span 2; flex-direction: row; font-size: 0.625rem; }
+  .mwl-footer__tagline { font-size: 0.75rem; }
+  .mwl-footer__list { font-size: 0.75rem; }
 }
 
-/* ===========================
-   MINDWELL — Responsive (lg: 1024px)
-   =========================== */
 @media (min-width: 1024px) {
-  .mwl-nav__links {
-    display: flex;
-  }
-
-  .mwl-nav__menu-btn {
-    display: none;
-  }
-
-  .mwl-main {
-    grid-template-columns: repeat(12, 1fr);
-  }
-
-  .mwl-col-left {
-    grid-column: span 8;
-  }
-
-  .mwl-col-right {
-    grid-column: span 4;
-    position: static;
-    align-self: auto;
-  }
-
-  .mwl-footer {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .mwl-footer__brand {
-    grid-column: span 1;
-  }
-
-  .mwl-footer__bottom {
-    grid-column: span 4;
-  }
+  .mwl-nav__links { display: flex; }
+  .mwl-nav__menu-btn { display: none; }
+  .mwl-main { grid-template-columns: repeat(12, 1fr); }
+  .mwl-col-left { grid-column: span 8; }
+  .mwl-col-right { grid-column: span 4; position: static; align-self: auto; }
+  .mwl-footer { grid-template-columns: repeat(4, 1fr); }
+  .mwl-footer__brand { grid-column: span 1; }
+  .mwl-footer__bottom { grid-column: span 4; }
 }
 
-/* sm: 640px — guide grid & bottom grid */
 @media (min-width: 640px) {
-  .mwl-banner__emoji-wrap {
-    display: block;
-  }
-
-  .mwl-guide-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .mwl-bottom-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .mwl-footer {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .mwl-footer__brand {
-    grid-column: span 2;
-  }
-
-  .mwl-footer__bottom {
-    grid-column: span 2;
-    flex-direction: row;
-  }
+  .mwl-banner__emoji-wrap { display: block; }
+  .mwl-guide-grid { grid-template-columns: repeat(2, 1fr); }
+  .mwl-bottom-grid { grid-template-columns: repeat(2, 1fr); }
+  .mwl-footer { grid-template-columns: repeat(2, 1fr); }
+  .mwl-footer__brand { grid-column: span 2; }
+  .mwl-footer__bottom { grid-column: span 2; flex-direction: row; }
 }

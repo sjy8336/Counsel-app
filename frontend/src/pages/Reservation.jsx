@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getAllBookings, cancelBooking, completeBooking } from '../api/booking';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '../components/header';
 import Footer from '../components/footer';
@@ -24,42 +25,79 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
 
     // userName은 props로 전달됨 (App.jsx에서)
 
-    const [historyData, setHistoryData] = useState([
-        {
-            id: 1,
-            name: '이은지 상담사',
-            date: '2026.05.20',
-            time: '14:00',
-            status: '예약 확정',
-            location: '서울 강남구 테헤란로 센터',
-        },
-        {
-            id: 2,
-            name: '김태현 상담사',
-            date: '2026.05.25',
-            time: '11:00',
-            status: '예약 대기',
-            location: '서울 서초구 서초대로 점',
-        },
-        {
-            id: 3,
-            name: '이은지 상담사',
-            date: '2026.04.10',
-            time: '16:00',
-            status: '상담 완료',
-            location: '서울 강남구 테헤란로 센터',
-        },
-        {
-            id: 4,
-            name: '박소연 상담사',
-            date: '2026.03.15',
-            time: '15:00',
-            status: '예약 취소',
-            location: '서울 마포구 양화로 점',
-        },
-    ]);
+    const [historyData, setHistoryData] = useState([]);
 
-    const filteredData = historyData.filter((item) => (filter === '전체' ? true : item.status === filter));
+    // 예약 전체 불러오기 및 상태 자동 업데이트
+    useEffect(() => {
+        const fetchAndUpdate = async () => {
+            let data = await getAllBookings();
+            const now = new Date();
+            let needsRefresh = false;
+            for (const item of data) {
+                const dateStr = item.date.replace(/\./g, '-');
+                let endTime = item.time;
+                // '14:00~15:00' 형식이면 종료 시각, 아니면 시작 시각 + 59분으로 간주
+                if (item.time.includes('~')) {
+                    endTime = item.time.split('~')[1].trim();
+                } else if (/^\d{2}:\d{2}$/.test(item.time)) {
+                    // 단일 시각이면 59분 뒤로 계산 (예: 14:00 -> 14:59)
+                    const [h, m] = item.time.split(':').map(Number);
+                    const endDate = new Date(dateStr + 'T' + item.time + ':00');
+                    endDate.setMinutes(endDate.getMinutes() + 59);
+                    const eh = String(endDate.getHours()).padStart(2, '0');
+                    const em = String(endDate.getMinutes()).padStart(2, '0');
+                    endTime = `${eh}:${em}`;
+                }
+                // 항상 HH:mm:00 형식으로 맞추기
+                const dateTimeStr = dateStr + 'T' + endTime + ':00';
+                const dateObj = new Date(dateTimeStr);
+                // 디버깅용 로그 추가
+                console.log('[예약상태비교]', {
+                    item_date: item.date,
+                    item_time: item.time,
+                    dateStr,
+                    endTime,
+                    dateTimeStr,
+                    dateObj: dateObj.toString(),
+                    now: now.toString(),
+                    isCompleted: item.status === '예약 확정' && !isNaN(dateObj) && dateObj < now,
+                });
+                // dateObj가 유효한 날짜일 때만 상담 완료 처리
+                if (item.status === '예약 확정' && !isNaN(dateObj) && dateObj < now) {
+                    await completeBooking(item.order_id);
+                    needsRefresh = true;
+                }
+            }
+            if (needsRefresh) {
+                data = await getAllBookings();
+            }
+            data.forEach((item, idx) => {
+                console.log(`[예약리스트][${idx}]`, {
+                    id: item.id,
+                    order_id: item.order_id,
+                    name: item.name,
+                    date: item.date,
+                    time: item.time,
+                    status: item.status,
+                });
+            });
+            setHistoryData(data);
+        };
+        fetchAndUpdate();
+    }, []);
+
+    // 예약 상태 매핑 함수 (booking_status 기준)
+    const getStatusText = (booking_status) => {
+        if (booking_status === 'waiting') return '예약 대기';
+        if (booking_status === 'confirmed') return '예약 확정';
+        if (booking_status === 'completed') return '상담 완료';
+        if (booking_status === 'canceled') return '예약 취소';
+        return '';
+    };
+
+    const filteredData = historyData.filter((item) =>
+        filter === '전체' ? true : getStatusText(item.booking_status) === filter
+    );
 
     // 예약일 2일 전 이내인지 확인하는 함수
     const isTooLateToCancelFn = (dateStr) => {
@@ -92,10 +130,18 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
         setIsModalOpen(true);
     };
 
-    const confirmCancel = () => {
-        setHistoryData((prev) =>
-            prev.map((item) => (item.id === selectedId ? { ...item, status: '예약 취소' } : item))
-        );
+    const confirmCancel = async () => {
+        // 2일 전 이내면 취소 불가, confirmCancel 실행하지 않음
+        const item = historyData.find((i) => i.id === selectedId);
+        if (!item) return;
+        if (isTooLateToCancelFn(item.date)) {
+            setIsModalOpen(false);
+            setSelectedId(null);
+            return;
+        }
+        // 예약 취소: DB에서 삭제하지 않고 booking_status만 'canceled'로 변경
+        await cancelBooking(item.order_id);
+        setHistoryData((prev) => prev.map((it) => (it.id === selectedId ? { ...it, booking_status: 'canceled' } : it)));
         setIsModalOpen(false);
         setSelectedId(null);
     };
@@ -143,8 +189,10 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                             <div className="res-item-main-info">
                                 <div className="res-date-badge-column">
                                     <span className="res-date-display">{item.date}</span>
-                                    <span className={`res-status-tag ${getStatusClass(item.status)}`}>
-                                        {item.status}
+                                    <span
+                                        className={`res-status-tag ${getStatusClass(getStatusText(item.booking_status))}`}
+                                    >
+                                        {getStatusText(item.booking_status)}
                                     </span>
                                 </div>
                                 <div className="res-item-content-box">
@@ -164,7 +212,8 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                             </div>
 
                             <div className="res-item-actions">
-                                {(item.status === '예약 대기' || item.status === '예약 확정') && (
+                                {(getStatusText(item.booking_status) === '예약 대기' ||
+                                    getStatusText(item.booking_status) === '예약 확정') && (
                                     <button
                                         className="res-cancel-trigger-btn"
                                         onClick={() => handleCancelClick(item.id)}
@@ -254,5 +303,6 @@ const getStatusClass = (status) => {
     if (status === '예약 확정') return 'confirmed';
     if (status === '예약 대기') return 'pending';
     if (status === '상담 완료') return 'completed';
-    return 'cancelled';
+    if (status === '예약 취소') return 'cancelled';
+    return '';
 };

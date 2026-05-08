@@ -80,8 +80,6 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
 
             try {
                 const favList = await getFavorites(token);
-                console.log('1. 서버 응답 데이터 확인:', favList);
-
                 const initialLikes = {};
                 if (favList && Array.isArray(favList.favorites)) {
                     favList.favorites.forEach((fav) => {
@@ -91,15 +89,14 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                         }
                     });
                 }
-
-                console.log('2. 변환된 liked 객체:', initialLikes);
                 setLiked(initialLikes);
             } catch (err) {
                 console.error('찜 목록 로드 실패:', err);
                 // 401 에러(세션만료) 시 처리
                 if (err.response?.status === 401) {
                     localStorage.removeItem('access_token');
-                    // navigate('/login'); // 필요시 활성화
+                    alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
+                    navigate('/login');
                 }
             }
         };
@@ -185,13 +182,15 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                                             counselor: {
                                                 ...counselor,
                                                 // fields 배열로 변환 (CounselorDetail.jsx 호환)
-                                                fields: counselor.field ? counselor.field.split(',').map(f => f.trim()) : [],
+                                                fields: counselor.field
+                                                    ? counselor.field.split(',').map((f) => f.trim())
+                                                    : [],
                                                 description: counselor.intro || '',
                                                 availableTimes: ['10:00', '14:00', '16:00'], // 필요시 수정
                                                 history: [], // 필요시 수정
                                                 type: '대면', // 필요시 수정
                                                 major: '', // 필요시 수정
-                                            }
+                                            },
                                         },
                                     })
                                 }
