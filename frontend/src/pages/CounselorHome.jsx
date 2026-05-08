@@ -125,7 +125,7 @@ const CounselorHome = () => {
                                             <strong>{s.name} 내담자</strong>
                                             <span className="desc">{s.room}</span>
                                         </div>
-                                        <button className="action-btn" onClick={() => navigate('/CounselorClient')}>
+                                        <button className="action-btn" onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}>
                                             일지 작성
                                         </button>
                                     </div>
@@ -141,7 +141,7 @@ const CounselorHome = () => {
                                         1<span>건</span>
                                     </strong>
                                     <p>최민수 님 (5.19 상담)</p>
-                                    <button className="go-btn primary" onClick={() => navigate('/CounselorClient')}>
+                                    <button className="go-btn primary" onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}>
                                         지금 작성하기
                                     </button>
                                 </div>
@@ -153,7 +153,7 @@ const CounselorHome = () => {
                                         2<span>명</span>
                                     </strong>
                                     <p>사전 질문지가 도착했습니다.</p>
-                                    <button className="go-btn secondary" onClick={() => navigate('/CounselorClient')}>
+                                    <button className="go-btn secondary" onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}>
                                         설문지 확인하기
                                     </button>
                                 </div>

@@ -144,16 +144,20 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
     const location = useLocation();
     const [selectedDiary, setSelectedDiary] = useState(null);
     // 모달이 열릴 때 body 스크롤 방지
-    useEffect(() => {
-        if (selectedDiary) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, [selectedDiary]);
+    
+        useEffect(() => {
+    if (selectedDiary) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = 'auto'; // '' 대신 'auto'로 명시
+    }
+    return () => {
+        document.body.style.overflow = 'auto';
+    };
+}, [selectedDiary]);
+    const handleWheel = (e) => {
+        window.scrollBy(0, e.deltaY);
+    };
     const [viewMode, setViewMode] = useState(location.state?.viewMode || 'calendar');
     const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1));
     const [activeTab, setActiveTab] = useState('diary');
@@ -172,7 +176,7 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
     for (let i = 1; i <= daysInMonth; i++) calendarDays.push(i);
 
     return (
-        <div className="mw-diary-root">
+        <div className="mw-diary-root" onWheel={handleWheel}>
             <Header
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}

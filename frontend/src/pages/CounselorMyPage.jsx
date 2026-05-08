@@ -706,27 +706,30 @@ const App = () => {
             </header>
 
             <div className="mw-stats-grid">
-                {[
+                {[ 
                     {
                         icon: <Calendar size={15} color="#66BB6A" />,
                         bg: '#E8F5E9',
                         label: '오늘 예정 상담',
                         value: '3 건',
+                        onClick: () => navigate('/CounselorPlanner'),
                     },
                     {
                         icon: <Clock size={15} color="#FFB74D" />,
                         bg: '#FFF5E6',
                         label: '승인 대기 요청',
                         value: '2 건',
+                        onClick: () => navigate('/CounselorPlanner'),
                     },
                     {
                         icon: <MessageCircle size={15} color="#EF5350" />,
                         bg: '#FFEBEE',
                         label: '읽지 않은 메시지',
                         value: '5 건',
+                        onClick: () => navigate('/CounselorMessages'),
                     },
-                ].map(({ icon, bg, label, value }) => (
-                    <div key={label} className="mw-stat-card" onClick={() => go('notifications')}>
+                ].map(({ icon, bg, label, value, onClick }) => (
+                    <div key={label} className="mw-stat-card" onClick={onClick}>
                         <div className="mw-stat-icon" style={{ background: bg }}>
                             {icon}
                         </div>
@@ -739,7 +742,7 @@ const App = () => {
                 ))}
             </div>
 
-            <div className="mw-next-session" onClick={() => go('notifications')}>
+            <div className="mw-next-session" onClick={() => navigate('/CounselorClient')}>
                 <div className="mw-next-session-icon">
                     <User size={24} color="#fff" />
                 </div>
@@ -748,7 +751,7 @@ const App = () => {
                     <div className="mw-next-session-name">오후 2:00 이민준 님</div>
                     <div className="mw-next-session-sub">대면 상담 • 상담 3실 • 4회차 진행 예정</div>
                 </div>
-                <button className="mw-next-session-btn">
+                <button className="mw-next-session-btn" onClick={() => navigate('/CounselorClient')}>
                     내담자 관리 <ChevronRight size={14} />
                 </button>
             </div>
