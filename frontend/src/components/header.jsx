@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Search, User, Check, MessageSquare, AlertCircle } from 'lucide-react';
+import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck } from 'lucide-react';
 import { getMyInfo } from '../api/user';
 import { mockNotifications } from './mockNotifications';
 import '../static/Common.css';
@@ -20,13 +20,12 @@ export default function Header({
     isLoggedIn = false,
     setIsLoggedIn,
 }) {
-    // 상태는 상위에서 관리, userRole만 내부에서 관리
     const [userRole, setUserRole] = useState('');
     const [notifOpen, setNotifOpen] = useState(false);
     const notifRef = useRef(null);
     const location = useLocation();
+
     useEffect(() => {
-        // userRole만 localStorage에서 직접 관리
         const user = localStorage.getItem('user');
         if (user) {
             const userObj = JSON.parse(user);
@@ -35,9 +34,9 @@ export default function Header({
             setUserRole('');
         }
     }, [location.pathname]);
+
     const navigate = useNavigate();
 
-    // PC 메뉴: role에 따라 다르게 렌더링
     let pcGnbItems = [];
     if (!isLoggedIn) {
         pcGnbItems = [
@@ -53,7 +52,6 @@ export default function Header({
             { id: 'inquiry', label: '문의하기' },
         ];
     } else {
-        // client, admin
         pcGnbItems = [
             { id: 'search', label: '전문가 찾기' },
             { id: 'reservation', label: '예약 관리' },
@@ -62,11 +60,9 @@ export default function Header({
         ];
     }
 
-    // 메뉴별 네비게이션 경로 (role별로 다르게 처리할 수 있도록 분기)
     const handleMenuClick = (item) => {
         setActiveTab(item.id);
         if (!isLoggedIn) {
-            // 비로그인 시 기존 경로
             if (item.id === 'search') navigate('/counselors');
             else if (item.id === 'reservation') navigate('/reserve');
             else if (item.id === 'diary') navigate('/diary');
@@ -76,7 +72,6 @@ export default function Header({
             else if (item.id === 'client') navigate('/CounselorClient');
             else if (item.id === 'inquiry') navigate('/CounselorMessages');
         } else {
-            // client, admin
             if (item.id === 'search') navigate('/counselors');
             else if (item.id === 'reservation') navigate('/reserve');
             else if (item.id === 'diary') navigate('/diary');
@@ -84,12 +79,10 @@ export default function Header({
         }
     };
 
-    // 벨 버튼 클릭 — 팝업 토글
     const handleBellClick = () => {
         setNotifOpen((prev) => !prev);
     };
 
-    // 외부 클릭 시 팝업 닫기
     useEffect(() => {
         if (!notifOpen) return;
         const handleClick = (e) => {
@@ -102,7 +95,6 @@ export default function Header({
     }, [notifOpen]);
 
     return (
-        //1. 글로벌 네비게이션 (Header)
         <header className="global-header">
             <div className="header-content">
                 <h1
@@ -132,6 +124,18 @@ export default function Header({
                 </nav>
 
                 <div className="user-actions">
+                    {/* ✅ 관리자 전용 버튼 - role이 admin일 때만 노출 */}
+                    {isLoggedIn && userRole === 'admin' && (
+                        <button
+                            className="admin-page-btn"
+                            onClick={() => navigate('/admin')}
+                            title="관리자 페이지"
+                        >
+                            <ShieldCheck size={16} />
+                            <span>관리자</span>
+                        </button>
+                    )}
+
                     {isLoggedIn && (
                         <div style={{ position: 'relative', display: 'inline-block' }} ref={notifRef}>
                             <button className="bell-btn" onClick={handleBellClick}>
@@ -173,6 +177,7 @@ export default function Header({
                             )}
                         </div>
                     )}
+
                     {isLoggedIn ? (
                         <div
                             className="user-profile"
@@ -182,7 +187,6 @@ export default function Header({
                                 } else if (userRole === 'client' || userRole === 'admin') {
                                     navigate('/mypage');
                                 } else {
-                                    // fallback: 로그인은 했지만 role 정보가 없을 때
                                     navigate('/mypage');
                                 }
                             }}

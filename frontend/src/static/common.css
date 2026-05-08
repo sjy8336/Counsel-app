@@ -278,3 +278,17 @@
   margin-top: 0.375rem;
   font-weight: 700;
 }
+
+.admin-page-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background-color: #1E293B;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
