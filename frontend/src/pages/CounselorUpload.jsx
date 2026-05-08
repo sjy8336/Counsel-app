@@ -25,8 +25,6 @@ const App = () => {
   const [basicPhone, setBasicPhone] = useState("");
   const [basicCenter, setBasicCenter] = useState("");
   const [basicAddress, setBasicAddress] = useState("");
-  const [basicPrice, setBasicPrice] = useState(""); // 상담 가격
-  const [basicIntro, setBasicIntro] = useState(""); // 한줄 소개
   const [basicWarn, setBasicWarn] = useState("");
   const [showWarn, setShowWarn] = useState({
     name: false,
@@ -111,18 +109,6 @@ const App = () => {
           <input type="tel" placeholder="010-0000-0000" className="cu-ep-input" value={basicPhone} onChange={e => { setBasicPhone(e.target.value); setShowWarn(w => ({ ...w, phone: false })); }} />
           {showWarn.phone && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
         </div>
-        {/* 한줄 소개 입력란 (상담소 주소와 동일한 너비) */}
-        <div className="cu-ep-field cu-ep-span2">
-          <label className="cu-ep-label">한줄 소개</label>
-          <input
-            type="text"
-            placeholder="상담사님을 한 문장으로 소개해 주세요 (예: 따뜻하게 공감하는 상담사입니다)"
-            className="cu-ep-input"
-            value={basicIntro}
-            onChange={e => setBasicIntro(e.target.value)}
-            maxLength={40}
-          />
-        </div>
         <div className="cu-ep-divider">
           <div className="cu-ep-field-group">
             <label className="cu-ep-group-label"><MapPin style={{ width: '1rem', height: '1rem', color: '#8BA888' }} /> 상담소 정보</label>
@@ -141,28 +127,6 @@ const App = () => {
           <label className="cu-ep-label">상담소 주소 <span className="cu-ep-required">*</span></label>
           <input type="text" placeholder="상담소가 위치한 상세 주소를 입력하세요" className="cu-ep-input" value={basicAddress} onChange={e => { setBasicAddress(e.target.value); setShowWarn(w => ({ ...w, address: false })); }} />
           {showWarn.address && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
-        </div>
-        {/* 상담 가격 입력란 및 안내문을 주소 밑으로 이동 */}
-        <div className="cu-ep-field">
-          <label className="cu-ep-label">상담 가격 (원)</label>
-          <input
-            type="text"
-            placeholder="상담 1회 가격을 입력하세요"
-            className="cu-ep-input"
-            value={basicPrice}
-            onChange={e => {
-              // 숫자만 입력받고 천 단위 콤마 추가
-              const raw = e.target.value.replace(/[^0-9]/g, "");
-              const formatted = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-              setBasicPrice(formatted);
-            }}
-            min="0"
-            inputMode="numeric"
-            pattern="[0-9,]*"
-          />
-          <div style={{ fontSize: '0.85rem', color: '#888', marginTop: '0.1rem', whiteSpace: 'nowrap' }}>
-            ※ 대면 상담 기준 시간당 평균가를 입력해 주세요.
-          </div>
         </div>
       </div>
     </div>
