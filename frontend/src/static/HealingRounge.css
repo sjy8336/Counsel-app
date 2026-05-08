@@ -73,7 +73,7 @@
     background-color: #fdfbf7;
     color: #1e293b;
     font-family: sans-serif;
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 .hr-root ::selection {
     background-color: rgba(139, 168, 136, 0.2);

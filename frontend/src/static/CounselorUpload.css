@@ -40,7 +40,7 @@
 	display: block;
 }
 /* ===== LAYOUT ===== */
-.cu-ep-page { min-height: 100vh; background: #FDFBF7; font-family: sans-serif; color: #0f172a; padding-bottom: 5rem; position: relative; overflow-x: hidden; }
+.cu-ep-page { min-height: 100vh; background: #FDFBF7; font-family: sans-serif; color: #0f172a; padding-bottom: 5rem; position: relative; overflow-x: clip; }
 
 /* ===== FLOATING SAVE ===== */
 .cu-ep-float-btn { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 60; display: flex; align-items: center; gap: 0.5rem; background: #fff; padding: 0.75rem; border-radius: 9999px; box-shadow: 0 25px 50px -12px rgb(0 0 0/0.25); border: 1px solid #8BA88833; cursor: pointer; transition: background 0.2s, transform 0.2s; }
@@ -49,7 +49,7 @@
 @media (min-width: 640px) { .cu-ep-float-btn { bottom: 2rem; right: 2rem; padding: 0.75rem 1.25rem; } .cu-ep-float-label { display: inline; } }
 
 /* ===== HEADER ===== */
-.cu-ep-header { background: #fff; border-bottom: 1px solid #f1f5f9; position: sticky; top: 0; z-index: 50; }
+.cu-ep-header { background: #fff; border-bottom: 1px solid #f1f5f9; }
 .cu-ep-header-inner { max-width: 56rem; margin: 0 auto; padding: 0 1rem; height: 4rem; display: flex; align-items: center; justify-content: space-between; }
 @media (min-width: 640px) { .cu-ep-header-inner { padding: 0 1.5rem; } }
 .cu-ep-logo { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.05em; color: #8BA888; cursor: pointer; }
@@ -65,7 +65,7 @@
 .cu-ep-page-title p { font-size: 0.875rem; color: #64748b; font-weight: 500; }
 
 /* ===== TAB NAV ===== */
-.cu-ep-tabs { display: flex; padding: 0.25rem; background: #f1f5f9; border-radius: 0.75rem; margin-bottom: 2rem; position: sticky; top: 4rem; z-index: 40; box-shadow: 0 1px 2px 0 rgb(0 0 0/0.05); border: 1px solid #e2e8f0; }
+.cu-ep-tabs { display: flex; padding: 0.25rem; background: #f1f5f9; border-radius: 0.75rem; margin-bottom: 2rem; box-shadow: 0 1px 2px 0 rgb(0 0 0/0.05); border: 1px solid #e2e8f0; }
 @media (min-width: 640px) { .cu-ep-tabs { border-radius: 1rem; } }
 .cu-ep-tab-btn { flex: 1; padding: 0.75rem; font-size: 0.75rem; text-align: center; border-radius: 0.5rem; font-weight: 700; transition: all 0.2s; color: #94a3b8; background: none; border: none; cursor: pointer; }
 @media (min-width: 640px) { .cu-ep-tab-btn { font-size: 0.875rem; border-radius: 0.75rem; } }

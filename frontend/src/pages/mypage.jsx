@@ -1,4 +1,28 @@
+// 고객센터(고객지원) 더미 렌더 함수 - 실제 구현 필요시 교체
+// 기존 renderSupportCenter 함수 교체 (CounselorMyPage의 renderCustomer 스타일로)
+const renderSupportCenter = () => (
+  <div className="mw-main" style={{ padding: 0 }}>
+    <div className="mw-page-header">
+      <div className="mw-page-title">고객 지원</div>
+      <div className="mw-page-sub">이용 중 불편한 점이 있으신가요?</div>
+    </div>
+    <div className="mw-support-grid">
+      { [
+        { icon: <HelpCircle size={21} />, label: '자주 묻는 질문' },
+        { icon: <MessageCircle size={21} />, label: '1:1 문의하기' },
+        { icon: <FileText size={21} />, label: '가이드북' },
+      ].map(({ icon, label }) => (
+        <div key={label} className="mw-support-card">
+          <div className="mw-support-icon">{icon}</div>
+          <p className="mw-support-label">{label}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 import React, { useState, useEffect } from 'react';
+import { mockNotifications } from '../components/mockNotifications';
 import { deleteAccount } from '../api/auth';
 import { getUserInfo, updateUserInfo, changePassword } from '../api/user';
 import { getFavorites, toggleFavorite } from '../api/favorite';
@@ -36,9 +60,15 @@ import {
     Hash,
     Lightbulb,
     Check,
+    HeadphonesIcon,
+    HelpCircle,
+    MessageCircle,
+    FileText,
+    MessageSquare,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../static/MyPage.css';
+import '../static/CounselorMyPage.css';
 
 const notifSettingsData = [
     { key: 'session', title: '상담 일정 알림', desc: '예약된 상담 시간 및 변동 사항 안내' },
@@ -174,7 +204,6 @@ export default function App() {
         { id: 'inquiry', label: '문의내역', icon: MessagesSquare },
         { id: 'favorites', label: '찜내역', icon: Heart },
         { id: 'tickets', label: '이용권/결제', icon: Wallet },
-        { id: 'support', label: '고객센터', icon: Settings },
         { id: 'profile', label: '계정 설정', icon: Settings },
     ];
 
@@ -756,20 +785,28 @@ export default function App() {
                             </div>
                         </div>
                     </div>
-                    <button
-                        className="profile-save-full-btn mp-mt-2"
-                        onClick={handleChangePassword}
-                        disabled={pwLoading}
-                        style={{ opacity: pwLoading ? 0.6 : 1 }}
-                    >
-                        <CheckCircle2 size={20} /> 비밀번호 변경
-                    </button>
+                    {(pwFields.new1 && pwFields.new2 && pwFields.new1 !== pwFields.new2) && (
+                        <div style={{ color: '#e57373', fontSize: '0.95rem', marginTop: 8, marginBottom: 0, fontWeight: 600 }}>
+                            비밀번호가 일치하지 않습니다.
+                        </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+                        <button
+                            className="pw-change-btn"
+                            onClick={handleChangePassword}
+                            disabled={pwLoading}
+                            style={{ opacity: pwLoading ? 0.6 : 1 }}
+                        >
+                            <CheckCircle2 size={16} style={{ marginRight: 4 }} />
+                            비밀번호 변경
+                        </button>
+                    </div>
                 </div>
             </div>
             <div className="profile-save-btn-row">
                 <button className="profile-save-full-btn" onClick={handleSaveProfile}>
                     <CheckCircle2 size={20} />
-                    변경 사항 안전하게 저장하기
+                    변경사항 저장
                 </button>
             </div>
         </div>
@@ -1050,61 +1087,66 @@ export default function App() {
         <div className="fade-in">
             <h3 className="mypage-section-title">찜 목록</h3>
             <ul className="mypage-list mypage-list-grid">
-                {favoritesList.map((item) => {
-                    const counselor = counselorData.find((c) => String(c.id) === String(item.counselor_id || item.id));
-                    const counselorName = counselor ? counselor.name : item.counselor_name || '알 수 없는 상담사';
-                    const field = counselor ? counselor.field : item.field;
-                    const category = counselor ? counselor.category : item.category;
-                    const intro = counselor ? counselor.intro : item.intro;
-                    const price = counselor ? counselor.price : item.price;
-                    const avatarInitial = counselorName.slice(0, 1);
-                    const itemId = item.counselor_id ? item.counselor_id : item.id;
+                {favoritesList.length === 0 ? (
+                    <li className="mypage-list-empty">찜내역이 없습니다.</li>
+                ) : (
+                    favoritesList.map((item) => {
+                        const counselor = counselorData.find((c) => String(c.id) === String(item.counselor_id || item.id));
+                        const counselorName = counselor ? counselor.name : item.counselor_name || '알 수 없는 상담사';
+                        const field = counselor ? counselor.field : item.field;
+                        const category = counselor ? counselor.category : item.category;
+                        const intro = counselor ? counselor.intro : item.intro;
+                        const price = counselor ? counselor.price : item.price;
+                        const avatarInitial = counselorName.slice(0, 1);
+                        const itemId = item.counselor_id ? item.counselor_id : item.id;
 
-                    return (
-                        <li
-                            key={itemId}
-                            className="mypage-list-item mypage-favorite-item"
-                            onClick={() => navigate('/counselor/' + itemId, { state: { counselor, isLiked: true } })}
-                        >
-                            <div
-                                className="mypage-favorite-heart"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleUnfavorite(itemId, e);
-                                }}
-                                title="찜 취소"
+                        return (
+                            <li
+                                key={itemId}
+                                className="mypage-list-item mypage-favorite-item"
+                                onClick={() => navigate('/counselor/' + itemId, { state: { counselor, isLiked: true } })}
                             >
-                                <Heart size={14} color="#e74c3c" fill="#e74c3c" />
-                            </div>
-                            <div className="mypage-favorite-avatar">{avatarInitial}</div>
-                            <div className="mypage-favorite-content">
-                                <div className="mypage-list-title">{counselorName}</div>
-                                <div className="mypage-list-meta">
-                                    {category && <span className="mypage-list-category">{category}</span>}
-                                    {field &&
-                                        field.split(',').map((f, i) => (
-                                            <span key={i} className="mypage-list-field">
-                                                {f.trim()}
-                                            </span>
-                                        ))}
+                                <div
+                                    className="mypage-favorite-heart"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleUnfavorite(itemId, e);
+                                    }}
+                                    title="찜 취소"
+                                >
+                                    <Heart size={14} color="#e74c3c" fill="#e74c3c" />
                                 </div>
-                                {intro && <div className="mypage-list-intro">{intro}</div>}
-                                {price && (
-                                    <div className="mypage-list-price">
-                                        <span className="price-value">{price}</span>
-                                        <span className="mypage-list-cta">상세보기</span>
+                                <div className="mypage-favorite-avatar">{avatarInitial}</div>
+                                <div className="mypage-favorite-content">
+                                    <div className="mypage-list-title">{counselorName}</div>
+                                    <div className="mypage-list-meta">
+                                        {category && <span className="mypage-list-category">{category}</span>}
+                                        {field &&
+                                            field.split(',').map((f, i) => (
+                                                <span key={i} className="mypage-list-field">
+                                                    {f.trim()}
+                                                </span>
+                                            ))}
                                     </div>
-                                )}
-                            </div>
-                        </li>
-                    );
-                })}
+                                    {intro && <div className="mypage-list-intro">{intro}</div>}
+                                    {price && (
+                                        <div className="mypage-list-price">
+                                            <span className="price-value">{price}</span>
+                                            <span className="mypage-list-cta">상세보기</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </li>
+                        );
+                    })
+                )}
             </ul>
         </div>
     );
 
     const renderContent = () => {
         if (activeMenu === 'profile' && activeSubMenu) return renderProfileDetail();
+        if (activeMenu === 'support') return renderSupportCenter();
         switch (activeMenu) {
             case 'history':
                 return renderHistoryDetail();
@@ -1114,8 +1156,6 @@ export default function App() {
                 return renderFavoritesList();
             case 'tickets':
                 return renderTicketsDetail();
-            case 'support':
-                return renderSupportCenter();
             case 'profile':
                 return (
                     <div className="fade-in">
@@ -1286,6 +1326,42 @@ export default function App() {
         }
     };
 
+    // 알림센터 렌더링 (CounselorMyPage 스타일)
+    const renderNotifications = () => (
+        <div className="mw-main">
+            <div className="mw-page-header">
+                <h2 className="mw-page-title">알림 센터</h2>
+                <p className="mw-page-sub">상담 일정, 예약 확정 등 최근 알림을 확인하세요.</p>
+            </div>
+            <div className="mw-list-card">
+                {mockNotifications.length === 0 ? (
+                    <div className="mw-notif-group-label">알림이 없습니다.</div>
+                ) : (
+                    <div>
+                        <div className="mw-notif-group-label">최근 알림</div>
+                        {mockNotifications.map((item) => (
+                            <div key={item.id} className={`mw-notif-item${item.unread ? ' unread' : ''}`}>
+                                <span className="mw-item-avatar notif">
+                                    {item.type === 'booking' && <Check size={15} />}
+                                    {item.type === 'msg' && <MessageSquare size={15} />}
+                                    {item.type === 'notice' && <AlertCircle size={15} />}
+                                </span>
+                                <div className="mw-notif-content">
+                                    <div className="mw-notif-title">{item.title}</div>
+                                    <div className="mw-notif-desc">{item.desc}</div>
+                                </div>
+                                <div className="mw-notif-meta">
+                                    <span className="mw-notif-time">{item.time}</span>
+                                    {item.unread && <span className="mw-notif-dot" />}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
     return (
         <div className="mypage-layout-root">
             {/* ── 토스트 팝업 ── */}
@@ -1316,6 +1392,13 @@ export default function App() {
                     ))}
                 </nav>
                 <div className="sidebar-footer-nav">
+                    <div
+                        className={`sidebar-nav-item${activeMenu === 'support' ? ' is-active' : ''} mp-cursor-pointer`}
+                        onClick={() => setActiveMenu('support')}
+                    >
+                        <HeadphonesIcon size={20} />
+                        <span>고객센터</span>
+                    </div>
                     <div className="sidebar-nav-item is-logout-link mp-cursor-pointer" onClick={handleLogout}>
                         <LogOut size={20} />
                         <span>로그아웃</span>
@@ -1324,24 +1407,28 @@ export default function App() {
             </aside>
 
             <main className="mypage-content-area">
-                <div className="user-welcome-header">
-                    <div className="user-profile-summary" onClick={() => handleMenuClick('dashboard')}>
-                        <div className="user-avatar-box">
-                            <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Sohyun" alt="User" />
+                {activeMenu === 'dashboard' && (
+                    <div className="user-welcome-header">
+                        <div className="user-profile-summary" onClick={() => handleMenuClick('dashboard')}>
+                            <div className="user-avatar-box">
+                                <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Sohyun" alt="User" />
+                            </div>
+                            <div className="user-info-text">
+                                <h2 className="user-name-title">
+                                    안녕하세요, {userInfo.name ? userInfo.name + '님' : ''}!
+                                </h2>
+                                <p className="user-status-msg">마음 근육을 키운 지 42일째 되는 날이에요. 🌿</p>
+                            </div>
                         </div>
-                        <div className="user-info-text">
-                            <h2 className="user-name-title">
-                                안녕하세요, {userInfo.name ? userInfo.name + '님' : ''}!
-                            </h2>
-                            <p className="user-status-msg">마음 근육을 키운 지 42일째 되는 날이에요. 🌿</p>
-                        </div>
+                        <button className="user-notif-check-btn" onClick={() => setActiveMenu('notifications')}>
+                            <Bell size={18} className="icon-green" />
+                            알림 확인
+                        </button>
                     </div>
-                    <button className="user-notif-check-btn" onClick={() => { setActiveMenu('profile'); setActiveSubMenu('notification'); }}>
-                        <Bell size={18} className="icon-green" />
-                        알림 확인
-                    </button>
+                )}
+                <div className="dynamic-render-content">
+                    {activeMenu === 'notifications' ? renderNotifications() : renderContent()}
                 </div>
-                <div className="dynamic-render-content">{renderContent()}</div>
             </main>
         </div>
     );
