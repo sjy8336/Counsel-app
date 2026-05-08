@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { isTokenExpired } from './utils/jwt';
 
@@ -27,14 +27,24 @@ import Fail from './pages/Fail';
 import CounselorMessages from './pages/CounselorMessages';
 import ContactCoach from './pages/ContactCoach';
 
+// ✅ 관리자 전용 보호 라우트 (App.jsx 내부에 인라인 선언)
+const ProtectedAdminRoute = ({ children }) => {
+    const token = localStorage.getItem('access_token');
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+    if (!token || isTokenExpired(token) || user?.role !== 'admin') {
+        return <Navigate to="/" replace />;
+    }
+    return children;
+};
 
 function App() {
     const location = useLocation();
     const navigate = useNavigate();
     const [userName, setUserName] = useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+
     useEffect(() => {
-        // 로그인 상태 동기화
         const user = localStorage.getItem('user');
         const token = localStorage.getItem('access_token');
         if (user && token && !isTokenExpired(token)) {
@@ -48,32 +58,24 @@ function App() {
     }, [location.pathname, localStorage.getItem('user')]);
 
     useEffect(() => {
-        // 1. 가드 로직: 현재 페이지가 로그인 관련 페이지라면 아무것도 하지 않음
         const isAuthPage = ['/login', '/signup', '/find-password'].includes(location.pathname);
         if (isAuthPage) return;
-
-        // 2. 홈 화면(/)이 로그인 없이도 보는 페이지라면 통과
         if (location.pathname === '/') return;
 
         const token = localStorage.getItem('access_token');
 
-        // 3. 토큰 검사 (무한 루프 방지를 위해 조건문을 깐깐하게 작성)
         if (!token || isTokenExpired(token)) {
             console.warn('인증 만료 또는 토큰 없음 -> 로그인 이동');
-
-            // 데이터 정리
             localStorage.removeItem('access_token');
             localStorage.removeItem('user');
             localStorage.removeItem('login_time');
 
-            // 4. 현재 위치가 이미 /login이 아닐 때만 이동 (루프 확정 차단)
             if (location.pathname !== '/login') {
                 navigate('/login', { replace: true });
             }
         }
-    }, [location.pathname]); // navigate를 의존성에서 빼서 불필요한 재실행 방지
+    }, [location.pathname]);
 
-    // 닉네임 로직 (useMemo로 최적화해서 렌더링 부하 줄임)
     const nickname = useMemo(() => {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
@@ -208,7 +210,16 @@ function App() {
                     />
                 }
             />
-            <Route path="/admin" element={<AdminCounselor />} />
+
+            {/* ✅ 관리자 라우트 - role: 'admin' 계정만 접근 가능 */}
+            <Route
+                path="/admin"
+                element={
+                    <ProtectedAdminRoute>
+                        <AdminCounselor />
+                    </ProtectedAdminRoute>
+                }
+            />
         </Routes>
     );
 }
