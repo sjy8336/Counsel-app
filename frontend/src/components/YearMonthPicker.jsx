@@ -47,45 +47,45 @@ const YearMonthPicker = ({ value, onChange, icon = true, placeholder = '', class
   };
 
   return (
-    <div className={`mw-monthpicker-wrap ${className}`.trim()} ref={ref}>
+    <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
       <button
         type="button"
-        className={`mw-monthpicker-input${value ? ' filled' : ''}`}
+        className={`cmp-monthpicker-input${value ? ' filled' : ''}`}
         onClick={() => setOpen((prev) => !prev)}
       >
         {icon && (
-          <span className="mw-picker-input-icon">
+          <span className="cmp-picker-input-icon">
             <Calendar size={15} />
           </span>
         )}
         <span>{value ? formatDateValue(value) : placeholder || '연/월 선택'}</span>
-        <ChevronDown size={14} className={`mw-picker-input-chevron${open ? ' open' : ''}`} />
+        <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
       </button>
 
       {open && (
-        <div className="mw-picker-popover mw-datepicker-modal">
-          <div className="mw-picker-popover-head">
+        <div className="cmp-picker-popover cmp-datepicker-modal">
+          <div className="cmp-picker-popover-head">
             <div>
-              <div className="mw-picker-popover-eyebrow">Year/Month</div>
-              <div className="mw-picker-popover-title">
+              <div className="cmp-picker-popover-eyebrow">Year/Month</div>
+              <div className="cmp-picker-popover-title">
                 {viewYear}년
               </div>
             </div>
-            <div className="mw-picker-nav">
-              <button type="button" className="mw-picker-nav-btn" onClick={handlePrevYear}>
+            <div className="cmp-picker-nav">
+              <button type="button" className="cmp-picker-nav-btn" onClick={handlePrevYear}>
                 <ChevronLeft size={14} />
               </button>
-              <button type="button" className="mw-picker-nav-btn" onClick={handleNextYear}>
+              <button type="button" className="cmp-picker-nav-btn" onClick={handleNextYear}>
                 <ChevronRight size={14} />
               </button>
             </div>
           </div>
-          <div className="mw-datepicker-grid" style={{gridTemplateColumns: 'repeat(3, 1fr)'}}>
+          <div className="cmp-datepicker-grid" style={{gridTemplateColumns: 'repeat(3, 1fr)'}}>
             {Array.from({ length: 12 }, (_, i) => (
               <button
                 key={i}
                 type="button"
-                className={`mw-datepicker-day${viewMonth === i && viewYear === Number(value?.split('-')[0]) ? ' selected' : ''}`}
+                className={`cmp-datepicker-day${viewMonth === i && viewYear === Number(value?.split('-')[0]) ? ' selected' : ''}`}
                 onClick={() => handleSelect(i)}
               >
                 {i + 1}월
