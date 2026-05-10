@@ -1,6 +1,9 @@
 // 예약 전체 조회 (상태별 필터링은 프론트에서)
 export const getAllBookings = async () => {
-    const response = await axios.get(`${API_BASE_URL}/booking/list`);
+    const token = localStorage.getItem('access_token');
+    const response = await axios.get(`${API_BASE_URL}/booking/list`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     return response.data;
 };
 
@@ -24,9 +27,11 @@ const API_BASE_URL = 'http://localhost:8000/api';
  * @param {Object} bookingData - 예약 정보 (orderId, counselorName, selectedDate, selectedTime, survey 등)
  */
 export const createBooking = async (bookingData) => {
+    const token = localStorage.getItem('access_token');
     const response = await axios.post(`${API_BASE_URL}/booking/create`, bookingData, {
         headers: {
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
     });
     return response.data;
