@@ -12,8 +12,10 @@ class CounselorProfile(Base):
     center_phone = Column(String(20), comment='상담소 전화번호')
     center_address = Column(String(255), nullable=False, comment='상담소 주소')
     consultation_price = Column(Integer, default=0, comment='상담 가격 (1회 기준)')
-    created_at = Column(TIMESTAMP, server_default="CURRENT_TIMESTAMP")
-    updated_at = Column(TIMESTAMP, server_default="CURRENT_TIMESTAMP", onupdate="CURRENT_TIMESTAMP")
+    status = Column(Enum('심사중', '수락', '반려', name='profile_status'), nullable=False, default='심사중', comment='프로필 심사 상태')
+    from sqlalchemy import text
+    created_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))
 
 class CounselorSpecialty(Base):
     __tablename__ = 'counselor_specialties'

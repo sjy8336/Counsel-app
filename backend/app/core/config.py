@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     TOSS_SECRET_KEY: str
     TOSS_CLIENT_KEY: str
 
+    # 3. JWT 시크릿키 (.env의 SECRET_KEY와 일치해야 함)
+    SECRET_KEY: str
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

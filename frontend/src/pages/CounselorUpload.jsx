@@ -1,23 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 import {
     User,
     Award,
     BookOpen,
     CheckCircle2,
     Trash2,
-    Calendar,
     ChevronDown,
     Plus,
     X,
-    Camera,
     MapPin,
     Save,
     AlertCircle,
 } from 'lucide-react';
-import DatePicker from '../components/DatePicker.jsx';
 import YearMonthPicker from '../components/YearMonthPicker.jsx';
-
 import '../static/CounselorUpload.css';
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
@@ -30,211 +26,488 @@ import {
     registerExperience,
     registerSchedule,
 } from '../api/counselor.js';
-import { getMyInfo } from '../api/user.js';
+import { getMyInfo, updateUserInfo } from '../api/user.js';
+
+const DAYS = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+const TIME_OPTIONS = Array.from({ length: 16 }, (_, i) => `${8 + i}:00`);
+const EXPERTISE_LIST = [
+    '개인심리',
+    '취업상담',
+    '진로상담',
+    '대인관계',
+    '가족상담',
+    '우울/불안',
+    '연애/결혼',
+    '공황/장애',
+    '트라우마',
+    '중독상담',
+    '번아웃',
+    '스트레스',
+    '자존감향상',
+    '성격상담',
+    '학업/시험',
+];
+
+const initSchedule = () =>
+    DAYS.reduce(
+        (acc, day) => ({
+            ...acc,
+            [day]: { active: !['토요일', '일요일'].includes(day), slots: [{ start: '10:00', end: '19:00' }] },
+        }),
+        {}
+    );
 
 const App = () => {
-  // ── State ──
-  const [activeTab, setActiveTab] = useState('basic');
-  const [profileImage, setProfileImage] = useState(null);
-  const fileInputRef = useRef(null);
-  const [expertType, setExpertType] = useState([]);
-  const [customExpertise, setCustomExpertise] = useState('');
-  const [certificates, setCertificates] = useState([{ id: 1, year: '', month: '', name: '', issuer: '' }]);
-  const [educations, setEducations] = useState([{ id: 1, startYear: '', startMonth: '', endYear: '', endMonth: '', school: '', major: '' }]);
-  const [experiences, setExperiences] = useState([{ id: 1, startYearMonth: '', endYearMonth: '', content: '', isCurrent: false }]);
+    const navigate = useNavigate();
+    const [toastMsg, setToastMsg] = useState('');
+    const toastTimer = useRef(null);
+    const [activeTab, setActiveTab] = useState('basic');
+    const [profileImage, setProfileImage] = useState(null);
+    const fileInputRef = useRef(null);
 
-  // 기본정보 입력값 상태
-  const [basicName, setBasicName] = useState("");
-  const [basicPhone, setBasicPhone] = useState("");
-  const [basicCenter, setBasicCenter] = useState("");
-  const [basicAddress, setBasicAddress] = useState("");
-  const [basicWarn, setBasicWarn] = useState("");
-  const [showWarn, setShowWarn] = useState({
-    name: false,
-    phone: false,
-    center: false,
-    address: false,
-  });
+    const [expertType, setExpertType] = useState([]);
+    const [customExpertise, setCustomExpertise] = useState('');
+    const [weeklySchedule, setWeeklySchedule] = useState(initSchedule);
 
-  const days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
-  const [weeklySchedule, setWeeklySchedule] = useState(
-    days.reduce((acc, day) => ({ ...acc, [day]: { active: day !== '토요일' && day !== '일요일', slots: [{ start: '10:00', end: '19:00' }] } }), {})
-  );
+    const [certificates, setCertificates] = useState([{ id: 1, yearMonth: '', name: '', issuer: '' }]);
+    const [educations, setEducations] = useState([
+        { id: 1, startYearMonth: '', endYearMonth: '', school: '', major: '' },
+    ]);
+    const [experiences, setExperiences] = useState([
+        { id: 1, startYearMonth: '', endYearMonth: '', content: '', isCurrent: false },
+    ]);
 
-  // ── Constants ──
-  const currentYear = new Date().getFullYear();
-  const yearOptions  = Array.from({ length: 40 }, (_, i) => currentYear - i);
-  const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
-  const timeOptions  = Array.from({ length: 11 }, (_, i) => `${10 + i}:00`);
-  const expertiseList = ['개인심리','취업상담','진로상담','대인관계','가족상담','우울/불안','연애/결혼','공황/장애','트라우마','중독상담','번아웃','스트레스','자존감향상','성격상담','학업/시험'];
+    const [basicName, setBasicName] = useState('');
+    const [basicId, setBasicId] = useState('');
+    const [basicEmail, setBasicEmail] = useState('');
+    const [basicPhone, setBasicPhone] = useState('');
+    const [userId, setUserId] = useState(null); // 실제 user id 저장
+    const [basicCenter, setBasicCenter] = useState('');
+    const [basicAddress, setBasicAddress] = useState('');
+    const [basicPrice, setBasicPrice] = useState('');
+    const [basicIntro, setBasicIntro] = useState('');
+    const [showWarn, setShowWarn] = useState({ name: false, phone: false, center: false, address: false });
 
-  // ── Handlers ──
-  const handleImageUpload = e => {
-    const file = e.target.files[0];
-    if (file) { const r = new FileReader(); r.onloadend = () => setProfileImage(r.result); r.readAsDataURL(file); }
-  };
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmChecked, setConfirmChecked] = useState(false);
 
-  const toggleDayActive = day => setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], active: !p[day].active } }));
-  const updateTime = (day, idx, type, value) => {
-    const newSlots = [...weeklySchedule[day].slots];
-    newSlots[idx][type] = value;
-    setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], slots: newSlots } }));
-  };
-  const addTimeSlot    = day => setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], slots: [...p[day].slots, { start: '10:00', end: '19:00' }] } }));
-  const removeTimeSlot = (day, idx) => setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], slots: p[day].slots.filter((_, i) => i !== idx) } }));
+    useEffect(() => {
+        const saved = localStorage.getItem('counselor_upload_draft');
+        if (saved) {
+            try {
+                const d = JSON.parse(saved);
+                if (d.basicName) setBasicName(d.basicName);
+                if (d.basicId) setBasicId(d.basicId);
+                if (d.basicEmail) setBasicEmail(d.basicEmail);
+                if (d.basicPhone) setBasicPhone(d.basicPhone);
+                if (d.basicCenter) setBasicCenter(d.basicCenter);
+                if (d.basicAddress) setBasicAddress(d.basicAddress);
+                if (d.basicPrice) setBasicPrice(d.basicPrice);
+                if (d.basicIntro) setBasicIntro(d.basicIntro);
+                if (d.expertType) setExpertType(d.expertType);
+                if (d.customExpertise) setCustomExpertise(d.customExpertise);
+                if (d.certificates) setCertificates(d.certificates);
+                if (d.educations) setEducations(d.educations);
+                if (d.experiences) setExperiences(d.experiences);
+                if (d.weeklySchedule) setWeeklySchedule(d.weeklySchedule);
+                if (d.profileImage) setProfileImage(d.profileImage);
+            } catch (e) {
+                console.warn('임시저장 파싱 오류:', e);
+            }
+        }
+        const fetchUser = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            try {
+                const user = await getMyInfo(token);
+                if (user) {
+                    setBasicName((prev) => prev || user.full_name || '');
+                    setBasicId((prev) => prev || user.username || user.id || '');
+                    setBasicEmail((prev) => prev || user.email || '');
+                    setBasicPhone((prev) => prev || user.phone_number || '');
+                    setUserId(user.id);
+                }
+            } catch (e) {}
+        };
+        fetchUser();
+    }, []);
 
-  const addCertificate    = () => setCertificates(p => [...p, { id: Date.now(), year: '', month: '', name: '', issuer: '' }]);
-  const removeCertificate = id => setCertificates(p => p.filter(c => c.id !== id));
-  const addEducation      = () => setEducations(p => [...p, { id: Date.now(), startYear: '', startMonth: '', endYear: '', endMonth: '', school: '', major: '' }]);
-  const removeEducation   = id => setEducations(p => p.filter(e => e.id !== id));
-  const addExperience     = () => setExperiences(p => [...p, { id: Date.now(), startYearMonth: '', endYearMonth: '', content: '', isCurrent: false }]);
-  const removeExperience  = id => setExperiences(p => p.filter(e => e.id !== id));
-  const handleExperienceChange = (id, field, value) => {
-    setExperiences(p => p.map(e => e.id === id ? { ...e, [field]: value } : e));
-  };
+    /* ── 스케줄 헬퍼 ── */
+    const toggleDayActive = (day) => setWeeklySchedule((p) => ({ ...p, [day]: { ...p[day], active: !p[day].active } }));
+    const updateTime = (day, idx, type, value) => {
+        const newSlots = [...weeklySchedule[day].slots];
+        newSlots[idx][type] = value;
+        setWeeklySchedule((p) => ({ ...p, [day]: { ...p[day], slots: newSlots } }));
+    };
+    const addTimeSlot = (day) =>
+        setWeeklySchedule((p) => ({
+            ...p,
+            [day]: { ...p[day], slots: [...p[day].slots, { start: '10:00', end: '19:00' }] },
+        }));
+    const removeTimeSlot = (day, idx) =>
+        setWeeklySchedule((p) => ({ ...p, [day]: { ...p[day], slots: p[day].slots.filter((_, i) => i !== idx) } }));
 
-  // ── DatePicker ──
-  // 프로필 사진 클릭 시 파일 선택창 열기
-  const handlePhotoClick = () => {
-    if (fileInputRef.current) fileInputRef.current.click();
-  };
-  const renderBasicInfo = () => (
-    <div className="cu-ep-basic cu-ep-animate">
-      <div className="cu-ep-photo-section">
-        <div className="cu-ep-photo-box" onClick={handlePhotoClick}>
-          {profileImage ? (
-            <img src={profileImage} alt="프로필" className="cu-ep-photo-img" />
-          ) : (
-            <User style={{ color: '#8BA888', width: '3.5rem', height: '3.5rem' }} />
-          )}
-          <div className="cu-ep-photo-overlay"><Plus style={{ color: '#fff', width: '1.5rem', height: '1.5rem' }} /></div>
-        </div>
-        <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" style={{ display: 'none' }} />
-        <p className="cu-ep-photo-hint">JPG, PNG 지원<br />권장 사이즈: 500x500px</p>
-      </div>
+    /* ── 자격증 헬퍼 ── */
+    const addCertificate = () =>
+        setCertificates((p) => [...p, { id: Date.now(), yearMonth: '', name: '', issuer: '' }]);
+    const removeCertificate = (id) => setCertificates((p) => p.filter((c) => c.id !== id));
+    const updateCertificate = (id, field, value) =>
+        setCertificates((p) => p.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
 
-      <div className="cu-ep-fields">
-        <div className="cu-ep-field">
-          <label className="cu-ep-label">이름 <span className="cu-ep-required">*</span></label>
-          <input type="text" placeholder="이름을 입력하세요" className="cu-ep-input" value={basicName} onChange={e => { setBasicName(e.target.value); setShowWarn(w => ({ ...w, name: false })); }} />
-          {showWarn.name && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
-        </div>
-        <div className="cu-ep-field">
-          <label className="cu-ep-label">아이디 <span className="cu-ep-label-badge">수정 불가</span></label>
-          <input type="text" value="expert_mindwell" readOnly className="cu-ep-input-ro" />
-        </div>
-        <div className="cu-ep-field">
-          <label className="cu-ep-label">이메일</label>
-          <input type="email" placeholder="example@mindwell.com" className="cu-ep-input" />
-        </div>
-        <div className="cu-ep-field">
-          <label className="cu-ep-label">개인 연락처 <span className="cu-ep-required">*</span></label>
-          <input type="tel" placeholder="010-0000-0000" className="cu-ep-input" value={basicPhone} onChange={e => { setBasicPhone(e.target.value); setShowWarn(w => ({ ...w, phone: false })); }} />
-          {showWarn.phone && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
-        </div>
-        <div className="cu-ep-divider">
-          <div className="cu-ep-field-group">
-            <label className="cu-ep-group-label"><MapPin style={{ width: '1rem', height: '1rem', color: '#8BA888' }} /> 상담소 정보</label>
-          </div>
-        </div>
-        <div className="cu-ep-field">
-          <label className="cu-ep-label">상담소명 <span className="cu-ep-required">*</span></label>
-          <input type="text" placeholder="소속 상담소 이름을 입력하세요" className="cu-ep-input" value={basicCenter} onChange={e => { setBasicCenter(e.target.value); setShowWarn(w => ({ ...w, center: false })); }} />
-          {showWarn.center && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
-        </div>
-        <div className="cu-ep-field">
-          <label className="cu-ep-label">상담소 전화번호</label>
-          <input type="tel" placeholder="02-000-0000" className="cu-ep-input" />
-        </div>
-        <div className="cu-ep-field cu-ep-span2">
-          <label className="cu-ep-label">상담소 주소 <span className="cu-ep-required">*</span></label>
-          <input type="text" placeholder="상담소가 위치한 상세 주소를 입력하세요" className="cu-ep-input" value={basicAddress} onChange={e => { setBasicAddress(e.target.value); setShowWarn(w => ({ ...w, address: false })); }} />
-          {showWarn.address && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
-        </div>
-      </div>
-    </div>
-  );
-// ...existing code...
+    /* ── 학력 헬퍼 ── */
+    const addEducation = () =>
+        setEducations((p) => [...p, { id: Date.now(), startYearMonth: '', endYearMonth: '', school: '', major: '' }]);
+    const removeEducation = (id) => setEducations((p) => p.filter((e) => e.id !== id));
+    const updateEducation = (id, field, value) =>
+        setEducations((p) => p.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
 
-  const renderExpertise = () => (
-    <div className="cu-ep-expertise cu-ep-animate">
-      <section>
-        <h3 className="cu-ep-section-title">
-          <CheckCircle2 style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} />
-          전문 상담분야 <span className="cu-ep-section-hint">(중복 선택 가능)</span>
-        </h3>
-        <div className="cu-ep-chips">
-          {expertiseList.map(item => (
-            <button
-              key={item}
-              onClick={() => setExpertType(p => p.includes(item) ? p.filter(t => t !== item) : [...p, item])}
-              className={`cu-ep-chip${expertType.includes(item) ? ' cu-ep-chip-on' : ''}`}
-            >{item}</button>
-          ))}
-        </div>
-        <div className="cu-ep-field">
-          <label className="cu-ep-custom-label">기타 전문분야 직접 입력</label>
-          <textarea value={customExpertise} onChange={e => setCustomExpertise(e.target.value)} placeholder="제시된 항목 외의 구체적인 상담 전문 분야가 있다면 입력해주세요." className="cu-ep-textarea" />
-        </div>
-      </section>
+    /* ── 경력 헬퍼 ── */
+    const addExperience = () =>
+        setExperiences((p) => [
+            ...p,
+            { id: Date.now(), startYearMonth: '', endYearMonth: '', content: '', isCurrent: false },
+        ]);
+    const removeExperience = (id) => setExperiences((p) => p.filter((e) => e.id !== id));
+    const updateExperience = (id, field, value) =>
+        setExperiences((p) => p.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
 
-      <section>
-        <h3 className="cu-ep-section-title">
-          <span className="cu-ep-schedule-bar" />주간 상담 일정
-        </h3>
-        <div className="cu-ep-schedule-list">
-          {days.map(day => {
-            const d = weeklySchedule[day];
-            return (
-              <div key={day} className={`cu-ep-schedule-row${d.active ? ' cu-ep-day-on' : ''}`}>
-                <div className="cu-ep-day-toggle">
-                  <button onClick={() => toggleDayActive(day)} className={`cu-ep-toggle-btn${d.active ? ' cu-ep-toggle-on' : ''}`}>
-                    <CheckCircle2 style={{ width: '1rem', height: '1rem' }} />
-                  </button>
-                  <span className={`cu-ep-day-label${d.active ? ' cu-ep-day-label-on' : ''}`}>{day}</span>
-                </div>
-                <div className="cu-ep-slots">
-                  {d.active ? (
-                    <div className="cu-ep-slots-row">
-                      {d.slots.map((slot, idx) => (
-                        <div key={idx} className="cu-ep-slot">
-                          <div className="cu-ep-time-select">
-                            <select value={slot.start} onChange={e => updateTime(day, idx, 'start', e.target.value)}>
-                              {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
-                            </select>
-                            <ChevronDown className="cu-ep-dp-chevron" />
-                          </div>
-                          <span className="cu-ep-time-sep">~</span>
-                          <div className="cu-ep-time-select">
-                            <select value={slot.end} onChange={e => updateTime(day, idx, 'end', e.target.value)}>
-                              {timeOptions
-                                .filter(t => {
-                                  // 시작시간이 선택되어 있으면, 끝나는 시간은 시작시간보다 1시간 이후부터만 표시
-                                  if (!slot.start) return true;
-                                  const startHour = parseInt(slot.start.split(":")[0], 10);
-                                  const tHour = parseInt(t.split(":")[0], 10);
-                                  return tHour > startHour;
-                                })
-                                .map(t => <option key={t} value={t}>{t}</option>)}
-                            </select>
-                            <ChevronDown className="cu-ep-dp-chevron" />
-                          </div>
-                          {d.slots.length > 1 && (
-                            <button onClick={() => removeTimeSlot(day, idx)} className="cu-ep-slot-rm">
-                              <X style={{ width: '0.875rem', height: '0.875rem' }} />
-                            </button>
-                          )}
+    const showToast = (msg) => {
+        setToastMsg(msg);
+        if (toastTimer.current) clearTimeout(toastTimer.current);
+        toastTimer.current = setTimeout(() => setToastMsg(''), 2500);
+    };
+
+    const validateBasic = () => {
+        const w = {
+            name: !basicName.trim(),
+            phone: !basicPhone.trim(),
+            center: !basicCenter.trim(),
+            address: !basicAddress.trim(),
+        };
+        setShowWarn(w);
+        return !Object.values(w).some(Boolean);
+    };
+
+    const [submitSuccess, setSubmitSuccess] = useState(false);
+    const handleFinalSubmit = async () => {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
+        try {
+            // 이름이 바뀌었으면 DB에 반영
+            if (userId && basicName) {
+                await updateUserInfo(
+                    { id: userId, full_name: basicName, email: basicEmail, phone_number: basicPhone },
+                    token
+                );
+                // localStorage의 user 정보도 갱신
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                user.full_name = basicName;
+                localStorage.setItem('user', JSON.stringify(user));
+                // setUserName이 props로 전달된 경우 바로 갱신
+                if (typeof window.setUserName === 'function') window.setUserName(basicName);
+            }
+            await registerCounselorProfile(
+                {
+                    center_name: basicCenter,
+                    center_phone: basicPhone,
+                    center_address: basicAddress,
+                    consultation_price: Number(basicPrice.replace(/,/g, '')) || 0,
+                    intro_line: basicIntro,
+                    profile_img_url: profileImage,
+                },
+                token
+            );
+            await registerSpecialty(
+                expertType.map((name) => ({
+                    specialty_name: name,
+                    custom_description: customExpertise || undefined,
+                })),
+                token
+            );
+            await registerCertificate(
+                certificates.map((c) => ({
+                    acquisition_date: c.yearMonth,
+                    certificate_name: c.name,
+                    issuer: c.issuer,
+                })),
+                token
+            );
+            await registerEducation(
+                educations.map((e) => ({
+                    start_date: e.startYearMonth,
+                    end_date: e.endYearMonth,
+                    school_name: e.school,
+                    major: e.major,
+                })),
+                token
+            );
+            await registerExperience(
+                experiences.map((e) => ({
+                    start_date: e.startYearMonth,
+                    end_date: e.endYearMonth,
+                    is_current: e.isCurrent,
+                    content: e.content,
+                })),
+                token
+            );
+            await registerSchedule(
+                Object.entries(weeklySchedule)
+                    .filter(([_, val]) => val.active)
+                    .flatMap(([day, val]) =>
+                        val.slots.map((slot) => ({
+                            day_of_week: day,
+                            start_time: slot.start + ':00',
+                            end_time: slot.end + ':00',
+                        }))
+                    ),
+                token
+            );
+            setShowConfirmModal(false);
+            setSubmitSuccess(true);
+            showToast('등록 신청이 완료되었습니다.');
+            setTimeout(() => {
+                navigate('/CounselorMyPage', { state: { profileStatus: '심사중' } });
+            }, 1200);
+        } catch (err) {
+            alert('등록 중 오류가 발생했습니다.');
+            console.error(err);
+        }
+    };
+
+    /* ────────────────── 확인 모달 ────────────────── */
+    const renderConfirmModal = () => {
+        const fmt = (ym) => ym || '—';
+        const fmtPeriod = (s, e, isCurrent) => `${fmt(s)} ~ ${isCurrent ? '현재 진행중' : fmt(e)}`;
+        const activeSchedule = Object.entries(weeklySchedule).filter(([, v]) => v.active);
+
+        return (
+            <div
+                className="cu-modal-backdrop"
+                onClick={(e) => e.target === e.currentTarget && setShowConfirmModal(false)}
+            >
+                <div className="cu-modal">
+                    <div className="cu-modal-header">
+                        <div>
+                            <h3 className="cu-modal-title">등록 신청 전 최종 확인</h3>
+                            <p className="cu-modal-sub">
+                                입력하신 내용을 검토해 주세요. 승인 후 수정은 고객센터를 통해 요청하셔야 합니다.
+                            </p>
                         </div>
-                      ))}
-                      <button onClick={() => addTimeSlot(day)} className="cu-ep-slot-add" title="시간 추가">
-                        <Plus style={{ width: '1rem', height: '1rem' }} />
-                      </button>
+                        <button className="cu-modal-close" onClick={() => setShowConfirmModal(false)}>
+                            <X style={{ width: '1rem', height: '1rem' }} />
+                        </button>
+                    </div>
+
+                    {/* 기본 정보 */}
+                    <p className="cu-modal-section-label">기본 정보</p>
+                    <div className="cu-modal-info-card">
+                        <div className="cu-modal-info-row">
+                            <span className="cu-modal-info-key">이름</span>
+                            <span className="cu-modal-info-val">{basicName || '—'}</span>
+                        </div>
+                        <div className="cu-modal-info-row">
+                            <span className="cu-modal-info-key">연락처</span>
+                            <span className="cu-modal-info-val">{basicPhone || '—'}</span>
+                        </div>
+                        <div className="cu-modal-info-row">
+                            <span className="cu-modal-info-key">상담소명</span>
+                            <span className="cu-modal-info-val">{basicCenter || '—'}</span>
+                        </div>
+                        <div className="cu-modal-info-row">
+                            <span className="cu-modal-info-key">상담 가격</span>
+                            <span className="cu-modal-info-val">{basicPrice ? `${basicPrice}원` : '—'}</span>
+                        </div>
+                        <div className="cu-modal-info-row cu-modal-span2">
+                            <span className="cu-modal-info-key">주소</span>
+                            <span className="cu-modal-info-val">{basicAddress || '—'}</span>
+                        </div>
+                        {basicIntro && (
+                            <div className="cu-modal-info-row cu-modal-span2">
+                                <span className="cu-modal-info-key">한줄 소개</span>
+                                <span className="cu-modal-info-val">{basicIntro}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 전문 분야 */}
+                    {expertType.length > 0 && (
+                        <>
+                            <p className="cu-modal-section-label">전문 분야</p>
+                            <div className="cu-modal-chips">
+                                {expertType.map((t) => (
+                                    <span key={t} className="cu-modal-chip">
+                                        {t}
+                                    </span>
+                                ))}
+                            </div>
+                        </>
+                    )}
+
+                    <hr className="cu-modal-divider" />
+
+                    {/* 자격증 */}
+                    <p className="cu-modal-section-label">자격증</p>
+                    {certificates.some((c) => c.name) ? (
+                        <div className="cu-modal-list">
+                            {certificates
+                                .filter((c) => c.name)
+                                .map((c) => (
+                                    <div key={c.id} className="cu-modal-list-item">
+                                        <span className="cu-modal-list-dot" />
+                                        <div>
+                                            <p className="cu-modal-list-main">{c.name}</p>
+                                            <p className="cu-modal-list-sub">
+                                                {c.issuer || '—'} · {fmt(c.yearMonth)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+                    ) : (
+                        <p className="cu-modal-empty">입력된 자격증이 없습니다.</p>
+                    )}
+
+                    {/* 학력 */}
+                    <p className="cu-modal-section-label">학력 사항</p>
+                    {educations.some((e) => e.school) ? (
+                        <div className="cu-modal-list">
+                            {educations
+                                .filter((e) => e.school)
+                                .map((e) => (
+                                    <div key={e.id} className="cu-modal-list-item">
+                                        <span className="cu-modal-list-dot cu-modal-list-dot--edu" />
+                                        <div>
+                                            <p className="cu-modal-list-main">
+                                                {e.school}
+                                                {e.major ? ` — ${e.major}` : ''}
+                                            </p>
+                                            <p className="cu-modal-list-sub">
+                                                {fmtPeriod(e.startYearMonth, e.endYearMonth, false)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+                    ) : (
+                        <p className="cu-modal-empty">입력된 학력 정보가 없습니다.</p>
+                    )}
+
+                    {/* 경력 */}
+                    <p className="cu-modal-section-label">경력 사항</p>
+                    {experiences.some((e) => e.content) ? (
+                        <div className="cu-modal-list">
+                            {experiences
+                                .filter((e) => e.content)
+                                .map((e) => (
+                                    <div key={e.id} className="cu-modal-list-item">
+                                        <span className="cu-modal-list-dot cu-modal-list-dot--exp" />
+                                        <div>
+                                            <p className="cu-modal-list-main">{e.content}</p>
+                                            <p className="cu-modal-list-sub">
+                                                {fmtPeriod(e.startYearMonth, e.endYearMonth, e.isCurrent)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+                    ) : (
+                        <p className="cu-modal-empty">입력된 경력 정보가 없습니다.</p>
+                    )}
+
+                    {/* 상담 운영 시간 */}
+                    <p className="cu-modal-section-label">상담 운영 시간</p>
+                    {activeSchedule.length > 0 ? (
+                        <div className="cu-modal-list">
+                            {activeSchedule.map(([day, val]) => (
+                                <div key={day} className="cu-modal-list-item">
+                                    <span className="cu-modal-list-dot cu-modal-list-dot--sch" />
+                                    <div>
+                                        <p className="cu-modal-list-main">{day}</p>
+                                        <p className="cu-modal-list-sub">
+                                            {val.slots.map((s, i) => `${s.start} ~ ${s.end}`).join(' / ')}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="cu-modal-empty">설정된 운영 시간이 없습니다.</p>
+                    )}
+
+                    <hr className="cu-modal-divider" />
+
+                    <div className="cu-modal-notice">
+                        <AlertCircle
+                            style={{ width: '1rem', height: '1rem', color: '#8ba888', flexShrink: 0, marginTop: '1px' }}
+                        />
+                        <p className="cu-modal-notice-text">
+                            등록 신청 후 관리자 검토까지 <strong>영업일 기준 2~3일</strong>이 소요됩니다. 심사 결과는
+                            등록하신 이메일로 안내드립니다.
+                        </p>
+                    </div>
+
+                    <label className="cu-modal-check-row">
+                        <div className={`cu-modal-checkbox${confirmChecked ? ' cu-modal-checkbox-on' : ''}`}>
+                            {confirmChecked && (
+                                <CheckCircle2 style={{ width: '.75rem', height: '.75rem', color: '#fff' }} />
+                            )}
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={confirmChecked}
+                            onChange={(e) => setConfirmChecked(e.target.checked)}
+                            style={{ display: 'none' }}
+                        />
+                        <span className="cu-modal-check-label">
+                            위 내용을 모두 확인하였으며, 사실과 다름이 없습니다.
+                        </span>
+                    </label>
+
+                    <div className="cu-modal-btn-row">
+                        <button className="cu-modal-btn-cancel" onClick={() => setShowConfirmModal(false)}>
+                            다시 수정하기
+                        </button>
+                        <button
+                            className={`cu-modal-btn-submit${confirmChecked ? ' cu-modal-btn-submit-on' : ''}`}
+                            onClick={handleFinalSubmit}
+                            disabled={!confirmChecked}
+                        >
+                            등록 신청하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    /* ────────────────── 탭 렌더 ────────────────── */
+    const renderBasicInfo = () => (
+        <div className="cu-ep-basic cu-ep-animate">
+            <div className="cu-ep-photo-section">
+                <div className="cu-ep-photo-box" onClick={() => fileInputRef.current?.click()}>
+                    {profileImage ? (
+                        <img src={profileImage} alt="프로필" className="cu-ep-photo-img" />
+                    ) : (
+                        <User style={{ color: '#8BA888', width: '3.5rem', height: '3.5rem' }} />
+                    )}
+                    <div className="cu-ep-photo-overlay">
+                        <Plus style={{ color: '#fff', width: '1.5rem', height: '1.5rem' }} />
                     </div>
                 </div>
                 <input
                     type="file"
                     ref={fileInputRef}
-                    onChange={handleImageUpload}
+                    onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const r = new FileReader();
+                            r.onloadend = () => setProfileImage(r.result);
+                            r.readAsDataURL(file);
+                        }
+                    }}
                     accept="image/*"
                     style={{ display: 'none' }}
                 />
@@ -259,7 +532,6 @@ const App = () => {
                             setBasicName(e.target.value);
                             setShowWarn((w) => ({ ...w, name: false }));
                         }}
-                        readOnly
                     />
                     {showWarn.name && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
                 </div>
@@ -295,7 +567,6 @@ const App = () => {
                     />
                     {showWarn.phone && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
                 </div>
-                {/* 한줄 소개 입력란 (상담소 주소와 동일한 너비) */}
                 <div className="cu-ep-field cu-ep-span2">
                     <label className="cu-ep-label">한줄 소개</label>
                     <input
@@ -350,7 +621,6 @@ const App = () => {
                     />
                     {showWarn.address && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
                 </div>
-                {/* 상담 가격 입력란 및 안내문을 주소 밑으로 이동 */}
                 <div className="cu-ep-field">
                     <label className="cu-ep-label">상담 가격 (원)</label>
                     <input
@@ -359,12 +629,9 @@ const App = () => {
                         className="cu-ep-input"
                         value={basicPrice}
                         onChange={(e) => {
-                            // 숫자만 입력받고 천 단위 콤마 추가
                             const raw = e.target.value.replace(/[^0-9]/g, '');
-                            const formatted = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                            setBasicPrice(formatted);
+                            setBasicPrice(raw.replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         }}
-                        min="0"
                         inputMode="numeric"
                         pattern="[0-9,]*"
                     />
@@ -375,7 +642,6 @@ const App = () => {
             </div>
         </div>
     );
-    // ...existing code...
 
     const renderExpertise = () => (
         <div className="cu-ep-expertise cu-ep-animate">
@@ -385,7 +651,7 @@ const App = () => {
                     전문 상담분야 <span className="cu-ep-section-hint">(중복 선택 가능)</span>
                 </h3>
                 <div className="cu-ep-chips">
-                    {expertiseList.map((item) => (
+                    {EXPERTISE_LIST.map((item) => (
                         <button
                             key={item}
                             onClick={() =>
@@ -407,14 +673,12 @@ const App = () => {
                     />
                 </div>
             </section>
-
             <section>
                 <h3 className="cu-ep-section-title">
-                    <span className="cu-ep-schedule-bar" />
-                    주간 상담 일정
+                    <span className="cu-ep-schedule-bar" /> 주간 상담 일정
                 </h3>
                 <div className="cu-ep-schedule-list">
-                    {days.map((day) => {
+                    {DAYS.map((day) => {
                         const d = weeklySchedule[day];
                         return (
                             <div key={day} className={`cu-ep-schedule-row${d.active ? ' cu-ep-day-on' : ''}`}>
@@ -441,7 +705,7 @@ const App = () => {
                                                                 updateTime(day, idx, 'start', e.target.value)
                                                             }
                                                         >
-                                                            {timeOptions.map((t) => (
+                                                            {TIME_OPTIONS.map((t) => (
                                                                 <option key={t} value={t}>
                                                                     {t}
                                                                 </option>
@@ -457,22 +721,13 @@ const App = () => {
                                                                 updateTime(day, idx, 'end', e.target.value)
                                                             }
                                                         >
-                                                            {timeOptions
-                                                                .filter((t) => {
-                                                                    // 시작시간이 선택되어 있으면, 끝나는 시간은 시작시간보다 1시간 이후부터만 표시
-                                                                    if (!slot.start) return true;
-                                                                    const startHour = parseInt(
-                                                                        slot.start.split(':')[0],
-                                                                        10
-                                                                    );
-                                                                    const tHour = parseInt(t.split(':')[0], 10);
-                                                                    return tHour > startHour;
-                                                                })
-                                                                .map((t) => (
-                                                                    <option key={t} value={t}>
-                                                                        {t}
-                                                                    </option>
-                                                                ))}
+                                                            {TIME_OPTIONS.filter(
+                                                                (t) => !slot.start || parseInt(t) > parseInt(slot.start)
+                                                            ).map((t) => (
+                                                                <option key={t} value={t}>
+                                                                    {t}
+                                                                </option>
+                                                            ))}
                                                         </select>
                                                         <ChevronDown className="cu-ep-dp-chevron" />
                                                     </div>
@@ -481,7 +736,7 @@ const App = () => {
                                                             onClick={() => removeTimeSlot(day, idx)}
                                                             className="cu-ep-slot-rm"
                                                         >
-                                                            <X style={{ width: '0.875rem', height: '0.875rem' }} />
+                                                            <X style={{ width: '.875rem', height: '.875rem' }} />
                                                         </button>
                                                     )}
                                                 </div>
@@ -508,14 +763,14 @@ const App = () => {
 
     const renderHistory = () => (
         <div className="cu-ep-history cu-ep-animate">
-            {/* 자격증 */}
+            {/* ── 자격증 ── */}
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
                         <Award style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} /> 자격증
                     </h3>
                     <button onClick={addCertificate} className="cu-ep-add-btn">
-                        <Plus style={{ width: '0.875rem', height: '0.875rem' }} /> 추가
+                        <Plus style={{ width: '.875rem', height: '.875rem' }} /> 추가
                     </button>
                 </div>
                 <div className="cu-ep-items">
@@ -524,11 +779,7 @@ const App = () => {
                             <div className="cu-ep-cert-date">
                                 <YearMonthPicker
                                     value={cert.yearMonth}
-                                    onChange={(v) =>
-                                        setCertificates((p) =>
-                                            p.map((c) => (c.id === cert.id ? { ...c, yearMonth: v } : c))
-                                        )
-                                    }
+                                    onChange={(v) => updateCertificate(cert.id, 'yearMonth', v)}
                                 />
                             </div>
                             <div className="cu-ep-item-field">
@@ -537,11 +788,19 @@ const App = () => {
                                     type="text"
                                     placeholder="자격증 이름을 입력하세요"
                                     className="cu-ep-item-input"
+                                    value={cert.name}
+                                    onChange={(e) => updateCertificate(cert.id, 'name', e.target.value)}
                                 />
                             </div>
                             <div className="cu-ep-item-field">
                                 <label className="cu-ep-item-label">발급 기관</label>
-                                <input type="text" placeholder="기관명" className="cu-ep-item-input" />
+                                <input
+                                    type="text"
+                                    placeholder="기관명"
+                                    className="cu-ep-item-input"
+                                    value={cert.issuer}
+                                    onChange={(e) => updateCertificate(cert.id, 'issuer', e.target.value)}
+                                />
                             </div>
                             <button onClick={() => removeCertificate(cert.id)} className="cu-ep-rm-btn">
                                 <Trash2 style={{ width: '1rem', height: '1rem' }} />
@@ -551,95 +810,85 @@ const App = () => {
                 </div>
             </section>
 
-            {/* 학력 */}
+            {/* ── 학력 ── */}
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
                         <BookOpen style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} /> 학력 사항
                     </h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <button onClick={addEducation} className="cu-ep-add-btn">
-                            <Plus style={{ width: '0.875rem', height: '0.875rem' }} /> 추가
-                        </button>
-                        {educations.length > 1 && (
-                            <button
-                                onClick={() => removeEducation(educations[educations.length - 1].id)}
-                                className="cu-ep-rm-btn"
-                                title="마지막 학력 삭제"
-                            >
-                                <Trash2 style={{ width: '1rem', height: '1rem' }} />
-                            </button>
-                        )}
-                    </div>
+                    <button onClick={addEducation} className="cu-ep-add-btn">
+                        <Plus style={{ width: '.875rem', height: '.875rem' }} /> 추가
+                    </button>
                 </div>
                 <div className="cu-ep-edu-items">
                     {educations.map((edu) => (
                         <div key={edu.id} className="cu-ep-edu-item">
                             <div
-                                className="cu-ep-edu-grid-2x2"
                                 style={{
                                     display: 'grid',
                                     gridTemplateColumns: '1fr 1fr',
-                                    gridTemplateRows: '1fr 1fr',
                                     gap: '1rem',
                                     alignItems: 'start',
-                                    width: '100%',
                                 }}
                             >
-                                {/* 입학일 */}
-                                <div
-                                    className="cu-ep-edu-field-group"
-                                    style={{ display: 'flex', flexDirection: 'column' }}
-                                >
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
                                     <div className="cu-ep-edu-label">입학일</div>
                                     <YearMonthPicker
                                         value={edu.startYearMonth}
-                                        onChange={(v) =>
-                                            setEducations((p) =>
-                                                p.map((e) => (e.id === edu.id ? { ...e, startYearMonth: v } : e))
-                                            )
-                                        }
+                                        onChange={(v) => updateEducation(edu.id, 'startYearMonth', v)}
                                     />
                                 </div>
-                                {/* 졸업일 */}
-                                <div
-                                    className="cu-ep-edu-field-group"
-                                    style={{ display: 'flex', flexDirection: 'column' }}
-                                >
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
                                     <div className="cu-ep-edu-label">졸업일</div>
                                     <YearMonthPicker
                                         value={edu.endYearMonth}
-                                        onChange={(v) =>
-                                            setEducations((p) =>
-                                                p.map((e) => (e.id === edu.id ? { ...e, endYearMonth: v } : e))
-                                            )
-                                        }
+                                        onChange={(v) => updateEducation(edu.id, 'endYearMonth', v)}
                                     />
                                 </div>
-                                {/* 학교명 */}
-                                <div className="cu-ep-item-field" style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div className="cu-ep-item-field">
                                     <label className="cu-ep-item-label">학교명</label>
-                                    <input type="text" placeholder="학교명을 입력하세요" className="cu-ep-item-input" />
+                                    <input
+                                        type="text"
+                                        placeholder="학교명을 입력하세요"
+                                        className="cu-ep-item-input"
+                                        value={edu.school}
+                                        onChange={(e) => updateEducation(edu.id, 'school', e.target.value)}
+                                    />
                                 </div>
-                                {/* 전공 및 학위 */}
-                                <div className="cu-ep-item-field" style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div className="cu-ep-item-field">
                                     <label className="cu-ep-item-label">전공 및 학위</label>
-                                    <input type="text" placeholder="전공 및 학위" className="cu-ep-item-input" />
+                                    <input
+                                        type="text"
+                                        placeholder="전공 및 학위"
+                                        className="cu-ep-item-input"
+                                        value={edu.major}
+                                        onChange={(e) => updateEducation(edu.id, 'major', e.target.value)}
+                                    />
                                 </div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '.75rem' }}>
+                                <button
+                                    onClick={() => removeEducation(edu.id)}
+                                    className="cu-ep-rm-btn"
+                                    disabled={educations.length === 1}
+                                    style={{ opacity: educations.length === 1 ? 0.3 : 1 }}
+                                >
+                                    <Trash2 style={{ width: '1rem', height: '1rem' }} />
+                                </button>
                             </div>
                         </div>
                     ))}
                 </div>
             </section>
 
-            {/* 경력 */}
+            {/* ── 경력 ── */}
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
                         <User style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} /> 경력 사항
                     </h3>
                     <button onClick={addExperience} className="cu-ep-add-btn">
-                        <Plus style={{ width: '0.875rem', height: '0.875rem' }} /> 추가
+                        <Plus style={{ width: '.875rem', height: '.875rem' }} /> 추가
                     </button>
                 </div>
                 <div className="cu-ep-items">
@@ -648,29 +897,21 @@ const App = () => {
                             key={exp.id}
                             className="cu-ep-exp-item"
                             style={{
+                                position: 'relative',
                                 display: 'grid',
                                 gridTemplateColumns: '1fr 1fr',
-                                gridTemplateRows: '1fr 1fr',
                                 gap: '1rem',
                                 alignItems: 'start',
-                                width: '100%',
-                                position: 'relative',
-                                background: '#fff',
-                                borderRadius: '0.5rem',
                                 padding: '1rem',
-                                marginBottom: '1rem',
-                                boxShadow: '0 1px 4px 0 rgba(0,0,0,0.04)',
                             }}
                         >
-                            {/* 시작일 */}
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <label className="cu-ep-item-label">시작일</label>
                                 <YearMonthPicker
                                     value={exp.startYearMonth}
-                                    onChange={(v) => handleExperienceChange(exp.id, 'startYearMonth', v)}
+                                    onChange={(v) => updateExperience(exp.id, 'startYearMonth', v)}
                                 />
                             </div>
-                            {/* 종료일 */}
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <label className="cu-ep-item-label">종료일</label>
                                 {exp.isCurrent ? (
@@ -680,7 +921,6 @@ const App = () => {
                                         readOnly
                                         className="cu-ep-item-input"
                                         style={{
-                                            width: '7.5rem',
                                             background: '#f3f4f6',
                                             color: '#8BA888',
                                             border: 'none',
@@ -690,11 +930,10 @@ const App = () => {
                                 ) : (
                                     <YearMonthPicker
                                         value={exp.endYearMonth}
-                                        onChange={(v) => handleExperienceChange(exp.id, 'endYearMonth', v)}
+                                        onChange={(v) => updateExperience(exp.id, 'endYearMonth', v)}
                                     />
                                 )}
                             </div>
-                            {/* 활동 내용 */}
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <label className="cu-ep-item-label">활동 내용</label>
                                 <input
@@ -702,27 +941,25 @@ const App = () => {
                                     placeholder="소속 및 직책 등을 입력하세요"
                                     className="cu-ep-item-input"
                                     value={exp.content}
-                                    onChange={(e) => handleExperienceChange(exp.id, 'content', e.target.value)}
+                                    onChange={(e) => updateExperience(exp.id, 'content', e.target.value)}
                                 />
                             </div>
-                            {/* 현재진행중 체크박스 */}
                             <div style={{ display: 'flex', alignItems: 'center', marginTop: '1.2rem' }}>
                                 <input
                                     type="checkbox"
                                     id={`current-${exp.id}`}
                                     checked={exp.isCurrent}
-                                    onChange={(e) => handleExperienceChange(exp.id, 'isCurrent', e.target.checked)}
-                                    style={{ marginRight: '0.5rem' }}
+                                    onChange={(e) => updateExperience(exp.id, 'isCurrent', e.target.checked)}
+                                    style={{ marginRight: '.5rem' }}
                                 />
-                                <label htmlFor={`current-${exp.id}`} style={{ fontSize: '0.95rem', color: '#666' }}>
+                                <label htmlFor={`current-${exp.id}`} style={{ fontSize: '.95rem', color: '#666' }}>
                                     현재 진행중
                                 </label>
                             </div>
-                            {/* 삭제 버튼 (우하단) */}
                             <button
                                 onClick={() => removeExperience(exp.id)}
                                 className="cu-ep-rm-btn"
-                                style={{ position: 'absolute', bottom: '0.5rem', right: '0.5rem', top: 'auto' }}
+                                style={{ position: 'absolute', bottom: '.5rem', right: '.5rem' }}
                             >
                                 <Trash2 style={{ width: '1rem', height: '1rem' }} />
                             </button>
@@ -733,34 +970,82 @@ const App = () => {
         </div>
     );
 
-    // ── Render ──
+    /* ────────────────── 메인 렌더 ────────────────── */
+    const handleSaveDraft = () => {
+        localStorage.setItem(
+            'counselor_upload_draft',
+            JSON.stringify({
+                basicName,
+                basicId,
+                basicEmail,
+                basicPhone,
+                basicCenter,
+                basicAddress,
+                basicPrice,
+                basicIntro,
+                expertType,
+                customExpertise,
+                certificates,
+                educations,
+                experiences,
+                weeklySchedule,
+                profileImage,
+            })
+        );
+        showToast('임시 저장되었습니다.');
+    };
+
+    const handleTabChange = (tabId) => {
+        if ((tabId === 'expertise' || tabId === 'history') && activeTab === 'basic') {
+            if (!validateBasic()) return;
+        }
+        setActiveTab(tabId);
+    };
+
+    const handleNext = () => {
+        if (activeTab === 'basic') {
+            if (!validateBasic()) return;
+            setActiveTab('expertise');
+        } else if (activeTab === 'expertise') setActiveTab('history');
+        else {
+            setConfirmChecked(false);
+            setShowConfirmModal(true);
+        }
+    };
+
     return (
         <div className="cu-ep-page">
-            {/* 임시저장 플로팅 버튼 */}
-            <button className="cu-ep-float-btn" onClick={() => alert('임시 저장되었습니다.')}>
+            {showConfirmModal && renderConfirmModal()}
+            {toastMsg && <div className="cu-toast-popup cu-toast-popup--show">{toastMsg}</div>}
+            {submitSuccess && (
+                <div
+                    className="cu-toast-popup cu-toast-popup--show"
+                    style={{ background: '#8BA888', color: '#fff', zIndex: 9999 }}
+                >
+                    등록이 완료되었습니다. 마이페이지로 이동합니다.
+                </div>
+            )}
+
+            <button className="cu-ep-float-btn" onClick={handleSaveDraft}>
                 <Save style={{ width: '1rem', height: '1rem', color: '#8BA888' }} />
                 <span className="cu-ep-float-label">임시저장</span>
             </button>
 
-            {/* 헤더 교체: activeTab, setActiveTab 전달 */}
-            {/* 상담사 헤더가 보이도록 명시적으로 props 전달 */}
             <Header
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
                 isLoggedIn={true}
-                userName={'상담사'}
+                userName="상담사"
                 setUserName={() => {}}
                 setIsLoggedIn={() => {}}
             />
 
-            {/* 메인 */}
             <main className="cu-ep-main">
                 <div className="cu-ep-page-title">
                     <h2>전문가 프로필 등록</h2>
                     <p>상담사님의 전문성을 보여줄 수 있도록 상세하게 작성 부탁드립니다.</p>
                 </div>
 
-                {/* 탭 */}
                 <div className="cu-ep-tabs">
                     {[
                         { id: 'basic', label: '기본 정보' },
@@ -769,20 +1054,7 @@ const App = () => {
                     ].map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => {
-                                // Prevent moving to '전문 분야' or '학력/경력' if basic info is not valid
-                                if ((tab.id === 'expertise' || tab.id === 'history') && activeTab === 'basic') {
-                                    const warnObj = {
-                                        name: !basicName.trim(),
-                                        phone: !basicPhone.trim(),
-                                        center: !basicCenter.trim(),
-                                        address: !basicAddress.trim(),
-                                    };
-                                    setShowWarn(warnObj);
-                                    if (warnObj.name || warnObj.phone || warnObj.center || warnObj.address) return;
-                                }
-                                setActiveTab(tab.id);
-                            }}
+                            onClick={() => handleTabChange(tab.id)}
                             className={`cu-ep-tab-btn${activeTab === tab.id ? ' cu-ep-tab-active' : ''}`}
                         >
                             {tab.label}
@@ -790,21 +1062,20 @@ const App = () => {
                     ))}
                 </div>
 
-                {/* 컨텐츠 */}
                 <div className="cu-ep-content">
                     {activeTab === 'basic' && renderBasicInfo()}
                     {activeTab === 'expertise' && renderExpertise()}
                     {activeTab === 'history' && renderHistory()}
 
                     <div className="cu-ep-nav">
-                        <div className="cu-ep-nav-hint" style={{ color: '#8BA888', fontSize: '0.97rem' }}>
+                        <div className="cu-ep-nav-hint" style={{ color: '#8BA888', fontSize: '.97rem' }}>
                             <CheckCircle2
                                 style={{
                                     width: '1rem',
                                     height: '1rem',
                                     color: '#8BA888',
                                     flexShrink: 0,
-                                    marginRight: '0.3rem',
+                                    marginRight: '.3rem',
                                 }}
                             />
                             관리자 승인까지는 최대 2~3일 소요될 수 있습니다.
@@ -818,112 +1089,7 @@ const App = () => {
                                     이전
                                 </button>
                             )}
-                            <button
-                                onClick={async () => {
-                                    if (activeTab === 'basic') {
-                                        const warnObj = {
-                                            name: !basicName.trim(),
-                                            phone: !basicPhone.trim(),
-                                            center: !basicCenter.trim(),
-                                            address: !basicAddress.trim(),
-                                        };
-                                        setShowWarn(warnObj);
-                                        if (warnObj.name || warnObj.phone || warnObj.center || warnObj.address) return;
-                                        setActiveTab('expertise');
-                                    } else if (activeTab === 'expertise') setActiveTab('history');
-                                    else {
-                                        // 등록 신청하기 클릭 시
-                                        const token = localStorage.getItem('accessToken');
-                                        if (!token) {
-                                            alert('로그인이 필요합니다.');
-                                            return;
-                                        }
-                                        try {
-                                            // 1. 프로필 등록
-                                            await registerCounselorProfile(
-                                                {
-                                                    name: basicName,
-                                                    phone: basicPhone,
-                                                    center: basicCenter,
-                                                    address: basicAddress,
-                                                    price: basicPrice.replace(/,/g, ''),
-                                                    intro: basicIntro,
-                                                    profile_image: profileImage,
-                                                },
-                                                token
-                                            );
-
-                                            // 2. 전문분야 등록
-                                            await registerSpecialty(
-                                                {
-                                                    specialties: expertType,
-                                                    custom_specialty: customExpertise,
-                                                },
-                                                token
-                                            );
-
-                                            // 3. 자격증 등록
-                                            await registerCertificate(
-                                                {
-                                                    certificates: certificates.map((c) => ({
-                                                        year: c.year,
-                                                        month: c.month,
-                                                        name: c.name,
-                                                        issuer: c.issuer,
-                                                    })),
-                                                },
-                                                token
-                                            );
-
-                                            // 4. 학력 등록
-                                            await registerEducation(
-                                                {
-                                                    educations: educations.map((e) => ({
-                                                        start_year: e.startYear,
-                                                        start_month: e.startMonth,
-                                                        end_year: e.endYear,
-                                                        end_month: e.endMonth,
-                                                        school: e.school,
-                                                        major: e.major,
-                                                    })),
-                                                },
-                                                token
-                                            );
-
-                                            // 5. 경력 등록
-                                            await registerExperience(
-                                                {
-                                                    experiences: experiences.map((e) => ({
-                                                        start_year_month: e.startYearMonth,
-                                                        end_year_month: e.endYearMonth,
-                                                        content: e.content,
-                                                        is_current: e.isCurrent,
-                                                    })),
-                                                },
-                                                token
-                                            );
-
-                                            // 6. 스케줄 등록
-                                            await registerSchedule(
-                                                {
-                                                    schedule: Object.entries(weeklySchedule).map(([day, val]) => ({
-                                                        day,
-                                                        active: val.active,
-                                                        slots: val.slots,
-                                                    })),
-                                                },
-                                                token
-                                            );
-
-                                            alert('등록 신청이 완료되었습니다.');
-                                        } catch (err) {
-                                            alert('등록 중 오류가 발생했습니다.');
-                                            console.error(err);
-                                        }
-                                    }
-                                }}
-                                className="cu-ep-btn-next"
-                            >
+                            <button onClick={handleNext} className="cu-ep-btn-next">
                                 {activeTab === 'history' ? '등록 신청하기' : '다음 단계'}
                             </button>
                         </div>
@@ -931,10 +1097,7 @@ const App = () => {
                 </div>
             </main>
 
-            {/* 모바일탭 교체 */}
             <MobileTap />
-
-            {/* 푸터 교체 */}
             <Footer />
         </div>
     );
