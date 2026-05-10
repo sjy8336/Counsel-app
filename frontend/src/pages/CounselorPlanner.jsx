@@ -637,9 +637,19 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                     {viewMode === 'calendar' ? (
                         <div className="mwc-calendar-view">
                             <div className="mwc-calendar-toolbar">
-                                <h3 className="mwc-calendar-month">
-                                    {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
-                                </h3>
+                                <div className="mwc-calendar-nav">
+                                    <div className="mwc-month-nav-btns">
+                                        <button className="mwc-month-nav-btn" onClick={prevMonth}>
+                                            <ChevronLeft size={18} />
+                                        </button>
+                                        <span className="mwc-calendar-month">
+                                            {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
+                                        </span>
+                                        <button className="mwc-month-nav-btn" onClick={nextMonth}>
+                                            <ChevronRight size={18} />
+                                        </button>
+                                    </div>
+                                </div>
                                 <button
                                     onClick={() => {
                                         setSelectedDateDetails(new Date().toISOString().split('T')[0]);

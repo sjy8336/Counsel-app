@@ -33,151 +33,202 @@ import {
 import { getMyInfo } from '../api/user.js';
 
 const App = () => {
-    // ── State ──
-    const [activeTab, setActiveTab] = useState('basic');
-    const [profileImage, setProfileImage] = useState(null);
-    const fileInputRef = useRef(null);
-    const [expertType, setExpertType] = useState([]);
-    const [customExpertise, setCustomExpertise] = useState('');
-    const [certificates, setCertificates] = useState([{ id: 1, year: '', month: '', name: '', issuer: '' }]);
-    const [educations, setEducations] = useState([
-        { id: 1, startYear: '', startMonth: '', endYear: '', endMonth: '', school: '', major: '' },
-    ]);
-    const [experiences, setExperiences] = useState([
-        { id: 1, startYearMonth: '', endYearMonth: '', content: '', isCurrent: false },
-    ]);
+  // ── State ──
+  const [activeTab, setActiveTab] = useState('basic');
+  const [profileImage, setProfileImage] = useState(null);
+  const fileInputRef = useRef(null);
+  const [expertType, setExpertType] = useState([]);
+  const [customExpertise, setCustomExpertise] = useState('');
+  const [certificates, setCertificates] = useState([{ id: 1, year: '', month: '', name: '', issuer: '' }]);
+  const [educations, setEducations] = useState([{ id: 1, startYear: '', startMonth: '', endYear: '', endMonth: '', school: '', major: '' }]);
+  const [experiences, setExperiences] = useState([{ id: 1, startYearMonth: '', endYearMonth: '', content: '', isCurrent: false }]);
 
-    // 기본정보 입력값 상태
-    const [basicName, setBasicName] = useState('');
-    const [basicId, setBasicId] = useState('');
-    const [basicEmail, setBasicEmail] = useState('');
-    const [basicPhone, setBasicPhone] = useState('');
-    const [basicCenter, setBasicCenter] = useState('');
-    const [basicAddress, setBasicAddress] = useState('');
-    const [basicPrice, setBasicPrice] = useState(''); // 상담 가격
-    const [basicIntro, setBasicIntro] = useState(''); // 한줄 소개
-    const [basicWarn, setBasicWarn] = useState('');
-    const [showWarn, setShowWarn] = useState({
-        name: false,
-        phone: false,
-        center: false,
-        address: false,
-    });
+  // 기본정보 입력값 상태
+  const [basicName, setBasicName] = useState("");
+  const [basicPhone, setBasicPhone] = useState("");
+  const [basicCenter, setBasicCenter] = useState("");
+  const [basicAddress, setBasicAddress] = useState("");
+  const [basicWarn, setBasicWarn] = useState("");
+  const [showWarn, setShowWarn] = useState({
+    name: false,
+    phone: false,
+    center: false,
+    address: false,
+  });
 
-    // 회원정보 자동 입력
-    useEffect(() => {
-        const fetchUser = async () => {
-            const token = localStorage.getItem('accessToken');
-            if (!token) return;
-            try {
-                const user = await getMyInfo(token);
-                // user: { name, username/user_id, email, phone }
-                if (user) {
-                    setBasicName(user.name || '');
-                    setBasicId(user.username || user.user_id || '');
-                    setBasicEmail(user.email || '');
-                    setBasicPhone(user.phone || '');
-                }
-            } catch (e) {
-                // ignore
-            }
-        };
-        fetchUser();
-    }, []);
+  const days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+  const [weeklySchedule, setWeeklySchedule] = useState(
+    days.reduce((acc, day) => ({ ...acc, [day]: { active: day !== '토요일' && day !== '일요일', slots: [{ start: '10:00', end: '19:00' }] } }), {})
+  );
 
-    const days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
-    const [weeklySchedule, setWeeklySchedule] = useState(
-        days.reduce(
-            (acc, day) => ({
-                ...acc,
-                [day]: { active: day !== '토요일' && day !== '일요일', slots: [{ start: '10:00', end: '19:00' }] },
-            }),
-            {}
-        )
-    );
+  // ── Constants ──
+  const currentYear = new Date().getFullYear();
+  const yearOptions  = Array.from({ length: 40 }, (_, i) => currentYear - i);
+  const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
+  const timeOptions  = Array.from({ length: 11 }, (_, i) => `${10 + i}:00`);
+  const expertiseList = ['개인심리','취업상담','진로상담','대인관계','가족상담','우울/불안','연애/결혼','공황/장애','트라우마','중독상담','번아웃','스트레스','자존감향상','성격상담','학업/시험'];
 
-    // ── Constants ──
-    const currentYear = new Date().getFullYear();
-    const yearOptions = Array.from({ length: 40 }, (_, i) => currentYear - i);
-    const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
-    const timeOptions = Array.from({ length: 11 }, (_, i) => `${10 + i}:00`);
-    const expertiseList = [
-        '개인심리',
-        '취업상담',
-        '진로상담',
-        '대인관계',
-        '가족상담',
-        '우울/불안',
-        '연애/결혼',
-        '공황/장애',
-        '트라우마',
-        '중독상담',
-        '번아웃',
-        '스트레스',
-        '자존감향상',
-        '성격상담',
-        '학업/시험',
-    ];
+  // ── Handlers ──
+  const handleImageUpload = e => {
+    const file = e.target.files[0];
+    if (file) { const r = new FileReader(); r.onloadend = () => setProfileImage(r.result); r.readAsDataURL(file); }
+  };
 
-    // ── Handlers ──
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const r = new FileReader();
-            r.onloadend = () => setProfileImage(r.result);
-            r.readAsDataURL(file);
-        }
-    };
+  const toggleDayActive = day => setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], active: !p[day].active } }));
+  const updateTime = (day, idx, type, value) => {
+    const newSlots = [...weeklySchedule[day].slots];
+    newSlots[idx][type] = value;
+    setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], slots: newSlots } }));
+  };
+  const addTimeSlot    = day => setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], slots: [...p[day].slots, { start: '10:00', end: '19:00' }] } }));
+  const removeTimeSlot = (day, idx) => setWeeklySchedule(p => ({ ...p, [day]: { ...p[day], slots: p[day].slots.filter((_, i) => i !== idx) } }));
 
-    const toggleDayActive = (day) => setWeeklySchedule((p) => ({ ...p, [day]: { ...p[day], active: !p[day].active } }));
-    const updateTime = (day, idx, type, value) => {
-        const newSlots = [...weeklySchedule[day].slots];
-        newSlots[idx][type] = value;
-        setWeeklySchedule((p) => ({ ...p, [day]: { ...p[day], slots: newSlots } }));
-    };
-    const addTimeSlot = (day) =>
-        setWeeklySchedule((p) => ({
-            ...p,
-            [day]: { ...p[day], slots: [...p[day].slots, { start: '10:00', end: '19:00' }] },
-        }));
-    const removeTimeSlot = (day, idx) =>
-        setWeeklySchedule((p) => ({ ...p, [day]: { ...p[day], slots: p[day].slots.filter((_, i) => i !== idx) } }));
+  const addCertificate    = () => setCertificates(p => [...p, { id: Date.now(), year: '', month: '', name: '', issuer: '' }]);
+  const removeCertificate = id => setCertificates(p => p.filter(c => c.id !== id));
+  const addEducation      = () => setEducations(p => [...p, { id: Date.now(), startYear: '', startMonth: '', endYear: '', endMonth: '', school: '', major: '' }]);
+  const removeEducation   = id => setEducations(p => p.filter(e => e.id !== id));
+  const addExperience     = () => setExperiences(p => [...p, { id: Date.now(), startYearMonth: '', endYearMonth: '', content: '', isCurrent: false }]);
+  const removeExperience  = id => setExperiences(p => p.filter(e => e.id !== id));
+  const handleExperienceChange = (id, field, value) => {
+    setExperiences(p => p.map(e => e.id === id ? { ...e, [field]: value } : e));
+  };
 
-    const addCertificate = () =>
-        setCertificates((p) => [...p, { id: Date.now(), year: '', month: '', name: '', issuer: '' }]);
-    const removeCertificate = (id) => setCertificates((p) => p.filter((c) => c.id !== id));
-    const addEducation = () =>
-        setEducations((p) => [
-            ...p,
-            { id: Date.now(), startYear: '', startMonth: '', endYear: '', endMonth: '', school: '', major: '' },
-        ]);
-    const removeEducation = (id) => setEducations((p) => p.filter((e) => e.id !== id));
-    const addExperience = () =>
-        setExperiences((p) => [
-            ...p,
-            { id: Date.now(), startYearMonth: '', endYearMonth: '', content: '', isCurrent: false },
-        ]);
-    const removeExperience = (id) => setExperiences((p) => p.filter((e) => e.id !== id));
-    const handleExperienceChange = (id, field, value) => {
-        setExperiences((p) => p.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
-    };
+  // ── DatePicker ──
+  // 프로필 사진 클릭 시 파일 선택창 열기
+  const handlePhotoClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+  const renderBasicInfo = () => (
+    <div className="cu-ep-basic cu-ep-animate">
+      <div className="cu-ep-photo-section">
+        <div className="cu-ep-photo-box" onClick={handlePhotoClick}>
+          {profileImage ? (
+            <img src={profileImage} alt="프로필" className="cu-ep-photo-img" />
+          ) : (
+            <User style={{ color: '#8BA888', width: '3.5rem', height: '3.5rem' }} />
+          )}
+          <div className="cu-ep-photo-overlay"><Plus style={{ color: '#fff', width: '1.5rem', height: '1.5rem' }} /></div>
+        </div>
+        <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" style={{ display: 'none' }} />
+        <p className="cu-ep-photo-hint">JPG, PNG 지원<br />권장 사이즈: 500x500px</p>
+      </div>
 
-    // ── DatePicker ──
-    // 프로필 사진 클릭 시 파일 선택창 열기
-    const handlePhotoClick = () => {
-        if (fileInputRef.current) fileInputRef.current.click();
-    };
-    const renderBasicInfo = () => (
-        <div className="cu-ep-basic cu-ep-animate">
-            <div className="cu-ep-photo-section">
-                <div className="cu-ep-photo-box" onClick={handlePhotoClick}>
-                    {profileImage ? (
-                        <img src={profileImage} alt="프로필" className="cu-ep-photo-img" />
-                    ) : (
-                        <User style={{ color: '#8BA888', width: '3.5rem', height: '3.5rem' }} />
-                    )}
-                    <div className="cu-ep-photo-overlay">
-                        <Plus style={{ color: '#fff', width: '1.5rem', height: '1.5rem' }} />
+      <div className="cu-ep-fields">
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">이름 <span className="cu-ep-required">*</span></label>
+          <input type="text" placeholder="이름을 입력하세요" className="cu-ep-input" value={basicName} onChange={e => { setBasicName(e.target.value); setShowWarn(w => ({ ...w, name: false })); }} />
+          {showWarn.name && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">아이디 <span className="cu-ep-label-badge">수정 불가</span></label>
+          <input type="text" value="expert_mindwell" readOnly className="cu-ep-input-ro" />
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">이메일</label>
+          <input type="email" placeholder="example@mindwell.com" className="cu-ep-input" />
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">개인 연락처 <span className="cu-ep-required">*</span></label>
+          <input type="tel" placeholder="010-0000-0000" className="cu-ep-input" value={basicPhone} onChange={e => { setBasicPhone(e.target.value); setShowWarn(w => ({ ...w, phone: false })); }} />
+          {showWarn.phone && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
+        </div>
+        <div className="cu-ep-divider">
+          <div className="cu-ep-field-group">
+            <label className="cu-ep-group-label"><MapPin style={{ width: '1rem', height: '1rem', color: '#8BA888' }} /> 상담소 정보</label>
+          </div>
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">상담소명 <span className="cu-ep-required">*</span></label>
+          <input type="text" placeholder="소속 상담소 이름을 입력하세요" className="cu-ep-input" value={basicCenter} onChange={e => { setBasicCenter(e.target.value); setShowWarn(w => ({ ...w, center: false })); }} />
+          {showWarn.center && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-label">상담소 전화번호</label>
+          <input type="tel" placeholder="02-000-0000" className="cu-ep-input" />
+        </div>
+        <div className="cu-ep-field cu-ep-span2">
+          <label className="cu-ep-label">상담소 주소 <span className="cu-ep-required">*</span></label>
+          <input type="text" placeholder="상담소가 위치한 상세 주소를 입력하세요" className="cu-ep-input" value={basicAddress} onChange={e => { setBasicAddress(e.target.value); setShowWarn(w => ({ ...w, address: false })); }} />
+          {showWarn.address && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
+        </div>
+      </div>
+    </div>
+  );
+// ...existing code...
+
+  const renderExpertise = () => (
+    <div className="cu-ep-expertise cu-ep-animate">
+      <section>
+        <h3 className="cu-ep-section-title">
+          <CheckCircle2 style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} />
+          전문 상담분야 <span className="cu-ep-section-hint">(중복 선택 가능)</span>
+        </h3>
+        <div className="cu-ep-chips">
+          {expertiseList.map(item => (
+            <button
+              key={item}
+              onClick={() => setExpertType(p => p.includes(item) ? p.filter(t => t !== item) : [...p, item])}
+              className={`cu-ep-chip${expertType.includes(item) ? ' cu-ep-chip-on' : ''}`}
+            >{item}</button>
+          ))}
+        </div>
+        <div className="cu-ep-field">
+          <label className="cu-ep-custom-label">기타 전문분야 직접 입력</label>
+          <textarea value={customExpertise} onChange={e => setCustomExpertise(e.target.value)} placeholder="제시된 항목 외의 구체적인 상담 전문 분야가 있다면 입력해주세요." className="cu-ep-textarea" />
+        </div>
+      </section>
+
+      <section>
+        <h3 className="cu-ep-section-title">
+          <span className="cu-ep-schedule-bar" />주간 상담 일정
+        </h3>
+        <div className="cu-ep-schedule-list">
+          {days.map(day => {
+            const d = weeklySchedule[day];
+            return (
+              <div key={day} className={`cu-ep-schedule-row${d.active ? ' cu-ep-day-on' : ''}`}>
+                <div className="cu-ep-day-toggle">
+                  <button onClick={() => toggleDayActive(day)} className={`cu-ep-toggle-btn${d.active ? ' cu-ep-toggle-on' : ''}`}>
+                    <CheckCircle2 style={{ width: '1rem', height: '1rem' }} />
+                  </button>
+                  <span className={`cu-ep-day-label${d.active ? ' cu-ep-day-label-on' : ''}`}>{day}</span>
+                </div>
+                <div className="cu-ep-slots">
+                  {d.active ? (
+                    <div className="cu-ep-slots-row">
+                      {d.slots.map((slot, idx) => (
+                        <div key={idx} className="cu-ep-slot">
+                          <div className="cu-ep-time-select">
+                            <select value={slot.start} onChange={e => updateTime(day, idx, 'start', e.target.value)}>
+                              {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                            <ChevronDown className="cu-ep-dp-chevron" />
+                          </div>
+                          <span className="cu-ep-time-sep">~</span>
+                          <div className="cu-ep-time-select">
+                            <select value={slot.end} onChange={e => updateTime(day, idx, 'end', e.target.value)}>
+                              {timeOptions
+                                .filter(t => {
+                                  // 시작시간이 선택되어 있으면, 끝나는 시간은 시작시간보다 1시간 이후부터만 표시
+                                  if (!slot.start) return true;
+                                  const startHour = parseInt(slot.start.split(":")[0], 10);
+                                  const tHour = parseInt(t.split(":")[0], 10);
+                                  return tHour > startHour;
+                                })
+                                .map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                            <ChevronDown className="cu-ep-dp-chevron" />
+                          </div>
+                          {d.slots.length > 1 && (
+                            <button onClick={() => removeTimeSlot(day, idx)} className="cu-ep-slot-rm">
+                              <X style={{ width: '0.875rem', height: '0.875rem' }} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button onClick={() => addTimeSlot(day)} className="cu-ep-slot-add" title="시간 추가">
+                        <Plus style={{ width: '1rem', height: '1rem' }} />
+                      </button>
                     </div>
                 </div>
                 <input

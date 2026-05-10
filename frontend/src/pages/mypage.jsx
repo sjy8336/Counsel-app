@@ -462,10 +462,8 @@ export default function App() {
 
     const renderTicketsDetail = () => (
         <div className="fade-in">
+            <h2 className="history-title">멤버십 및 결제</h2>
             <main className="mwp-main">
-                <div className="mwp-title-section">
-                    <h2 className="mwp-page-title">멤버십 및 결제</h2>
-                </div>
                 <div className="mwp-layout mwp-section-gap">
                     <div className="mwp-left">
                         <section className="mwp-card mwp-status-card mwp-ai-glow">
@@ -753,7 +751,7 @@ export default function App() {
                             />
                         </div>
                     </div>
-                    <div className="security-password-grid">
+                    <div className="security-password-grid" style={{ position: 'relative' }}>
                         <div>
                             <label className="input-label">새 비밀번호</label>
                             <div className="relative-input-box">
@@ -803,7 +801,9 @@ export default function App() {
                     </div>
                 </div>
             </div>
-            <div className="profile-save-btn-row">
+
+            {/* 변경사항 저장 버튼: 개인정보 전체 저장용, 섹션 마지막에 위치 */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 32 }}>
                 <button className="profile-save-full-btn" onClick={handleSaveProfile}>
                     <CheckCircle2 size={20} />
                     변경사항 저장
@@ -971,7 +971,7 @@ export default function App() {
         ];
         return (
             <div className="fade-in">
-                <h3 className="mypage-section-title">문의내역</h3>
+                <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>문의내역</h3>
                 <ul className="mypage-list mypage-list-grid">
                     {inquiryList.map((item) => (
                         <li key={item.id} className="mypage-list-item">
@@ -1085,7 +1085,7 @@ export default function App() {
 
     const renderFavoritesList = () => (
         <div className="fade-in">
-            <h3 className="mypage-section-title">찜 목록</h3>
+            <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>찜 목록</h3>
             <ul className="mypage-list mypage-list-grid">
                 {favoritesList.length === 0 ? (
                     <li className="mypage-list-empty">찜내역이 없습니다.</li>
