@@ -88,39 +88,39 @@ const MonthPicker = ({ value, onChange, icon = true, placeholder = '', className
     };
 
     return (
-        <div className={`mw-monthpicker-wrap ${className}`.trim()} ref={ref}>
+        <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
             <button
                 type="button"
-                className={`mw-monthpicker-input${value ? ' filled' : ''}`}
+                className={`cmp-monthpicker-input${value ? ' filled' : ''}`}
                 onClick={() => setOpen((prev) => !prev)}
             >
                 {icon && (
-                    <span className="mw-picker-input-icon">
+                    <span className="cmp-picker-input-icon">
                         <Calendar size={15} />
                     </span>
                 )}
                 <span>{value ? formatMonthValue(value) : placeholder || '연/월 선택'}</span>
-                <ChevronDown size={14} className={`mw-picker-input-chevron${open ? ' open' : ''}`} />
+                <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
             </button>
 
             {open && (
-                <div className="mw-picker-popover mw-monthpicker-modal">
-                    <div className="mw-picker-popover-head">
+                <div className="cmp-picker-popover cmp-monthpicker-modal">
+                    <div className="cmp-picker-popover-head">
                         <div>
-                            <div className="mw-picker-popover-eyebrow">Month</div>
-                            <div className="mw-picker-popover-title">{viewYear}년</div>
+                            <div className="cmp-picker-popover-eyebrow">Month</div>
+                            <div className="cmp-picker-popover-title">{viewYear}년</div>
                         </div>
-                        <div className="mw-picker-nav">
+                        <div className="cmp-picker-nav">
                             <button
                                 type="button"
-                                className="mw-picker-nav-btn"
+                                className="cmp-picker-nav-btn"
                                 onClick={() => setViewYear((year) => year - 1)}
                             >
                                 <ChevronLeft size={14} />
                             </button>
                             <button
                                 type="button"
-                                className="mw-picker-nav-btn"
+                                className="cmp-picker-nav-btn"
                                 onClick={() => setViewYear((year) => year + 1)}
                             >
                                 <ChevronRight size={14} />
@@ -128,7 +128,7 @@ const MonthPicker = ({ value, onChange, icon = true, placeholder = '', className
                         </div>
                     </div>
 
-                    <div className="mw-monthpicker-months">
+                    <div className="cmp-monthpicker-months">
                         {months.map((month) => {
                             const selected =
                                 value &&
@@ -139,7 +139,7 @@ const MonthPicker = ({ value, onChange, icon = true, placeholder = '', className
                                 <button
                                     key={month}
                                     type="button"
-                                    className={`mw-monthpicker-month${selected ? ' selected' : ''}`}
+                                    className={`cmp-monthpicker-month${selected ? ' selected' : ''}`}
                                     onClick={() => handleSelect(viewYear, month)}
                                 >
                                     {month}월
@@ -194,49 +194,49 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
     };
 
     return (
-        <div className={`mw-monthpicker-wrap ${className}`.trim()} ref={ref}>
+        <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
             <button
                 type="button"
-                className={`mw-monthpicker-input${value ? ' filled' : ''}`}
+                className={`cmp-monthpicker-input${value ? ' filled' : ''}`}
                 onClick={() => setOpen((prev) => !prev)}
             >
                 {icon && (
-                    <span className="mw-picker-input-icon">
+                    <span className="cmp-picker-input-icon">
                         <Calendar size={15} />
                     </span>
                 )}
                 <span>{value ? formatDateValue(value) : placeholder || '날짜 선택'}</span>
-                <ChevronDown size={14} className={`mw-picker-input-chevron${open ? ' open' : ''}`} />
+                <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
             </button>
 
             {open && (
-                <div className="mw-picker-popover mw-datepicker-modal">
-                    <div className="mw-picker-popover-head">
+                <div className="cmp-picker-popover cmp-datepicker-modal">
+                    <div className="cmp-picker-popover-head">
                         <div>
-                            <div className="mw-picker-popover-eyebrow">Date</div>
-                            <div className="mw-picker-popover-title">
+                            <div className="cmp-picker-popover-eyebrow">Date</div>
+                            <div className="cmp-picker-popover-title">
                                 {viewYear}년 {viewMonth + 1}월
                             </div>
                         </div>
-                        <div className="mw-picker-nav">
-                            <button type="button" className="mw-picker-nav-btn" onClick={handlePrevMonth}>
+                        <div className="cmp-picker-nav">
+                            <button type="button" className="cmp-picker-nav-btn" onClick={handlePrevMonth}>
                                 <ChevronLeft size={14} />
                             </button>
-                            <button type="button" className="mw-picker-nav-btn" onClick={handleNextMonth}>
+                            <button type="button" className="cmp-picker-nav-btn" onClick={handleNextMonth}>
                                 <ChevronRight size={14} />
                             </button>
                         </div>
                     </div>
 
-                    <div className="mw-datepicker-weekdays">
+                    <div className="cmp-datepicker-weekdays">
                         {dayLabels.map((dayLabel) => (
                             <span key={dayLabel}>{dayLabel}</span>
                         ))}
                     </div>
 
-                    <div className="mw-datepicker-grid">
+                    <div className="cmp-datepicker-grid">
                         {blanks.map((blank) => (
-                            <div key={`blank-${blank}`} className="mw-datepicker-blank" />
+                            <div key={`blank-${blank}`} className="cmp-datepicker-blank" />
                         ))}
                         {days.map((day) => {
                             const selected =
@@ -248,7 +248,7 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
                                 <button
                                     key={day}
                                     type="button"
-                                    className={`mw-datepicker-day${selected ? ' selected' : ''}${isToday ? ' today' : ''}`}
+                                    className={`cmp-datepicker-day${selected ? ' selected' : ''}${isToday ? ' today' : ''}`}
                                     onClick={() => handleSelect(day)}
                                 >
                                     {day}
@@ -271,37 +271,37 @@ const TimePicker = ({ value, onChange, minTime = '', disabled = false, className
     const availableTimes = timeOptions.filter((time) => !minTime || time >= minTime);
 
     return (
-        <div className={`mw-monthpicker-wrap ${className}`.trim()} ref={ref}>
+        <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
             <button
                 type="button"
-                className={`mw-monthpicker-input mw-timepicker-input${value ? ' filled' : ''}${disabled ? ' disabled' : ''}`}
+                className={`cmp-monthpicker-input cmp-timepicker-input${value ? ' filled' : ''}${disabled ? ' disabled' : ''}`}
                 onClick={() => {
                     if (!disabled) setOpen((prev) => !prev);
                 }}
                 disabled={disabled}
             >
-                <span className="mw-picker-input-icon">
+                <span className="cmp-picker-input-icon">
                     <Clock size={15} />
                 </span>
                 <span>{value || '시간 선택'}</span>
-                <ChevronDown size={14} className={`mw-picker-input-chevron${open ? ' open' : ''}`} />
+                <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
             </button>
 
             {open && (
-                <div className="mw-picker-popover mw-timepicker-modal">
-                    <div className="mw-picker-popover-head">
+                <div className="cmp-picker-popover cmp-timepicker-modal">
+                    <div className="cmp-picker-popover-head">
                         <div>
-                            <div className="mw-picker-popover-eyebrow">Time</div>
-                            <div className="mw-picker-popover-title">{value || '시간 선택'}</div>
+                            <div className="cmp-picker-popover-eyebrow">Time</div>
+                            <div className="cmp-picker-popover-title">{value || '시간 선택'}</div>
                         </div>
                     </div>
 
-                    <div className="mw-timepicker-list">
+                    <div className="cmp-timepicker-list">
                         {availableTimes.map((time) => (
                             <button
                                 key={time}
                                 type="button"
-                                className={`mw-timepicker-option${value === time ? ' selected' : ''}`}
+                                className={`cmp-timepicker-option${value === time ? ' selected' : ''}`}
                                 onClick={() => {
                                     onChange(time);
                                     setOpen(false);
@@ -481,28 +481,28 @@ const NotifIcon = ({ type }) => {
         msg: <MessageSquare size={15} />,
         notice: <AlertCircle size={15} />,
     };
-    return <div className="mw-item-avatar notif">{iconMap[type] || <Bell size={15} />}</div>;
+    return <div className="cmp-item-avatar notif">{iconMap[type] || <Bell size={15} />}</div>;
 };
 
 const PageHeader = ({ title, sub }) => (
-    <div className="mw-page-header">
-        <h2 className="mw-page-title">{title}</h2>
-        {sub && <p className="mw-page-sub">{sub}</p>}
+    <div className="cmp-page-header">
+        <h2 className="cmp-page-title">{title}</h2>
+        {sub && <p className="cmp-page-sub">{sub}</p>}
     </div>
 );
 
 const Toggle = ({ on, onChange }) => (
-    <button className={`mw-toggle${on ? ' on' : ''}`} onClick={onChange} aria-label="toggle">
-        <span className="mw-toggle-thumb" />
+    <button className={`cmp-toggle${on ? ' on' : ''}`} onClick={onChange} aria-label="toggle">
+        <span className="cmp-toggle-thumb" />
     </button>
 );
 
 const BackHeader = ({ title, onBack }) => (
-    <div className="mw-subview-header">
-        <button className="mw-back-btn" onClick={onBack}>
+    <div className="cmp-subview-header">
+        <button className="cmp-back-btn" onClick={onBack}>
             <ChevronRight size={15} style={{ transform: 'rotate(180deg)' }} /> 설정
         </button>
-        <h2 className="mw-page-title" style={{ margin: 0 }}>
+        <h2 className="cmp-page-title" style={{ margin: 0 }}>
             {title}
         </h2>
     </div>
@@ -524,13 +524,15 @@ const App = () => {
     const fetchRegistered = useCallback(async () => {
         setLoadingRegistered(true);
         try {
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (!user || !user.id) {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
                 setRegistered(false);
                 setLoadingRegistered(false);
                 return;
             }
-            const res = await axios.get(`/api/counselor/profile/exists?user_id=${user.id}`);
+            const res = await axios.get('/api/counselor/profile/exists', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
             setRegistered(res.data.exists === true);
         } catch (e) {
             setRegistered(false);
@@ -692,21 +694,21 @@ const App = () => {
 
     const renderDashboard = () => (
         <>
-            <header className="mw-header">
-                <div className="mw-profile-section">
-                    <div className="mw-profile-img">🧔‍♂️</div>
+            <header className="cmp-header">
+                <div className="cmp-profile-section">
+                    <div className="cmp-profile-img">🧔‍♂️</div>
                     <div>
-                        <h2 className="mw-welcome">안녕하세요, {getCounselorName()} 상담사님!</h2>
-                        <p className="mw-welcome-sub">오늘도 따뜻한 상담 부탁드립니다 🌿</p>
+                        <h2 className="cmp-welcome">안녕하세요, {getCounselorName()} 상담사님!</h2>
+                        <p className="cmp-welcome-sub">오늘도 따뜻한 상담 부탁드립니다 🌿</p>
                     </div>
                 </div>
-                <button className="mw-notif-btn" onClick={() => go('notifications')}>
+                <button className="cmp-notif-btn" onClick={() => go('notifications')}>
                     <Bell size={14} /> 알림 확인
                 </button>
             </header>
 
-            <div className="mw-stats-grid">
-                {[ 
+            <div className="cmp-stats-grid">
+                {[
                     {
                         icon: <Calendar size={15} color="#66BB6A" />,
                         bg: '#E8F5E9',
@@ -729,29 +731,29 @@ const App = () => {
                         onClick: () => navigate('/CounselorMessages'),
                     },
                 ].map(({ icon, bg, label, value, onClick }) => (
-                    <div key={label} className="mw-stat-card" onClick={onClick}>
-                        <div className="mw-stat-icon" style={{ background: bg }}>
+                    <div key={label} className="cmp-stat-card" onClick={onClick}>
+                        <div className="cmp-stat-icon" style={{ background: bg }}>
                             {icon}
                         </div>
-                        <p className="mw-stat-label">{label}</p>
-                        <p className="mw-stat-value">{value}</p>
-                        <span className="mw-stat-chevron">
+                        <p className="cmp-stat-label">{label}</p>
+                        <p className="cmp-stat-value">{value}</p>
+                        <span className="cmp-stat-chevron">
                             <ChevronRight size={14} />
                         </span>
                     </div>
                 ))}
             </div>
 
-            <div className="mw-next-session" onClick={() => navigate('/CounselorClient')}>
-                <div className="mw-next-session-icon">
+            <div className="cmp-next-session" onClick={() => navigate('/CounselorClient')}>
+                <div className="cmp-next-session-icon">
                     <User size={24} color="#fff" />
                 </div>
-                <div className="mw-next-session-body">
-                    <div className="mw-next-session-label">NEXT SESSION</div>
-                    <div className="mw-next-session-name">오후 2:00 이민준 님</div>
-                    <div className="mw-next-session-sub">대면 상담 • 상담 3실 • 4회차 진행 예정</div>
+                <div className="cmp-next-session-body">
+                    <div className="cmp-next-session-label">NEXT SESSION</div>
+                    <div className="cmp-next-session-name">오후 2:00 이민준 님</div>
+                    <div className="cmp-next-session-sub">대면 상담 • 상담 3실 • 4회차 진행 예정</div>
                 </div>
-                <button className="mw-next-session-btn" onClick={() => navigate('/CounselorClient')}>
+                <button className="cmp-next-session-btn" onClick={() => navigate('/CounselorClient')}>
                     내담자 관리 <ChevronRight size={14} />
                 </button>
             </div>
@@ -761,24 +763,24 @@ const App = () => {
     const renderNotifications = () => (
         <>
             <PageHeader title="알림 센터" sub="상담 일정, 예약 확정 등 최근 알림을 확인하세요." />
-            <div className="mw-list-card">
+            <div className="cmp-list-card">
                 {notifications.map((group) => (
                     <div key={group.id}>
-                        <div className="mw-notif-group-label">{group.group}</div>
+                        <div className="cmp-notif-group-label">{group.group}</div>
                         {group.items.map((item) => (
                             <div
                                 key={item.id}
-                                className={`mw-notif-item${item.unread ? ' unread' : ''}`}
+                                className={`cmp-notif-item${item.unread ? ' unread' : ''}`}
                                 onClick={() => handleNotifClick(group.id, item.id)}
                             >
                                 <NotifIcon type={item.type} />
-                                <div className="mw-notif-content">
-                                    <div className="mw-notif-title">{item.title}</div>
-                                    <div className="mw-notif-desc">{item.desc}</div>
+                                <div className="cmp-notif-content">
+                                    <div className="cmp-notif-title">{item.title}</div>
+                                    <div className="cmp-notif-desc">{item.desc}</div>
                                 </div>
-                                <div className="mw-notif-meta">
-                                    <span className="mw-notif-time">{item.time}</span>
-                                    {item.unread && <span className="mw-notif-dot" />}
+                                <div className="cmp-notif-meta">
+                                    <span className="cmp-notif-time">{item.time}</span>
+                                    {item.unread && <span className="cmp-notif-dot" />}
                                 </div>
                             </div>
                         ))}
@@ -791,19 +793,19 @@ const App = () => {
     const renderSettingsList = () => (
         <>
             <PageHeader title="설정" sub="계정 및 서비스 환경을 설정합니다." />
-            <div className="mw-list-card">
+            <div className="cmp-list-card">
                 {settingsMenuItems.map((item) => (
-                    <div key={item.id} className="mw-list-item" onClick={() => goSettings(item.id)}>
-                        <div className="mw-item-info">
-                            <div className={`mw-item-avatar${item.danger ? ' danger-icon' : ' notif'}`}>
+                    <div key={item.id} className="cmp-list-item" onClick={() => goSettings(item.id)}>
+                        <div className="cmp-item-info">
+                            <div className={`cmp-item-avatar${item.danger ? ' danger-icon' : ' notif'}`}>
                                 {item.icon}
                             </div>
                             <div>
-                                <p className={`mw-item-name${item.danger ? ' danger-text' : ''}`}>{item.label}</p>
-                                <p className="mw-item-sub">{item.sub}</p>
+                                <p className={`cmp-item-name${item.danger ? ' danger-text' : ''}`}>{item.label}</p>
+                                <p className="cmp-item-sub">{item.sub}</p>
                             </div>
                         </div>
-                        <ChevronRight size={15} color="var(--mw-sub)" />
+                        <ChevronRight size={15} color="var(--cmp-sub)" />
                     </div>
                 ))}
             </div>
@@ -818,20 +820,20 @@ const App = () => {
             />
 
             {loadingRegistered ? (
-                <div className="mw-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
-                    <div className="mw-register-title">상태 확인 중...</div>
+                <div className="cmp-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
+                    <div className="cmp-register-title">상태 확인 중...</div>
                 </div>
             ) : !registered ? (
-                <div className="mw-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
-                    <div className="mw-register-icon">👤</div>
-                    <h3 className="mw-register-title">상담사 프로필을 등록해주세요</h3>
-                    <p className="mw-register-sub">
+                <div className="cmp-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
+                    <div className="cmp-register-icon">👤</div>
+                    <h3 className="cmp-register-title">상담사 프로필을 등록해주세요</h3>
+                    <p className="cmp-register-sub">
                         내담자가 상담사님의 정보를 확인하고 예약할 수 있도록
                         <br />
                         프로필 정보를 입력해주세요.
                     </p>
                     <button
-                        className="mw-btn mw-btn-primary"
+                        className="cmp-btn cmp-btn-primary"
                         style={{ padding: '13px 28px', fontSize: 14 }}
                         onClick={() => navigate('/counselorUpload')}
                     >
@@ -840,24 +842,24 @@ const App = () => {
                 </div>
             ) : (
                 <>
-                    <div className="mw-settings-card">
-                        <div className="mw-card-title">
-                            <User size={15} color="var(--mw-primary)" /> 기본 정보
+                    <div className="cmp-settings-card">
+                        <div className="cmp-card-title">
+                            <User size={15} color="var(--cmp-primary)" /> 기본 정보
                         </div>
-                        <div className="mw-profile-upload">
-                            <div className="mw-profile-img-lg">
+                        <div className="cmp-profile-upload">
+                            <div className="cmp-profile-img-lg">
                                 🧔‍♂️
-                                <button className="mw-profile-edit-btn">
+                                <button className="cmp-profile-edit-btn">
                                     <Settings size={11} />
                                 </button>
                             </div>
                             <div>
-                                <p style={{ fontSize: 11, color: 'var(--mw-sub)', marginBottom: 3 }}>프로필 사진</p>
+                                <p style={{ fontSize: 11, color: 'var(--cmp-sub)', marginBottom: 3 }}>프로필 사진</p>
                                 <p style={{ fontSize: 12, fontWeight: 600 }}>사진을 클릭하여 업로드</p>
                             </div>
                         </div>
                         {/* 이하 기존 프로필 수정 UI 그대로 */}
-                        <div className="mw-grid-2">
+                        <div className="cmp-grid-2">
                             {[
                                 ['이름', '이은지'],
                                 ['연락처', '010-1234-5678'],
@@ -865,58 +867,58 @@ const App = () => {
                                 ['전문 분야', '성인 우울, 불안 장애'],
                             ].map(([label, value]) => (
                                 <div key={label}>
-                                    <label className="mw-field-label">{label}</label>
-                                    <input className="mw-input" defaultValue={value} />
+                                    <label className="cmp-field-label">{label}</label>
+                                    <input className="cmp-input" defaultValue={value} />
                                 </div>
                             ))}
                         </div>
-                        <div className="mw-section-divider" style={{ marginTop: 14 }}>
-                            <div className="mw-sub-section-header">
-                                <span className="mw-field-label" style={{ margin: 0 }}>
+                        <div className="cmp-section-divider" style={{ marginTop: 14 }}>
+                            <div className="cmp-sub-section-header">
+                                <span className="cmp-field-label" style={{ margin: 0 }}>
                                     경력 사항
                                 </span>
-                                <button className="mw-btn-outline-sm" onClick={addCareer}>
+                                <button className="cmp-btn-outline-sm" onClick={addCareer}>
                                     + 추가
                                 </button>
                             </div>
                             {careers.map((career) => (
-                                <div key={career.id} className="mw-row-card">
-                                    <div className="mw-career-grid">
+                                <div key={career.id} className="cmp-row-card">
+                                    <div className="cmp-career-grid">
                                         <div>
-                                            <label className="mw-field-label-sm">시작</label>
+                                            <label className="cmp-field-label-sm">시작</label>
                                             <MonthPicker
                                                 value={career.startDate}
                                                 onChange={(value) => updateCareer(career.id, 'startDate', value)}
-                                                className="mw-input-sm"
+                                                className="cmp-input-sm"
                                             />
                                         </div>
                                         <div>
-                                            <label className="mw-field-label-sm">종료</label>
+                                            <label className="cmp-field-label-sm">종료</label>
                                             <MonthPicker
                                                 value={career.endDate}
                                                 onChange={(value) => updateCareer(career.id, 'endDate', value)}
-                                                className="mw-input-sm"
+                                                className="cmp-input-sm"
                                                 icon={!career.isCurrent}
                                                 placeholder={career.isCurrent ? '진행중' : ''}
                                                 disabled={career.isCurrent}
                                             />
                                         </div>
                                         <div>
-                                            <label className="mw-field-label-sm">경력 내용</label>
+                                            <label className="cmp-field-label-sm">경력 내용</label>
                                             <input
                                                 type="text"
-                                                className="mw-input mw-input-sm"
+                                                className="cmp-input cmp-input-sm"
                                                 value={career.description}
                                                 onChange={(event) =>
                                                     updateCareer(career.id, 'description', event.target.value)
                                                 }
                                             />
                                         </div>
-                                        <button className="mw-btn-icon" onClick={() => removeCareer(career.id)}>
+                                        <button className="cmp-btn-icon" onClick={() => removeCareer(career.id)}>
                                             <X size={12} />
                                         </button>
                                     </div>
-                                    <div className="mw-checkbox-row">
+                                    <div className="cmp-checkbox-row">
                                         <input
                                             type="checkbox"
                                             checked={career.isCurrent}
@@ -928,23 +930,23 @@ const App = () => {
                             ))}
                         </div>
 
-                        <div className="mw-section-divider">
-                            <div className="mw-sub-section-header">
-                                <span className="mw-field-label" style={{ margin: 0 }}>
+                        <div className="cmp-section-divider">
+                            <div className="cmp-sub-section-header">
+                                <span className="cmp-field-label" style={{ margin: 0 }}>
                                     자격증
                                 </span>
-                                <button className="mw-btn-outline-sm" onClick={addCertificate}>
+                                <button className="cmp-btn-outline-sm" onClick={addCertificate}>
                                     + 추가
                                 </button>
                             </div>
                             {certificates.map((certificate) => (
-                                <div key={certificate.id} className="mw-row-card">
-                                    <div className="mw-cert-grid">
+                                <div key={certificate.id} className="cmp-row-card">
+                                    <div className="cmp-cert-grid">
                                         <div>
-                                            <label className="mw-field-label-sm">자격증명</label>
+                                            <label className="cmp-field-label-sm">자격증명</label>
                                             <input
                                                 type="text"
-                                                className="mw-input mw-input-sm"
+                                                className="cmp-input cmp-input-sm"
                                                 value={certificate.name}
                                                 onChange={(event) =>
                                                     updateCertificate(certificate.id, 'name', event.target.value)
@@ -952,10 +954,10 @@ const App = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="mw-field-label-sm">발급 기관</label>
+                                            <label className="cmp-field-label-sm">발급 기관</label>
                                             <input
                                                 type="text"
-                                                className="mw-input mw-input-sm"
+                                                className="cmp-input cmp-input-sm"
                                                 value={certificate.issuer}
                                                 onChange={(event) =>
                                                     updateCertificate(certificate.id, 'issuer', event.target.value)
@@ -963,15 +965,15 @@ const App = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="mw-field-label-sm">취득일</label>
+                                            <label className="cmp-field-label-sm">취득일</label>
                                             <MonthPicker
                                                 value={certificate.date}
                                                 onChange={(value) => updateCertificate(certificate.id, 'date', value)}
-                                                className="mw-input-sm"
+                                                className="cmp-input-sm"
                                             />
                                         </div>
                                         <button
-                                            className="mw-btn-icon"
+                                            className="cmp-btn-icon"
                                             onClick={() => removeCertificate(certificate.id)}
                                         >
                                             <X size={12} />
@@ -981,39 +983,39 @@ const App = () => {
                             ))}
                         </div>
 
-                        <div className="mw-section-divider">
-                            <div className="mw-sub-section-header">
-                                <span className="mw-field-label" style={{ margin: 0 }}>
+                        <div className="cmp-section-divider">
+                            <div className="cmp-sub-section-header">
+                                <span className="cmp-field-label" style={{ margin: 0 }}>
                                     학력 사항
                                 </span>
-                                <button className="mw-btn-outline-sm" onClick={addEducation}>
+                                <button className="cmp-btn-outline-sm" onClick={addEducation}>
                                     + 추가
                                 </button>
                             </div>
                             {educations.map((education) => (
-                                <div key={education.id} className="mw-row-card">
-                                    <div className="mw-edu-grid">
+                                <div key={education.id} className="cmp-row-card">
+                                    <div className="cmp-edu-grid">
                                         <div>
-                                            <label className="mw-field-label-sm">시작</label>
+                                            <label className="cmp-field-label-sm">시작</label>
                                             <MonthPicker
                                                 value={education.startDate}
                                                 onChange={(value) => updateEducation(education.id, 'startDate', value)}
-                                                className="mw-input-sm"
+                                                className="cmp-input-sm"
                                             />
                                         </div>
                                         <div>
-                                            <label className="mw-field-label-sm">졸업</label>
+                                            <label className="cmp-field-label-sm">졸업</label>
                                             <MonthPicker
                                                 value={education.endDate}
                                                 onChange={(value) => updateEducation(education.id, 'endDate', value)}
-                                                className="mw-input-sm"
+                                                className="cmp-input-sm"
                                             />
                                         </div>
                                         <div>
-                                            <label className="mw-field-label-sm">학교 / 전공</label>
+                                            <label className="cmp-field-label-sm">학교 / 전공</label>
                                             <input
                                                 type="text"
-                                                className="mw-input mw-input-sm"
+                                                className="cmp-input cmp-input-sm"
                                                 value={education.school}
                                                 onChange={(event) =>
                                                     updateEducation(education.id, 'school', event.target.value)
@@ -1021,17 +1023,17 @@ const App = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="mw-field-label-sm">학위</label>
+                                            <label className="cmp-field-label-sm">학위</label>
                                             <input
                                                 type="text"
-                                                className="mw-input mw-input-sm"
+                                                className="cmp-input cmp-input-sm"
                                                 value={education.degree}
                                                 onChange={(event) =>
                                                     updateEducation(education.id, 'degree', event.target.value)
                                                 }
                                             />
                                         </div>
-                                        <button className="mw-btn-icon" onClick={() => removeEducation(education.id)}>
+                                        <button className="cmp-btn-icon" onClick={() => removeEducation(education.id)}>
                                             <X size={12} />
                                         </button>
                                     </div>
@@ -1039,61 +1041,61 @@ const App = () => {
                             ))}
                         </div>
 
-                        <div className="mw-grid-2">
+                        <div className="cmp-grid-2">
                             {[
                                 ['상담소명', '마인드웰 서울 강남센터'],
                                 ['상담소 주소', '서울시 강남구 테헤란로 123'],
                             ].map(([label, value]) => (
                                 <div key={label}>
-                                    <label className="mw-field-label">{label}</label>
-                                    <input className="mw-input" defaultValue={value} />
+                                    <label className="cmp-field-label">{label}</label>
+                                    <input className="cmp-input" defaultValue={value} />
                                 </div>
                             ))}
                         </div>
 
                         <div style={{ marginTop: 12, marginBottom: 14 }}>
-                            <label className="mw-field-label">자기소개</label>
+                            <label className="cmp-field-label">자기소개</label>
                             <textarea
-                                className="mw-textarea"
+                                className="cmp-textarea"
                                 defaultValue="안녕하세요. 10년 경력의 임상심리전문가 이은지입니다."
                             />
                         </div>
-                        <button className="mw-btn mw-btn-primary" style={{ maxWidth: 130 }}>
+                        <button className="cmp-btn cmp-btn-primary" style={{ maxWidth: 130 }}>
                             프로필 저장
                         </button>
                     </div>
 
-                    <div className="mw-settings-card">
-                        <div className="mw-card-title">
-                            <Clock size={15} color="var(--mw-primary)" /> 상담 시간 설정
+                    <div className="cmp-settings-card">
+                        <div className="cmp-card-title">
+                            <Clock size={15} color="var(--cmp-primary)" /> 상담 시간 설정
                         </div>
-                        <label className="mw-field-label" style={{ marginBottom: 12 }}>
+                        <label className="cmp-field-label" style={{ marginBottom: 12 }}>
                             요일별 운영 시간
                         </label>
                         {workDays.map((day, index) => (
-                            <div key={day.day} className={`mw-day-row${!day.active ? ' inactive' : ''}`}>
-                                <div className="mw-day-grid">
-                                    <div className={`mw-day-chip${day.active ? ' active' : ''}`}>{day.day}</div>
+                            <div key={day.day} className={`cmp-day-row${!day.active ? ' inactive' : ''}`}>
+                                <div className="cmp-day-grid">
+                                    <div className={`cmp-day-chip${day.active ? ' active' : ''}`}>{day.day}</div>
                                     <div>
-                                        <label className="mw-field-label-sm">시작</label>
+                                        <label className="cmp-field-label-sm">시작</label>
                                         <TimePicker
-                                            className="mw-input-sm"
+                                            className="cmp-input-sm"
                                             disabled={!day.active}
                                             value={day.startTime}
                                             onChange={(value) => updateWorkTime(index, 'startTime', value)}
                                         />
                                     </div>
                                     <div>
-                                        <label className="mw-field-label-sm">종료</label>
+                                        <label className="cmp-field-label-sm">종료</label>
                                         <TimePicker
-                                            className="mw-input-sm"
+                                            className="cmp-input-sm"
                                             disabled={!day.active}
                                             minTime={day.startTime}
                                             value={day.endTime}
                                             onChange={(value) => updateWorkTime(index, 'endTime', value)}
                                         />
                                     </div>
-                                    <div className="mw-checkbox-row">
+                                    <div className="cmp-checkbox-row">
                                         <input
                                             type="checkbox"
                                             checked={!day.active}
@@ -1105,33 +1107,33 @@ const App = () => {
                             </div>
                         ))}
 
-                        <label className="mw-field-label" style={{ marginTop: 18, marginBottom: 9 }}>
+                        <label className="cmp-field-label" style={{ marginTop: 18, marginBottom: 9 }}>
                             휴무일 설정
                         </label>
-                        <div className="mw-flex-gap" style={{ marginBottom: 9 }}>
+                        <div className="cmp-flex-gap" style={{ marginBottom: 9 }}>
                             <DatePicker
                                 value={newHoliday}
                                 onChange={setNewHoliday}
-                                className="mw-date-input"
+                                className="cmp-date-input"
                                 icon
                                 placeholder="휴무일 선택"
                             />
-                            <button className="mw-btn-add" onClick={addHoliday}>
+                            <button className="cmp-btn-add" onClick={addHoliday}>
                                 + 추가
                             </button>
                         </div>
-                        <div className="mw-holiday-list">
+                        <div className="cmp-holiday-list">
                             {holidays.length === 0 ? (
-                                <p className="mw-holiday-empty">등록된 휴무일이 없습니다</p>
+                                <p className="cmp-holiday-empty">등록된 휴무일이 없습니다</p>
                             ) : (
-                                <div className="mw-holiday-chips">
+                                <div className="cmp-holiday-chips">
                                     {[...holidays].sort().map((date, index) => (
-                                        <div key={date} className="mw-holiday-chip">
-                                            <Calendar size={11} color="var(--mw-primary)" />
+                                        <div key={date} className="cmp-holiday-chip">
+                                            <Calendar size={11} color="var(--cmp-primary)" />
                                             <span>{date}</span>
                                             <X
                                                 size={11}
-                                                style={{ cursor: 'pointer', color: 'var(--mw-sub)' }}
+                                                style={{ cursor: 'pointer', color: 'var(--cmp-sub)' }}
                                                 onClick={() =>
                                                     setHolidays(
                                                         holidays.filter((_, innerIndex) => innerIndex !== index)
@@ -1143,7 +1145,7 @@ const App = () => {
                                 </div>
                             )}
                         </div>
-                        <button className="mw-btn mw-btn-primary" style={{ maxWidth: 130, marginTop: 14 }}>
+                        <button className="cmp-btn cmp-btn-primary" style={{ maxWidth: 130, marginTop: 14 }}>
                             시간 저장
                         </button>
                     </div>
@@ -1155,17 +1157,17 @@ const App = () => {
     const renderNotifSettings = () => (
         <>
             <BackHeader title="알림 설정" onBack={() => setSettingsView(null)} />
-            <p className="mw-page-sub" style={{ marginBottom: 20 }}>
+            <p className="cmp-page-sub" style={{ marginBottom: 20 }}>
                 받고 싶은 알림 종류를 선택하세요.
             </p>
-            <div className="mw-list-card">
+            <div className="cmp-list-card">
                 {notifSettings.map((setting) => (
-                    <div key={setting.id} className="mw-notif-setting-item">
+                    <div key={setting.id} className="cmp-notif-setting-item">
                         <div>
-                            <p className="mw-item-name" style={{ marginBottom: 2 }}>
+                            <p className="cmp-item-name" style={{ marginBottom: 2 }}>
                                 {setting.label}
                             </p>
-                            <p className="mw-item-sub">{setting.desc}</p>
+                            <p className="cmp-item-sub">{setting.desc}</p>
                         </div>
                         <Toggle on={setting.on} onChange={() => toggleNotifSetting(setting.id)} />
                     </div>
@@ -1185,62 +1187,62 @@ const App = () => {
                 }}
             />
             {deleteStep === 1 ? (
-                <div className="mw-settings-card">
-                    <div className="mw-delete-icon-wrap">
-                        <div className="mw-delete-icon">
-                            <Trash2 size={26} color="var(--mw-danger)" />
+                <div className="cmp-settings-card">
+                    <div className="cmp-delete-icon-wrap">
+                        <div className="cmp-delete-icon">
+                            <Trash2 size={26} color="var(--cmp-danger)" />
                         </div>
                     </div>
-                    <h3 className="mw-delete-title">탈퇴 전 꼭 확인하세요</h3>
-                    <div className="mw-delete-warn-list">
+                    <h3 className="cmp-delete-title">탈퇴 전 꼭 확인하세요</h3>
+                    <div className="cmp-delete-warn-list">
                         {[
                             '모든 상담 기록과 내담자 데이터가 영구 삭제됩니다.',
                             '삭제된 데이터는 복구가 불가능합니다.',
                             '진행 중인 상담이 있는 경우 내담자에게 별도 안내가 필요합니다.',
                             '탈퇴 후 동일 이메일로 재가입 시 기존 데이터는 복원되지 않습니다.',
                         ].map((text, index) => (
-                            <div key={index} className="mw-delete-warn-item">
-                                <span className="mw-delete-warn-dot" />
+                            <div key={index} className="cmp-delete-warn-item">
+                                <span className="cmp-delete-warn-dot" />
                                 <span>{text}</span>
                             </div>
                         ))}
                     </div>
-                    <div className="mw-btn-row" style={{ marginTop: 26 }}>
+                    <div className="cmp-btn-row" style={{ marginTop: 26 }}>
                         <button
-                            className="mw-btn mw-btn-secondary"
+                            className="cmp-btn cmp-btn-secondary"
                             style={{ flex: 1 }}
                             onClick={() => setSettingsView(null)}
                         >
                             취소
                         </button>
-                        <button className="mw-btn mw-btn-danger" style={{ flex: 1 }} onClick={() => setDeleteStep(2)}>
+                        <button className="cmp-btn cmp-btn-danger" style={{ flex: 1 }} onClick={() => setDeleteStep(2)}>
                             다음 단계
                         </button>
                     </div>
                 </div>
             ) : (
-                <div className="mw-settings-card">
-                    <h3 className="mw-delete-confirm-title">탈퇴를 확인해주세요</h3>
-                    <p className="mw-delete-confirm-sub">
-                        아래 입력창에 <strong style={{ color: 'var(--mw-danger)' }}>탈퇴합니다</strong>를 입력하면
+                <div className="cmp-settings-card">
+                    <h3 className="cmp-delete-confirm-title">탈퇴를 확인해주세요</h3>
+                    <p className="cmp-delete-confirm-sub">
+                        아래 입력창에 <strong style={{ color: 'var(--cmp-danger)' }}>탈퇴합니다</strong>를 입력하면
                         탈퇴가 진행됩니다.
                     </p>
                     <input
-                        className="mw-input mw-delete-input"
+                        className="cmp-input cmp-delete-input"
                         placeholder="탈퇴합니다"
                         value={deleteInput}
                         onChange={(event) => setDeleteInput(event.target.value)}
                     />
-                    <div className="mw-btn-row" style={{ marginTop: 18 }}>
+                    <div className="cmp-btn-row" style={{ marginTop: 18 }}>
                         <button
-                            className="mw-btn mw-btn-secondary"
+                            className="cmp-btn cmp-btn-secondary"
                             style={{ flex: 1 }}
                             onClick={() => setDeleteStep(1)}
                         >
                             이전
                         </button>
                         <button
-                            className="mw-btn mw-btn-danger"
+                            className="cmp-btn cmp-btn-danger"
                             style={{ flex: 1, opacity: deleteInput === '탈퇴합니다' ? 1 : 0.4 }}
                             disabled={deleteInput !== '탈퇴합니다'}
                             onClick={() => alert('회원 탈퇴가 완료되었습니다.')}
@@ -1256,15 +1258,15 @@ const App = () => {
     const renderCustomer = () => (
         <>
             <PageHeader title="고객 지원" sub="이용 중 불편한 점이 있으신가요?" />
-            <div className="mw-support-grid">
+            <div className="cmp-support-grid">
                 {[
                     { icon: <HelpCircle size={21} />, label: '자주 묻는 질문' },
                     { icon: <MessageCircle size={21} />, label: '1:1 문의하기' },
                     { icon: <FileText size={21} />, label: '가이드북' },
                 ].map(({ icon, label }) => (
-                    <div key={label} className="mw-support-card">
-                        <div className="mw-support-icon">{icon}</div>
-                        <p className="mw-support-label">{label}</p>
+                    <div key={label} className="cmp-support-card">
+                        <div className="cmp-support-icon">{icon}</div>
+                        <p className="cmp-support-label">{label}</p>
                     </div>
                 ))}
             </div>
@@ -1290,30 +1292,30 @@ const App = () => {
     };
 
     return (
-        <div className="mw-app">
-            <div className="mw-mobile-header">
-                <button className="mw-mobile-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        <div className="cmp-app">
+            <div className="cmp-mobile-header">
+                <button className="cmp-mobile-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
                     <Menu size={21} />
                 </button>
-                <span className="mw-mobile-logo">MINDWELL</span>
-                <button className="mw-mobile-menu-btn" onClick={() => go('notifications')}>
+                <span className="cmp-mobile-logo">MINDWELL</span>
+                <button className="cmp-mobile-menu-btn" onClick={() => go('notifications')}>
                     <Bell size={19} />
                 </button>
             </div>
 
-            {sidebarOpen && <div className="mw-overlay visible" onClick={() => setSidebarOpen(false)} />}
+            {sidebarOpen && <div className="cmp-overlay visible" onClick={() => setSidebarOpen(false)} />}
 
-            <aside className={`mw-sidebar${sidebarOpen ? ' open' : ''}`}>
-                <div className="mw-logo" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
-                    <div className="mw-logo-title">MINDWELL</div>
-                    <div className="mw-logo-sub">COUNSELOR ADMIN</div>
+            <aside className={`cmp-sidebar${sidebarOpen ? ' open' : ''}`}>
+                <div className="cmp-logo" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
+                    <div className="cmp-logo-title">MINDWELL</div>
+                    <div className="cmp-logo-sub">COUNSELOR ADMIN</div>
                 </div>
 
-                <nav className="mw-nav">
+                <nav className="cmp-nav">
                     {navItems.map((item) => (
                         <div
                             key={item.id}
-                            className={`mw-nav-item${activeMenu === item.id ? ' active' : ''}`}
+                            className={`cmp-nav-item${activeMenu === item.id ? ' active' : ''}`}
                             onClick={() => go(item.id)}
                         >
                             {item.icon}
@@ -1321,7 +1323,7 @@ const App = () => {
                         </div>
                     ))}
                     <div
-                        className={`mw-nav-item${activeMenu === 'settings' ? ' active' : ''}`}
+                        className={`cmp-nav-item${activeMenu === 'settings' ? ' active' : ''}`}
                         onClick={() => {
                             setSettingsOpen((open) => !open);
                             setActiveMenu('settings');
@@ -1341,11 +1343,11 @@ const App = () => {
                     </div>
 
                     {settingsOpen && (
-                        <div className="mw-nav-submenu">
+                        <div className="cmp-nav-submenu">
                             {settingsMenuItems.map((item) => (
                                 <div
                                     key={item.id}
-                                    className={`mw-nav-subitem${settingsView === item.id ? ' active' : ''}${item.danger ? ' danger' : ''}`}
+                                    className={`cmp-nav-subitem${settingsView === item.id ? ' active' : ''}${item.danger ? ' danger' : ''}`}
                                     onClick={() => goSettings(item.id)}
                                 >
                                     {item.icon}
@@ -1356,32 +1358,32 @@ const App = () => {
                     )}
                 </nav>
 
-                <div className="mw-sidebar-footer">
+                <div className="cmp-sidebar-footer">
                     <div
-                        className={`mw-footer-item${activeMenu === 'customer' ? ' active' : ''}`}
+                        className={`cmp-footer-item${activeMenu === 'customer' ? ' active' : ''}`}
                         onClick={() => go('customer')}
                     >
                         <HeadphonesIcon size={17} />
                         <span>고객센터</span>
                     </div>
-                    <div className="mw-footer-item danger" onClick={handleLogout}>
+                    <div className="cmp-footer-item danger" onClick={handleLogout}>
                         <LogOut size={17} />
                         <span>로그아웃</span>
                     </div>
                 </div>
             </aside>
 
-            <main className="mw-main">{renderContent()}</main>
+            <main className="cmp-main">{renderContent()}</main>
 
-            <nav className="mw-bottom-tab">
+            <nav className="cmp-bottom-tab">
                 {tabItems.map((item) => (
                     <div
                         key={item.id}
-                        className={`mw-tab-item${activeMenu === item.id ? ' active' : ''}`}
+                        className={`cmp-tab-item${activeMenu === item.id ? ' active' : ''}`}
                         onClick={() => go(item.id)}
                     >
-                        <span className="mw-tab-icon">{item.icon}</span>
-                        <span className="mw-tab-label">{item.label}</span>
+                        <span className="cmp-tab-icon">{item.icon}</span>
+                        <span className="cmp-tab-label">{item.label}</span>
                     </div>
                 ))}
             </nav>

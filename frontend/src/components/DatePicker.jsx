@@ -68,49 +68,49 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
   };
 
   return (
-    <div className={`mw-monthpicker-wrap ${className}`.trim()} ref={ref}>
+    <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
       <button
         type="button"
-        className={`mw-monthpicker-input${value ? ' filled' : ''}`}
+        className={`cmp-monthpicker-input${value ? ' filled' : ''}`}
         onClick={() => setOpen((prev) => !prev)}
       >
         {icon && (
-          <span className="mw-picker-input-icon">
+          <span className="cmp-picker-input-icon">
             <Calendar size={15} />
           </span>
         )}
         <span>{value ? formatDateValue(value) : placeholder || '날짜 선택'}</span>
-        <ChevronDown size={14} className={`mw-picker-input-chevron${open ? ' open' : ''}`} />
+        <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
       </button>
 
       {open && (
-        <div className="mw-picker-popover mw-datepicker-modal">
-          <div className="mw-picker-popover-head">
+        <div className="cmp-picker-popover cmp-datepicker-modal">
+          <div className="cmp-picker-popover-head">
             <div>
-              <div className="mw-picker-popover-eyebrow">Date</div>
-              <div className="mw-picker-popover-title">
+              <div className="cmp-picker-popover-eyebrow">Date</div>
+              <div className="cmp-picker-popover-title">
                 {viewYear}년 {viewMonth + 1}월
               </div>
             </div>
-            <div className="mw-picker-nav">
-              <button type="button" className="mw-picker-nav-btn" onClick={handlePrevMonth}>
+            <div className="cmp-picker-nav">
+              <button type="button" className="cmp-picker-nav-btn" onClick={handlePrevMonth}>
                 <ChevronLeft size={14} />
               </button>
-              <button type="button" className="mw-picker-nav-btn" onClick={handleNextMonth}>
+              <button type="button" className="cmp-picker-nav-btn" onClick={handleNextMonth}>
                 <ChevronRight size={14} />
               </button>
             </div>
           </div>
 
-          <div className="mw-datepicker-weekdays">
+          <div className="cmp-datepicker-weekdays">
             {dayLabels.map((dayLabel) => (
               <span key={dayLabel}>{dayLabel}</span>
             ))}
           </div>
 
-          <div className="mw-datepicker-grid">
+          <div className="cmp-datepicker-grid">
             {blanks.map((blank) => (
-              <div key={`blank-${blank}`} className="mw-datepicker-blank" />
+              <div key={`blank-${blank}`} className="cmp-datepicker-blank" />
             ))}
             {days.map((day) => {
               const selected =
@@ -122,7 +122,7 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
                 <button
                   key={day}
                   type="button"
-                  className={`mw-datepicker-day${selected ? ' selected' : ''}${isToday ? ' today' : ''}`}
+                  className={`cmp-datepicker-day${selected ? ' selected' : ''}${isToday ? ' today' : ''}`}
                   onClick={() => handleSelect(day)}
                 >
                   {day}
