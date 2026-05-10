@@ -26,6 +26,11 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            # date, datetime 타입을 문자열로 변환
+            __import__('datetime').date: lambda v: v.isoformat(),
+            __import__('datetime').datetime: lambda v: v.isoformat(),
+        }
 
 class LoginRequest(BaseModel):
     username: str

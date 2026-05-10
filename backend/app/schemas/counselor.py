@@ -10,6 +10,7 @@ class CounselorProfileBase(BaseModel):
     center_phone: Optional[str] = None
     center_address: str
     consultation_price: Optional[int] = 0
+    status: Optional[str] = '심사중'  # '심사중', '수락', '반려'
 
 class CounselorProfileCreate(CounselorProfileBase):
     pass
@@ -17,6 +18,7 @@ class CounselorProfileCreate(CounselorProfileBase):
 class CounselorProfile(CounselorProfileBase):
     id: int
     user_id: int
+    status: str
     created_at: Optional[str]
     updated_at: Optional[str]
     class Config:

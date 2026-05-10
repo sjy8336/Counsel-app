@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../static/CounselorMyPage.css';
 import axios from 'axios';
+import { getCounselorProfile } from '../api/counselor.js';
+import { getNotifications, markNotificationRead } from '../api/notification.js';
 import {
     LayoutDashboard,
     Bell,
@@ -519,23 +521,30 @@ const App = () => {
     // 등록 여부를 항상 백엔드에서 확인
     const [registered, setRegistered] = useState(false);
     const [loadingRegistered, setLoadingRegistered] = useState(true);
+    const [profileStatus, setProfileStatus] = useState('');
 
     // 상담사 프로필 등록 여부 확인 API 호출
     const fetchRegistered = useCallback(async () => {
         setLoadingRegistered(true);
         try {
-            const token = localStorage.getItem('accessToken');
+            const token = localStorage.getItem('access_token');
             if (!token) {
                 setRegistered(false);
+                setProfileStatus('');
                 setLoadingRegistered(false);
                 return;
             }
-            const res = await axios.get('/api/counselor/profile/exists', {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            setRegistered(res.data.exists === true);
+            const profile = await getCounselorProfile(token);
+            if (profile && profile.status) {
+                setRegistered(true);
+                setProfileStatus(profile.status);
+            } else {
+                setRegistered(false);
+                setProfileStatus('');
+            }
         } catch (e) {
             setRegistered(false);
+            setProfileStatus('');
         } finally {
             setLoadingRegistered(false);
         }
@@ -550,7 +559,42 @@ const App = () => {
     const [workDays, setWorkDays] = useState(initWorkDays);
     const [holidays, setHolidays] = useState(['2024-06-01', '2024-06-15']);
     const [newHoliday, setNewHoliday] = useState('');
-    const [notifications, setNotifications] = useState(initNotifications);
+    const [notifications, setNotifications] = useState([]);
+    // 알림 불러오기
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            try {
+                const res = await getNotifications(token);
+                // 날짜별 그룹핑 (오늘/어제/이번 주 등은 단순화, 실제 서비스에서는 날짜별 그룹핑 필요)
+                const notifs = res.data || [];
+                // 예시: 오늘/어제/이전 등으로 그룹핑 (여기선 모두 '최근 알림'으로 묶음)
+                setNotifications([
+                    {
+                        id: 1,
+                        group: '최근 알림',
+                        items: notifs.map((n) => ({
+                            id: n.id,
+                            type: n.type,
+                            title: n.title,
+                            desc: n.desc,
+                            time: new Date(n.created_at).toLocaleString('ko-KR', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                month: 'short',
+                                day: 'numeric',
+                            }),
+                            unread: !n.read,
+                        })),
+                    },
+                ]);
+            } catch (e) {
+                // ignore
+            }
+        };
+        fetchNotifications();
+    }, [activeMenu]);
     const [notifSettings, setNotifSettings] = useState(initNotifSettings);
     const [deleteStep, setDeleteStep] = useState(1);
     const [deleteInput, setDeleteInput] = useState('');
@@ -603,17 +647,25 @@ const App = () => {
         }
     };
 
-    const handleNotifClick = (groupId, itemId) =>
-        setNotifications((prev) =>
-            prev.map((group) =>
-                group.id === groupId
-                    ? {
-                          ...group,
-                          items: group.items.map((item) => (item.id === itemId ? { ...item, unread: false } : item)),
-                      }
-                    : group
-            )
-        );
+    // 알림 클릭 시 읽음 처리
+    const handleNotifClick = async (groupId, itemId) => {
+        const token = localStorage.getItem('access_token');
+        try {
+            await markNotificationRead(itemId, token);
+            setNotifications((prev) =>
+                prev.map((group) =>
+                    group.id === groupId
+                        ? {
+                              ...group,
+                              items: group.items.map((item) =>
+                                  item.id === itemId ? { ...item, unread: false } : item
+                              ),
+                          }
+                        : group
+                )
+            );
+        } catch (e) {}
+    };
 
     const toggleNotifSetting = (id) =>
         setNotifSettings((prev) =>
@@ -764,28 +816,45 @@ const App = () => {
         <>
             <PageHeader title="알림 센터" sub="상담 일정, 예약 확정 등 최근 알림을 확인하세요." />
             <div className="cmp-list-card">
-                {notifications.map((group) => (
-                    <div key={group.id}>
-                        <div className="cmp-notif-group-label">{group.group}</div>
-                        {group.items.map((item) => (
-                            <div
-                                key={item.id}
-                                className={`cmp-notif-item${item.unread ? ' unread' : ''}`}
-                                onClick={() => handleNotifClick(group.id, item.id)}
-                            >
-                                <NotifIcon type={item.type} />
-                                <div className="cmp-notif-content">
-                                    <div className="cmp-notif-title">{item.title}</div>
-                                    <div className="cmp-notif-desc">{item.desc}</div>
-                                </div>
-                                <div className="cmp-notif-meta">
-                                    <span className="cmp-notif-time">{item.time}</span>
-                                    {item.unread && <span className="cmp-notif-dot" />}
-                                </div>
-                            </div>
-                        ))}
+                {notifications.length === 0 || notifications.every((g) => !g.items?.length) ? (
+                    <div className="cmp-notif-empty">
+                        <div className="cmp-notif-empty-icon">
+                            <Bell size={22} />
+                        </div>
+                        <p className="cmp-notif-empty-title">새로운 알림이 없습니다</p>
+                        <p className="cmp-notif-empty-sub">
+                            상담 일정, 예약 확정 등 새로운 알림이
+                            <br />
+                            생기면 여기에 표시됩니다.
+                        </p>
                     </div>
-                ))}
+                ) : (
+                    notifications.map(
+                        (group) =>
+                            group.items?.length > 0 && (
+                                <div key={group.id}>
+                                    <div className="cmp-notif-group-label">{group.group}</div>
+                                    {group.items.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className={`cmp-notif-item${item.unread ? ' unread' : ''}`}
+                                            onClick={() => handleNotifClick(group.id, item.id)}
+                                        >
+                                            <NotifIcon type={item.type} />
+                                            <div className="cmp-notif-content">
+                                                <div className="cmp-notif-title">{item.title}</div>
+                                                <div className="cmp-notif-desc">{item.desc}</div>
+                                            </div>
+                                            <div className="cmp-notif-meta">
+                                                <span className="cmp-notif-time">{item.time}</span>
+                                                {item.unread && <span className="cmp-notif-dot" />}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )
+                    )
+                )}
             </div>
         </>
     );
@@ -838,6 +907,32 @@ const App = () => {
                         onClick={() => navigate('/counselorUpload')}
                     >
                         상담사 등록하기
+                    </button>
+                </div>
+            ) : profileStatus === '심사중' ? (
+                <div className="cmp-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
+                    <div className="cmp-register-icon">⏳</div>
+                    <h3 className="cmp-register-title">프로필 등록 심사중</h3>
+                    <p className="cmp-register-sub">관리자 심사 후 승인 시 프로필이 공개됩니다.</p>
+                    <button
+                        className="cmp-btn cmp-btn-disabled"
+                        style={{ padding: '13px 28px', fontSize: 14 }}
+                        disabled
+                    >
+                        심사중
+                    </button>
+                </div>
+            ) : profileStatus === '반려' ? (
+                <div className="cmp-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
+                    <div className="cmp-register-icon">❌</div>
+                    <h3 className="cmp-register-title">프로필 등록이 반려되었습니다</h3>
+                    <p className="cmp-register-sub">사유를 확인 후 정보를 수정해 다시 등록해 주세요.</p>
+                    <button
+                        className="cmp-btn cmp-btn-primary"
+                        style={{ padding: '13px 28px', fontSize: 14 }}
+                        onClick={() => navigate('/counselorUpload')}
+                    >
+                        재등록하기
                     </button>
                 </div>
             ) : (

@@ -19,3 +19,7 @@ class User(Base):
     is_active = Column(Boolean, server_default=text('1'), nullable=False)
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
+
+    # Notification 관계 추가
+    from sqlalchemy.orm import relationship
+    notifications = relationship('Notification', back_populates='user')

@@ -9,7 +9,7 @@ from app.schemas.counselor import (
 
 # 1. 프로필 생성/수정/조회
 def create_counselor_profile(db: Session, user_id: int, data: CounselorProfileCreate):
-    profile = CounselorProfile(user_id=user_id, **data.dict())
+    profile = CounselorProfile(user_id=user_id, **data.dict(exclude={"status"}), status='심사중')
     db.add(profile)
     db.commit()
     db.refresh(profile)

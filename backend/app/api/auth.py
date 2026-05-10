@@ -1,17 +1,33 @@
-from app.schemas.user import UserUpdate, ChangePasswordRequest
-from app.core.jwt import create_access_token
-from passlib.context import CryptContext
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import List
 from app.db.session import get_db
 from app.models.user import User
 from app.models.favorite import Favorite
 from app.core.deps import get_current_user
-from app.schemas.user import UserCreate, LoginRequest
+from app.schemas.user import UserCreate, LoginRequest, UserUpdate, ChangePasswordRequest, UserResponse
+from app.core.jwt import create_access_token
 from app.crud import crud
+from passlib.context import CryptContext
 from pydantic import BaseModel
 
 router = APIRouter()
+
+# 관리자: 전체 회원 조회
+@router.get("/admin/users", response_model=List[UserResponse])
+def get_all_users(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="관리자만 접근 가능합니다.")
+    users = db.query(User).all()
+    # birth_date가 date 타입이면 str로 변환
+    user_dicts = []
+    for u in users:
+        d = u.__dict__.copy()
+        if hasattr(u, 'birth_date') and u.birth_date is not None:
+            d['birth_date'] = str(u.birth_date)
+        user_dicts.append(d)
+    return user_dicts
 
 # 계정 영구 삭제용 pydantic 모델
 class DeleteAccountRequest(BaseModel):
@@ -173,7 +189,8 @@ def get_me(current_user=Depends(get_current_user)):
         "email": user.email,
         "phone_number": user.phone_number,
         "role": user.role,  # 'counselor', 'client', 'admin'
-        "profile_image": "default.png"
+        "profile_image": "default.png",
+        "username": user.username
     }
 
 @router.post("/favorites/{counselor_id}")

@@ -1,51 +1,75 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, ChevronRight, BookHeart, Eye, EyeOff, User } from 'lucide-react';
+import { Lock, ChevronRight, BookHeart, Eye, EyeOff, User } from 'lucide-react';
 import { login } from '../api/auth';
 import '../static/Login.css';
 
 export default function LoginPage({ setUserName, setIsLoggedIn }) {
-    const [id, setId] = useState('');
+    // 변수명 충돌 방지를 위해 id 대신 loginId 사용
+    const [loginId, setLoginId] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // 1. 입력값 검증 (방어 코드)
+        if (!loginId || !password) {
+            alert('아이디와 비밀번호를 모두 입력해주세요.');
+            return;
+        }
+
         try {
-            const result = await login({ username: id, password: password });
-            // 디버깅: 로그인 응답 user 객체 확인
-            if (typeof result.user.id === 'undefined') {
-                console.warn('로그인 응답에 id(PK)가 없습니다:', result.user);
-            } else {
-                console.log('로그인 응답 user:', result.user);
-                // role, username 등 주요 정보 명확히 출력
-                console.log('user.role:', result.user.role);
-                console.log('user.username:', result.user.username);
+            console.log('로그인 시도 아이디:', loginId);
+
+            // 2. API 호출
+            // 서버의 요구 형식에 따라 username: loginId로 매핑하여 전달
+            const result = await login({ username: loginId, password: password });
+
+            // 3. 응답 데이터 안전하게 추출 (Optional Chaining 적용)
+            const responseData = result?.data;
+            const user = responseData?.user;
+            const token = responseData?.access_token;
+
+            // 4. 로그인 성공 여부 확인
+            if (!user) {
+                console.error('로그인 응답에 사용자 정보가 없습니다.', result);
+                alert('로그인에 실패했습니다. 서버 응답을 확인해주세요.');
+                return;
             }
-            localStorage.setItem('user', JSON.stringify(result.user));
-            if (result.access_token) {
-                localStorage.setItem('access_token', result.access_token); // header.jsx와 통일
+
+            // 5. 로컬 스토리지 데이터 저장
+            // 나중에 새로고침해도 로그인이 유지되도록 함
+            localStorage.setItem('user', JSON.stringify(user));
+            if (token) {
+                localStorage.setItem('access_token', token);
             }
-            // 로그인 시간 저장 (UTC ms)
             localStorage.setItem('login_time', Date.now().toString());
-            // 상태 즉시 반영
-            setUserName(result.user.full_name || result.user.username || '');
+
+            // 6. 상위 컴포넌트(App) 상태 업데이트
+            // DB 테이블의 full_name이 없으면 username을, 둘 다 없으면 '사용자' 표시
+            const displayName = user.full_name || user.username || '사용자';
+            setUserName(displayName);
             setIsLoggedIn(true);
-            alert(`${result.user.full_name}님, 환영합니다!`);
-            // role에 따라 이동 경로 분기
-            if (result.user.role === 'counselor') {
+
+            alert(`${displayName}님, 환영합니다!`);
+
+            // 7. DB 역할(role)에 따른 페이지 라우팅
+            if (user.role === 'counselor') {
                 navigate('/counselorhome');
             } else {
                 navigate('/');
             }
         } catch (error) {
-            console.error('3. 로그인 에러 발생!');
-            console.log('에러 객체 전체:', error);
-            console.log('백엔드 메시지:', error.response?.data);
-            alert(error.response?.data?.detail || '로그인에 실패했습니다.');
+            console.error('로그인 프로세스 중 에러 발생:', error);
+
+            // Axios 에러 처리: 서버에서 보내준 상세 메시지가 있다면 출력
+            const serverMessage = error.response?.data?.detail || error.response?.data?.message;
+            const clientMessage = error.message;
+
+            alert(serverMessage || clientMessage || '로그인 중 오류가 발생했습니다.');
         }
-        console.log('Login attempt:', id);
     };
 
     return (
@@ -92,10 +116,11 @@ export default function LoginPage({ setUserName, setIsLoggedIn }) {
                                     <User size={16} className="input-icon" />
                                     <input
                                         type="text"
-                                        value={id}
-                                        onChange={(e) => setId(e.target.value)}
+                                        value={loginId}
+                                        onChange={(e) => setLoginId(e.target.value)}
                                         className="input-field"
                                         placeholder="아이디를 입력해 주세요"
+                                        autoComplete="username"
                                         required
                                     />
                                 </div>
@@ -111,6 +136,7 @@ export default function LoginPage({ setUserName, setIsLoggedIn }) {
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="input-field"
                                         placeholder="비밀번호를 입력해 주세요"
+                                        autoComplete="current-password"
                                         required
                                     />
                                     <button
@@ -144,7 +170,7 @@ export default function LoginPage({ setUserName, setIsLoggedIn }) {
                             <span className="divider-text">소셜 로그인</span>
                         </div>
 
-                        {/* 소셜 버튼 컨테이너 - 이미지 기반 방식 */}
+                        {/* 소셜 버튼 컨테이너 */}
                         <div className="social-icon-wrapper">
                             {['Google', 'Kakao', 'Naver'].map((p) => (
                                 <button
