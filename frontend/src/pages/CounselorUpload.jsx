@@ -58,6 +58,7 @@ const initSchedule = () =>
     );
 
 const App = () => {
+        const [basicCenterPhone, setBasicCenterPhone] = useState('');
     const navigate = useNavigate();
     const [toastMsg, setToastMsg] = useState('');
     const toastTimer = useRef(null);
@@ -603,7 +604,29 @@ const App = () => {
                 </div>
                 <div className="cu-ep-field">
                     <label className="cu-ep-label">상담소 전화번호</label>
-                    <input type="tel" placeholder="02-000-0000" className="cu-ep-input" />
+                    <input
+                        type="tel"
+                        placeholder="02-000-0000"
+                        className="cu-ep-input"
+                        value={basicCenterPhone}
+                        onChange={e => {
+                            let v = e.target.value.replace(/[^0-9]/g, '');
+                            // 02로 시작하는 번호(서울)
+                            if (v.startsWith('02')) {
+                                if (v.length > 2 && v.length <= 5) v = v.replace(/(02)(\d{0,3})/, '$1-$2');
+                                else if (v.length > 5 && v.length <= 9) v = v.replace(/(02)(\d{3,4})(\d{0,4})/, '$1-$2-$3');
+                                else if (v.length > 9) v = v.replace(/(02)(\d{4})(\d{4}).*/, '$1-$2-$3');
+                            } else {
+                                // 3자리 지역번호(010, 031 등)
+                                if (v.length <= 3) ;
+                                else if (v.length > 3 && v.length <= 7) v = v.replace(/(\d{3})(\d{0,4})/, '$1-$2');
+                                else if (v.length > 7) v = v.replace(/(\d{3})(\d{3,4})(\d{0,4})/, '$1-$2-$3');
+                                else if (v.length > 11) v = v.replace(/(\d{3})(\d{4})(\d{4}).*/, '$1-$2-$3');
+                            }
+                            setBasicCenterPhone(v);
+                        }}
+                        maxLength={13}
+                    />
                 </div>
                 <div className="cu-ep-field cu-ep-span2">
                     <label className="cu-ep-label">
@@ -1014,6 +1037,7 @@ const App = () => {
     };
 
     return (
+
         <div className="cu-ep-page">
             {showConfirmModal && renderConfirmModal()}
             {toastMsg && <div className="cu-toast-popup cu-toast-popup--show">{toastMsg}</div>}
@@ -1034,9 +1058,9 @@ const App = () => {
             <Header
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
-                isLoggedIn={true}
-                userName="상담사"
-                setUserName={() => {}}
+                isLoggedIn={!!localStorage.getItem('access_token')}
+                userName={basicName}
+                setUserName={setBasicName}
                 setIsLoggedIn={() => {}}
             />
 

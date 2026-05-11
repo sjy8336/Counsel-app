@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck } from 'lucide-react';
-import { getMyInfo } from '../api/user';
-import { mockNotifications } from './mockNotifications';
+import { getNotifications } from '../api/notification';
 import '../static/Common.css';
 import '../static/NotifPopup.css';
 
@@ -22,8 +21,27 @@ export default function Header({
 }) {
     const [userRole, setUserRole] = useState('');
     const [notifOpen, setNotifOpen] = useState(false);
+    const [notifications, setNotifications] = useState([]);
     const notifRef = useRef(null);
     const location = useLocation();
+
+    // 알림 불러오기
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                setNotifications([]);
+                return;
+            }
+            try {
+                const res = await getNotifications(token);
+                setNotifications(res.data || []);
+            } catch (e) {
+                setNotifications([]);
+            }
+        };
+        if (notifOpen) fetchNotifications();
+    }, [notifOpen]);
 
     useEffect(() => {
         const user = localStorage.getItem('user');
@@ -94,6 +112,8 @@ export default function Header({
         return () => document.removeEventListener('mousedown', handleClick);
     }, [notifOpen]);
 
+    const hasUnread = notifications.some((n) => n.unread);
+
     return (
         <header className="global-header">
             <div className="header-content">
@@ -138,10 +158,26 @@ export default function Header({
 
                     {isLoggedIn && (
                         <div style={{ position: 'relative', display: 'inline-block' }} ref={notifRef}>
-                            <button className="bell-btn" onClick={handleBellClick}>
+                            {/* 벨 버튼 — 읽지 않은 알림이 있으면 빨간 점 표시 */}
+                            <button className="bell-btn" onClick={handleBellClick} style={{ position: 'relative' }}>
                                 <Bell size={22} />
-                                {mockNotifications.some((n) => n.unread) && <span className="notification-dot"></span>}
+                                {hasUnread && (
+                                    <span
+                                        style={{
+                                            position: 'absolute',
+                                            top: '2px',
+                                            right: '2px',
+                                            width: '8px',
+                                            height: '8px',
+                                            borderRadius: '50%',
+                                            background: '#ef4444',
+                                            border: '1.5px solid #fff',
+                                            display: 'block',
+                                        }}
+                                    />
+                                )}
                             </button>
+
                             {notifOpen && (
                                 <div className="notif-popup">
                                     <div className="notif-popup-header">
@@ -151,10 +187,10 @@ export default function Header({
                                         </button>
                                     </div>
                                     <div className="notif-popup-list">
-                                        {mockNotifications.length === 0 ? (
+                                        {notifications.length === 0 ? (
                                             <div className="notif-popup-empty">알림이 없습니다.</div>
                                         ) : (
-                                            mockNotifications.map((n) => (
+                                            notifications.map((n) => (
                                                 <div
                                                     key={n.id}
                                                     className={`notif-popup-item${n.unread ? ' unread' : ''}`}
@@ -168,7 +204,7 @@ export default function Header({
                                                         <div className="notif-popup-title">{n.title}</div>
                                                         <div className="notif-popup-desc">{n.desc}</div>
                                                     </div>
-                                                    <span className="notif-popup-time">{n.time}</span>
+                                                    <span className="notif-popup-time">{n.time || ''}</span>
                                                 </div>
                                             ))
                                         )}
