@@ -37,7 +37,7 @@ export const deleteAccount = async (user_id) => {
 
 export const login = async (credentials) => {
     try {
-        const response = await axios.post(`${API_URL}/login`, {
+        const response = await axios.post(`${API_URL}/api/login`, {
             username: credentials.username,
             password: credentials.password,
         });
