@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
 /* 학력/경력/자격증 리스트 가독성 개선 */
 .ac-list {
     list-style: none;
@@ -26,8 +27,6 @@
     flex: 1;
     word-break: break-all;
 }
-/* AdminCounselor.css — MindWell Admin Redesign */
-@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
 
 :root {
     --ac-green: #8ba888;
