@@ -30,9 +30,9 @@ const CounselorHome = () => {
     };
 
     const todaySessions = [
-        { time: '13:00', name: '이은지', room: '제1상담실 (대면)' },
-        { time: '15:00', name: '박지연', room: '제2상담실 (대면)' },
-        { time: '17:00', name: '정민우', room: '온라인 화상' },
+        { time: '13:00', name: '이은지', room: '제1상담실 ' },
+        { time: '15:00', name: '박지연', room: '제2상담실 ' },
+        { time: '17:00', name: '정민우', room: '제3상담실 ' },
     ];
 
     // 오늘 상담 총 건수 자동 계산
