@@ -58,7 +58,7 @@ const initSchedule = () =>
     );
 
 const App = () => {
-        const [basicCenterPhone, setBasicCenterPhone] = useState('');
+    const [basicCenterPhone, setBasicCenterPhone] = useState('');
     const navigate = useNavigate();
     const [toastMsg, setToastMsg] = useState('');
     const toastTimer = useRef(null);
@@ -609,16 +609,17 @@ const App = () => {
                         placeholder="02-000-0000"
                         className="cu-ep-input"
                         value={basicCenterPhone}
-                        onChange={e => {
+                        onChange={(e) => {
                             let v = e.target.value.replace(/[^0-9]/g, '');
                             // 02로 시작하는 번호(서울)
                             if (v.startsWith('02')) {
                                 if (v.length > 2 && v.length <= 5) v = v.replace(/(02)(\d{0,3})/, '$1-$2');
-                                else if (v.length > 5 && v.length <= 9) v = v.replace(/(02)(\d{3,4})(\d{0,4})/, '$1-$2-$3');
+                                else if (v.length > 5 && v.length <= 9)
+                                    v = v.replace(/(02)(\d{3,4})(\d{0,4})/, '$1-$2-$3');
                                 else if (v.length > 9) v = v.replace(/(02)(\d{4})(\d{4}).*/, '$1-$2-$3');
                             } else {
                                 // 3자리 지역번호(010, 031 등)
-                                if (v.length <= 3) ;
+                                if (v.length <= 3);
                                 else if (v.length > 3 && v.length <= 7) v = v.replace(/(\d{3})(\d{0,4})/, '$1-$2');
                                 else if (v.length > 7) v = v.replace(/(\d{3})(\d{3,4})(\d{0,4})/, '$1-$2-$3');
                                 else if (v.length > 11) v = v.replace(/(\d{3})(\d{4})(\d{4}).*/, '$1-$2-$3');
@@ -1037,7 +1038,6 @@ const App = () => {
     };
 
     return (
-
         <div className="cu-ep-page">
             {showConfirmModal && renderConfirmModal()}
             {toastMsg && <div className="cu-toast-popup cu-toast-popup--show">{toastMsg}</div>}
