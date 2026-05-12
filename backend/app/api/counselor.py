@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
@@ -250,3 +249,92 @@ def get_counselor_detail(user_id: int, db: Session = Depends(get_db)):
         "experiences": experiences,
         "schedules": schedules,
     }
+
+@router.get("/counselor/certificate")
+def get_certificates(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    return crud.get_certificates(db, user_id=current_user.id)
+
+@router.put("/counselor/specialty")
+def update_specialties(
+    data: List[CounselorSpecialtyCreate],
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == current_user.id).delete()
+    db.commit()
+    result = []
+    for item in data:
+        result.append(crud.add_specialty(db, user_id=current_user.id, data=item))
+    return result
+
+@router.get("/counselor/specialty")
+def get_specialties(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    return crud.get_specialties(db, user_id=current_user.id)
+
+@router.put("/counselor/certificate")
+def update_certificates(
+    data: List[CounselorCertificateCreate],
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    db.query(CounselorCertificate).filter(CounselorCertificate.user_id == current_user.id).delete()
+    db.commit()
+    result = []
+    for item in data:
+        result.append(crud.add_certificate(db, user_id=current_user.id, data=item))
+    return result
+
+@router.get("/counselor/certificate")
+def get_certificates(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    return crud.get_certificates(db, user_id=current_user.id)
+
+@router.put("/counselor/education")
+def update_educations(
+    data: List[CounselorEducationCreate],
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    db.query(CounselorEducation).filter(CounselorEducation.user_id == current_user.id).delete()
+    db.commit()
+    result = []
+    for item in data:
+        result.append(crud.add_education(db, user_id=current_user.id, data=item))
+    return result
+
+@router.get("/counselor/education")
+def get_educations(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    return crud.get_educations(db, user_id=current_user.id)
+
+@router.put("/counselor/experience")
+def update_experiences(
+    data: List[CounselorExperienceCreate],
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    db.query(CounselorExperience).filter(CounselorExperience.user_id == current_user.id).delete()
+    db.commit()
+    result = []
+    for item in data:
+        result.append(crud.add_experience(db, user_id=current_user.id, data=item))
+    return result
+
+@router.get("/counselor/experience")
+def get_experiences(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    return crud.get_experiences(db, user_id=current_user.id)
+
+@router.put("/counselor/schedule")
+def update_schedules(
+    data: List[CounselorScheduleCreate],
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    db.query(CounselorSchedule).filter(CounselorSchedule.user_id == current_user.id).delete()
+    db.commit()
+    result = []
+    for item in data:
+        result.append(crud.add_schedule(db, user_id=current_user.id, data=item))
+    return result
+
+@router.get("/counselor/schedule")
+def get_schedules(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    return crud.get_schedules(db, user_id=current_user.id)

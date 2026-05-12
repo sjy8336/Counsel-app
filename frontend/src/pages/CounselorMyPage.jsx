@@ -2,7 +2,20 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../static/CounselorMyPage.css';
 import axios from 'axios';
-import { getCounselorProfile } from '../api/counselor.js';
+import {
+    getCounselorProfile,
+    updateCounselorProfile,
+    getSpecialty,
+    updateSpecialty,
+    getCertificates,
+    updateCertificate,
+    getEducations,
+    updateEducation,
+    getExperiences,
+    updateExperience,
+    getSchedules,
+    updateSchedule
+} from '../api/counselor.js';
 import { getNotifications, markNotificationRead } from '../api/notification.js';
 import {
     LayoutDashboard,
@@ -553,12 +566,80 @@ const App = () => {
     useEffect(() => {
         fetchRegistered();
     }, [fetchRegistered]);
-    const [careers, setCareers] = useState(initCareers);
-    const [educations, setEducations] = useState(initEducations);
-    const [certificates, setCertificates] = useState(initCertificates);
-    const [workDays, setWorkDays] = useState(initWorkDays);
-    const [holidays, setHolidays] = useState(['2024-06-01', '2024-06-15']);
+    // DB 연동용 state
+    const [profile, setProfile] = useState({});
+    const [specialties, setSpecialties] = useState([]);
+    const [careers, setCareers] = useState([]);
+    const [educations, setEducations] = useState([]);
+    const [certificates, setCertificates] = useState([]);
+    const [workDays, setWorkDays] = useState([]);
+    const [holidays, setHolidays] = useState([]);
     const [newHoliday, setNewHoliday] = useState('');
+        // DB에서 상담사 정보 불러오기
+        useEffect(() => {
+            const fetchAll = async () => {
+                const token = localStorage.getItem('access_token');
+                if (!token) return;
+                try {
+                    // 프로필
+                    const prof = await getCounselorProfile(token);
+                    setProfile(prof || {});
+                    // 전문분야
+                    const specs = await getSpecialty(token);
+                    setSpecialties(specs || []);
+                    // 자격증: DB → 프론트 필드명 변환
+                    const certs = await getCertificates(token);
+                    setCertificates(
+                        (certs || []).map((c, idx) => ({
+                            id: c.id || idx + 1,
+                            name: c.certificate_name || '',
+                            issuer: c.issuer || '',
+                            date: c.acquisition_date || '',
+                        }))
+                    );
+                    // 학력: DB → 프론트 필드명 변환
+                    const edus = await getEducations(token);
+                    setEducations(
+                        (edus || []).map((e, idx) => ({
+                            id: e.id || idx + 1,
+                            school: e.school_name || '',
+                            degree: e.major || '',
+                            startDate: e.start_date || '',
+                            endDate: e.end_date || '',
+                        }))
+                    );
+                    // 경력: DB → 프론트 필드명 변환
+                    const exps = await getExperiences(token);
+                    setCareers(
+                        (exps || []).map((e, idx) => ({
+                            id: e.id || idx + 1,
+                            startDate: e.start_date || '',
+                            endDate: e.end_date || '',
+                            isCurrent: e.is_current || false,
+                            description: e.content || '',
+                        }))
+                    );
+                    // 스케줄
+                    const scheds = await getSchedules(token);
+                    // workDays: [{day, active, startTime, endTime}]
+                    setWorkDays(
+                        (scheds || []).length === 7
+                            ? scheds.map((s) => ({
+                                  day: s.day,
+                                  active: s.active,
+                                  startTime: s.start_time,
+                                  endTime: s.end_time,
+                              }))
+                            : initWorkDays
+                    );
+                    // 휴무일(추가 구현 필요시)
+                    setHolidays([]); // DB에 별도 저장 필요시 구현
+                } catch (e) {
+                    // ignore
+                }
+            };
+            fetchAll();
+        }, [registered]);
     const [notifications, setNotifications] = useState([]);
     // 알림 불러오기
     useEffect(() => {
@@ -599,38 +680,23 @@ const App = () => {
     const [deleteStep, setDeleteStep] = useState(1);
     const [deleteInput, setDeleteInput] = useState('');
 
-    const addCareer = () =>
-        setCareers((prev) => [...prev, { id: uid(), startDate: '', endDate: '', isCurrent: false, description: '' }]);
 
+    // CRUD 핸들러 (DB 연동)
+    const addCareer = () => setCareers((prev) => [...prev, { id: uid(), startDate: '', endDate: '', isCurrent: false, description: '' }]);
     const removeCareer = (id) => setCareers((prev) => prev.filter((career) => career.id !== id));
-    const updateCareer = (id, key, value) =>
-        setCareers((prev) => prev.map((career) => (career.id === id ? { ...career, [key]: value } : career)));
-    const toggleCareerCurrent = (id) =>
-        setCareers((prev) =>
-            prev.map((career) => (career.id === id ? { ...career, isCurrent: !career.isCurrent, endDate: '' } : career))
-        );
-
-    const addEducation = () =>
-        setEducations((prev) => [...prev, { id: uid(), startDate: '', endDate: '', school: '', degree: '' }]);
+    const updateCareer = (id, key, value) => setCareers((prev) => prev.map((career) => (career.id === id ? { ...career, [key]: value } : career)));
+    const toggleCareerCurrent = (id) => setCareers((prev) => prev.map((career) => (career.id === id ? { ...career, isCurrent: !career.isCurrent, endDate: '' } : career)));
+    const addEducation = () => setEducations((prev) => [...prev, { id: uid(), startDate: '', endDate: '', school: '', degree: '' }]);
     const removeEducation = (id) => setEducations((prev) => prev.filter((education) => education.id !== id));
-    const updateEducation = (id, key, value) =>
-        setEducations((prev) =>
-            prev.map((education) => (education.id === id ? { ...education, [key]: value } : education))
-        );
-
+    const updateEducation = (id, key, value) => setEducations((prev) => prev.map((education) => (education.id === id ? { ...education, [key]: value } : education)));
     const addCertificate = () => setCertificates((prev) => [...prev, { id: uid(), name: '', issuer: '', date: '' }]);
     const removeCertificate = (id) => setCertificates((prev) => prev.filter((certificate) => certificate.id !== id));
-    const updateCertificate = (id, key, value) =>
-        setCertificates((prev) =>
-            prev.map((certificate) => (certificate.id === id ? { ...certificate, [key]: value } : certificate))
-        );
-
+    const updateCertificate = (id, key, value) => setCertificates((prev) => prev.map((certificate) => (certificate.id === id ? { ...certificate, [key]: value } : certificate)));
     const toggleWorkDay = (index) => {
         const next = [...workDays];
         next[index].active = !next[index].active;
         setWorkDays(next);
     };
-
     const updateWorkTime = (index, key, value) => {
         const next = [...workDays];
         next[index][key] = value;
@@ -881,13 +947,38 @@ const App = () => {
         </>
     );
 
+    // DB 연동 프로필 저장
+    const handleSaveProfile = async () => {
+        const token = localStorage.getItem('access_token');
+        // 1. 프로필
+        await updateCounselorProfile(profile, token);
+        // 2. 전문분야(추후 구현)
+        // await updateSpecialty(specialties, token);
+        // 3. 자격증
+        await updateCertificate(certificates.map(({ id, ...rest }) => rest), token);
+        // 4. 학력
+        await updateEducation(educations.map(({ id, ...rest }) => rest), token);
+        // 5. 경력
+        await updateExperience(careers.map(({ id, ...rest }) => rest), token);
+        // 6. 스케줄
+        await updateSchedule(
+            workDays.map((d) => ({
+                day: d.day,
+                active: d.active,
+                start_time: d.startTime,
+                end_time: d.endTime,
+            })),
+            token
+        );
+        alert('저장되었습니다.');
+    };
+
     const renderProfile = () => (
         <>
             <BackHeader
                 title={registered ? '상담사 프로필 수정' : '상담사 등록하기'}
                 onBack={() => setSettingsView(null)}
             />
-
             {loadingRegistered ? (
                 <div className="cmp-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
                     <div className="cmp-register-title">상태 확인 중...</div>
@@ -953,19 +1044,51 @@ const App = () => {
                                 <p style={{ fontSize: 12, fontWeight: 600 }}>사진을 클릭하여 업로드</p>
                             </div>
                         </div>
-                        {/* 이하 기존 프로필 수정 UI 그대로 */}
+                        {/* DB 연동 기본 정보 */}
                         <div className="cmp-grid-2">
-                            {[
-                                ['이름', '이은지'],
-                                ['연락처', '010-1234-5678'],
-                                ['전화번호', '02-1234-5678'],
-                                ['전문 분야', '성인 우울, 불안 장애'],
-                            ].map(([label, value]) => (
-                                <div key={label}>
-                                    <label className="cmp-field-label">{label}</label>
-                                    <input className="cmp-input" defaultValue={value} />
-                                </div>
-                            ))}
+                            <div>
+                                <label className="cmp-field-label">아이디</label>
+                                <input className="cmp-input" value={profile.user_id || ''} readOnly style={{ background: '#f5f5f5', color: '#888' }} />
+                            </div>
+                            <div>
+                                <label className="cmp-field-label">이메일</label>
+                                <input className="cmp-input" value={profile.email || ''} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} />
+                            </div>
+                            <div>
+                                <label className="cmp-field-label">이름</label>
+                                <input className="cmp-input" value={profile.name || ''} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} />
+                            </div>
+                            <div>
+                                <label className="cmp-field-label">연락처</label>
+                                <input className="cmp-input" value={profile.phone || ''} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} />
+                            </div>
+                            <div>
+                                <label className="cmp-field-label">전화번호</label>
+                                <input className="cmp-input" value={profile.tel || ''} onChange={e => setProfile(p => ({ ...p, tel: e.target.value }))} />
+                            </div>
+                            <div>
+                                <label className="cmp-field-label">전문 분야</label>
+                                <input className="cmp-input" value={profile.specialty || ''} onChange={e => setProfile(p => ({ ...p, specialty: e.target.value }))} />
+                            </div>
+                            <div>
+                                <label className="cmp-field-label">상담 가격(원)</label>
+                                <input
+                                    className="cmp-input"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={
+                                        profile.price !== undefined && profile.price !== ''
+                                            ? Number(profile.price).toLocaleString('ko-KR')
+                                            : ''
+                                    }
+                                    onChange={e => {
+                                        // 숫자만 추출
+                                        const onlyNum = e.target.value.replace(/[^0-9]/g, '');
+                                        setProfile(p => ({ ...p, price: onlyNum }));
+                                    }}
+                                />
+                            </div>
                         </div>
                         <div className="cmp-section-divider" style={{ marginTop: 14 }}>
                             <div className="cmp-sub-section-header">
@@ -1024,15 +1147,26 @@ const App = () => {
                                 </div>
                             ))}
                         </div>
-
                         <div className="cmp-section-divider">
-                            <div className="cmp-sub-section-header">
+                            <div className="cmp-sub-section-header" style={{ alignItems: 'center' }}>
                                 <span className="cmp-field-label" style={{ margin: 0 }}>
                                     자격증
                                 </span>
-                                <button className="cmp-btn-outline-sm" onClick={addCertificate}>
-                                    + 추가
-                                </button>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <button className="cmp-btn-outline-sm" onClick={addCertificate}>
+                                        + 추가
+                                    </button>
+                                    {certificates.length > 1 && (
+                                        <button
+                                            className="cmp-btn-icon"
+                                            style={{ marginLeft: 2 }}
+                                            onClick={() => removeCertificate(certificates[certificates.length - 1].id)}
+                                            title="마지막 자격증 삭제"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             {certificates.map((certificate) => (
                                 <div key={certificate.id} className="cmp-row-card">
@@ -1067,17 +1201,11 @@ const App = () => {
                                                 className="cmp-input-sm"
                                             />
                                         </div>
-                                        <button
-                                            className="cmp-btn-icon"
-                                            onClick={() => removeCertificate(certificate.id)}
-                                        >
-                                            <X size={12} />
-                                        </button>
+                                        {/* x버튼 제거됨 */}
                                     </div>
                                 </div>
                             ))}
                         </div>
-
                         <div className="cmp-section-divider">
                             <div className="cmp-sub-section-header">
                                 <span className="cmp-field-label" style={{ margin: 0 }}>
@@ -1135,31 +1263,28 @@ const App = () => {
                                 </div>
                             ))}
                         </div>
-
                         <div className="cmp-grid-2">
-                            {[
-                                ['상담소명', '마인드웰 서울 강남센터'],
-                                ['상담소 주소', '서울시 강남구 테헤란로 123'],
-                            ].map(([label, value]) => (
-                                <div key={label}>
-                                    <label className="cmp-field-label">{label}</label>
-                                    <input className="cmp-input" defaultValue={value} />
-                                </div>
-                            ))}
+                            <div>
+                                <label className="cmp-field-label">상담소명</label>
+                                <input className="cmp-input" value={profile.office_name || ''} onChange={e => setProfile(p => ({ ...p, office_name: e.target.value }))} />
+                            </div>
+                            <div>
+                                <label className="cmp-field-label">상담소 주소</label>
+                                <input className="cmp-input" value={profile.office_address || ''} onChange={e => setProfile(p => ({ ...p, office_address: e.target.value }))} />
+                            </div>
                         </div>
-
                         <div style={{ marginTop: 12, marginBottom: 14 }}>
                             <label className="cmp-field-label">자기소개</label>
                             <textarea
                                 className="cmp-textarea"
-                                defaultValue="안녕하세요. 10년 경력의 임상심리전문가 이은지입니다."
+                                value={profile.intro || ''}
+                                onChange={e => setProfile(p => ({ ...p, intro: e.target.value }))}
                             />
                         </div>
-                        <button className="cmp-btn cmp-btn-primary" style={{ maxWidth: 130 }}>
+                        <button className="cmp-btn cmp-btn-primary" style={{ maxWidth: 130 }} onClick={handleSaveProfile}>
                             프로필 저장
                         </button>
                     </div>
-
                     <div className="cmp-settings-card">
                         <div className="cmp-card-title">
                             <Clock size={15} color="var(--cmp-primary)" /> 상담 시간 설정
@@ -1201,7 +1326,6 @@ const App = () => {
                                 </div>
                             </div>
                         ))}
-
                         <label className="cmp-field-label" style={{ marginTop: 18, marginBottom: 9 }}>
                             휴무일 설정
                         </label>
@@ -1240,7 +1364,7 @@ const App = () => {
                                 </div>
                             )}
                         </div>
-                        <button className="cmp-btn cmp-btn-primary" style={{ maxWidth: 130, marginTop: 14 }}>
+                        <button className="cmp-btn cmp-btn-primary" style={{ maxWidth: 130, marginTop: 14 }} onClick={handleSaveProfile}>
                             시간 저장
                         </button>
                     </div>
