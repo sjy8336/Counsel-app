@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { isTokenExpired } from './utils/jwt';
 
@@ -43,6 +43,13 @@ function App() {
     const navigate = useNavigate();
     const [userName, setUserName] = useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    // ✅ 페이지 이동 시 항상 최상단으로 스크롤
+    useEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTo(0, 0);
+    document.body.scrollTo(0, 0);
+}, [location.pathname]);
 
     useEffect(() => {
         const user = localStorage.getItem('user');
@@ -210,6 +217,8 @@ function App() {
                     />
                 }
             />
+
+
 
             {/* ✅ 관리자 라우트 - role: 'admin' 계정만 접근 가능 */}
             <Route
