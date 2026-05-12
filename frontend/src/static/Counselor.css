@@ -1,17 +1,36 @@
-/* 예약하기 버튼 옆 하트(찜) 버튼 및 정렬 */
+/* 상담 분야 태그형 디자인 */
+.cld-field-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    margin-bottom: 12px;
+}
+.cld-field-tag {
+    display: inline-block;
+    background: #f5f6fa;
+    color: #4b5563;
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 400;
+    border: 1.2px solid #e2e8f0;
+    box-shadow: 0 1px 4px rgba(30, 41, 59, 0.02);
+    letter-spacing: 0.01em;
+    user-select: none;
+}
+
+/* 예약하기 버튼 옆 하트(찜) 버튼 */
 .cld-reserve-action-row {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 8px;
 }
-
 .cld-heart-btn-reserve {
     background: #f5f6fa;
     border: 1.5px solid #e2e8f0;
     outline: none;
     cursor: pointer;
-    padding: 0 0 0 0;
     display: flex;
     align-items: center;
     border-radius: 10px;
@@ -41,7 +60,8 @@
     background: #fdf2f8;
     transform: scale(1.08);
 }
-/* 메인 컨테이너 및 배경 설정 */
+
+/* 페이지 래퍼 */
 .cld-full-page-wrapper {
     background-color: #fdfbf7;
 }
@@ -51,52 +71,36 @@
     padding: 60px 20px;
     min-height: 100vh;
 }
-/* PC 화면 최적화: 폭을 늘리고 배경색 적용 */
 .cld-counselor-list-container.wide {
-    max-width: 1400px; /* 기존 1100px에서 확대 */
+    max-width: 1400px;
     padding: 60px 40px;
 }
-
 .cld-counselor-grid.cld-pc-full {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* 카드 크기 확대 */
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 40px;
 }
 
-/* 컬러 팔레트 적용 */
-.cld-price-info {
-    color: #f59e0b; /* Accent 2: Amber */
-    font-weight: 700;
-}
-
-.cld-category-btn.active {
-    background-color: #8ba888; /* Main: Sage Green */
-    color: white;
-}
-
+/* 검색 헤더 */
 .cld-clist-search-header {
     text-align: center;
     margin-bottom: 50px;
 }
-
-/* 검색바 영역 */
 .cld-clist-search-bar-wrapper {
     position: relative;
     max-width: 550px;
     margin: 24px auto;
 }
-
 .cld-clist-search-icon {
     position: absolute;
     left: 20px;
     top: 50%;
     transform: translateY(-50%);
-    color: #8ba888; /* Main: Sage Green */
+    color: #8ba888;
 }
-
 .cld-clist-search-input {
     width: 100%;
     padding: 15px 15px 15px 50px;
-    border: 1.5px solid #faf7f2; /* Sub Background: Sand Beige */
+    border: 1.5px solid #faf7f2;
     border-radius: 12px;
     background: #ffffff;
     color: #1e293b;
@@ -104,11 +108,11 @@
     transition: all 0.2s;
 }
 .cld-clist-search-input:focus {
-    border-color: #8ba888; /* Focus 시 메인 컬러 */
+    border-color: #8ba888;
     box-shadow: 0 0 0 3px rgba(139, 168, 136, 0.1);
 }
 
-/* 시간 선택 버튼 그리드 (상세페이지) */
+/* 시간 선택 버튼 */
 .cld-time-grid {
     display: flex;
     flex-wrap: wrap;
@@ -119,7 +123,6 @@
     align-items: flex-start;
     min-height: 48px;
 }
-
 .cld-time-btn {
     padding: 8px 16px;
     border-radius: 10px;
@@ -160,10 +163,9 @@
     gap: 12px;
     flex-wrap: wrap;
 }
-
 .cld-category-btn {
     padding: 10px 25px;
-    background: #faf7f2; /* Sub Background: Sand Beige */
+    background: #faf7f2;
     border: none;
     border-radius: 50px;
     cursor: pointer;
@@ -172,24 +174,21 @@
     font-weight: 500;
     transition: all 0.3s;
 }
-
 .cld-category-btn:hover {
     background: #e5e1da;
 }
-
 .cld-category-btn.active {
-    background: #8ba888; /* Main: Sage Green */
+    background: #8ba888;
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(139, 168, 136, 0.25);
 }
 
-/* 전문가 카드 그리드 */
+/* 카드 그리드 */
 .cld-counselor-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 30px;
 }
-
 .cld-counselor-card {
     background: #ffffff;
     border-radius: 24px;
@@ -201,30 +200,26 @@
     flex-direction: column;
     box-shadow: 0 4px 15px rgba(30, 41, 59, 0.02);
 }
-
 .cld-counselor-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 12px 30px rgba(30, 41, 59, 0.08);
 }
-
 .cld-card-top {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
 }
-
 .cld-profile-placeholder {
     width: 64px;
     height: 64px;
-    background: #faf7f2; /* Sub Background */
+    background: #faf7f2;
     border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #8ba888; /* Main: Sage Green */
+    color: #8ba888;
 }
 
-/* 상담 방식 배지 */
 .cld-type-badge {
     padding: 6px 12px;
     border-radius: 8px;
@@ -235,32 +230,27 @@
     gap: 5px;
     height: fit-content;
 }
-
 .cld-type-badge[data-type='비대면'] {
     background: #e0f2fe;
     color: #0369a1;
 }
-
 .cld-type-badge[data-type='대면'] {
-    background: #fdf2f2; /* Accent 1: Soft Rose 연하게 활용 */
-    color: #fda4af; /* Accent 1: Soft Rose */
+    background: #fdf2f2;
+    color: #fda4af;
 }
 
-/* 카드 본문 텍스트 */
 .cld-counselor-category-label {
     font-size: 0.8rem;
-    color: #8ba888; /* Main: Sage Green */
+    color: #8ba888;
     font-weight: 700;
     margin-bottom: 6px;
     display: block;
 }
-
 .cld-counselor-name {
     font-size: 1.35rem;
     margin: 0 0 8px;
-    color: #1e293b; /* Text (Main) */
+    color: #1e293b;
 }
-
 .cld-counselor-field-tags,
 .cld-counselor-intro {
     display: block;
@@ -269,14 +259,12 @@
     text-overflow: ellipsis;
     max-width: 100%;
 }
-
 .cld-counselor-field-tags {
     font-size: 0.85rem;
     color: #64748b;
     margin-bottom: 15px;
     display: block;
 }
-
 .cld-counselor-intro {
     font-size: 0.95rem;
     color: #475569;
@@ -284,7 +272,6 @@
     flex: 1;
 }
 
-/* 하트(좋아요) 버튼 스타일 */
 .cld-heart-btn {
     background: none;
     border: none;
@@ -305,7 +292,6 @@
     filter: drop-shadow(0 1px 2px #f8d7da);
 }
 
-/* 카드 푸터 */
 .cld-card-footer {
     display: flex;
     justify-content: space-between;
@@ -314,46 +300,39 @@
     padding-top: 20px;
     margin-top: 20px;
 }
-
 .cld-price-info {
     font-weight: 700;
-    color: #f59e0b; /* Accent 2: Amber */
+    color: #f59e0b;
     font-size: 1.05rem;
 }
-
 .cld-view-detail-btn {
     background: none;
     border: none;
-    color: #8ba888; /* Main: Sage Green */
+    color: #8ba888;
     font-weight: 700;
     font-size: 0.9rem;
     cursor: pointer;
     transition: opacity 0.2s;
 }
-
 .cld-view-detail-btn:hover {
     opacity: 0.7;
 }
-
 .cld-no-results {
     grid-column: 1 / -1;
     text-align: center;
     padding: 100px 0;
     color: #94a3b8;
 }
-/* --- 기존 리스트 스타일 유지 (생략) --- */
 
 /* 상세 페이지 2분할 레이아웃 */
 .cld-detail-split-container {
     display: flex;
-    max-width: 1400px; /* PC 화면 꽉 차게 설정 */
+    max-width: 1400px;
     margin: 40px auto;
     gap: 40px;
     padding: 0 40px;
-    background-color: #fdfbf7; /* Background: Warm White */
+    background-color: #fdfbf7;
 }
-
-/* 왼쪽 정보 영역 (60%) */
 .cld-detail-left {
     flex: 6;
     background: #ffffff;
@@ -371,7 +350,6 @@
     border-bottom: 1px solid #faf7f2;
     margin-bottom: 30px;
 }
-
 .cld-large-profile {
     width: 100px;
     height: 100px;
@@ -383,7 +361,6 @@
     color: #8ba888;
     overflow: hidden;
 }
-
 .cld-large-profile-img {
     width: 100%;
     height: 100%;
@@ -392,74 +369,86 @@
     background: #faf7f2;
     display: block;
 }
-
 .cld-detail-category {
     font-size: 0.9rem;
     color: #8ba888;
     font-weight: 700;
 }
-
 .cld-detail-name {
     font-size: 2.2rem;
     color: #1e293b;
     margin: 5px 0;
 }
-
 .cld-type-tag {
     font-size: 0.9rem;
     color: #64748b;
 }
 
 .cld-detail-content h3 {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     color: #1e293b;
-    margin: 35px 0 15px;
+    margin: 32px 0 14px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    font-weight: 700;
 }
-
+.cld-detail-content h3::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    background: #8ba888;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
 .cld-detail-content p {
     line-height: 1.8;
     color: #475569;
     font-size: 1rem;
 }
 
+/* ── 이력 목록 ── */
 .cld-history-list {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
-
 .cld-history-list li {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 10px 0;
     color: #475569;
+    font-size: 0.93rem;
+    line-height: 1.65;
+    border-bottom: 1px solid #f5f2ee;
 }
-
+.cld-history-list li:last-child {
+    border-bottom: none;
+}
 .cld-check-icon {
     color: #8ba888;
+    flex-shrink: 0;
+    margin-top: 2px;
 }
 
-/* 오른쪽 예약 영역 (40%) */
+/* 오른쪽 예약 영역 */
 .cld-detail-right {
     flex: 4;
 }
-
 .cld-sticky-reservation-card {
     position: sticky;
     top: 100px;
     background: #ffffff;
     padding: 35px;
     border-radius: 24px;
-    border: 1.5px solid #8ba888; /* Sage Green 강조 */
+    border: 1.5px solid #8ba888;
     box-shadow: 0 10px 30px rgba(139, 168, 136, 0.1);
 }
 .cld-sticky-reservation-card > h3 {
     margin-bottom: 14px;
 }
-
 .cld-price-tag-large {
     display: flex;
     justify-content: space-between;
@@ -469,13 +458,15 @@
     border-radius: 15px;
     margin-bottom: 30px;
 }
-
 .cld-price-value {
     font-size: 1.4rem;
     font-weight: 800;
-    color: #f59e0b; /* Amber 강조 */
+    color: #f59e0b;
 }
-
+.cld-price-label {
+    font-size: 0.9rem;
+    color: #64748b;
+}
 .cld-reservation-step {
     margin-bottom: 25px;
 }
@@ -500,31 +491,29 @@
     cursor: pointer;
     transition: all 0.2s;
 }
-
 .cld-reserve-submit-btn:hover {
     background: #7a9677;
     transform: translateY(-2px);
 }
-/* 목록으로 돌아가기 버튼 디자인 수정 */
+.cld-reserve-submit-btn:disabled {
+    background: #cbd5e1;
+    cursor: wait;
+}
+
 .cld-back-btn-clear {
     display: flex;
     align-items: center;
     gap: 6px;
-
-    /* 배경과 테두리를 완전히 없애서 글자만 보이게 설정 */
     background: transparent;
     border: none;
     padding: 0;
     margin-bottom: 25px;
-
-    /* 주변 텍스트(#475569)와 어울리는 차분한 색상 */
     color: #475569;
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
-
 .cld-back-btn-clear:hover {
     color: #8ba888;
     transform: translateX(-3px);
@@ -533,32 +522,18 @@
     display: block;
 }
 
-/* 프로필 이미지 스타일 */
-.cld-large-profile-img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 30px;
-    background: #faf7f2;
-}
-
-/* 예약 섹션 로딩 및 비활성화 스타일 */
 .cld-time-btn.disabled {
     background: #f1f5f9;
     color: #cbd5e1;
     cursor: not-allowed;
     border: 1px solid #e2e8f0;
 }
-.cld-reserve-submit-btn:disabled {
-    background: #cbd5e1;
-    cursor: wait;
-}
 .cld-inquiry-btn {
     width: 100%;
     margin-top: 15px;
     padding: 14px;
     background: #ffffff;
-    color: #8ba888; /* 포인트 컬러: 세이지 그린 */
+    color: #8ba888;
     border: 1.5px solid #8ba888;
     border-radius: 12px;
     font-size: 0.95rem;
@@ -575,42 +550,33 @@
     color: #7a9677;
 }
 
-/* 예약 완료 후 로딩 상태 시각화 */
-.cld-time-btn.active {
-    background-color: #8ba888;
-    color: white;
-    border-color: #8ba888;
-}
-
+/* 달력 */
 .cld-date-picker-container {
     position: relative;
     width: 100%;
     font-family: 'Pretendard', sans-serif;
 }
-
 .cld-date-input-wrapper {
     display: flex;
     align-items: center;
     padding: 12px 16px;
-    background-color: #fdfbf7; /* Warm White */
-    border: 1px solid #8ba888; /* Sage Green */
+    background-color: #fdfbf7;
+    border: 1px solid #8ba888;
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 .cld-date-input-wrapper:hover {
-    background-color: #faf7f2; /* Sand Beige */
+    background-color: #faf7f2;
 }
-
 .cld-calendar-icon {
     color: #8ba888;
     margin-right: 12px;
 }
-
 .cld-date-display-input {
     border: none;
     background: transparent;
-    color: #1e293b; /* Slate Navy */
+    color: #1e293b;
     font-size: 15px;
     outline: none;
     cursor: pointer;
@@ -622,31 +588,30 @@
     top: calc(100% + 8px);
     left: 0;
     width: 100%;
-    background-color: #fdfbf7; /* Warm White */
+    background-color: #ffffff;
     border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    border: 1px solid #faf7f2;
+    box-shadow:
+        0 12px 32px rgba(30, 41, 59, 0.1),
+        0 2px 8px rgba(30, 41, 59, 0.04);
+    border: 1px solid #ede9e3;
     padding: 20px;
     z-index: 100;
 }
-
 .cld-calendar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
 }
-
 .cld-current-month-text {
     font-weight: 700;
-    color: #1e293b; /* Slate Navy */
+    color: #1e293b;
     font-size: 16px;
 }
-
 .cld-nav-button {
     background: none;
     border: none;
-    color: #8ba888; /* Sage Green */
+    color: #8ba888;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -663,12 +628,11 @@
     grid-template-columns: repeat(7, 1fr);
     margin-bottom: 10px;
 }
-
 .cld-weekday-label {
     text-align: center;
     font-size: 12px;
     font-weight: 600;
-    color: #8ba888; /* Sage Green */
+    color: #8ba888;
 }
 
 .cld-calendar-grid {
@@ -677,32 +641,38 @@
     gap: 4px;
 }
 
+/* ── 날짜 셀 ── */
 .cld-calendar-day {
-    aspect-ratio: 1;
+    aspect-ratio: 7/5;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
+    font-size: 13.5px;
+    font-weight: 400;
+    border-radius: 10px;
+    transition:
+        background 0.15s,
+        color 0.15s;
     color: #1e293b;
 }
-
+.cld-calendar-day.enabled {
+    cursor: pointer;
+}
 .cld-calendar-day.enabled:hover {
-    background-color: #8ba888;
-    color: white;
+    background-color: #f0f5f0;
+    color: #7a9677;
+    font-weight: 600;
 }
-
 .cld-calendar-day.selected {
-    background-color: #8ba888; /* Main Point */
-    color: white;
+    background-color: #8ba888;
+    color: #ffffff;
     font-weight: 700;
+    box-shadow: 0 2px 8px rgba(139, 168, 136, 0.3);
 }
-
 .cld-calendar-day.disabled {
-    color: #cbd5e1;
+    color: #d1d5db;
     cursor: not-allowed;
+    pointer-events: none;
 }
 
 .cld-calendar-footer {
@@ -712,21 +682,19 @@
     font-size: 11px;
     color: #8ba888;
 }
-
 .cld-legend-item {
     display: flex;
     align-items: center;
     gap: 6px;
 }
-
 .cld-dot.accent {
     width: 6px;
     height: 6px;
-    background-color: #fda4af; /* Soft Rose */
+    background-color: #fda4af;
     border-radius: 50%;
 }
 
-/* ── 토스트 팝업 (MyPage와 동일) ── */
+/* 토스트 */
 .cld-mp-toast {
     position: fixed;
     bottom: 2rem;
@@ -740,10 +708,10 @@
     border-radius: 9999px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     z-index: 9999;
-    animation:
-        toastIn 0.25s ease,
-        toastOut 0.3s ease 2.2s forwards;
     white-space: nowrap;
+    animation:
+        cld-toastIn 0.25s ease,
+        cld-toastOut 0.3s ease 2.2s forwards;
 }
 @keyframes cld-toastIn {
     from {

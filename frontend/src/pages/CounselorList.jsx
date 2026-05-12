@@ -112,7 +112,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
         }
     };
 
-    const allCounselors = [...dbCounselors, ...counselorData];
+    const allCounselors = dbCounselors;
 
     const filteredCounselors = allCounselors.filter((c) => {
         const matchesSearch = (c.name && c.name.includes(searchTerm)) || (c.field && c.field.includes(searchTerm));
