@@ -11,6 +11,14 @@ import '../static/NotifPopup.css';
  * @param {function} setActiveTab - 탭 변경 함수
  * @param {Array} pcGnbItems - PC 네비게이션 메뉴 리스트 (방어 코드를 위해 기본값 [] 설정)
  */
+function formatTime(dateStr) {
+    if (!dateStr) return '';
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diff < 60) return '방금 전';
+    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+    return `${Math.floor(diff / 86400)}일 전`;
+}
 export default function Header({
     activeTab,
     setActiveTab,
@@ -28,18 +36,23 @@ export default function Header({
     // 알림 불러오기
     useEffect(() => {
         const fetchNotifications = async () => {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                setNotifications([]);
-                return;
-            }
-            try {
-                const res = await getNotifications(token);
-                setNotifications(res.data || []);
-            } catch (e) {
-                setNotifications([]);
-            }
-        };
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        setNotifications([]);
+        return;
+    }
+    try {
+        const res = await getNotifications(token);
+        const mapped = (res.data || []).map((n) => ({
+            ...n,
+            unread: !n.read,  // read → unread 변환
+            time: formatTime(n.created_at),  // created_at → time 변환
+        }));
+        setNotifications(mapped);
+    } catch (e) {
+        setNotifications([]);
+    }
+};
         if (notifOpen) fetchNotifications();
     }, [notifOpen]);
 
@@ -194,6 +207,11 @@ export default function Header({
                                                 <div
                                                     key={n.id}
                                                     className={`notif-popup-item${n.unread ? ' unread' : ''}`}
+                                                    onClick={() => {
+                                                        setNotifOpen(false);
+                                                        navigate('/notifications');
+                                                    }}
+                                                    style={{ cursor: 'pointer' }}
                                                 >
                                                     <span className="notif-popup-icon">
                                                         {n.type === 'booking' && <Check size={15} />}
@@ -220,7 +238,9 @@ export default function Header({
                             onClick={() => {
                                 if (userRole === 'counselor') {
                                     navigate('/CounselorMyPage');
-                                } else if (userRole === 'client' || userRole === 'admin') {
+                                } else if (userRole === 'client') {
+                                    navigate('/mypage');
+                                } else if (userRole === 'admin') {
                                     navigate('/mypage');
                                 } else {
                                     navigate('/mypage');

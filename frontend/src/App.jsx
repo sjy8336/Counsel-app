@@ -92,6 +92,13 @@ function App() {
         }
     }, []);
 
+    // 로그인한 유저의 role을 가져옴
+    let userRole = '';
+    try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        userRole = user?.role || '';
+    } catch {}
+
     return (
         <Routes>
             <Route path="/contact-coach" element={<ContactCoach />} />
@@ -109,6 +116,7 @@ function App() {
             <Route path="/login" element={<LoginPage setUserName={setUserName} setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/mypage" element={<MyPage />} />
+            <Route path="/notifications" element={userRole === 'counselor' ? <CounselorMyPage /> : <MyPage />} />
             <Route path="/find-password" element={<FindPwPage />} />
             <Route
                 path="/reserve"
