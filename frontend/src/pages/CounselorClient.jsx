@@ -36,18 +36,15 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const [search, setSearch] = useState('');
     const [selectedId, setSelectedId] = useState(1);
     const [clients, setClients] = useState(INIT_CLIENTS);
-    
-    // 모바일 리스트 접힘 상태
     const [isMobileListOpen, setIsMobileListOpen] = useState(false);
 
-    // 모달 및 일지 상태
     const [logModal, setLogModal] = useState({ open: false, editId: null, content: '' });
     const [surveyModal, setSurveyModal] = useState(false);
     const [deleteModal, setDeleteModal] = useState({ open: false, logId: null });
     const [openLogId, setOpenLogId] = useState(null);
 
     useEffect(() => {
-        if (location.state && location.state.selectedClientName) {
+        if (location.state?.selectedClientName) {
             const target = clients.find(c => c.name === location.state.selectedClientName);
             if (target) setSelectedId(target.id);
         }
@@ -56,7 +53,6 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const filtered = clients.filter((c) => c.name.includes(search));
     const client = clients.find((c) => c.id === selectedId) || clients[0];
 
-    // 하단 탭 이동 처리
     const handleTabClick = (tabId) => {
         setActiveTab(tabId);
         if (tabId === 'home') navigate('/home');
@@ -91,53 +87,28 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
             <Header activeTab={activeTab} setActiveTab={setActiveTab} userName={userName} setUserName={setUserName} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
 
             <div className="cc-container">
-                {/* ── 좌측 내담자 목록 ── */}
-                <aside className={`cc-sidebar ${isMobileListOpen ? 'mobile-open' : 'mobile-closed'}`}>
-                    <div className="cc-sidebar__header">
+                <aside className={`cc-sidebar ${isMobileListOpen ? 'is-open' : 'is-closed'}`}>
+                    <div className="cc-sidebar__header" onClick={() => setIsMobileListOpen(!isMobileListOpen)}>
                         <h3 className="cc-sidebar__title">내담자 관리</h3>
-                        <span className="cc-mobile-toggle" onClick={() => setIsMobileListOpen(!isMobileListOpen)}>
-                            {isMobileListOpen ? '접기 ▲' : '목록 보기 ▼'}
-                        </span>
+                        <span className="cc-mobile-toggle">{isMobileListOpen ? '접기 ▲' : '목록 보기 ▼'}</span>
                     </div>
-                    
-                    <input
-                        className="cc-search"
-                        placeholder="이름 검색..."
-                        value={search}
-                        onChange={(e) => {
-                            setSearch(e.target.value);
-                            if(!isMobileListOpen) setIsMobileListOpen(true);
-                        }}
-                    />
-
-                    <div className="cc-sidebar-list-wrapper">
+                    <div className="cc-sidebar-content">
+                        <input className="cc-search" placeholder="이름 검색..." value={search} onChange={(e) => setSearch(e.target.value)} />
                         <ul className="cc-client-list">
                             {filtered.map((c) => (
-                                <li
-                                    key={c.id}
-                                    className={`cc-client-item${selectedId === c.id ? ' is-active' : ''}`}
-                                    onClick={() => {
-                                        setSelectedId(c.id);
-                                        setOpenLogId(null);
-                                        setIsMobileListOpen(false);
-                                    }}
-                                >
+                                <li key={c.id} className={`cc-client-item${selectedId === c.id ? ' is-active' : ''}`} onClick={() => { setSelectedId(c.id); setOpenLogId(null); setIsMobileListOpen(false); }}>
                                     <span className={`cc-dot ${STATUS_CLASS[c.status]}`} />
-                                    <div>
+                                    <div className="cc-client-info">
                                         <strong>{c.name}</strong>
                                         <span>{c.birth} · {c.gender}</span>
                                     </div>
-                                    <p className={`cc-status-badge ${STATUS_CLASS[c.status]}`} 
-                                       style={{color: c.status === '진행 중' ? '#5a8a57' : c.status === '대기 중' ? '#b97a2a' : '#6b7280'}}>
-                                        {c.status}
-                                    </p>
+                                    <span className={`cc-status-badge ${STATUS_CLASS[c.status]}`}>{c.status}</span>
                                 </li>
                             ))}
                         </ul>
                     </div>
                 </aside>
 
-                {/* ── 중앙 메인 영역 ── */}
                 <main className="cc-main">
                     <div className="cc-profile-card">
                         <div className="cc-profile-info">
@@ -158,32 +129,32 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                         {client.logs.length === 0 ? (
                             <div className="cc-empty">상담 기록이 없습니다.</div>
                         ) : (
-                            client.logs.map((log) => (
-                                <div key={log.id} className="cc-log-item">
-                                    <div className={`cc-log-header ${openLogId === log.id ? 'is-open' : ''}`} onClick={() => setOpenLogId(openLogId === log.id ? null : log.id)}>
-                                        <div className="cc-log-title-area">
-                                            <span className="cc-log-date">{log.date}</span>
-                                            <h4>{log.title}</h4>
-                                            <p className="cc-log-preview">{log.content}</p>
-                                        </div>
-                                        <span className="cc-chevron">{openLogId === log.id ? '▲' : '▼'}</span>
-                                    </div>
-                                    {openLogId === log.id && (
-                                        <div className="cc-log-body fade-in">
-                                            <div className="cc-log-btns">
+                            <div className="cc-log-list">
+                                {client.logs.map((log) => (
+                                    <div key={log.id} className={`cc-accordion-item${openLogId === log.id ? ' is-open' : ''}`}>
+                                        <div className="cc-accordion-header" onClick={() => setOpenLogId(openLogId === log.id ? null : log.id)}>
+                                            <div className="cc-accordion-left">
+                                                <span className="cc-accordion-arrow">{openLogId === log.id ? '▾' : '▸'}</span>
+                                                <span className="cc-accordion-title">{log.title}</span>
+                                                <span className="cc-log-date">{log.date}</span>
+                                            </div>
+                                            <div className="cc-log-card-actions" onClick={e => e.stopPropagation()}>
                                                 <button onClick={() => setLogModal({ open: true, editId: log.id, content: log.content })}>수정</button>
                                                 <button onClick={() => setDeleteModal({ open: true, logId: log.id })}>삭제</button>
                                             </div>
-                                            <div className="cc-log-content">{log.content}</div>
                                         </div>
-                                    )}
-                                </div>
-                            ))
+                                        {openLogId === log.id && (
+                                            <div className="cc-accordion-body">
+                                                <div className="cc-log-card-content">{log.content}</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </section>
                 </main>
 
-                {/* ── 우측 유틸리티 ── */}
                 <aside className="cc-utility">
                     <div className="cc-util-box">
                         <h4>주요 키워드</h4>
@@ -198,18 +169,18 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                 </aside>
             </div>
 
-            {/* 일지 작성 모달 */}
+            {/* 일지 작성/수정 모달 (입력창 디자인 원상복구) */}
             {logModal.open && (
-                <div className="cc-overlay">
-                    <div className="cc-modal log-modal slide-up">
-                        <h3>{client.name} 님 일지 {logModal.editId ? '수정' : '작성'}</h3>
+                <div className="cc-overlay" onClick={() => setLogModal({ open: false, editId: null, content: '' })}>
+                    <div className="cc-modal" onClick={e => e.stopPropagation()}>
+                        <h3 className="cc-modal-title">{client.name} 님 일지 {logModal.editId ? '수정' : '작성'}</h3>
                         <textarea 
                             className="cc-log-editor" 
                             value={logModal.content} 
-                            onChange={(e) => setLogModal({...logModal, content: e.target.value})}
-                            placeholder="상담 내용을 입력하세요..."
+                            onChange={(e) => setLogModal({...logModal, content: e.target.value})} 
+                            placeholder="상담 내용을 입력하세요..." 
                         />
-                        <div className="cc-modal__actions">
+                        <div className="cc-modal__actions center">
                             <button className="cc-btn cc-btn--ghost" onClick={() => setLogModal({ open: false, editId: null, content: '' })}>취소</button>
                             <button className="cc-btn cc-btn--primary" onClick={handleSaveLog}>{logModal.editId ? '수정 완료' : '작성 완료'}</button>
                         </div>
@@ -217,17 +188,21 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                 </div>
             )}
 
-            {/* 사전 질문지 모달 */}
+            {/* 사전 설문지 모달 */}
             {surveyModal && (
                 <div className="cc-overlay" onClick={() => setSurveyModal(false)}>
-                    <div className="cc-modal" onClick={e => e.stopPropagation()}>
-                        <div className="cc-modal__header"><h3>사전 설문지 - {client.name}</h3></div>
-                        <div className="cc-survey-content">
-                            <p><strong>상담 이유:</strong> {client.survey.reason}</p>
-                            <p><strong>이전 경험:</strong> {client.survey.prev}</p>
-                            <p><strong>상담 목표:</strong> {client.survey.goal}</p>
+                    <div className="cc-modal cc-survey-modal" onClick={e => e.stopPropagation()}>
+                        <div className="cc-survey-header">
+                            <span className="cc-survey-tag">Initial Survey</span>
+                            <h3 className="cc-modal-title">사전 상담 질문지</h3>
+                            <p className="cc-survey-user">{client.name} 내담자님</p>
                         </div>
-                        <button className="cc-btn cc-btn--primary full" onClick={() => setSurveyModal(false)}>확인</button>
+                        <div className="cc-survey-body">
+                            <div className="cc-survey-group"><label>Q1. 상담을 신청하게 된 구체적인 계기는 무엇인가요?</label><div className="cc-survey-ans">{client.survey.reason}</div></div>
+                            <div className="cc-survey-group"><label>Q2. 이전에 상담을 받아보신 경험이 있으신가요?</label><div className="cc-survey-ans">{client.survey.prev}</div></div>
+                            <div className="cc-survey-group"><label>Q3. 이번 상담을 통해 이루고 싶은 최종 목표는?</label><div className="cc-survey-ans">{client.survey.goal}</div></div>
+                        </div>
+                        <button className="cc-btn cc-btn--primary full" onClick={() => setSurveyModal(false)}>확인했습니다</button>
                     </div>
                 </div>
             )}
@@ -235,12 +210,12 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
             {/* 삭제 확인 모달 */}
             {deleteModal.open && (
                 <div className="cc-overlay">
-                    <div className="cc-modal delete-modal">
-                        <h3>상담 일지를 삭제하시겠습니까?</h3>
-                        <p>삭제된 기록은 복구할 수 없습니다.</p>
-                        <div className="cc-modal__actions">
-                            <button className="cc-btn cc-btn--danger" onClick={handleDeleteLog}>삭제하기</button>
+                    <div className="cc-modal cc-delete-modal">
+                        <div className="cc-delete-header"><div className="cc-warn-circle">!</div><h3>일지 삭제</h3></div>
+                        <p className="cc-delete-msg">정말 이 상담 일지를 삭제하시겠습니까?<br/>삭제된 데이터는 다시 복구할 수 없습니다.</p>
+                        <div className="cc-modal__actions stretch">
                             <button className="cc-btn cc-btn--ghost" onClick={() => setDeleteModal({ open: false, logId: null })}>취소</button>
+                            <button className="cc-btn cc-btn--danger" onClick={handleDeleteLog}>삭제하기</button>
                         </div>
                     </div>
                 </div>
