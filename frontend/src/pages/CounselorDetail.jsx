@@ -3,138 +3,137 @@ import axios from 'axios';
 import { toggleFavorite } from '../api/favorite';
 import { isTokenExpired } from '../utils/jwt';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import {
-    User,
-    Calendar,
-    CalendarIcon,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    CheckCircle,
-    MessageCircle,
-} from 'lucide-react';
+import { User, Calendar, ChevronLeft, ChevronRight, Clock, CheckCircle, MessageCircle } from 'lucide-react';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import '../static/Counselor.css';
 
 export default function CounselorDetailPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
     const { id } = useParams();
-    // 페이지 진입 시 스크롤 맨 위로 이동
+    const navigate = useNavigate();
+    const location = useLocation();
+    const containerRef = useRef(null);
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
-    const navigate = useNavigate();
-    const location = useLocation();
 
-    // location.state?.counselor가 있으면 우선 사용, 없으면 API로 fetch
-    const [counselor, setCounselor] = useState(location.state?.counselor || null);
-
+    const [counselor, setCounselor] = useState(null);
     useEffect(() => {
-        // location.state에 없으면 API로 fetch
-        if (!location.state?.counselor) {
-            axios
-                .get(`/api/counselors/${id}`)
-                .then((res) => {
-                    setCounselor(res.data);
-                })
-                .catch((err) => {
-                    setCounselor(null); // 더미데이터 없이 null 처리
-                });
-        }
-    }, [id, location.state]);
+        axios
+            .get(`/api/counselors/${id}`)
+            .then((res) => setCounselor(res.data))
+            .catch(() => setCounselor(null));
+    }, [id]);
 
-    // 더미데이터 없이, location.state 또는 fetch 데이터만 사용
-    const effectiveCounselor = counselor;
-    // DB에서 온 counselor 객체의 상세 정보 매핑
+    function formatPeriod(start, end) {
+        if (!start && !end) return '';
+        if (start && end) return `${start} ~ ${end}`;
+        return start ? `${start} ~` : end;
+    }
+
     const safeCounselor = {
-        name: effectiveCounselor?.name || effectiveCounselor?.user?.name || '',
-        category: effectiveCounselor?.category || effectiveCounselor?.profile_category || '',
-        major: effectiveCounselor?.major || effectiveCounselor?.profile_major || '',
+        name: counselor?.name || counselor?.user?.name || counselor?.user?.full_name || counselor?.user?.username || '',
+        category: counselor?.category || counselor?.profile_category || counselor?.user?.category || '',
+        major: counselor?.major || counselor?.profile_major || counselor?.user?.major || '',
         fields:
-            effectiveCounselor?.fields ||
-            (Array.isArray(effectiveCounselor?.specialties)
-                ? effectiveCounselor.specialties.map((s) => s.name || s.specialty || s)
-                : effectiveCounselor?.field
-                  ? effectiveCounselor.field.split(',').map((f) => f.trim())
+            counselor?.fields ||
+            (Array.isArray(counselor?.specialties)
+                ? counselor.specialties.map((s) => s.specialty_name || s.name || s.specialty || s)
+                : counselor?.field
+                  ? counselor.field.split(',').map((f) => f.trim())
                   : []),
-        type: effectiveCounselor?.type || effectiveCounselor?.profile_type || '',
-        price: effectiveCounselor?.price || effectiveCounselor?.profile_price || '',
+        type: counselor?.type || counselor?.profile_type || counselor?.user?.type || '',
+        price: counselor?.price || counselor?.profile_price || counselor?.profile?.consultation_price || '',
         description:
-            effectiveCounselor?.description || effectiveCounselor?.intro || effectiveCounselor?.profile_intro || '',
-        certificates: Array.isArray(effectiveCounselor?.certificates)
-            ? effectiveCounselor.certificates
+            counselor?.description ||
+            counselor?.intro ||
+            counselor?.profile_intro ||
+            counselor?.profile?.intro_line ||
+            '',
+        certificates: Array.isArray(counselor?.certificates)
+            ? counselor.certificates
                   .map((c) => c && (c.certificate_name || c.name || c.certificate || c))
                   .filter(Boolean)
             : [],
-        educations: Array.isArray(effectiveCounselor?.educations)
-            ? effectiveCounselor.educations
-                  .map(
-                      (e) =>
-                          e &&
-                          (e.school_name && e.major
-                              ? `${e.school_name} ${e.major}${e.degree_type ? ' (' + e.degree_type + ')' : ''} ${e.start_date ? e.start_date + '~' : ''}${e.end_date || ''}`.trim()
-                              : e.school_name || e.major || e)
-                  )
+        educations: Array.isArray(counselor?.educations)
+            ? counselor.educations
+                  .map((e) => {
+                      if (!e) return null;
+                      const period = formatPeriod(e.start_date, e.end_date);
+                      const content = [e.school_name, e.major, e.degree_type ? `(${e.degree_type})` : '']
+                          .filter(Boolean)
+                          .join(' ');
+                      return `${period}${period && content ? ' | ' : ''}${content}`.trim();
+                  })
                   .filter(Boolean)
             : [],
-        experiences: Array.isArray(effectiveCounselor?.experiences)
-            ? effectiveCounselor.experiences
-                  .map(
-                      (ex) =>
-                          ex &&
-                          (ex.company_name && ex.content
-                              ? `${ex.company_name} ${ex.content} ${ex.start_date ? ex.start_date + '~' : ''}${ex.end_date || ''}`.trim()
-                              : ex.company_name || ex.content || ex)
-                  )
+        experiences: Array.isArray(counselor?.experiences)
+            ? counselor.experiences
+                  .map((ex) => {
+                      if (!ex) return null;
+                      const period = formatPeriod(ex.start_date, ex.end_date);
+                      const detail = [ex.company_name, ex.content].filter(Boolean).join(' ');
+                      return `${period}${period && detail ? ' | ' : ''}${detail}`.trim();
+                  })
                   .filter(Boolean)
             : [],
-        history: effectiveCounselor?.history || [],
+        history: counselor?.history || [],
         availableTimes:
-            Array.isArray(effectiveCounselor?.schedules) && effectiveCounselor.schedules.length > 0
-                ? effectiveCounselor.schedules
-                      .map((s) => {
-                          if (s.start_time && s.end_time) {
-                              return `${s.start_time}~${s.end_time}`;
-                          }
-                          return s.time || s;
-                      })
+            Array.isArray(counselor?.schedules) && counselor.schedules.length > 0
+                ? counselor.schedules
+                      .map((s) => (s.start_time && s.end_time ? `${s.start_time}~${s.end_time}` : s.time || s))
                       .filter(Boolean)
-                : effectiveCounselor?.availableTimes || ['10:00', '14:00', '16:00'],
-        profileImg: effectiveCounselor?.profile_img_url || effectiveCounselor?.profileImg || '',
+                : counselor?.availableTimes || ['10:00', '14:00', '16:00'],
+        profileImg:
+            counselor?.profile_img_url ||
+            counselor?.profileImg ||
+            counselor?.user?.profile_img_url ||
+            counselor?.profile?.profile_img_url ||
+            '',
+        schedules: counselor?.schedules || [],
     };
+    // 상담 가능한 요일 인덱스 추출 (0=일, 1=월, ...)
+    const availableDaysOfWeek = Array.isArray(safeCounselor.schedules)
+        ? safeCounselor.schedules
+              .map((s) => {
+                  const map = { 일요일: 0, 월요일: 1, 화요일: 2, 수요일: 3, 목요일: 4, 금요일: 5, 토요일: 6 };
+                  return map[s.day_of_week];
+              })
+              .filter((d) => d !== undefined)
+        : [];
 
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
+    const [availableTimesForDate, setAvailableTimesForDate] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    // location.state?.isLiked가 있으면 그 값으로 초기화
     const [liked, setLiked] = useState(location.state?.isLiked || false);
     const [toast, setToast] = useState(null);
-    const containerRef = useRef(null);
+    const [isOpen, setIsOpen] = useState(false);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
 
-    // 토스트 표시 함수
     const showToast = (msg) => setToast(msg);
     useEffect(() => {
         if (toast) {
-            const timer = setTimeout(() => setToast(null), 2500);
-            return () => clearTimeout(timer);
+            const t = setTimeout(() => setToast(null), 2500);
+            return () => clearTimeout(t);
         }
     }, [toast]);
 
-    // --- 수정된 예약 핸들러: 바로 완료하지 않고 설문 페이지로 데이터 전송 ---
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const handleReservation = () => {
         if (!selectedDate || !selectedTime) {
             alert('상담 일자와 시간을 모두 선택해주세요.');
             return;
         }
-
-        // Survey.jsx로 이동하면서 상담사 이름, 날짜, 시간 정보를 state에 담아 보냅니다.
-        navigate('/survey', {
-            state: {
-                counselorName: counselor.name,
-                selectedDate: selectedDate,
-                selectedTime: selectedTime,
-            },
-        });
+        navigate('/survey', { state: { counselorName: counselor.name, selectedDate, selectedTime } });
     };
 
     const handleLike = async () => {
@@ -157,7 +156,6 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
             setLiked(res.is_favorite);
             showToast(res.is_favorite ? '찜 목록에 추가되었습니다.' : '찜이 취소되었습니다.');
         } catch (err) {
-            // 401 Unauthorized 처리
             if (err?.response?.status === 401) {
                 alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
                 localStorage.removeItem('access_token');
@@ -169,60 +167,59 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
         }
     };
 
-    const [isOpen, setIsOpen] = useState(false);
-    const [currentMonth, setCurrentMonth] = useState(new Date());
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (containerRef.current && !containerRef.current.contains(event.target)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
+    const firstDayOfMonth = (y, m) => new Date(y, m, 1).getDay();
 
-    const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
-    const firstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
-
+    // 날짜 클릭 시 해당 요일의 상담 가능 시간대 추출
     const handleDateClick = (day) => {
-        const clickedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-        if (clickedDate >= today) {
-            const formattedDate = `${clickedDate.getFullYear()}-${String(clickedDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            setSelectedDate(formattedDate);
+        const clicked = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+        if (clicked >= today) {
+            const dateStr = `${clicked.getFullYear()}-${String(clicked.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            setSelectedDate(dateStr);
             setIsOpen(false);
+
+            // 해당 요일의 상담 가능 시간대 추출
+            const dayIdx = clicked.getDay();
+            const dayMap = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+            const dayName = dayMap[dayIdx];
+            // 동일 요일의 모든 schedule 구간을 합쳐서 시간대 생성
+            const schedulesForDay = safeCounselor.schedules.filter((s) => s.day_of_week === dayName);
+            let times = [];
+            schedulesForDay.forEach((schedule) => {
+                const start = parseInt(schedule.start_time.split(':')[0], 10);
+                const end = parseInt(schedule.end_time.split(':')[0], 10);
+                for (let h = start; h < end; h++) {
+                    times.push(`${String(h).padStart(2, '0')}:00`);
+                }
+            });
+            setAvailableTimesForDate(times);
+            setSelectedTime(''); // 날짜 바뀌면 시간 초기화
         }
     };
 
-    const changeMonth = (offset) => {
+    const changeMonth = (offset) =>
         setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1));
-    };
 
     const renderCalendar = () => {
-        const year = currentMonth.getFullYear();
-        const month = currentMonth.getMonth();
-        const totalDays = daysInMonth(year, month);
-        const firstDay = firstDayOfMonth(year, month);
+        const y = currentMonth.getFullYear(),
+            m = currentMonth.getMonth();
+        const totalDays = daysInMonth(y, m),
+            firstDay = firstDayOfMonth(y, m);
         const days = [];
-
-        for (let i = 0; i < firstDay; i++) {
-            days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
-        }
-
+        for (let i = 0; i < firstDay; i++) days.push(<div key={`e-${i}`} className="cld-calendar-day" />);
         for (let d = 1; d <= totalDays; d++) {
-            const dateObj = new Date(year, month, d);
+            const dateObj = new Date(y, m, d);
             const isPast = dateObj < today;
-            const isSelected =
-                selectedDate === `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-
+            // DB에 등록된 상담 가능 요일만 활성화, 나머지는 휴무일(비활성화)
+            const isHoliday = !availableDaysOfWeek.includes(dateObj.getDay());
+            const isSelected = selectedDate === `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
             days.push(
                 <div
                     key={d}
-                    className={`calendar-day ${isPast ? 'disabled' : 'enabled'} ${isSelected ? 'selected' : ''}`}
-                    onClick={() => !isPast && handleDateClick(d)}
+                    className={`cld-calendar-day${isPast || isHoliday ? ' disabled' : ' enabled'}${isSelected ? ' selected' : ''}`}
+                    onClick={isPast || isHoliday ? undefined : () => handleDateClick(d)}
                 >
                     {d}
                 </div>
@@ -264,7 +261,9 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                             </div>
                             <div className="cld-info-text">
                                 <span className="cld-detail-category">
-                                    {safeCounselor.category} | {safeCounselor.major}
+                                    {safeCounselor.category}
+                                    {safeCounselor.category && safeCounselor.major && ' | '}
+                                    {safeCounselor.major}
                                 </span>
                                 <h2 className="cld-detail-name">{safeCounselor.name}</h2>
                                 <span className="cld-type-tag">{safeCounselor.type} 상담 전문</span>
@@ -277,9 +276,17 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
 
                             <h3>상담 분야</h3>
                             <div className="cld-field-chips">
-                                {safeCounselor.fields.map((f) => (
-                                    <span key={f}>#{f}</span>
-                                ))}
+                                {safeCounselor.fields.map((f, idx) => {
+                                    const label =
+                                        typeof f === 'object' && f !== null
+                                            ? f.specialty_name || f.name || f.specialty || JSON.stringify(f)
+                                            : f;
+                                    return (
+                                        <span className="cld-field-tag" key={label + idx}>
+                                            {label}
+                                        </span>
+                                    );
+                                })}
                             </div>
 
                             {safeCounselor.certificates.length > 0 && (
@@ -288,7 +295,8 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                     <ul className="cld-history-list">
                                         {safeCounselor.certificates.map((c, i) => (
                                             <li key={i}>
-                                                <CheckCircle size={18} className="cld-check-icon" /> {c}
+                                                <CheckCircle size={16} className="cld-check-icon" />
+                                                {c}
                                             </li>
                                         ))}
                                     </ul>
@@ -300,7 +308,8 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                     <ul className="cld-history-list">
                                         {safeCounselor.educations.map((e, i) => (
                                             <li key={i}>
-                                                <CheckCircle size={18} className="cld-check-icon" /> {e}
+                                                <CheckCircle size={16} className="cld-check-icon" />
+                                                {e}
                                             </li>
                                         ))}
                                     </ul>
@@ -312,7 +321,8 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                     <ul className="cld-history-list">
                                         {safeCounselor.experiences.map((ex, i) => (
                                             <li key={i}>
-                                                <CheckCircle size={18} className="cld-check-icon" /> {ex}
+                                                <CheckCircle size={16} className="cld-check-icon" />
+                                                {ex}
                                             </li>
                                         ))}
                                     </ul>
@@ -324,7 +334,8 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                     <ul className="cld-history-list">
                                         {safeCounselor.history.map((h, i) => (
                                             <li key={i}>
-                                                <CheckCircle size={18} className="cld-check-icon" /> {h}
+                                                <CheckCircle size={16} className="cld-check-icon" />
+                                                {h}
                                             </li>
                                         ))}
                                     </ul>
@@ -348,6 +359,9 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                 </label>
                                 <div className="cld-date-picker-container" ref={containerRef}>
                                     <div className="cld-date-input-wrapper" onClick={() => setIsOpen(!isOpen)}>
+                                        <span className="cld-calendar-icon">
+                                            <Calendar size={16} />
+                                        </span>
                                         <input
                                             type="text"
                                             readOnly
@@ -369,7 +383,6 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                                     <ChevronRight size={20} />
                                                 </button>
                                             </div>
-
                                             <div className="cld-calendar-weekdays">
                                                 {['일', '월', '화', '수', '목', '금', '토'].map((d) => (
                                                     <div key={d} className="cld-weekday-label">
@@ -377,12 +390,10 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                                     </div>
                                                 ))}
                                             </div>
-
                                             <div className="cld-calendar-grid">{renderCalendar()}</div>
-
                                             <div className="cld-calendar-footer">
                                                 <div className="cld-legend-item">
-                                                    <span className="cld-dot accent"></span> 오늘 이후 예약 가능
+                                                    <span className="cld-dot accent" /> 오늘 이후 예약 가능
                                                 </div>
                                             </div>
                                         </div>
@@ -395,10 +406,15 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                     <Clock size={18} /> 시간 선택
                                 </label>
                                 <div className="cld-time-grid">
-                                    {safeCounselor.availableTimes.map((time) => (
+                                    {availableTimesForDate.length === 0 && selectedDate && (
+                                        <span style={{ color: '#b0b0b0', fontSize: '14px' }}>
+                                            선택한 날짜에 가능한 시간이 없습니다.
+                                        </span>
+                                    )}
+                                    {availableTimesForDate.map((time, idx) => (
                                         <button
-                                            key={time}
-                                            className={`cld-time-btn ${selectedTime === time ? 'active' : ''}`}
+                                            key={time + idx}
+                                            className={`cld-time-btn${selectedTime === time ? ' active' : ''}`}
                                             onClick={() => setSelectedTime(time)}
                                             disabled={isSubmitting}
                                         >
@@ -432,7 +448,6 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                         strokeWidth="2"
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
-                                        style={{ verticalAlign: 'middle', transition: 'fill 0.2s, stroke 0.2s' }}
                                     >
                                         <path d="M19.5 13.6l-7.5 7.4-7.5-7.4C2.1 11.7 2.1 8.7 4 6.9c1.8-1.8 4.8-1.8 6.6 0l.9.9.9-.9c1.8-1.8 4.8-1.8 6.6 0 1.9 1.8 1.9 4.8 0 6.7z" />
                                     </svg>
