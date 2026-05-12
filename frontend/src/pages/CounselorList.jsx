@@ -6,62 +6,12 @@ import Header from '../components/header';
 import Footer from '../components/footer';
 import '../static/Counselor.css';
 
-const counselorData = [
-    {
-        id: 1,
-        name: '이은지 상담사',
-        category: '개인 심리',
-        field: '우울, 불안, 공황',
-        price: '60,000원',
-        intro: '감정 일기 분석을 통해 당신의 마음을 함께 들여다봅니다.',
-    },
-    {
-        id: 2,
-        name: '김태현 상담사',
-        category: '직장',
-        field: '스트레스, 번아웃',
-        price: '60,000원',
-        intro: '직장 내 대인관계와 커리어 고민에 솔루션을 드립니다.',
-    },
-    {
-        id: 3,
-        name: '박소담 상담사',
-        category: '진로',
-        field: '취업불안, 진로고민',
-        price: '60,000원',
-        intro: '나를 사랑하는 법, 작은 기록부터 시작해봐요.',
-    },
-    {
-        id: 4,
-        name: '정다은 상담사',
-        category: '개인 심리',
-        field: '자존감, 강박',
-        price: '60,000원',
-        intro: '막막한 미래, 당신의 강점을 찾는 솔루션을 제공합니다.',
-    },
-    {
-        id: 5,
-        name: '한지우 상담사',
-        category: '직장',
-        field: '소통, 대인관계',
-        price: '60,000원',
-        intro: '오늘의 감정이 내일의 평온이 되도록 돕겠습니다.',
-    },
-    {
-        id: 6,
-        name: '최민준 상담사',
-        category: '진로',
-        field: '진로고민, 번아웃',
-        price: '60,000원',
-        intro: '지친 마음을 회복하고 다시 나아갈 힘을 드립니다.',
-    },
-];
-
 export default function CounselorListPage({ userName, setUserName, isLoggedIn, setIsLoggedIn, onFavoriteChange }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('전체');
     const [liked, setLiked] = useState({}); // { [id]: true/false }
     const [toast, setToast] = useState(null);
+    const [dbCounselors, setDbCounselors] = useState([]);
     const navigate = useNavigate();
 
     // 토스트 표시 함수
@@ -103,6 +53,42 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
         fetchLikes();
     }, []); // 빈 배열: 컴포넌트 마운트 시 1회 실행
 
+    useEffect(() => {
+        const fetchDbCounselors = async () => {
+            try {
+                const res = await fetch('/api/counselors/approved');
+                if (!res.ok) throw new Error('상담사 목록 조회 실패');
+                const data = await res.json();
+                // created_at 기준 내림차순 정렬
+                const sorted = data.slice().sort((a, b) => {
+                    const aTime = a.profile?.created_at ? new Date(a.profile.created_at).getTime() : 0;
+                    const bTime = b.profile?.created_at ? new Date(b.profile.created_at).getTime() : 0;
+                    return bTime - aTime;
+                });
+                setDbCounselors(
+                    sorted.map((item) => ({
+                        id: item.user?.id,
+                        name: item.user?.full_name,
+                        category:
+                            item.specialties && item.specialties[0]?.specialty_name
+                                ? item.specialties[0].specialty_name
+                                : '',
+                        field: item.specialties ? item.specialties.map((s) => s.specialty_name).join(', ') : '',
+                        price: item.profile?.consultation_price
+                            ? `${item.profile.consultation_price.toLocaleString()}원`
+                            : '',
+                        intro: item.profile?.intro_line,
+                        profile_img_url: item.profile?.profile_img_url,
+                    }))
+                );
+            } catch (err) {
+                alert('상담사 목록을 불러오지 못했습니다.');
+                setDbCounselors([]);
+            }
+        };
+        fetchDbCounselors();
+    }, []);
+
     const handleLike = async (id, e) => {
         e.stopPropagation();
         const user = localStorage.getItem('user');
@@ -126,8 +112,10 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
         }
     };
 
-    const filteredCounselors = counselorData.filter((c) => {
-        const matchesSearch = c.name.includes(searchTerm) || c.field.includes(searchTerm);
+    const allCounselors = [...dbCounselors, ...counselorData];
+
+    const filteredCounselors = allCounselors.filter((c) => {
+        const matchesSearch = (c.name && c.name.includes(searchTerm)) || (c.field && c.field.includes(searchTerm));
         const matchesCategory = selectedCategory === '전체' || c.category === selectedCategory;
         return matchesSearch && matchesCategory;
     });
@@ -173,7 +161,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                     <main className="cld-counselor-grid cld-pc-full">
                         {filteredCounselors.map((counselor) => (
                             <div
-                                key={counselor.id}
+                                key={counselor.id + (counselor.profile_img_url ? '-db' : '-dummy')}
                                 className="cld-counselor-card"
                                 onClick={() =>
                                     navigate(`/counselor/${counselor.id}`, {
@@ -181,15 +169,8 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                                             isLiked: !!liked[counselor.id],
                                             counselor: {
                                                 ...counselor,
-                                                // fields 배열로 변환 (CounselorDetail.jsx 호환)
-                                                fields: counselor.field
-                                                    ? counselor.field.split(',').map((f) => f.trim())
-                                                    : [],
-                                                description: counselor.intro || '',
-                                                availableTimes: ['10:00', '14:00', '16:00'], // 필요시 수정
-                                                history: [], // 필요시 수정
-                                                type: '대면', // 필요시 수정
-                                                major: '', // 필요시 수정
+                                                // DB에서 온 상담사라면 상세 정보도 함께 넘김
+                                                ...(dbCounselors.find((c) => c.id === counselor.id) || {}),
                                             },
                                         },
                                     })
@@ -197,7 +178,21 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                             >
                                 <div className="cld-card-top">
                                     <div className="cld-profile-placeholder">
-                                        <User size={32} />
+                                        {counselor.profile_img_url ? (
+                                            <img
+                                                src={counselor.profile_img_url}
+                                                alt="프로필"
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    objectFit: 'cover',
+                                                    borderRadius: '16px',
+                                                    display: 'block',
+                                                }}
+                                            />
+                                        ) : (
+                                            <User size={32} />
+                                        )}
                                     </div>
                                     <button
                                         className={`cld-heart-btn${liked[counselor.id] ? ' liked' : ''}`}

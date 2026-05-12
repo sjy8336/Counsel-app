@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import { toggleFavorite } from '../api/favorite';
 import { isTokenExpired } from '../utils/jwt';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
@@ -16,32 +17,6 @@ import Header from '../components/header';
 import Footer from '../components/footer';
 import '../static/Counselor.css';
 
-const detailedCounselorData = {
-    1: {
-        name: '이은지 상담사',
-        category: '개인 심리',
-        major: '임상심리학 석사',
-        fields: ['우울', '불안', '공황'],
-        type: '대면',
-        price: '60,000원',
-        description:
-            '당신의 마음 일기 속 숨겨진 감정을 함께 찾아냅니다. 10년 간의 임상 경험을 바탕으로, 일상에서 느끼는 미묘한 불안과 우울의 원인을 분석합니다.',
-        history: ['한국심리학회 공인 상담심리사 1급', '전 OO대학교 학생상담센터 상담원'],
-        availableTimes: ['10:00', '14:00', '16:00'],
-    },
-    2: {
-        name: '김태현 상담사',
-        category: '직장',
-        major: '산업심리학 박사',
-        fields: ['스트레스', '번아웃', '대인관계'],
-        type: '대면',
-        price: '60,000원',
-        description: '조직 내 갈등과 업무 압박으로 인한 번아웃은 단순한 휴식만으로 해결되지 않습니다.',
-        history: ['기업 상담(EAP) 전문 상담사'],
-        availableTimes: ['11:00', '15:00', '17:00'],
-    },
-};
-
 export default function CounselorDetailPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
     const { id } = useParams();
     // 페이지 진입 시 스크롤 맨 위로 이동
@@ -50,19 +25,82 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     }, []);
     const navigate = useNavigate();
     const location = useLocation();
-    // location.state?.counselor가 있으면 우선 사용
-    const counselor = location.state?.counselor || detailedCounselorData[id] || detailedCounselorData['1'];
-    // counselor의 필드가 없을 때 안전하게 처리
+
+    // location.state?.counselor가 있으면 우선 사용, 없으면 API로 fetch
+    const [counselor, setCounselor] = useState(location.state?.counselor || null);
+
+    useEffect(() => {
+        // location.state에 없으면 API로 fetch
+        if (!location.state?.counselor) {
+            axios
+                .get(`/api/counselors/${id}`)
+                .then((res) => {
+                    setCounselor(res.data);
+                })
+                .catch((err) => {
+                    setCounselor(null); // 더미데이터 없이 null 처리
+                });
+        }
+    }, [id, location.state]);
+
+    // 더미데이터 없이, location.state 또는 fetch 데이터만 사용
+    const effectiveCounselor = counselor;
+    // DB에서 온 counselor 객체의 상세 정보 매핑
     const safeCounselor = {
-        name: counselor?.name || '',
-        category: counselor?.category || '',
-        major: counselor?.major || '',
-        fields: counselor?.fields || (counselor?.field ? counselor.field.split(',').map((f) => f.trim()) : []),
-        type: counselor?.type || '',
-        price: counselor?.price || '',
-        description: counselor?.description || counselor?.intro || '',
-        history: counselor?.history || [],
-        availableTimes: counselor?.availableTimes || ['10:00', '14:00', '16:00'],
+        name: effectiveCounselor?.name || effectiveCounselor?.user?.name || '',
+        category: effectiveCounselor?.category || effectiveCounselor?.profile_category || '',
+        major: effectiveCounselor?.major || effectiveCounselor?.profile_major || '',
+        fields:
+            effectiveCounselor?.fields ||
+            (Array.isArray(effectiveCounselor?.specialties)
+                ? effectiveCounselor.specialties.map((s) => s.name || s.specialty || s)
+                : effectiveCounselor?.field
+                  ? effectiveCounselor.field.split(',').map((f) => f.trim())
+                  : []),
+        type: effectiveCounselor?.type || effectiveCounselor?.profile_type || '',
+        price: effectiveCounselor?.price || effectiveCounselor?.profile_price || '',
+        description:
+            effectiveCounselor?.description || effectiveCounselor?.intro || effectiveCounselor?.profile_intro || '',
+        certificates: Array.isArray(effectiveCounselor?.certificates)
+            ? effectiveCounselor.certificates
+                  .map((c) => c && (c.certificate_name || c.name || c.certificate || c))
+                  .filter(Boolean)
+            : [],
+        educations: Array.isArray(effectiveCounselor?.educations)
+            ? effectiveCounselor.educations
+                  .map(
+                      (e) =>
+                          e &&
+                          (e.school_name && e.major
+                              ? `${e.school_name} ${e.major}${e.degree_type ? ' (' + e.degree_type + ')' : ''} ${e.start_date ? e.start_date + '~' : ''}${e.end_date || ''}`.trim()
+                              : e.school_name || e.major || e)
+                  )
+                  .filter(Boolean)
+            : [],
+        experiences: Array.isArray(effectiveCounselor?.experiences)
+            ? effectiveCounselor.experiences
+                  .map(
+                      (ex) =>
+                          ex &&
+                          (ex.company_name && ex.content
+                              ? `${ex.company_name} ${ex.content} ${ex.start_date ? ex.start_date + '~' : ''}${ex.end_date || ''}`.trim()
+                              : ex.company_name || ex.content || ex)
+                  )
+                  .filter(Boolean)
+            : [],
+        history: effectiveCounselor?.history || [],
+        availableTimes:
+            Array.isArray(effectiveCounselor?.schedules) && effectiveCounselor.schedules.length > 0
+                ? effectiveCounselor.schedules
+                      .map((s) => {
+                          if (s.start_time && s.end_time) {
+                              return `${s.start_time}~${s.end_time}`;
+                          }
+                          return s.time || s;
+                      })
+                      .filter(Boolean)
+                : effectiveCounselor?.availableTimes || ['10:00', '14:00', '16:00'],
+        profileImg: effectiveCounselor?.profile_img_url || effectiveCounselor?.profileImg || '',
     };
 
     const [selectedDate, setSelectedDate] = useState('');
@@ -214,7 +252,15 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
 
                         <div className="cld-counselor-profile-header">
                             <div className="cld-large-profile">
-                                <User size={48} />
+                                {safeCounselor.profileImg ? (
+                                    <img
+                                        src={safeCounselor.profileImg}
+                                        alt="상담사 프로필"
+                                        className="cld-large-profile-img"
+                                    />
+                                ) : (
+                                    <User size={64} />
+                                )}
                             </div>
                             <div className="cld-info-text">
                                 <span className="cld-detail-category">
@@ -236,14 +282,54 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                 ))}
                             </div>
 
-                            <h3>주요 약력</h3>
-                            <ul className="cld-history-list">
-                                {safeCounselor.history.map((h, i) => (
-                                    <li key={i}>
-                                        <CheckCircle size={18} className="cld-check-icon" /> {h}
-                                    </li>
-                                ))}
-                            </ul>
+                            {safeCounselor.certificates.length > 0 && (
+                                <>
+                                    <h3>자격증</h3>
+                                    <ul className="cld-history-list">
+                                        {safeCounselor.certificates.map((c, i) => (
+                                            <li key={i}>
+                                                <CheckCircle size={18} className="cld-check-icon" /> {c}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
+                            {safeCounselor.educations.length > 0 && (
+                                <>
+                                    <h3>학력</h3>
+                                    <ul className="cld-history-list">
+                                        {safeCounselor.educations.map((e, i) => (
+                                            <li key={i}>
+                                                <CheckCircle size={18} className="cld-check-icon" /> {e}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
+                            {safeCounselor.experiences.length > 0 && (
+                                <>
+                                    <h3>경력</h3>
+                                    <ul className="cld-history-list">
+                                        {safeCounselor.experiences.map((ex, i) => (
+                                            <li key={i}>
+                                                <CheckCircle size={18} className="cld-check-icon" /> {ex}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
+                            {safeCounselor.history.length > 0 && (
+                                <>
+                                    <h3>기타 이력</h3>
+                                    <ul className="cld-history-list">
+                                        {safeCounselor.history.map((h, i) => (
+                                            <li key={i}>
+                                                <CheckCircle size={18} className="cld-check-icon" /> {h}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
                         </div>
                     </section>
 
@@ -353,7 +439,10 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                 </button>
                             </div>
 
-                            <button className="cld-inquiry-btn" onClick={() => navigate('/contact-coach', { state: { counselorName: counselor.name } })}>
+                            <button
+                                className="cld-inquiry-btn"
+                                onClick={() => navigate('/contact-coach', { state: { counselorName: counselor.name } })}
+                            >
                                 <MessageCircle size={18} /> 상담사에게 예약 문의하기
                             </button>
                         </div>
