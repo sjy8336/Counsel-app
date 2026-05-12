@@ -893,3 +893,30 @@
     color: var(--ac-green-dark);
     font-size: 15px;
 }
+
+.ac-toast-popup {
+    position: fixed;
+    left: 50%;
+    bottom: 48px;
+    transform: translateX(-50%);
+    background: #222;
+    color: #fff;
+    padding: 14px 32px;
+    border-radius: 24px;
+    font-size: 16px;
+    font-weight: 500;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.13);
+    z-index: 9999;
+    opacity: 0.97;
+    animation: ac-toast-fadein 0.3s;
+}
+@keyframes ac-toast-fadein {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(30px);
+    }
+    to {
+        opacity: 0.97;
+        transform: translateX(-50%) translateY(0);
+    }
+}
