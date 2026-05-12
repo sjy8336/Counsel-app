@@ -261,6 +261,15 @@
     color: #1e293b; /* Text (Main) */
 }
 
+.cld-counselor-field-tags,
+.cld-counselor-intro {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
 .cld-counselor-field-tags {
     font-size: 0.85rem;
     color: #64748b;
@@ -372,6 +381,16 @@
     align-items: center;
     justify-content: center;
     color: #8ba888;
+    overflow: hidden;
+}
+
+.cld-large-profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 30px;
+    background: #faf7f2;
+    display: block;
 }
 
 .cld-detail-category {
