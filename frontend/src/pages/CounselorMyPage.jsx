@@ -14,7 +14,7 @@ import {
     getExperiences,
     updateExperience,
     getSchedules,
-    updateSchedule
+    updateSchedule,
 } from '../api/counselor.js';
 import { getNotifications, markNotificationRead } from '../api/notification.js';
 import {
@@ -42,474 +42,92 @@ import {
     ChevronLeft,
 } from 'lucide-react';
 
+// ─── 상수 ────────────────────────────────────────────────────────────────────
 const uid = () => Date.now() + Math.random();
-const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
-const timeOptions = Array.from({ length: 30 }, (_, index) => {
-    const totalMinutes = 9 * 60 + index * 30;
-    const hour = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
-    const minute = String(totalMinutes % 60).padStart(2, '0');
-    return `${hour}:${minute}`;
+const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+const TIME_OPTIONS = Array.from({ length: 30 }, (_, i) => {
+    const total = 9 * 60 + i * 30;
+    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 });
+const SPECIALTY_OPTIONS = [
+    '개인심리',
+    '취업상담',
+    '가족상담',
+    '부부상담',
+    '청소년상담',
+    '트라우마',
+    '우울/불안',
+    '진로상담',
+    '대인관계',
+    '기타',
+];
+const INIT_WORK_DAYS = DAY_LABELS.slice(1)
+    .concat(DAY_LABELS[0])
+    .map((day) => ({
+        day,
+        active: !['토', '일'].includes(day),
+        startTime: '09:00',
+        endTime: '18:00',
+    }));
+const INIT_NOTIF_SETTINGS = [
+    { id: 'schedule', label: '상담 일정 알림', desc: '오늘 예정된 상담 일정을 알려드립니다.', on: true },
+    { id: 'booking', label: '예약 확정 알림', desc: '새로운 예약이 확정되면 알려드립니다.', on: true },
+    { id: 'cancel', label: '예약 취소 알림', desc: '내담자가 예약을 취소하면 알려드립니다.', on: true },
+    { id: 'msg', label: '메시지 알림', desc: '읽지 않은 메시지가 있을 때 알려드립니다.', on: false },
+    { id: 'notice', label: '시스템 공지 알림', desc: '서비스 점검 및 공지사항을 알려드립니다.', on: true },
+    { id: 'marketing', label: '마케팅 알림', desc: '이벤트 및 혜택 소식을 알려드립니다.', on: false },
+];
+const SETTINGS_MENU = [
+    { id: 'profile', icon: <UserCog size={16} />, label: '상담사 프로필 수정', sub: '프로필 정보를 수정합니다.' },
+    { id: 'notifSettings', icon: <BellRing size={16} />, label: '알림 설정', sub: '받을 알림 종류를 설정합니다.' },
+    {
+        id: 'deleteAccount',
+        icon: <Trash2 size={16} />,
+        label: '회원 탈퇴',
+        sub: '계정 및 모든 데이터를 삭제합니다.',
+        danger: true,
+    },
+];
 
-const formatMonthValue = (value) => {
-    if (!value) return '';
-    const [year, month] = value.split('-');
-    return `${year}년 ${Number(month)}월`;
+// ─── 유틸 함수 ───────────────────────────────────────────────────────────────
+const formatMonth = (v) => {
+    if (!v) return '';
+    const [y, m] = v.split('-');
+    return `${y}년 ${Number(m)}월`;
 };
-
-const formatDateValue = (value) => {
-    if (!value) return '';
-    const [year, month, day] = value.split('-');
-    return `${year}년 ${Number(month)}월 ${Number(day)}일`;
+const formatDate = (v) => {
+    if (!v) return '';
+    const [y, m, d] = v.split('-');
+    return `${y}년 ${Number(m)}월 ${Number(d)}일`;
 };
-
-const isTimeBefore = (leftTime, rightTime) => {
-    if (!leftTime || !rightTime) return false;
-    return leftTime < rightTime;
-};
-
-const isTodayDate = (year, month, day) => {
-    const today = new Date();
-    return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+const isTodayDate = (y, m, d) => {
+    const t = new Date();
+    return t.getFullYear() === y && t.getMonth() === m && t.getDate() === d;
 };
 
 const useOutsideClose = (open, ref, onClose) => {
     useEffect(() => {
-        if (!open) return undefined;
-        const handleMouseDown = (event) => {
-            if (ref.current && !ref.current.contains(event.target)) {
-                onClose();
-            }
+        if (!open) return;
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) onClose();
         };
-        document.addEventListener('mousedown', handleMouseDown);
-        return () => document.removeEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
     }, [open, onClose, ref]);
 };
 
-const MonthPicker = ({ value, onChange, icon = true, placeholder = '', className = '' }) => {
-    const [open, setOpen] = useState(false);
-    const [viewYear, setViewYear] = useState(() => {
-        if (value) return Number(value.split('-')[0]);
-        return new Date().getFullYear();
-    });
-    const ref = useRef(null);
-    const months = Array.from({ length: 12 }, (_, index) => index + 1);
-
-    useOutsideClose(open, ref, () => setOpen(false));
-
-    const handleSelect = (year, month) => {
-        onChange(`${year}-${String(month).padStart(2, '0')}`);
-        setOpen(false);
-    };
-
-    return (
-        <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
-            <button
-                type="button"
-                className={`cmp-monthpicker-input${value ? ' filled' : ''}`}
-                onClick={() => setOpen((prev) => !prev)}
-            >
-                {icon && (
-                    <span className="cmp-picker-input-icon">
-                        <Calendar size={15} />
-                    </span>
-                )}
-                <span>{value ? formatMonthValue(value) : placeholder || '연/월 선택'}</span>
-                <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
-            </button>
-
-            {open && (
-                <div className="cmp-picker-popover cmp-monthpicker-modal">
-                    <div className="cmp-picker-popover-head">
-                        <div>
-                            <div className="cmp-picker-popover-eyebrow">Month</div>
-                            <div className="cmp-picker-popover-title">{viewYear}년</div>
-                        </div>
-                        <div className="cmp-picker-nav">
-                            <button
-                                type="button"
-                                className="cmp-picker-nav-btn"
-                                onClick={() => setViewYear((year) => year - 1)}
-                            >
-                                <ChevronLeft size={14} />
-                            </button>
-                            <button
-                                type="button"
-                                className="cmp-picker-nav-btn"
-                                onClick={() => setViewYear((year) => year + 1)}
-                            >
-                                <ChevronRight size={14} />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="cmp-monthpicker-months">
-                        {months.map((month) => {
-                            const selected =
-                                value &&
-                                Number(value.split('-')[0]) === viewYear &&
-                                Number(value.split('-')[1]) === month;
-
-                            return (
-                                <button
-                                    key={month}
-                                    type="button"
-                                    className={`cmp-monthpicker-month${selected ? ' selected' : ''}`}
-                                    onClick={() => handleSelect(viewYear, month)}
-                                >
-                                    {month}월
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const DatePicker = ({ value, onChange, icon = true, placeholder = '', className = '' }) => {
-    const [open, setOpen] = useState(false);
-    const initialDate = value ? new Date(value) : new Date();
-    const [viewYear, setViewYear] = useState(initialDate.getFullYear());
-    const [viewMonth, setViewMonth] = useState(initialDate.getMonth());
-    const ref = useRef(null);
-
-    useOutsideClose(open, ref, () => setOpen(false));
-
-    useEffect(() => {
-        if (!value) return;
-        const parsed = new Date(value);
-        if (Number.isNaN(parsed.getTime())) return;
-        setViewYear(parsed.getFullYear());
-        setViewMonth(parsed.getMonth());
-    }, [value]);
-
-    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
-    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-    const blanks = Array.from({ length: firstDay }, (_, index) => index);
-    const days = Array.from({ length: daysInMonth }, (_, index) => index + 1);
-
-    const handlePrevMonth = () => {
-        const next = new Date(viewYear, viewMonth - 1, 1);
-        setViewYear(next.getFullYear());
-        setViewMonth(next.getMonth());
-    };
-
-    const handleNextMonth = () => {
-        const next = new Date(viewYear, viewMonth + 1, 1);
-        setViewYear(next.getFullYear());
-        setViewMonth(next.getMonth());
-    };
-
-    const handleSelect = (day) => {
-        const nextValue = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        onChange(nextValue);
-        setOpen(false);
-    };
-
-    return (
-        <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
-            <button
-                type="button"
-                className={`cmp-monthpicker-input${value ? ' filled' : ''}`}
-                onClick={() => setOpen((prev) => !prev)}
-            >
-                {icon && (
-                    <span className="cmp-picker-input-icon">
-                        <Calendar size={15} />
-                    </span>
-                )}
-                <span>{value ? formatDateValue(value) : placeholder || '날짜 선택'}</span>
-                <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
-            </button>
-
-            {open && (
-                <div className="cmp-picker-popover cmp-datepicker-modal">
-                    <div className="cmp-picker-popover-head">
-                        <div>
-                            <div className="cmp-picker-popover-eyebrow">Date</div>
-                            <div className="cmp-picker-popover-title">
-                                {viewYear}년 {viewMonth + 1}월
-                            </div>
-                        </div>
-                        <div className="cmp-picker-nav">
-                            <button type="button" className="cmp-picker-nav-btn" onClick={handlePrevMonth}>
-                                <ChevronLeft size={14} />
-                            </button>
-                            <button type="button" className="cmp-picker-nav-btn" onClick={handleNextMonth}>
-                                <ChevronRight size={14} />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="cmp-datepicker-weekdays">
-                        {dayLabels.map((dayLabel) => (
-                            <span key={dayLabel}>{dayLabel}</span>
-                        ))}
-                    </div>
-
-                    <div className="cmp-datepicker-grid">
-                        {blanks.map((blank) => (
-                            <div key={`blank-${blank}`} className="cmp-datepicker-blank" />
-                        ))}
-                        {days.map((day) => {
-                            const selected =
-                                value ===
-                                `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                            const isToday = isTodayDate(viewYear, viewMonth, day);
-
-                            return (
-                                <button
-                                    key={day}
-                                    type="button"
-                                    className={`cmp-datepicker-day${selected ? ' selected' : ''}${isToday ? ' today' : ''}`}
-                                    onClick={() => handleSelect(day)}
-                                >
-                                    {day}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const TimePicker = ({ value, onChange, minTime = '', disabled = false, className = '' }) => {
-    const [open, setOpen] = useState(false);
-    const ref = useRef(null);
-
-    useOutsideClose(open, ref, () => setOpen(false));
-
-    const availableTimes = timeOptions.filter((time) => !minTime || time >= minTime);
-
-    return (
-        <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
-            <button
-                type="button"
-                className={`cmp-monthpicker-input cmp-timepicker-input${value ? ' filled' : ''}${disabled ? ' disabled' : ''}`}
-                onClick={() => {
-                    if (!disabled) setOpen((prev) => !prev);
-                }}
-                disabled={disabled}
-            >
-                <span className="cmp-picker-input-icon">
-                    <Clock size={15} />
-                </span>
-                <span>{value || '시간 선택'}</span>
-                <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
-            </button>
-
-            {open && (
-                <div className="cmp-picker-popover cmp-timepicker-modal">
-                    <div className="cmp-picker-popover-head">
-                        <div>
-                            <div className="cmp-picker-popover-eyebrow">Time</div>
-                            <div className="cmp-picker-popover-title">{value || '시간 선택'}</div>
-                        </div>
-                    </div>
-
-                    <div className="cmp-timepicker-list">
-                        {availableTimes.map((time) => (
-                            <button
-                                key={time}
-                                type="button"
-                                className={`cmp-timepicker-option${value === time ? ' selected' : ''}`}
-                                onClick={() => {
-                                    onChange(time);
-                                    setOpen(false);
-                                }}
-                            >
-                                {time}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const initCareers = [
-    {
-        id: 1,
-        startDate: '2019-03',
-        endDate: '2022-06',
-        isCurrent: false,
-        description: '서울심리상담센터 상담사',
-    },
-    {
-        id: 2,
-        startDate: '2022-07',
-        endDate: '',
-        isCurrent: true,
-        description: '마인드웰 서울 강남센터 수석 상담사',
-    },
-];
-
-const initEducations = [
-    {
-        id: 1,
-        startDate: '2013-03',
-        endDate: '2017-02',
-        school: '서울대학교 심리학과',
-        degree: '학사',
-    },
-    {
-        id: 2,
-        startDate: '2017-03',
-        endDate: '2019-02',
-        school: '서울대학교 심리학과',
-        degree: '석사',
-    },
-];
-
-const initCertificates = [
-    { id: 1, name: '임상심리전문가 1급', issuer: '한국심리학회', date: '2019-06' },
-    { id: 2, name: '상담심리사 1급', issuer: '한국상담심리학회', date: '2020-03' },
-];
-
-const initWorkDays = [
-    { day: '월', active: true, startTime: '09:00', endTime: '18:00' },
-    { day: '화', active: true, startTime: '09:00', endTime: '18:00' },
-    { day: '수', active: true, startTime: '09:00', endTime: '18:00' },
-    { day: '목', active: true, startTime: '09:00', endTime: '18:00' },
-    { day: '금', active: true, startTime: '09:00', endTime: '18:00' },
-    { day: '토', active: false, startTime: '09:00', endTime: '18:00' },
-    { day: '일', active: false, startTime: '09:00', endTime: '18:00' },
-];
-
-const initNotifications = [
-    {
-        id: 1,
-        group: '오늘',
-        items: [
-            {
-                id: 101,
-                type: 'schedule',
-                title: '오늘 상담 일정',
-                desc: '10:00 김소현 • 상담 1실 / 14:00 이민준 • 상담 3실',
-                time: '오전 8:00',
-                unread: true,
-            },
-            {
-                id: 102,
-                type: 'booking',
-                title: '예약 확정',
-                desc: '한수지 님의 대면 상담이 승인되었습니다.',
-                time: '오전 9:10',
-                unread: true,
-            },
-            {
-                id: 103,
-                type: 'msg',
-                title: '새 메시지',
-                desc: '이민준 님: 오늘 조금 늦을 것 같습니다.',
-                time: '오전 9:45',
-                unread: true,
-            },
-        ],
-    },
-    {
-        id: 2,
-        group: '어제',
-        items: [
-            {
-                id: 104,
-                type: 'booking',
-                title: '예약 확정',
-                desc: '정현우 님의 화상 상담이 확정되었습니다.',
-                time: '오후 3:20',
-                unread: false,
-            },
-            {
-                id: 105,
-                type: 'notice',
-                title: '시스템 공지',
-                desc: '내일 오후 2시부터 서버 점검이 예정되어 있습니다.',
-                time: '오전 9:00',
-                unread: false,
-            },
-        ],
-    },
-    {
-        id: 3,
-        group: '이번 주',
-        items: [
-            {
-                id: 106,
-                type: 'schedule',
-                title: '예약 취소',
-                desc: '박지영 님이 5월 22일 상담을 취소했습니다.',
-                time: '5월 21일',
-                unread: false,
-            },
-        ],
-    },
-];
-
-const initNotifSettings = [
-    {
-        id: 'schedule',
-        label: '상담 일정 알림',
-        desc: '오늘 예정된 상담 일정을 알려드립니다.',
-        on: true,
-    },
-    {
-        id: 'booking',
-        label: '예약 확정 알림',
-        desc: '새로운 예약이 확정되면 알려드립니다.',
-        on: true,
-    },
-    {
-        id: 'cancel',
-        label: '예약 취소 알림',
-        desc: '내담자가 예약을 취소하면 알려드립니다.',
-        on: true,
-    },
-    {
-        id: 'msg',
-        label: '메시지 알림',
-        desc: '읽지 않은 메시지가 있을 때 알려드립니다.',
-        on: false,
-    },
-    {
-        id: 'notice',
-        label: '시스템 공지 알림',
-        desc: '서비스 점검 및 공지사항을 알려드립니다.',
-        on: true,
-    },
-    {
-        id: 'marketing',
-        label: '마케팅 알림',
-        desc: '이벤트 및 혜택 소식을 알려드립니다.',
-        on: false,
-    },
-];
-
-const NotifIcon = ({ type }) => {
-    const iconMap = {
-        schedule: <Calendar size={15} />,
-        booking: <Check size={15} />,
-        msg: <MessageSquare size={15} />,
-        notice: <AlertCircle size={15} />,
-    };
-    return <div className="cmp-item-avatar notif">{iconMap[type] || <Bell size={15} />}</div>;
-};
+// ─── 공통 컴포넌트 ────────────────────────────────────────────────────────────
+const Toggle = ({ on, onChange }) => (
+    <button className={`cmp-toggle${on ? ' on' : ''}`} onClick={onChange} aria-label="toggle">
+        <span className="cmp-toggle-thumb" />
+    </button>
+);
 
 const PageHeader = ({ title, sub }) => (
     <div className="cmp-page-header">
         <h2 className="cmp-page-title">{title}</h2>
         {sub && <p className="cmp-page-sub">{sub}</p>}
     </div>
-);
-
-const Toggle = ({ on, onChange }) => (
-    <button className={`cmp-toggle${on ? ' on' : ''}`} onClick={onChange} aria-label="toggle">
-        <span className="cmp-toggle-thumb" />
-    </button>
 );
 
 const BackHeader = ({ title, onBack }) => (
@@ -523,39 +141,350 @@ const BackHeader = ({ title, onBack }) => (
     </div>
 );
 
+const NotifIcon = ({ type }) => {
+    const map = {
+        schedule: <Calendar size={15} />,
+        booking: <Check size={15} />,
+        msg: <MessageSquare size={15} />,
+        notice: <AlertCircle size={15} />,
+    };
+    return <div className="cmp-item-avatar notif">{map[type] || <Bell size={15} />}</div>;
+};
+
+// ─── MonthPicker ──────────────────────────────────────────────────────────────
+const MonthPicker = ({ value, onChange, icon = true, placeholder = '', className = '' }) => {
+    const [open, setOpen] = useState(false);
+    const [viewYear, setViewYear] = useState(() => (value ? Number(value.split('-')[0]) : new Date().getFullYear()));
+    const ref = useRef(null);
+    useOutsideClose(open, ref, () => setOpen(false));
+
+    return (
+        <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
+            <button
+                type="button"
+                className={`cmp-monthpicker-input${value ? ' filled' : ''}`}
+                onClick={() => setOpen((p) => !p)}
+            >
+                {icon && (
+                    <span className="cmp-picker-input-icon">
+                        <Calendar size={15} />
+                    </span>
+                )}
+                <span>{value ? formatMonth(value) : placeholder || '연/월 선택'}</span>
+                <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
+            </button>
+            {open && (
+                <div className="cmp-picker-popover cmp-monthpicker-modal">
+                    <div className="cmp-picker-popover-head">
+                        <div>
+                            <div className="cmp-picker-popover-eyebrow">Month</div>
+                            <div className="cmp-picker-popover-title">{viewYear}년</div>
+                        </div>
+                        <div className="cmp-picker-nav">
+                            <button
+                                type="button"
+                                className="cmp-picker-nav-btn"
+                                onClick={() => setViewYear((y) => y - 1)}
+                            >
+                                <ChevronLeft size={14} />
+                            </button>
+                            <button
+                                type="button"
+                                className="cmp-picker-nav-btn"
+                                onClick={() => setViewYear((y) => y + 1)}
+                            >
+                                <ChevronRight size={14} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="cmp-monthpicker-months">
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
+                            const sel =
+                                value && Number(value.split('-')[0]) === viewYear && Number(value.split('-')[1]) === m;
+                            return (
+                                <button
+                                    key={m}
+                                    type="button"
+                                    className={`cmp-monthpicker-month${sel ? ' selected' : ''}`}
+                                    onClick={() => {
+                                        onChange(`${viewYear}-${String(m).padStart(2, '0')}`);
+                                        setOpen(false);
+                                    }}
+                                >
+                                    {m}월
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ─── DatePicker ───────────────────────────────────────────────────────────────
+const DatePicker = ({ value, onChange, icon = true, placeholder = '', className = '' }) => {
+    const [open, setOpen] = useState(false);
+    const init = value ? new Date(value) : new Date();
+    const [viewYear, setViewYear] = useState(init.getFullYear());
+    const [viewMonth, setViewMonth] = useState(init.getMonth());
+    const ref = useRef(null);
+    useOutsideClose(open, ref, () => setOpen(false));
+
+    useEffect(() => {
+        if (!value) return;
+        const d = new Date(value);
+        if (!isNaN(d)) {
+            setViewYear(d.getFullYear());
+            setViewMonth(d.getMonth());
+        }
+    }, [value]);
+
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const goMonth = (delta) => {
+        const d = new Date(viewYear, viewMonth + delta, 1);
+        setViewYear(d.getFullYear());
+        setViewMonth(d.getMonth());
+    };
+
+    return (
+        <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
+            <button
+                type="button"
+                className={`cmp-monthpicker-input${value ? ' filled' : ''}`}
+                onClick={() => setOpen((p) => !p)}
+            >
+                {icon && (
+                    <span className="cmp-picker-input-icon">
+                        <Calendar size={15} />
+                    </span>
+                )}
+                <span>{value ? formatDate(value) : placeholder || '날짜 선택'}</span>
+                <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
+            </button>
+            {open && (
+                <div className="cmp-picker-popover cmp-datepicker-modal">
+                    <div className="cmp-picker-popover-head">
+                        <div>
+                            <div className="cmp-picker-popover-eyebrow">Date</div>
+                            <div className="cmp-picker-popover-title">
+                                {viewYear}년 {viewMonth + 1}월
+                            </div>
+                        </div>
+                        <div className="cmp-picker-nav">
+                            <button type="button" className="cmp-picker-nav-btn" onClick={() => goMonth(-1)}>
+                                <ChevronLeft size={14} />
+                            </button>
+                            <button type="button" className="cmp-picker-nav-btn" onClick={() => goMonth(1)}>
+                                <ChevronRight size={14} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="cmp-datepicker-weekdays">
+                        {DAY_LABELS.map((d) => (
+                            <span key={d}>{d}</span>
+                        ))}
+                    </div>
+                    <div className="cmp-datepicker-grid">
+                        {Array.from({ length: firstDay }, (_, i) => (
+                            <div key={`b${i}`} className="cmp-datepicker-blank" />
+                        ))}
+                        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
+                            const val = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                            return (
+                                <button
+                                    key={day}
+                                    type="button"
+                                    className={`cmp-datepicker-day${value === val ? ' selected' : ''}${isTodayDate(viewYear, viewMonth, day) ? ' today' : ''}`}
+                                    onClick={() => {
+                                        onChange(val);
+                                        setOpen(false);
+                                    }}
+                                >
+                                    {day}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ─── TimePicker ───────────────────────────────────────────────────────────────
+const TimePicker = ({ value, onChange, minTime = '', disabled = false, className = '' }) => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+    useOutsideClose(open, ref, () => setOpen(false));
+    const times = TIME_OPTIONS.filter((t) => !minTime || t >= minTime);
+
+    return (
+        <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
+            <button
+                type="button"
+                disabled={disabled}
+                className={`cmp-monthpicker-input cmp-timepicker-input${value ? ' filled' : ''}${disabled ? ' disabled' : ''}`}
+                onClick={() => {
+                    if (!disabled) setOpen((p) => !p);
+                }}
+            >
+                <span className="cmp-picker-input-icon">
+                    <Clock size={15} />
+                </span>
+                <span>{value || '시간 선택'}</span>
+                <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
+            </button>
+            {open && (
+                <div className="cmp-picker-popover cmp-timepicker-modal">
+                    <div className="cmp-picker-popover-head">
+                        <div>
+                            <div className="cmp-picker-popover-eyebrow">Time</div>
+                            <div className="cmp-picker-popover-title">{value || '시간 선택'}</div>
+                        </div>
+                    </div>
+                    <div className="cmp-timepicker-list">
+                        {times.map((t) => (
+                            <button
+                                key={t}
+                                type="button"
+                                className={`cmp-timepicker-option${value === t ? ' selected' : ''}`}
+                                onClick={() => {
+                                    onChange(t);
+                                    setOpen(false);
+                                }}
+                            >
+                                {t}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ─── SpecialtySelector ────────────────────────────────────────────────────────
+// specialties: [{ specialty_name, custom_description }]
+const SpecialtySelector = ({ specialties, onChange }) => {
+    const [customText, setCustomText] = useState('');
+    const selectedNames = specialties.map((s) => s.specialty_name);
+
+    const toggle = (name) => {
+        if (selectedNames.includes(name)) {
+            onChange(specialties.filter((s) => s.specialty_name !== name));
+        } else {
+            onChange([...specialties, { specialty_name: name, custom_description: '' }]);
+        }
+    };
+
+    const addCustom = () => {
+        const trimmed = customText.trim();
+        if (!trimmed || selectedNames.includes(trimmed)) return;
+        onChange([...specialties, { specialty_name: trimmed, custom_description: trimmed }]);
+        setCustomText('');
+    };
+
+    return (
+        <div>
+            <div className="cmp-specialty-grid">
+                {SPECIALTY_OPTIONS.map((name) => {
+                    const sel = selectedNames.includes(name);
+                    return (
+                        <button
+                            key={name}
+                            type="button"
+                            className={`cmp-specialty-chip${sel ? ' selected' : ''}`}
+                            onClick={() => toggle(name)}
+                        >
+                            {sel && <Check size={11} />}
+                            {name}
+                        </button>
+                    );
+                })}
+            </div>
+            {selectedNames.includes('기타') && (
+                <div className="cmp-specialty-custom">
+                    <input
+                        className="cmp-input cmp-input-sm cmp-specialty-custom-input"
+                        placeholder="기타 전문분야 직접 입력"
+                        value={customText}
+                        onChange={(e) => setCustomText(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && addCustom()}
+                    />
+                    <button className="cmp-btn-add" style={{ padding: '8px 14px', fontSize: 12 }} onClick={addCustom}>
+                        추가
+                    </button>
+                </div>
+            )}
+            {/* 선택된 기타 커스텀 항목 표시 */}
+            {specialties.filter((s) => s.custom_description && !SPECIALTY_OPTIONS.includes(s.specialty_name)).length >
+                0 && (
+                <div className="cmp-specialty-grid" style={{ marginTop: 6 }}>
+                    {specialties
+                        .filter((s) => !SPECIALTY_OPTIONS.includes(s.specialty_name))
+                        .map((s) => (
+                            <button
+                                key={s.specialty_name}
+                                type="button"
+                                className="cmp-specialty-chip selected"
+                                onClick={() =>
+                                    onChange(specialties.filter((x) => x.specialty_name !== s.specialty_name))
+                                }
+                            >
+                                <Check size={11} />
+                                {s.specialty_name}
+                            </button>
+                        ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ─── 메인 App ─────────────────────────────────────────────────────────────────
 const App = () => {
     const navigate = useNavigate();
-
     const [searchParams] = useSearchParams();
+    const fileInputRef = useRef(null);
+
     const [activeMenu, setActiveMenu] = useState(searchParams.get('tab') || 'dashboard');
     const [settingsView, setSettingsView] = useState(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    // 등록 여부를 항상 백엔드에서 확인
     const [registered, setRegistered] = useState(false);
     const [loadingRegistered, setLoadingRegistered] = useState(true);
     const [profileStatus, setProfileStatus] = useState('');
 
-    // 상담사 프로필 등록 여부 확인 API 호출
+    const [profile, setProfile] = useState({});
+    const [specialties, setSpecialties] = useState([]); // [{ specialty_name, custom_description }]
+    const [careers, setCareers] = useState([]);
+    const [educations, setEducations] = useState([]);
+    const [certificates, setCertificates] = useState([]);
+    const [workDays, setWorkDays] = useState(INIT_WORK_DAYS);
+    const [holidays, setHolidays] = useState([]);
+    const [newHoliday, setNewHoliday] = useState('');
+    const [notifications, setNotifications] = useState([]);
+    const [notifSettings, setNotifSettings] = useState(INIT_NOTIF_SETTINGS);
+    const [deleteStep, setDeleteStep] = useState(1);
+    const [deleteInput, setDeleteInput] = useState('');
+
+    // ── 등록 여부 확인 ─────────────────────────────────────────────────────────
     const fetchRegistered = useCallback(async () => {
         setLoadingRegistered(true);
         try {
             const token = localStorage.getItem('access_token');
-            if (!token) {
-                setRegistered(false);
-                setProfileStatus('');
-                setLoadingRegistered(false);
-                return;
-            }
-            const profile = await getCounselorProfile(token);
-            if (profile && profile.status) {
+            if (!token) return;
+            const prof = await getCounselorProfile(token);
+            if (prof?.status) {
                 setRegistered(true);
-                setProfileStatus(profile.status);
+                setProfileStatus(prof.status);
             } else {
                 setRegistered(false);
                 setProfileStatus('');
             }
-        } catch (e) {
+        } catch {
             setRegistered(false);
             setProfileStatus('');
         } finally {
@@ -566,91 +495,93 @@ const App = () => {
     useEffect(() => {
         fetchRegistered();
     }, [fetchRegistered]);
-    // DB 연동용 state
-    const [profile, setProfile] = useState({});
-    const [specialties, setSpecialties] = useState([]);
-    const [careers, setCareers] = useState([]);
-    const [educations, setEducations] = useState([]);
-    const [certificates, setCertificates] = useState([]);
-    const [workDays, setWorkDays] = useState([]);
-    const [holidays, setHolidays] = useState([]);
-    const [newHoliday, setNewHoliday] = useState('');
-        // DB에서 상담사 정보 불러오기
-        useEffect(() => {
-            const fetchAll = async () => {
-                const token = localStorage.getItem('access_token');
-                if (!token) return;
-                try {
-                    // 프로필
-                    const prof = await getCounselorProfile(token);
-                    setProfile(prof || {});
-                    // 전문분야
-                    const specs = await getSpecialty(token);
-                    setSpecialties(specs || []);
-                    // 자격증: DB → 프론트 필드명 변환
-                    const certs = await getCertificates(token);
-                    setCertificates(
-                        (certs || []).map((c, idx) => ({
-                            id: c.id || idx + 1,
-                            name: c.certificate_name || '',
-                            issuer: c.issuer || '',
-                            date: c.acquisition_date || '',
-                        }))
-                    );
-                    // 학력: DB → 프론트 필드명 변환
-                    const edus = await getEducations(token);
-                    setEducations(
-                        (edus || []).map((e, idx) => ({
-                            id: e.id || idx + 1,
-                            school: e.school_name || '',
-                            degree: e.major || '',
-                            startDate: e.start_date || '',
-                            endDate: e.end_date || '',
-                        }))
-                    );
-                    // 경력: DB → 프론트 필드명 변환
-                    const exps = await getExperiences(token);
-                    setCareers(
-                        (exps || []).map((e, idx) => ({
-                            id: e.id || idx + 1,
-                            startDate: e.start_date || '',
-                            endDate: e.end_date || '',
-                            isCurrent: e.is_current || false,
-                            description: e.content || '',
-                        }))
-                    );
-                    // 스케줄
-                    const scheds = await getSchedules(token);
-                    // workDays: [{day, active, startTime, endTime}]
-                    setWorkDays(
-                        (scheds || []).length === 7
-                            ? scheds.map((s) => ({
-                                  day: s.day,
-                                  active: s.active,
-                                  startTime: s.start_time,
-                                  endTime: s.end_time,
-                              }))
-                            : initWorkDays
-                    );
-                    // 휴무일(추가 구현 필요시)
-                    setHolidays([]); // DB에 별도 저장 필요시 구현
-                } catch (e) {
-                    // ignore
-                }
-            };
-            fetchAll();
-        }, [registered]);
-    const [notifications, setNotifications] = useState([]);
-    // 알림 불러오기
+
+    // ── 데이터 불러오기 ─────────────────────────────────────────────────────────
     useEffect(() => {
-        const fetchNotifications = async () => {
+        const fetchAll = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            try {
+                const [prof, specs, certs, edus, exps, scheds] = await Promise.all([
+                    getCounselorProfile(token),
+                    getSpecialty(token),
+                    getCertificates(token),
+                    getEducations(token),
+                    getExperiences(token),
+                    getSchedules(token),
+                ]);
+
+                setProfile({
+                    ...prof,
+                    tel: prof.center_phone || '',
+                    price: prof.consultation_price || '',
+                    office_name: prof.center_name || '',
+                    office_address: prof.center_address || '',
+                    intro: prof.intro_line || '',
+                });
+
+                // 전문분야: DB row 배열 그대로 사용
+                setSpecialties(
+                    (specs || []).map((s) => ({
+                        specialty_name: s.specialty_name || '',
+                        custom_description: s.custom_description || '',
+                    }))
+                );
+
+                setCertificates(
+                    (certs || []).map((c, i) => ({
+                        id: c.id || i + 1,
+                        name: c.certificate_name || '',
+                        issuer: c.issuer || '',
+                        date: c.acquisition_date || '',
+                    }))
+                );
+
+                setEducations(
+                    (edus || []).map((e, i) => ({
+                        id: e.id || i + 1,
+                        school: e.school_name || '',
+                        degree: e.major || '',
+                        startDate: e.start_date || '',
+                        endDate: e.end_date || '',
+                    }))
+                );
+
+                setCareers(
+                    (exps || []).map((e, i) => ({
+                        id: e.id || i + 1,
+                        startDate: e.start_date || '',
+                        endDate: e.end_date || '',
+                        isCurrent: e.is_current || false,
+                        description: e.content || '',
+                    }))
+                );
+
+                setWorkDays(
+                    scheds?.length === 7
+                        ? scheds.map((s) => ({
+                              day: s.day,
+                              active: s.active,
+                              startTime: s.start_time,
+                              endTime: s.end_time,
+                          }))
+                        : INIT_WORK_DAYS
+                );
+            } catch {
+                /* ignore */
+            }
+        };
+        fetchAll();
+    }, [registered]);
+
+    // ── 알림 불러오기 ──────────────────────────────────────────────────────────
+    useEffect(() => {
+        const fetchNotifs = async () => {
             const token = localStorage.getItem('access_token');
             if (!token) return;
             try {
                 const res = await getNotifications(token);
-                // 날짜별 그룹핑 (오늘/어제/이번 주 등은 단순화, 실제 서비스에서는 날짜별 그룹핑 필요)
                 const notifs = res.data || [];
-                // 예시: 오늘/어제/이전 등으로 그룹핑 (여기선 모두 '최근 알림'으로 묶음)
                 setNotifications([
                     {
                         id: 1,
@@ -670,146 +601,148 @@ const App = () => {
                         })),
                     },
                 ]);
-            } catch (e) {
-                // ignore
+            } catch {
+                /* ignore */
             }
         };
-        fetchNotifications();
+        fetchNotifs();
     }, [activeMenu]);
-    const [notifSettings, setNotifSettings] = useState(initNotifSettings);
-    const [deleteStep, setDeleteStep] = useState(1);
-    const [deleteInput, setDeleteInput] = useState('');
 
+    // ── CRUD 핸들러 ────────────────────────────────────────────────────────────
+    const addCareer = () =>
+        setCareers((p) => [...p, { id: uid(), startDate: '', endDate: '', isCurrent: false, description: '' }]);
+    const removeCareer = (id) => setCareers((p) => p.filter((c) => c.id !== id));
+    const updateCareerField = (id, key, val) =>
+        setCareers((p) => p.map((c) => (c.id === id ? { ...c, [key]: val } : c)));
+    const toggleCareerCurrent = (id) =>
+        setCareers((p) => p.map((c) => (c.id === id ? { ...c, isCurrent: !c.isCurrent, endDate: '' } : c)));
 
-    // CRUD 핸들러 (DB 연동)
-    const addCareer = () => setCareers((prev) => [...prev, { id: uid(), startDate: '', endDate: '', isCurrent: false, description: '' }]);
-    const removeCareer = (id) => setCareers((prev) => prev.filter((career) => career.id !== id));
-    const updateCareer = (id, key, value) => setCareers((prev) => prev.map((career) => (career.id === id ? { ...career, [key]: value } : career)));
-    const toggleCareerCurrent = (id) => setCareers((prev) => prev.map((career) => (career.id === id ? { ...career, isCurrent: !career.isCurrent, endDate: '' } : career)));
-    const addEducation = () => setEducations((prev) => [...prev, { id: uid(), startDate: '', endDate: '', school: '', degree: '' }]);
-    const removeEducation = (id) => setEducations((prev) => prev.filter((education) => education.id !== id));
-    const updateEducation = (id, key, value) => setEducations((prev) => prev.map((education) => (education.id === id ? { ...education, [key]: value } : education)));
-    const addCertificate = () => setCertificates((prev) => [...prev, { id: uid(), name: '', issuer: '', date: '' }]);
-    const removeCertificate = (id) => setCertificates((prev) => prev.filter((certificate) => certificate.id !== id));
-    const updateCertificate = (id, key, value) => setCertificates((prev) => prev.map((certificate) => (certificate.id === id ? { ...certificate, [key]: value } : certificate)));
-    const toggleWorkDay = (index) => {
-        const next = [...workDays];
-        next[index].active = !next[index].active;
-        setWorkDays(next);
-    };
-    const updateWorkTime = (index, key, value) => {
-        const next = [...workDays];
-        next[index][key] = value;
-        if (key === 'startTime' && isTimeBefore(next[index].endTime, value)) {
-            next[index].endTime = value;
-        }
-        setWorkDays(next);
-    };
+    const addEducation = () =>
+        setEducations((p) => [...p, { id: uid(), startDate: '', endDate: '', school: '', degree: '' }]);
+    const removeEducation = (id) => setEducations((p) => p.filter((e) => e.id !== id));
+    const updateEducationField = (id, key, val) =>
+        setEducations((p) => p.map((e) => (e.id === id ? { ...e, [key]: val } : e)));
+
+    const addCertificate = () => setCertificates((p) => [...p, { id: uid(), name: '', issuer: '', date: '' }]);
+    const removeCertificate = (id) => setCertificates((p) => p.filter((c) => c.id !== id));
+    const updateCertificateField = (id, key, val) =>
+        setCertificates((p) => p.map((c) => (c.id === id ? { ...c, [key]: val } : c)));
+
+    const toggleWorkDay = (i) => setWorkDays((p) => p.map((d, idx) => (idx === i ? { ...d, active: !d.active } : d)));
+    const updateWorkTime = (i, key, val) =>
+        setWorkDays((p) =>
+            p.map((d, idx) => {
+                if (idx !== i) return d;
+                const next = { ...d, [key]: val };
+                if (key === 'startTime' && next.endTime < val) next.endTime = val;
+                return next;
+            })
+        );
 
     const addHoliday = () => {
         if (newHoliday && !holidays.includes(newHoliday)) {
-            setHolidays((prev) => [...prev, newHoliday]);
+            setHolidays((p) => [...p, newHoliday]);
             setNewHoliday('');
         }
     };
 
-    // 알림 클릭 시 읽음 처리
     const handleNotifClick = async (groupId, itemId) => {
         const token = localStorage.getItem('access_token');
         try {
             await markNotificationRead(itemId, token);
-            setNotifications((prev) =>
-                prev.map((group) =>
-                    group.id === groupId
-                        ? {
-                              ...group,
-                              items: group.items.map((item) =>
-                                  item.id === itemId ? { ...item, unread: false } : item
-                              ),
+            setNotifications((p) =>
+                p.map((g) =>
+                    g.id !== groupId
+                        ? g
+                        : {
+                              ...g,
+                              items: g.items.map((item) => (item.id === itemId ? { ...item, unread: false } : item)),
                           }
-                        : group
                 )
             );
-        } catch (e) {}
+        } catch {
+            /* ignore */
+        }
     };
 
-    const toggleNotifSetting = (id) =>
-        setNotifSettings((prev) =>
-            prev.map((setting) => (setting.id === id ? { ...setting, on: !setting.on } : setting))
-        );
+    const toggleNotifSetting = (id) => setNotifSettings((p) => p.map((s) => (s.id === id ? { ...s, on: !s.on } : s)));
 
+    // ── 저장 ───────────────────────────────────────────────────────────────────
+    const handleSaveProfile = async () => {
+        const token = localStorage.getItem('access_token');
+        try {
+            await updateCounselorProfile(profile, token);
+            // 전문분야: DB 구조에 맞게 배열 전달
+            await updateSpecialty(specialties, token);
+            await updateCertificate(
+                certificates.map(({ id, ...rest }) => rest),
+                token
+            );
+            await updateEducation(
+                educations.map(({ id, ...rest }) => rest),
+                token
+            );
+            await updateExperience(
+                careers.map(({ id, ...rest }) => rest),
+                token
+            );
+            await updateSchedule(
+                workDays.map((d) => ({ day: d.day, active: d.active, start_time: d.startTime, end_time: d.endTime })),
+                token
+            );
+            alert('저장되었습니다.');
+        } catch {
+            alert('저장 중 오류가 발생했습니다.');
+        }
+    };
+
+    const handleProfileImgChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const res = await axios.post('/api/counselor/upload-profile-image', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+            if (res.data?.url) setProfile((p) => ({ ...p, profile_img_url: res.data.url }));
+        } catch {
+            alert('이미지 업로드에 실패했습니다.');
+        }
+    };
+
+    // ── 네비게이션 ─────────────────────────────────────────────────────────────
     const go = (menu) => {
         setActiveMenu(menu);
         setSettingsView(null);
         setSidebarOpen(false);
         if (menu !== 'settings') setSettingsOpen(false);
     };
-
-    // 로고 클릭 시 CounselorHome.jsx로 이동
-    const handleLogoClick = () => {
-        navigate('/counselorhome');
-    };
-
     const goSettings = (view) => {
-        // 등록이 안 되어 있어도 무조건 settings/profile로 진입 (이동 막음)
         setActiveMenu('settings');
         setSettingsView(view);
         setSidebarOpen(false);
     };
-
     const handleLogout = () => {
-        ['access_token', 'user'].forEach((key) => {
-            localStorage.removeItem(key);
-            sessionStorage.removeItem(key);
+        ['access_token', 'user'].forEach((k) => {
+            localStorage.removeItem(k);
+            sessionStorage.removeItem(k);
         });
         navigate('/login');
     };
-
-    const navItems = [
-        { id: 'dashboard', icon: <LayoutDashboard size={17} />, label: '대시보드' },
-        { id: 'notifications', icon: <Bell size={17} />, label: '알림센터' },
-    ];
-
-    const tabItems = [
-        { id: 'dashboard', icon: <LayoutDashboard size={19} />, label: '홈' },
-        { id: 'notifications', icon: <Bell size={19} />, label: '알림' },
-        { id: 'settings', icon: <Settings size={19} />, label: '설정' },
-        { id: 'customer', icon: <HeadphonesIcon size={19} />, label: '고객' },
-    ];
-
-    const settingsMenuItems = [
-        {
-            id: 'profile',
-            icon: <UserCog size={16} />,
-            label: registered ? '상담사 프로필 수정' : '상담사 등록하기',
-            sub: registered ? '프로필 정보를 수정합니다.' : '상담사 정보를 처음 등록합니다.',
-        },
-        {
-            id: 'notifSettings',
-            icon: <BellRing size={16} />,
-            label: '알림 설정',
-            sub: '받을 알림 종류를 설정합니다.',
-        },
-        {
-            id: 'deleteAccount',
-            icon: <Trash2 size={16} />,
-            label: '회원 탈퇴',
-            sub: '계정 및 모든 데이터를 삭제합니다.',
-            danger: true,
-        },
-    ];
-
-    // 로그인한 상담사 이름 가져오기
     const getCounselorName = () => {
         try {
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (!user) return '';
-            return user.full_name || user.name || user.username || '';
+            const u = JSON.parse(localStorage.getItem('user'));
+            return u?.full_name || u?.name || u?.username || '';
         } catch {
             return '';
         }
     };
 
+    // ─── 렌더 함수들 ───────────────────────────────────────────────────────────
     const renderDashboard = () => (
         <>
             <header className="cmp-header">
@@ -824,7 +757,6 @@ const App = () => {
                     <Bell size={14} /> 알림 확인
                 </button>
             </header>
-
             <div className="cmp-stats-grid">
                 {[
                     {
@@ -832,24 +764,24 @@ const App = () => {
                         bg: '#E8F5E9',
                         label: '오늘 예정 상담',
                         value: '3 건',
-                        onClick: () => navigate('/CounselorPlanner'),
+                        to: '/CounselorPlanner',
                     },
                     {
                         icon: <Clock size={15} color="#FFB74D" />,
                         bg: '#FFF5E6',
                         label: '승인 대기 요청',
                         value: '2 건',
-                        onClick: () => navigate('/CounselorPlanner'),
+                        to: '/CounselorPlanner',
                     },
                     {
                         icon: <MessageCircle size={15} color="#EF5350" />,
                         bg: '#FFEBEE',
                         label: '읽지 않은 메시지',
                         value: '5 건',
-                        onClick: () => navigate('/CounselorMessages'),
+                        to: '/CounselorMessages',
                     },
-                ].map(({ icon, bg, label, value, onClick }) => (
-                    <div key={label} className="cmp-stat-card" onClick={onClick}>
+                ].map(({ icon, bg, label, value, to }) => (
+                    <div key={label} className="cmp-stat-card" onClick={() => navigate(to)}>
                         <div className="cmp-stat-icon" style={{ background: bg }}>
                             {icon}
                         </div>
@@ -861,7 +793,6 @@ const App = () => {
                     </div>
                 ))}
             </div>
-
             <div className="cmp-next-session" onClick={() => navigate('/CounselorClient')}>
                 <div className="cmp-next-session-icon">
                     <User size={24} color="#fff" />
@@ -871,7 +802,13 @@ const App = () => {
                     <div className="cmp-next-session-name">오후 2:00 이민준 님</div>
                     <div className="cmp-next-session-sub">대면 상담 • 상담 3실 • 4회차 진행 예정</div>
                 </div>
-                <button className="cmp-next-session-btn" onClick={() => navigate('/CounselorClient')}>
+                <button
+                    className="cmp-next-session-btn"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/CounselorClient');
+                    }}
+                >
                     내담자 관리 <ChevronRight size={14} />
                 </button>
             </div>
@@ -882,7 +819,7 @@ const App = () => {
         <>
             <PageHeader title="알림 센터" sub="상담 일정, 예약 확정 등 최근 알림을 확인하세요." />
             <div className="cmp-list-card">
-                {notifications.length === 0 || notifications.every((g) => !g.items?.length) ? (
+                {!notifications.length || notifications.every((g) => !g.items?.length) ? (
                     <div className="cmp-notif-empty">
                         <div className="cmp-notif-empty-icon">
                             <Bell size={22} />
@@ -929,7 +866,7 @@ const App = () => {
         <>
             <PageHeader title="설정" sub="계정 및 서비스 환경을 설정합니다." />
             <div className="cmp-list-card">
-                {settingsMenuItems.map((item) => (
+                {SETTINGS_MENU.map((item) => (
                     <div key={item.id} className="cmp-list-item" onClick={() => goSettings(item.id)}>
                         <div className="cmp-item-info">
                             <div className={`cmp-item-avatar${item.danger ? ' danger-icon' : ' notif'}`}>
@@ -947,43 +884,15 @@ const App = () => {
         </>
     );
 
-    // DB 연동 프로필 저장
-    const handleSaveProfile = async () => {
-        const token = localStorage.getItem('access_token');
-        // 1. 프로필
-        await updateCounselorProfile(profile, token);
-        // 2. 전문분야(추후 구현)
-        // await updateSpecialty(specialties, token);
-        // 3. 자격증
-        await updateCertificate(certificates.map(({ id, ...rest }) => rest), token);
-        // 4. 학력
-        await updateEducation(educations.map(({ id, ...rest }) => rest), token);
-        // 5. 경력
-        await updateExperience(careers.map(({ id, ...rest }) => rest), token);
-        // 6. 스케줄
-        await updateSchedule(
-            workDays.map((d) => ({
-                day: d.day,
-                active: d.active,
-                start_time: d.startTime,
-                end_time: d.endTime,
-            })),
-            token
-        );
-        alert('저장되었습니다.');
-    };
-
-    const renderProfile = () => (
-        <>
-            <BackHeader
-                title={registered ? '상담사 프로필 수정' : '상담사 등록하기'}
-                onBack={() => setSettingsView(null)}
-            />
-            {loadingRegistered ? (
+    const renderProfile = () => {
+        if (loadingRegistered)
+            return (
                 <div className="cmp-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
                     <div className="cmp-register-title">상태 확인 중...</div>
                 </div>
-            ) : !registered ? (
+            );
+        if (!registered)
+            return (
                 <div className="cmp-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
                     <div className="cmp-register-icon">👤</div>
                     <h3 className="cmp-register-title">상담사 프로필을 등록해주세요</h3>
@@ -1000,20 +909,24 @@ const App = () => {
                         상담사 등록하기
                     </button>
                 </div>
-            ) : profileStatus === '심사중' ? (
+            );
+        if (profileStatus === '심사중')
+            return (
                 <div className="cmp-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
                     <div className="cmp-register-icon">⏳</div>
                     <h3 className="cmp-register-title">프로필 등록 심사중</h3>
                     <p className="cmp-register-sub">관리자 심사 후 승인 시 프로필이 공개됩니다.</p>
                     <button
-                        className="cmp-btn cmp-btn-disabled"
-                        style={{ padding: '13px 28px', fontSize: 14 }}
+                        className="cmp-btn"
+                        style={{ padding: '13px 28px', fontSize: 14, background: '#ccc', color: '#fff' }}
                         disabled
                     >
                         심사중
                     </button>
                 </div>
-            ) : profileStatus === '반려' ? (
+            );
+        if (profileStatus === '반려')
+            return (
                 <div className="cmp-settings-card" style={{ textAlign: 'center', padding: '52px 28px' }}>
                     <div className="cmp-register-icon">❌</div>
                     <h3 className="cmp-register-title">프로필 등록이 반려되었습니다</h3>
@@ -1026,352 +939,377 @@ const App = () => {
                         재등록하기
                     </button>
                 </div>
-            ) : (
-                <>
-                    <div className="cmp-settings-card">
-                        <div className="cmp-card-title">
-                            <User size={15} color="var(--cmp-primary)" /> 기본 정보
-                        </div>
-                        <div className="cmp-profile-upload">
-                            <div className="cmp-profile-img-lg">
-                                🧔‍♂️
-                                <button className="cmp-profile-edit-btn">
-                                    <Settings size={11} />
-                                </button>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: 11, color: 'var(--cmp-sub)', marginBottom: 3 }}>프로필 사진</p>
-                                <p style={{ fontSize: 12, fontWeight: 600 }}>사진을 클릭하여 업로드</p>
-                            </div>
-                        </div>
-                        {/* DB 연동 기본 정보 */}
-                        <div className="cmp-grid-2">
-                            <div>
-                                <label className="cmp-field-label">아이디</label>
-                                <input className="cmp-input" value={profile.user_id || ''} readOnly style={{ background: '#f5f5f5', color: '#888' }} />
-                            </div>
-                            <div>
-                                <label className="cmp-field-label">이메일</label>
-                                <input className="cmp-input" value={profile.email || ''} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} />
-                            </div>
-                            <div>
-                                <label className="cmp-field-label">이름</label>
-                                <input className="cmp-input" value={profile.name || ''} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} />
-                            </div>
-                            <div>
-                                <label className="cmp-field-label">연락처</label>
-                                <input className="cmp-input" value={profile.phone || ''} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} />
-                            </div>
-                            <div>
-                                <label className="cmp-field-label">전화번호</label>
-                                <input className="cmp-input" value={profile.tel || ''} onChange={e => setProfile(p => ({ ...p, tel: e.target.value }))} />
-                            </div>
-                            <div>
-                                <label className="cmp-field-label">전문 분야</label>
-                                <input className="cmp-input" value={profile.specialty || ''} onChange={e => setProfile(p => ({ ...p, specialty: e.target.value }))} />
-                            </div>
-                            <div>
-                                <label className="cmp-field-label">상담 가격(원)</label>
-                                <input
-                                    className="cmp-input"
-                                    type="text"
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
-                                    value={
-                                        profile.price !== undefined && profile.price !== ''
-                                            ? Number(profile.price).toLocaleString('ko-KR')
-                                            : ''
-                                    }
-                                    onChange={e => {
-                                        // 숫자만 추출
-                                        const onlyNum = e.target.value.replace(/[^0-9]/g, '');
-                                        setProfile(p => ({ ...p, price: onlyNum }));
-                                    }}
-                                />
-                            </div>
-                        </div>
-                        <div className="cmp-section-divider" style={{ marginTop: 14 }}>
-                            <div className="cmp-sub-section-header">
-                                <span className="cmp-field-label" style={{ margin: 0 }}>
-                                    경력 사항
-                                </span>
-                                <button className="cmp-btn-outline-sm" onClick={addCareer}>
-                                    + 추가
-                                </button>
-                            </div>
-                            {careers.map((career) => (
-                                <div key={career.id} className="cmp-row-card">
-                                    <div className="cmp-career-grid">
-                                        <div>
-                                            <label className="cmp-field-label-sm">시작</label>
-                                            <MonthPicker
-                                                value={career.startDate}
-                                                onChange={(value) => updateCareer(career.id, 'startDate', value)}
-                                                className="cmp-input-sm"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="cmp-field-label-sm">종료</label>
-                                            <MonthPicker
-                                                value={career.endDate}
-                                                onChange={(value) => updateCareer(career.id, 'endDate', value)}
-                                                className="cmp-input-sm"
-                                                icon={!career.isCurrent}
-                                                placeholder={career.isCurrent ? '진행중' : ''}
-                                                disabled={career.isCurrent}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="cmp-field-label-sm">경력 내용</label>
-                                            <input
-                                                type="text"
-                                                className="cmp-input cmp-input-sm"
-                                                value={career.description}
-                                                onChange={(event) =>
-                                                    updateCareer(career.id, 'description', event.target.value)
-                                                }
-                                            />
-                                        </div>
-                                        <button className="cmp-btn-icon" onClick={() => removeCareer(career.id)}>
-                                            <X size={12} />
-                                        </button>
-                                    </div>
-                                    <div className="cmp-checkbox-row">
-                                        <input
-                                            type="checkbox"
-                                            checked={career.isCurrent}
-                                            onChange={() => toggleCareerCurrent(career.id)}
-                                        />
-                                        <label>현재 진행중</label>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="cmp-section-divider">
-                            <div className="cmp-sub-section-header" style={{ alignItems: 'center' }}>
-                                <span className="cmp-field-label" style={{ margin: 0 }}>
-                                    자격증
-                                </span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                    <button className="cmp-btn-outline-sm" onClick={addCertificate}>
-                                        + 추가
-                                    </button>
-                                    {certificates.length > 1 && (
-                                        <button
-                                            className="cmp-btn-icon"
-                                            style={{ marginLeft: 2 }}
-                                            onClick={() => removeCertificate(certificates[certificates.length - 1].id)}
-                                            title="마지막 자격증 삭제"
-                                        >
-                                            <X size={14} />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                            {certificates.map((certificate) => (
-                                <div key={certificate.id} className="cmp-row-card">
-                                    <div className="cmp-cert-grid">
-                                        <div>
-                                            <label className="cmp-field-label-sm">자격증명</label>
-                                            <input
-                                                type="text"
-                                                className="cmp-input cmp-input-sm"
-                                                value={certificate.name}
-                                                onChange={(event) =>
-                                                    updateCertificate(certificate.id, 'name', event.target.value)
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="cmp-field-label-sm">발급 기관</label>
-                                            <input
-                                                type="text"
-                                                className="cmp-input cmp-input-sm"
-                                                value={certificate.issuer}
-                                                onChange={(event) =>
-                                                    updateCertificate(certificate.id, 'issuer', event.target.value)
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="cmp-field-label-sm">취득일</label>
-                                            <MonthPicker
-                                                value={certificate.date}
-                                                onChange={(value) => updateCertificate(certificate.id, 'date', value)}
-                                                className="cmp-input-sm"
-                                            />
-                                        </div>
-                                        {/* x버튼 제거됨 */}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="cmp-section-divider">
-                            <div className="cmp-sub-section-header">
-                                <span className="cmp-field-label" style={{ margin: 0 }}>
-                                    학력 사항
-                                </span>
-                                <button className="cmp-btn-outline-sm" onClick={addEducation}>
-                                    + 추가
-                                </button>
-                            </div>
-                            {educations.map((education) => (
-                                <div key={education.id} className="cmp-row-card">
-                                    <div className="cmp-edu-grid">
-                                        <div>
-                                            <label className="cmp-field-label-sm">시작</label>
-                                            <MonthPicker
-                                                value={education.startDate}
-                                                onChange={(value) => updateEducation(education.id, 'startDate', value)}
-                                                className="cmp-input-sm"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="cmp-field-label-sm">졸업</label>
-                                            <MonthPicker
-                                                value={education.endDate}
-                                                onChange={(value) => updateEducation(education.id, 'endDate', value)}
-                                                className="cmp-input-sm"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="cmp-field-label-sm">학교 / 전공</label>
-                                            <input
-                                                type="text"
-                                                className="cmp-input cmp-input-sm"
-                                                value={education.school}
-                                                onChange={(event) =>
-                                                    updateEducation(education.id, 'school', event.target.value)
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="cmp-field-label-sm">학위</label>
-                                            <input
-                                                type="text"
-                                                className="cmp-input cmp-input-sm"
-                                                value={education.degree}
-                                                onChange={(event) =>
-                                                    updateEducation(education.id, 'degree', event.target.value)
-                                                }
-                                            />
-                                        </div>
-                                        <button className="cmp-btn-icon" onClick={() => removeEducation(education.id)}>
-                                            <X size={12} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="cmp-grid-2">
-                            <div>
-                                <label className="cmp-field-label">상담소명</label>
-                                <input className="cmp-input" value={profile.office_name || ''} onChange={e => setProfile(p => ({ ...p, office_name: e.target.value }))} />
-                            </div>
-                            <div>
-                                <label className="cmp-field-label">상담소 주소</label>
-                                <input className="cmp-input" value={profile.office_address || ''} onChange={e => setProfile(p => ({ ...p, office_address: e.target.value }))} />
-                            </div>
-                        </div>
-                        <div style={{ marginTop: 12, marginBottom: 14 }}>
-                            <label className="cmp-field-label">자기소개</label>
-                            <textarea
-                                className="cmp-textarea"
-                                value={profile.intro || ''}
-                                onChange={e => setProfile(p => ({ ...p, intro: e.target.value }))}
+            );
+
+        return (
+            <>
+                <div className="cmp-settings-card">
+                    <div className="cmp-card-title">
+                        <User size={15} color="var(--cmp-primary)" /> 기본 정보
+                    </div>
+
+                    {/* 프로필 이미지 */}
+                    <div className="cmp-profile-upload">
+                        <div
+                            className="cmp-profile-img-lg cmp-cursor-pointer cmp-pos-rel"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            {profile.profile_img_url ? (
+                                <img src={profile.profile_img_url} alt="프로필" className="cmp-profile-img-content" />
+                            ) : (
+                                <span className="cmp-fs-48">🧔‍♂️</span>
+                            )}
+                            <button className="cmp-profile-edit-btn" type="button">
+                                <Settings size={11} />
+                            </button>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                ref={fileInputRef}
+                                className="cmp-d-none"
+                                onChange={handleProfileImgChange}
                             />
                         </div>
-                        <button className="cmp-btn cmp-btn-primary" style={{ maxWidth: 130 }} onClick={handleSaveProfile}>
-                            프로필 저장
-                        </button>
-                    </div>
-                    <div className="cmp-settings-card">
-                        <div className="cmp-card-title">
-                            <Clock size={15} color="var(--cmp-primary)" /> 상담 시간 설정
+                        <div>
+                            <p className="cmp-fs-11 cmp-color-sub cmp-mb-3">프로필 사진</p>
+                            <p className="cmp-fs-12 cmp-fw-600">사진을 클릭하여 업로드</p>
                         </div>
-                        <label className="cmp-field-label" style={{ marginBottom: 12 }}>
-                            요일별 운영 시간
-                        </label>
-                        {workDays.map((day, index) => (
-                            <div key={day.day} className={`cmp-day-row${!day.active ? ' inactive' : ''}`}>
-                                <div className="cmp-day-grid">
-                                    <div className={`cmp-day-chip${day.active ? ' active' : ''}`}>{day.day}</div>
+                    </div>
+
+                    {/* 기본 필드 */}
+                    <div className="cmp-grid-2">
+                        {[
+                            { label: '아이디', key: 'username', readOnly: true },
+                            { label: '이메일', key: 'user_email' },
+                            { label: '이름', key: 'user_name' },
+                            { label: '연락처', key: 'user_phone' },
+                            { label: '전화번호', key: 'tel' },
+                        ].map(({ label, key, readOnly }) => (
+                            <div key={key}>
+                                <label className="cmp-field-label">{label}</label>
+                                <input
+                                    className={`cmp-input${readOnly ? ' cmp-bg-f5 cmp-color-888' : ''}`}
+                                    value={profile[key] || ''}
+                                    readOnly={readOnly}
+                                    onChange={
+                                        readOnly
+                                            ? undefined
+                                            : (e) => setProfile((p) => ({ ...p, [key]: e.target.value }))
+                                    }
+                                />
+                            </div>
+                        ))}
+                        <div>
+                            <label className="cmp-field-label">상담 가격(원)</label>
+                            <input
+                                className="cmp-input"
+                                type="text"
+                                inputMode="numeric"
+                                value={
+                                    profile.price !== undefined && profile.price !== ''
+                                        ? Number(profile.price).toLocaleString('ko-KR')
+                                        : ''
+                                }
+                                onChange={(e) =>
+                                    setProfile((p) => ({ ...p, price: e.target.value.replace(/[^0-9]/g, '') }))
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    {/* ── 전문분야 칩 선택 ── */}
+                    <div className="cmp-section-divider" style={{ marginTop: 14 }}>
+                        <div className="cmp-sub-section-header">
+                            <span className="cmp-field-label" style={{ margin: 0 }}>
+                                전문 상담 분야
+                            </span>
+                            <span style={{ fontSize: 11, color: 'var(--cmp-sub)' }}>{specialties.length}개 선택됨</span>
+                        </div>
+                        <SpecialtySelector specialties={specialties} onChange={setSpecialties} />
+                    </div>
+
+                    {/* 경력 */}
+                    <div className="cmp-section-divider">
+                        <div className="cmp-sub-section-header">
+                            <span className="cmp-field-label" style={{ margin: 0 }}>
+                                경력 사항
+                            </span>
+                            <button className="cmp-btn-outline-sm" onClick={addCareer}>
+                                + 추가
+                            </button>
+                        </div>
+                        {careers.map((c) => (
+                            <div key={c.id} className="cmp-row-card">
+                                <div className="cmp-career-grid">
                                     <div>
                                         <label className="cmp-field-label-sm">시작</label>
-                                        <TimePicker
+                                        <MonthPicker
+                                            value={c.startDate}
+                                            onChange={(v) => updateCareerField(c.id, 'startDate', v)}
                                             className="cmp-input-sm"
-                                            disabled={!day.active}
-                                            value={day.startTime}
-                                            onChange={(value) => updateWorkTime(index, 'startTime', value)}
                                         />
                                     </div>
                                     <div>
                                         <label className="cmp-field-label-sm">종료</label>
-                                        <TimePicker
+                                        <MonthPicker
+                                            value={c.endDate}
+                                            onChange={(v) => updateCareerField(c.id, 'endDate', v)}
                                             className="cmp-input-sm"
-                                            disabled={!day.active}
-                                            minTime={day.startTime}
-                                            value={day.endTime}
-                                            onChange={(value) => updateWorkTime(index, 'endTime', value)}
+                                            icon={!c.isCurrent}
+                                            placeholder={c.isCurrent ? '진행중' : ''}
+                                            disabled={c.isCurrent}
                                         />
                                     </div>
-                                    <div className="cmp-checkbox-row">
+                                    <div>
+                                        <label className="cmp-field-label-sm">경력 내용</label>
                                         <input
-                                            type="checkbox"
-                                            checked={!day.active}
-                                            onChange={() => toggleWorkDay(index)}
+                                            type="text"
+                                            className="cmp-input cmp-input-sm"
+                                            value={c.description}
+                                            onChange={(e) => updateCareerField(c.id, 'description', e.target.value)}
                                         />
-                                        <label>쉬는 날</label>
+                                    </div>
+                                    <button className="cmp-btn-icon" onClick={() => removeCareer(c.id)}>
+                                        <X size={12} />
+                                    </button>
+                                </div>
+                                <div className="cmp-checkbox-row">
+                                    <input
+                                        type="checkbox"
+                                        checked={c.isCurrent}
+                                        onChange={() => toggleCareerCurrent(c.id)}
+                                    />
+                                    <label>현재 진행중</label>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* 자격증 */}
+                    <div className="cmp-section-divider">
+                        <div className="cmp-sub-section-header">
+                            <span className="cmp-field-label" style={{ margin: 0 }}>
+                                자격증
+                            </span>
+                            <div style={{ display: 'flex', gap: 4 }}>
+                                <button className="cmp-btn-outline-sm" onClick={addCertificate}>
+                                    + 추가
+                                </button>
+                                {certificates.length > 1 && (
+                                    <button
+                                        className="cmp-btn-icon"
+                                        onClick={() => removeCertificate(certificates.at(-1).id)}
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        {certificates.map((c) => (
+                            <div key={c.id} className="cmp-row-card">
+                                <div className="cmp-cert-grid">
+                                    <div>
+                                        <label className="cmp-field-label-sm">자격증명</label>
+                                        <input
+                                            type="text"
+                                            className="cmp-input cmp-input-sm"
+                                            value={c.name}
+                                            onChange={(e) => updateCertificateField(c.id, 'name', e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="cmp-field-label-sm">발급 기관</label>
+                                        <input
+                                            type="text"
+                                            className="cmp-input cmp-input-sm"
+                                            value={c.issuer}
+                                            onChange={(e) => updateCertificateField(c.id, 'issuer', e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="cmp-field-label-sm">취득일</label>
+                                        <MonthPicker
+                                            value={c.date}
+                                            onChange={(v) => updateCertificateField(c.id, 'date', v)}
+                                            className="cmp-input-sm"
+                                        />
                                     </div>
                                 </div>
                             </div>
                         ))}
-                        <label className="cmp-field-label" style={{ marginTop: 18, marginBottom: 9 }}>
-                            휴무일 설정
-                        </label>
-                        <div className="cmp-flex-gap" style={{ marginBottom: 9 }}>
-                            <DatePicker
-                                value={newHoliday}
-                                onChange={setNewHoliday}
-                                className="cmp-date-input"
-                                icon
-                                placeholder="휴무일 선택"
-                            />
-                            <button className="cmp-btn-add" onClick={addHoliday}>
+                    </div>
+
+                    {/* 학력 */}
+                    <div className="cmp-section-divider">
+                        <div className="cmp-sub-section-header">
+                            <span className="cmp-field-label" style={{ margin: 0 }}>
+                                학력 사항
+                            </span>
+                            <button className="cmp-btn-outline-sm" onClick={addEducation}>
                                 + 추가
                             </button>
                         </div>
-                        <div className="cmp-holiday-list">
-                            {holidays.length === 0 ? (
-                                <p className="cmp-holiday-empty">등록된 휴무일이 없습니다</p>
-                            ) : (
-                                <div className="cmp-holiday-chips">
-                                    {[...holidays].sort().map((date, index) => (
-                                        <div key={date} className="cmp-holiday-chip">
-                                            <Calendar size={11} color="var(--cmp-primary)" />
-                                            <span>{date}</span>
-                                            <X
-                                                size={11}
-                                                style={{ cursor: 'pointer', color: 'var(--cmp-sub)' }}
-                                                onClick={() =>
-                                                    setHolidays(
-                                                        holidays.filter((_, innerIndex) => innerIndex !== index)
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                    ))}
+                        {educations.map((e) => (
+                            <div key={e.id} className="cmp-row-card">
+                                <div className="cmp-edu-grid">
+                                    <div>
+                                        <label className="cmp-field-label-sm">시작</label>
+                                        <MonthPicker
+                                            value={e.startDate}
+                                            onChange={(v) => updateEducationField(e.id, 'startDate', v)}
+                                            className="cmp-input-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="cmp-field-label-sm">졸업</label>
+                                        <MonthPicker
+                                            value={e.endDate}
+                                            onChange={(v) => updateEducationField(e.id, 'endDate', v)}
+                                            className="cmp-input-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="cmp-field-label-sm">학교 / 전공</label>
+                                        <input
+                                            type="text"
+                                            className="cmp-input cmp-input-sm"
+                                            value={e.school}
+                                            onChange={(ev) => updateEducationField(e.id, 'school', ev.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="cmp-field-label-sm">학위</label>
+                                        <input
+                                            type="text"
+                                            className="cmp-input cmp-input-sm"
+                                            value={e.degree}
+                                            onChange={(ev) => updateEducationField(e.id, 'degree', ev.target.value)}
+                                        />
+                                    </div>
+                                    <button className="cmp-btn-icon" onClick={() => removeEducation(e.id)}>
+                                        <X size={12} />
+                                    </button>
                                 </div>
-                            )}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* 상담소 & 자기소개 */}
+                    <div className="cmp-grid-2">
+                        <div>
+                            <label className="cmp-field-label">상담소명</label>
+                            <input
+                                className="cmp-input"
+                                value={profile.office_name || ''}
+                                onChange={(e) => setProfile((p) => ({ ...p, office_name: e.target.value }))}
+                            />
                         </div>
-                        <button className="cmp-btn cmp-btn-primary" style={{ maxWidth: 130, marginTop: 14 }} onClick={handleSaveProfile}>
-                            시간 저장
+                        <div>
+                            <label className="cmp-field-label">상담소 주소</label>
+                            <input
+                                className="cmp-input"
+                                value={profile.office_address || ''}
+                                onChange={(e) => setProfile((p) => ({ ...p, office_address: e.target.value }))}
+                            />
+                        </div>
+                    </div>
+                    <div style={{ marginTop: 12, marginBottom: 14 }}>
+                        <label className="cmp-field-label">자기소개</label>
+                        <textarea
+                            className="cmp-textarea"
+                            value={profile.intro || ''}
+                            onChange={(e) => setProfile((p) => ({ ...p, intro: e.target.value }))}
+                        />
+                    </div>
+
+                    <button className="cmp-btn cmp-btn-primary" style={{ maxWidth: 130 }} onClick={handleSaveProfile}>
+                        프로필 저장
+                    </button>
+                </div>
+
+                {/* 상담 시간 설정 */}
+                <div className="cmp-settings-card">
+                    <div className="cmp-card-title">
+                        <Clock size={15} color="var(--cmp-primary)" /> 상담 시간 설정
+                    </div>
+                    <label className="cmp-field-label" style={{ marginBottom: 12 }}>
+                        요일별 운영 시간
+                    </label>
+                    {workDays.map((day, i) => (
+                        <div key={day.day} className={`cmp-day-row${!day.active ? ' inactive' : ''}`}>
+                            <div className="cmp-day-grid">
+                                <div className={`cmp-day-chip${day.active ? ' active' : ''}`}>{day.day}</div>
+                                <div>
+                                    <label className="cmp-field-label-sm">시작</label>
+                                    <TimePicker
+                                        className="cmp-input-sm"
+                                        disabled={!day.active}
+                                        value={day.startTime}
+                                        onChange={(v) => updateWorkTime(i, 'startTime', v)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="cmp-field-label-sm">종료</label>
+                                    <TimePicker
+                                        className="cmp-input-sm"
+                                        disabled={!day.active}
+                                        minTime={day.startTime}
+                                        value={day.endTime}
+                                        onChange={(v) => updateWorkTime(i, 'endTime', v)}
+                                    />
+                                </div>
+                                <div className="cmp-checkbox-row">
+                                    <input type="checkbox" checked={!day.active} onChange={() => toggleWorkDay(i)} />
+                                    <label>쉬는 날</label>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    <label className="cmp-field-label" style={{ marginTop: 18, marginBottom: 9 }}>
+                        휴무일 설정
+                    </label>
+                    <div className="cmp-flex-gap" style={{ marginBottom: 9 }}>
+                        <DatePicker
+                            value={newHoliday}
+                            onChange={setNewHoliday}
+                            className="cmp-date-input"
+                            icon
+                            placeholder="휴무일 선택"
+                        />
+                        <button className="cmp-btn-add" onClick={addHoliday}>
+                            + 추가
                         </button>
                     </div>
-                </>
-            )}
-        </>
-    );
+                    <div className="cmp-holiday-list">
+                        {holidays.length === 0 ? (
+                            <p className="cmp-holiday-empty">등록된 휴무일이 없습니다</p>
+                        ) : (
+                            <div className="cmp-holiday-chips">
+                                {[...holidays].sort().map((date, idx) => (
+                                    <div key={date} className="cmp-holiday-chip">
+                                        <Calendar size={11} color="var(--cmp-primary)" />
+                                        <span>{date}</span>
+                                        <X
+                                            size={11}
+                                            style={{ cursor: 'pointer', color: 'var(--cmp-sub)' }}
+                                            onClick={() => setHolidays((p) => p.filter((_, j) => j !== idx))}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <button
+                        className="cmp-btn cmp-btn-primary"
+                        style={{ maxWidth: 130, marginTop: 14 }}
+                        onClick={handleSaveProfile}
+                    >
+                        시간 저장
+                    </button>
+                </div>
+            </>
+        );
+    };
 
     const renderNotifSettings = () => (
         <>
@@ -1380,15 +1318,15 @@ const App = () => {
                 받고 싶은 알림 종류를 선택하세요.
             </p>
             <div className="cmp-list-card">
-                {notifSettings.map((setting) => (
-                    <div key={setting.id} className="cmp-notif-setting-item">
+                {notifSettings.map((s) => (
+                    <div key={s.id} className="cmp-notif-setting-item">
                         <div>
                             <p className="cmp-item-name" style={{ marginBottom: 2 }}>
-                                {setting.label}
+                                {s.label}
                             </p>
-                            <p className="cmp-item-sub">{setting.desc}</p>
+                            <p className="cmp-item-sub">{s.desc}</p>
                         </div>
-                        <Toggle on={setting.on} onChange={() => toggleNotifSetting(setting.id)} />
+                        <Toggle on={s.on} onChange={() => toggleNotifSetting(s.id)} />
                     </div>
                 ))}
             </div>
@@ -1405,72 +1343,78 @@ const App = () => {
                     setDeleteInput('');
                 }}
             />
-            {deleteStep === 1 ? (
-                <div className="cmp-settings-card">
-                    <div className="cmp-delete-icon-wrap">
-                        <div className="cmp-delete-icon">
-                            <Trash2 size={26} color="var(--cmp-danger)" />
-                        </div>
-                    </div>
-                    <h3 className="cmp-delete-title">탈퇴 전 꼭 확인하세요</h3>
-                    <div className="cmp-delete-warn-list">
-                        {[
-                            '모든 상담 기록과 내담자 데이터가 영구 삭제됩니다.',
-                            '삭제된 데이터는 복구가 불가능합니다.',
-                            '진행 중인 상담이 있는 경우 내담자에게 별도 안내가 필요합니다.',
-                            '탈퇴 후 동일 이메일로 재가입 시 기존 데이터는 복원되지 않습니다.',
-                        ].map((text, index) => (
-                            <div key={index} className="cmp-delete-warn-item">
-                                <span className="cmp-delete-warn-dot" />
-                                <span>{text}</span>
+            <div className="cmp-settings-card">
+                {deleteStep === 1 ? (
+                    <>
+                        <div className="cmp-delete-icon-wrap">
+                            <div className="cmp-delete-icon">
+                                <Trash2 size={26} color="var(--cmp-danger)" />
                             </div>
-                        ))}
-                    </div>
-                    <div className="cmp-btn-row" style={{ marginTop: 26 }}>
-                        <button
-                            className="cmp-btn cmp-btn-secondary"
-                            style={{ flex: 1 }}
-                            onClick={() => setSettingsView(null)}
-                        >
-                            취소
-                        </button>
-                        <button className="cmp-btn cmp-btn-danger" style={{ flex: 1 }} onClick={() => setDeleteStep(2)}>
-                            다음 단계
-                        </button>
-                    </div>
-                </div>
-            ) : (
-                <div className="cmp-settings-card">
-                    <h3 className="cmp-delete-confirm-title">탈퇴를 확인해주세요</h3>
-                    <p className="cmp-delete-confirm-sub">
-                        아래 입력창에 <strong style={{ color: 'var(--cmp-danger)' }}>탈퇴합니다</strong>를 입력하면
-                        탈퇴가 진행됩니다.
-                    </p>
-                    <input
-                        className="cmp-input cmp-delete-input"
-                        placeholder="탈퇴합니다"
-                        value={deleteInput}
-                        onChange={(event) => setDeleteInput(event.target.value)}
-                    />
-                    <div className="cmp-btn-row" style={{ marginTop: 18 }}>
-                        <button
-                            className="cmp-btn cmp-btn-secondary"
-                            style={{ flex: 1 }}
-                            onClick={() => setDeleteStep(1)}
-                        >
-                            이전
-                        </button>
-                        <button
-                            className="cmp-btn cmp-btn-danger"
-                            style={{ flex: 1, opacity: deleteInput === '탈퇴합니다' ? 1 : 0.4 }}
-                            disabled={deleteInput !== '탈퇴합니다'}
-                            onClick={() => alert('회원 탈퇴가 완료되었습니다.')}
-                        >
-                            탈퇴하기
-                        </button>
-                    </div>
-                </div>
-            )}
+                        </div>
+                        <h3 className="cmp-delete-title">탈퇴 전 꼭 확인하세요</h3>
+                        <div className="cmp-delete-warn-list">
+                            {[
+                                '모든 상담 기록과 내담자 데이터가 영구 삭제됩니다.',
+                                '삭제된 데이터는 복구가 불가능합니다.',
+                                '진행 중인 상담이 있는 경우 내담자에게 별도 안내가 필요합니다.',
+                                '탈퇴 후 동일 이메일로 재가입 시 기존 데이터는 복원되지 않습니다.',
+                            ].map((text, i) => (
+                                <div key={i} className="cmp-delete-warn-item">
+                                    <span className="cmp-delete-warn-dot" />
+                                    <span>{text}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="cmp-btn-row" style={{ marginTop: 26 }}>
+                            <button
+                                className="cmp-btn cmp-btn-secondary"
+                                style={{ flex: 1 }}
+                                onClick={() => setSettingsView(null)}
+                            >
+                                취소
+                            </button>
+                            <button
+                                className="cmp-btn cmp-btn-danger"
+                                style={{ flex: 1 }}
+                                onClick={() => setDeleteStep(2)}
+                            >
+                                다음 단계
+                            </button>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <h3 className="cmp-delete-confirm-title">탈퇴를 확인해주세요</h3>
+                        <p className="cmp-delete-confirm-sub">
+                            아래 입력창에 <strong style={{ color: 'var(--cmp-danger)' }}>탈퇴합니다</strong>를 입력하면
+                            탈퇴가 진행됩니다.
+                        </p>
+                        <input
+                            className="cmp-input cmp-delete-input"
+                            placeholder="탈퇴합니다"
+                            value={deleteInput}
+                            onChange={(e) => setDeleteInput(e.target.value)}
+                        />
+                        <div className="cmp-btn-row" style={{ marginTop: 18 }}>
+                            <button
+                                className="cmp-btn cmp-btn-secondary"
+                                style={{ flex: 1 }}
+                                onClick={() => setDeleteStep(1)}
+                            >
+                                이전
+                            </button>
+                            <button
+                                className="cmp-btn cmp-btn-danger"
+                                style={{ flex: 1, opacity: deleteInput === '탈퇴합니다' ? 1 : 0.4 }}
+                                disabled={deleteInput !== '탈퇴합니다'}
+                                onClick={() => alert('회원 탈퇴가 완료되었습니다.')}
+                            >
+                                탈퇴하기
+                            </button>
+                        </div>
+                    </>
+                )}
+            </div>
         </>
     );
 
@@ -1494,26 +1438,41 @@ const App = () => {
 
     const renderContent = () => {
         if (activeMenu === 'settings') {
-            if (settingsView === 'profile') return renderProfile();
+            if (settingsView === 'profile')
+                return (
+                    <>
+                        {
+                            <BackHeader
+                                title={registered ? '상담사 프로필 수정' : '상담사 등록하기'}
+                                onBack={() => setSettingsView(null)}
+                            />
+                        }
+                        {renderProfile()}
+                    </>
+                );
             if (settingsView === 'notifSettings') return renderNotifSettings();
             if (settingsView === 'deleteAccount') return renderDeleteAccount();
             return renderSettingsList();
         }
-
-        switch (activeMenu) {
-            case 'notifications':
-                return renderNotifications();
-            case 'customer':
-                return renderCustomer();
-            default:
-                return renderDashboard();
-        }
+        const map = { notifications: renderNotifications, customer: renderCustomer };
+        return (map[activeMenu] || renderDashboard)();
     };
+
+    const navItems = [
+        { id: 'dashboard', icon: <LayoutDashboard size={17} />, label: '대시보드' },
+        { id: 'notifications', icon: <Bell size={17} />, label: '알림센터' },
+    ];
+    const tabItems = [
+        { id: 'dashboard', icon: <LayoutDashboard size={19} />, label: '홈' },
+        { id: 'notifications', icon: <Bell size={19} />, label: '알림' },
+        { id: 'settings', icon: <Settings size={19} />, label: '설정' },
+        { id: 'customer', icon: <HeadphonesIcon size={19} />, label: '고객' },
+    ];
 
     return (
         <div className="cmp-app">
             <div className="cmp-mobile-header">
-                <button className="cmp-mobile-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                <button className="cmp-mobile-menu-btn" onClick={() => setSidebarOpen((p) => !p)}>
                     <Menu size={21} />
                 </button>
                 <span className="cmp-mobile-logo">MINDWELL</span>
@@ -1525,11 +1484,10 @@ const App = () => {
             {sidebarOpen && <div className="cmp-overlay visible" onClick={() => setSidebarOpen(false)} />}
 
             <aside className={`cmp-sidebar${sidebarOpen ? ' open' : ''}`}>
-                <div className="cmp-logo" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
+                <div className="cmp-logo" onClick={() => navigate('/counselorhome')} style={{ cursor: 'pointer' }}>
                     <div className="cmp-logo-title">MINDWELL</div>
                     <div className="cmp-logo-sub">COUNSELOR ADMIN</div>
                 </div>
-
                 <nav className="cmp-nav">
                     {navItems.map((item) => (
                         <div
@@ -1544,7 +1502,7 @@ const App = () => {
                     <div
                         className={`cmp-nav-item${activeMenu === 'settings' ? ' active' : ''}`}
                         onClick={() => {
-                            setSettingsOpen((open) => !open);
+                            setSettingsOpen((p) => !p);
                             setActiveMenu('settings');
                             setSettingsView(null);
                             setSidebarOpen(false);
@@ -1554,16 +1512,12 @@ const App = () => {
                         <span style={{ flex: 1 }}>설정</span>
                         <ChevronDown
                             size={13}
-                            style={{
-                                transition: 'transform .2s',
-                                transform: settingsOpen ? 'rotate(180deg)' : 'none',
-                            }}
+                            style={{ transition: 'transform .2s', transform: settingsOpen ? 'rotate(180deg)' : 'none' }}
                         />
                     </div>
-
                     {settingsOpen && (
                         <div className="cmp-nav-submenu">
-                            {settingsMenuItems.map((item) => (
+                            {SETTINGS_MENU.map((item) => (
                                 <div
                                     key={item.id}
                                     className={`cmp-nav-subitem${settingsView === item.id ? ' active' : ''}${item.danger ? ' danger' : ''}`}
@@ -1576,7 +1530,6 @@ const App = () => {
                         </div>
                     )}
                 </nav>
-
                 <div className="cmp-sidebar-footer">
                     <div
                         className={`cmp-footer-item${activeMenu === 'customer' ? ' active' : ''}`}
