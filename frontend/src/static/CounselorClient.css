@@ -142,17 +142,90 @@
 .cc-modal__actions.stretch { display: flex; gap: 10px; }
 .cc-modal__actions.stretch .cc-btn { flex: 1; padding: 14px; }
 
-/* ── 7. 모바일 반응형 ────────────────────────── */
+/* ── 7. 모바일 반응형 최적화 ────────────────────────── */
 @media (max-width: 768px) {
-  .cc-container { flex-direction: column; padding: 0 16px; }
-  .cc-sidebar, .cc-main, .cc-utility { width: 100%; flex: none; }
-  .cc-profile-card { flex-direction: column; align-items: flex-start; padding: 20px; }
-  .cc-profile-actions { width: 100%; margin-top: 15px; gap: 8px; }
-  .cc-profile-actions .cc-btn { flex: 1; padding: 12px 4px; font-size: 13px; }
-  .cc-sidebar.is-closed .cc-sidebar-content { display: none; }
-  .cc-mobile-toggle { display: block; font-size: 13px; color: var(--main-dk); cursor: pointer; }
+  .cc-container { 
+    flex-direction: column; 
+    padding: 0 16px; 
+  }
+  
+  /* 사이드바 자체의 무거운 박스 스타일 제거 */
+  .cc-sidebar { 
+    width: 100%; 
+    flex: none; 
+    background: transparent !important; /* 배경 투명하게 */
+    box-shadow: none !important;        /* 그림자 제거 */
+    border: none !important;            /* 테두리 제거 */
+    padding: 0 !important;
+    margin-bottom: 12px;                /* 아래 요소와 간격 */
+  }
+
+  /* 목록 보기 헤더를 세련된 버튼 바 형태로 변경 */
+  .cc-sidebar__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    box-shadow: var(--shadow); /* 헤더에만 가벼운 그림자 */
+  }
+
+  .cc-sidebar__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+  }
+
+  .cc-mobile-toggle { 
+    display: block; 
+    font-size: 13px; 
+    font-weight: 600;
+    color: var(--main-dk); 
+    cursor: pointer; 
+  }
+
+  /* 목록이 닫혀있을 때 검색창과 리스트를 감싸는 컨텐츠 영역 숨김 */
+  .cc-sidebar.is-closed .cc-sidebar-content { 
+    display: none; 
+  }
+
+  /* 목록이 열렸을 때 나오는 리스트 박스 스타일 */
+  .cc-sidebar.is-open .cc-sidebar-content {
+    display: block;
+    background: var(--white);
+    margin-top: 8px;
+    padding: 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .cc-main, .cc-utility { width: 100%; flex: none; }
+  
+  .cc-profile-card { 
+    flex-direction: column; 
+    align-items: flex-start; 
+    padding: 20px; 
+  }
+  
+  .cc-profile-actions { 
+    width: 100%; 
+    margin-top: 15px; 
+    gap: 8px; 
+  }
+  
+  .cc-profile-actions .cc-btn { 
+    flex: 1; 
+    padding: 12px 4px; 
+    font-size: 13px; 
+  }
 }
 
+/* 버튼 공통 스타일 (기존 유지) */
 .cc-btn { padding: 10px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
 .cc-btn--primary { background: var(--main); color: var(--white); }
 .cc-btn--outline { background: var(--white); border: 1.5px solid var(--border); color: var(--text); }

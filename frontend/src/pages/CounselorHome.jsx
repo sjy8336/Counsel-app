@@ -2,24 +2,22 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
+import MobileTap from '../components/mobileTap.jsx';
 import '../static/CounselorHome.css';
 
 const CounselorHome = () => {
     const navigate = useNavigate();
 
-    // [수정] 이름을 가져오는 로직을 더 강화했습니다.
     const getCounselorName = () => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
-        // 1. user 객체에 full_name, name, username 순서로 우선 사용
         if (storedUser?.full_name) return storedUser.full_name;
         if (storedUser?.name) return storedUser.name;
         if (storedUser?.username) return storedUser.username;
         if (typeof storedUser === 'string') return storedUser;
-        return '상담사'; // 정 안되면 기본값
+        return '상담사';
     };
 
     const userName = getCounselorName();
-    // Header props용 더미 setter, 상태값
     const [headerUserName, setHeaderUserName] = useState(userName);
     const [isLoggedIn, setIsLoggedIn] = useState(!!userName);
 
@@ -30,12 +28,11 @@ const CounselorHome = () => {
     };
 
     const todaySessions = [
-        { time: '13:00', name: '이은지', room: '제1상담실 ' },
-        { time: '15:00', name: '박지연', room: '제2상담실 ' },
-        { time: '17:00', name: '정민우', room: '제3상담실 ' },
+        { time: '13:00', name: '이은지', room: '제1상담실' },
+        { time: '15:00', name: '박지연', room: '제2상담실' },
+        { time: '17:00', name: '정민우', room: '제3상담실' },
     ];
 
-    // 오늘 상담 총 건수 자동 계산
     const sessionCount = todaySessions.length;
 
     const [reservations, setReservations] = useState([
@@ -72,60 +69,74 @@ const CounselorHome = () => {
                 setIsLoggedIn={setIsLoggedIn}
             />
             <div className="counselor-container">
-                {/* 배너 - 이제 userName 변수가 실제 이름을 찾아 출력합니다[cite: 2] */}
                 <section className="banner-card">
-                    <div className="banner-text">
-                        <p className="banner-date">{getToday()}</p>
-                        <h1>
-                            {userName}님, 오늘 상담은 <span className="point-color">총 {sessionCount}건</span>입니다.
-                        </h1>
-                        <p className="banner-sub">오늘도 내담자들의 마음을 따뜻하게 안아주세요.</p>
-                    </div>
-                </section>
+    <div className="banner-text">
+            <p className="banner-date">{getToday()}</p>
+            <h1 style={{ 
+                wordBreak: 'keep-all', 
+                lineHeight: '1.4',
+                display: 'block' 
+            }}>
+                {userName}님, 오늘 상담은 <span className="point-color">총 {sessionCount}건</span>입니다.
+            </h1>
+            <p className="banner-sub">오늘도 내담자들의 마음을 따뜻하게 안아주세요.</p>
+        </div>
+    </section>
 
-                {/* 통계 */}
                 <div className="stats-container">
                     <div className="stat-card">
                         <span className="stat-label">이번 달 상담</span>
-                        <strong>
-                            24<em>건</em>
-                        </strong>
-                        <p className="stat-note">
-                            지난달보다 <b>+3건</b> 많아요
-                        </p>
+                        <strong>24<em>건</em></strong>
+                        <p className="stat-note">지난달보다 <b>+3건</b> 많아요</p>
                     </div>
                     <div className="stat-card">
                         <span className="stat-label">이번 주 예정</span>
-                        <strong>
-                            8<em>건</em>
-                        </strong>
-                        <p className="stat-note">
-                            내일 <b>2건</b> 포함
-                        </p>
+                        <strong>8<em>건</em></strong>
+                        <p className="stat-note">내일 <b>2건</b> 포함</p>
                     </div>
                     <div className="stat-card accent-rose clickable" onClick={() => navigate('/CounselorMessages')}>
                         <span className="stat-label">미답변 문의</span>
-                        <strong>
-                            3<em>건</em>
-                        </strong>
+                        <strong>3<em>건</em></strong>
                         <p className="stat-note">확인이 필요해요 →</p>
                     </div>
                 </div>
 
                 <div className="main-content">
                     <div className="left-section">
-                        {/* 오늘 상담 요약 */}
                         <section className="content-box">
                             <h3 className="section-title">오늘의 상담 요약</h3>
                             <div className="list-wrapper">
                                 {todaySessions.map((s, i) => (
-                                    <div className="list-item" key={i}>
-                                        <div className="item-info">
-                                            <span className="time">{s.time}</span>
-                                            <strong>{s.name} 내담자</strong>
-                                            <span className="desc">{s.room}</span>
+                                    <div 
+                                        className="list-item" 
+                                        key={i}
+                                        style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'space-between', 
+                                            gap: '12px',
+                                            padding: '12px 16px',
+                                            marginBottom: '10px' 
+                                        }}
+                                    >
+                                        <div className="item-info" style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                                            <span className="time" style={{ minWidth: '45px', fontWeight: 'bold' }}>{s.time}</span>
+                                            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                                                <strong style={{ fontSize: '1rem', whiteSpace: 'nowrap' }}>{s.name} 내담자</strong>
+                                                <span className="desc" style={{ fontSize: '0.85rem', color: '#666', whiteSpace: 'nowrap' }}>{s.room}</span>
+                                            </div>
                                         </div>
-                                        <button className="action-btn" onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}>
+                                        <button 
+                                            className="action-btn" 
+                                            onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}
+                                            style={{ 
+                                                width: 'auto', 
+                                                minWidth: '80px', 
+                                                padding: '8px 12px', 
+                                                fontSize: '0.85rem',
+                                                flexShrink: 0 
+                                            }}
+                                        >
                                             일지 작성
                                         </button>
                                     </div>
@@ -137,9 +148,7 @@ const CounselorHome = () => {
                             <div className="work-card highlight">
                                 <div className="card-header">작성 대기 중인 상담 일지</div>
                                 <div className="card-body">
-                                    <strong>
-                                        1<span>건</span>
-                                    </strong>
+                                    <strong>1<span>건</span></strong>
                                     <p>최민수 님 (5.19 상담)</p>
                                     <button className="go-btn primary" onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}>
                                         지금 작성하기
@@ -149,9 +158,7 @@ const CounselorHome = () => {
                             <div className="work-card">
                                 <div className="card-header">신규 매칭 내담자</div>
                                 <div className="card-body">
-                                    <strong>
-                                        2<span>명</span>
-                                    </strong>
+                                    <strong>2<span>명</span></strong>
                                     <p>사전 질문지가 도착했습니다.</p>
                                     <button className="go-btn secondary" onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}>
                                         설문지 확인하기
@@ -165,7 +172,6 @@ const CounselorHome = () => {
                         <div className="side-header">
                             <h3>다가오는 예약</h3>
                         </div>
-
                         {reservations.map((r, i) => (
                             <div
                                 key={r.id}
@@ -209,6 +215,7 @@ const CounselorHome = () => {
                 </div>
             )}
 
+            <MobileTap />
             <Footer />
         </div>
     );

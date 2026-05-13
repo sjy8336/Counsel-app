@@ -408,7 +408,7 @@
 /* ══ 토스트 팝업 ══ */
 .toast {
   position: fixed;
-  bottom: 32px;
+  bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -423,7 +423,15 @@
   animation: toastIn 0.3s cubic-bezier(0.16,1,0.3,1), toastOut 0.3s ease 2.7s forwards;
   white-space: nowrap;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  /* [추가] 모바일에서 글자가 길어질 경우를 대비 */
+  white-space: normal; /* 너무 길면 줄바꿈 허용 */
+  width: calc(100% - 40px); /* 화면 양옆 여백 */
+  max-width: 350px; /* 너무 퍼지지 않게 중앙 집중 */
+  text-align: center;
+  justify-content: center;
 }
+
+
 
 .toast-success { background: #4a7c59; }
 .toast-error   { background: #c0545f; }

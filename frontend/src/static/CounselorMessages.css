@@ -12,6 +12,7 @@
     flex-direction: column;
     background-color: #FDFBF7;
     color: #1E293B;
+    overflow-x: hidden;
 }
 
 /* ---------- 헤더 ---------- */
