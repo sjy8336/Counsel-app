@@ -16,7 +16,25 @@ def create_counselor_profile(db: Session, user_id: int, data: CounselorProfileCr
     return profile
 
 def get_counselor_profile(db: Session, user_id: int):
-    return db.query(CounselorProfile).filter(CounselorProfile.user_id == user_id).first()
+    profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == user_id).first()
+    if not profile:
+        return None
+    # User 테이블에서 username, email, full_name, phone_number 가져오기
+    from app.models.user import User
+    user = db.query(User).filter(User.id == user_id).first()
+    profile_dict = profile.__dict__.copy()
+    if user:
+        profile_dict['username'] = user.username
+        profile_dict['user_email'] = user.email
+        profile_dict['user_name'] = user.full_name
+        profile_dict['user_phone'] = user.phone_number
+    else:
+        profile_dict['username'] = None
+        profile_dict['user_email'] = None
+        profile_dict['user_name'] = None
+        profile_dict['user_phone'] = None
+    profile_dict.pop('_sa_instance_state', None)
+    return profile_dict
 
 def update_counselor_profile(db: Session, user_id: int, data: CounselorProfileCreate):
     profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == user_id).first()
