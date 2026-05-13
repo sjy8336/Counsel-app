@@ -1,3 +1,18 @@
+// 요일별 시간대 추가/삭제
+    const addTimeSlot = (dayIdx) => {
+        setWorkDays((prev) =>
+            prev.map((d, i) =>
+                i === dayIdx
+                    ? {
+                          ...d,
+                          slots: Array.isArray(d.slots)
+                              ? [...d.slots, { start: '09:00', end: '18:00' }]
+                              : [{ start: '09:00', end: '18:00' }],
+                      }
+                    : d
+            )
+        );
+    };
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../static/CounselorMyPage.css';
@@ -40,6 +55,8 @@ import {
     BellRing,
     ChevronDown,
     ChevronLeft,
+    Plus,
+    Save,
 } from 'lucide-react';
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
@@ -66,8 +83,7 @@ const INIT_WORK_DAYS = DAY_LABELS.slice(1)
     .map((day) => ({
         day,
         active: !['토', '일'].includes(day),
-        startTime: '09:00',
-        endTime: '18:00',
+        slots: [{ start: '09:00', end: '18:00' }],
     }));
 const INIT_NOTIF_SETTINGS = [
     { id: 'schedule', label: '상담 일정 알림', desc: '오늘 예정된 상담 일정을 알려드립니다.', on: true },
@@ -557,16 +573,29 @@ const App = () => {
                     }))
                 );
 
-                setWorkDays(
-                    scheds?.length === 7
-                        ? scheds.map((s) => ({
-                              day: s.day,
-                              active: s.active,
-                              startTime: s.start_time,
-                              endTime: s.end_time,
-                          }))
-                        : INIT_WORK_DAYS
-                );
+                // scheds: [{ day_of_week, start_time, end_time } ...] 여러 row
+                if (Array.isArray(scheds) && scheds.length > 0) {
+                    // 요일별로 그룹핑
+                    const days = ['월', '화', '수', '목', '금', '토', '일'];
+                    const grouped = days.map((day) => {
+                        const slots = scheds
+                            .filter((s) => (s.day || s.day_of_week) === day || (s.day_of_week && s.day_of_week.includes(day)))
+                            .map((s) => ({ start: s.start_time?.slice(0,5) || '09:00', end: s.end_time?.slice(0,5) || '18:00' }));
+                        return {
+                            day,
+                            active: slots.length > 0,
+                            slots: slots.length > 0 ? slots : [{ start: '09:00', end: '18:00' }],
+                        };
+                    });
+                    setWorkDays(grouped);
+                } else {
+                    // 기본값도 09:00~18:00
+                    setWorkDays(DAY_LABELS.slice(1).concat(DAY_LABELS[0]).map((day) => ({
+                        day,
+                        active: !['토', '일'].includes(day),
+                        slots: [{ start: '09:00', end: '18:00' }],
+                    })));
+                }
             } catch {
                 /* ignore */
             }
@@ -686,10 +715,17 @@ const App = () => {
                 careers.map(({ id, ...rest }) => rest),
                 token
             );
-            await updateSchedule(
-                workDays.map((d) => ({ day: d.day, active: d.active, start_time: d.startTime, end_time: d.endTime })),
-                token
+            // slots를 flat하게 풀어서 [{ day_of_week, start_time, end_time }, ...] 형태로 변환
+            const flatSlots = workDays.flatMap((d) =>
+                d.active && Array.isArray(d.slots)
+                    ? d.slots.map((s) => ({
+                          day_of_week: d.day,
+                          start_time: (s.start && s.start.length === 5 ? s.start : '09:00') + ':00',
+                          end_time: (s.end && s.end.length === 5 ? s.end : '18:00') + ':00',
+                      }))
+                    : []
             );
+            await updateSchedule(flatSlots, token);
             alert('저장되었습니다.');
         } catch {
             alert('저장 중 오류가 발생했습니다.');
@@ -1227,85 +1263,105 @@ const App = () => {
                     </button>
                 </div>
 
-                {/* 상담 시간 설정 */}
-                <div className="cmp-settings-card">
-                    <div className="cmp-card-title">
-                        <Clock size={15} color="var(--cmp-primary)" /> 상담 시간 설정
-                    </div>
-                    <label className="cmp-field-label" style={{ marginBottom: 12 }}>
-                        요일별 운영 시간
-                    </label>
-                    {workDays.map((day, i) => (
-                        <div key={day.day} className={`cmp-day-row${!day.active ? ' inactive' : ''}`}>
-                            <div className="cmp-day-grid">
-                                <div className={`cmp-day-chip${day.active ? ' active' : ''}`}>{day.day}</div>
-                                <div>
-                                    <label className="cmp-field-label-sm">시작</label>
-                                    <TimePicker
-                                        className="cmp-input-sm"
-                                        disabled={!day.active}
-                                        value={day.startTime}
-                                        onChange={(v) => updateWorkTime(i, 'startTime', v)}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="cmp-field-label-sm">종료</label>
-                                    <TimePicker
-                                        className="cmp-input-sm"
-                                        disabled={!day.active}
-                                        minTime={day.startTime}
-                                        value={day.endTime}
-                                        onChange={(v) => updateWorkTime(i, 'endTime', v)}
-                                    />
-                                </div>
-                                <div className="cmp-checkbox-row">
-                                    <input type="checkbox" checked={!day.active} onChange={() => toggleWorkDay(i)} />
-                                    <label>쉬는 날</label>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                    <label className="cmp-field-label" style={{ marginTop: 18, marginBottom: 9 }}>
-                        휴무일 설정
-                    </label>
-                    <div className="cmp-flex-gap" style={{ marginBottom: 9 }}>
-                        <DatePicker
-                            value={newHoliday}
-                            onChange={setNewHoliday}
-                            className="cmp-date-input"
-                            icon
-                            placeholder="휴무일 선택"
-                        />
-                        <button className="cmp-btn-add" onClick={addHoliday}>
-                            + 추가
-                        </button>
-                    </div>
-                    <div className="cmp-holiday-list">
-                        {holidays.length === 0 ? (
-                            <p className="cmp-holiday-empty">등록된 휴무일이 없습니다</p>
-                        ) : (
-                            <div className="cmp-holiday-chips">
-                                {[...holidays].sort().map((date, idx) => (
-                                    <div key={date} className="cmp-holiday-chip">
-                                        <Calendar size={11} color="var(--cmp-primary)" />
-                                        <span>{date}</span>
-                                        <X
-                                            size={11}
-                                            style={{ cursor: 'pointer', color: 'var(--cmp-sub)' }}
-                                            onClick={() => setHolidays((p) => p.filter((_, j) => j !== idx))}
-                                        />
+                {/* 상담 시간 설정 - registration page style */}
+                <div className="cu-ep-expertise cu-ep-animate" style={{ marginTop: 32 }}>
+                    <section>
+                        <h3 className="cu-ep-section-title">
+                            <Clock size={15} color="#8BA888" /> 상담 시간 설정
+                        </h3>
+                        <div className="cu-ep-schedule-list">
+                            {workDays.map((day, i) => {
+                                const d = day;
+                                return (
+                                    <div key={d.day} className={`cu-ep-schedule-row${d.active ? ' cu-ep-day-on' : ''}`}>
+                                        <div className="cu-ep-day-toggle">
+                                            <button
+                                                onClick={() => toggleWorkDay(i)}
+                                                className={`cu-ep-toggle-btn${d.active ? ' cu-ep-toggle-on' : ''}`}
+                                            >
+                                                <Check size={16} />
+                                            </button>
+                                            <span className={`cu-ep-day-label${d.active ? ' cu-ep-day-label-on' : ''}`}>{d.day}</span>
+                                        </div>
+                                        <div className="cu-ep-slots">
+                                            {d.active ? (
+                                                <div className="cu-ep-slots-row">
+                                                    {Array.isArray(d.slots) && d.slots.map((slot, idx) => (
+                                                        <div key={idx} className="cu-ep-slot">
+                                                            <div className="cu-ep-time-select">
+                                                                <select
+                                                                    value={slot.start}
+                                                                    onChange={e => {
+                                                                        setWorkDays(prev => prev.map((wd, wi) => wi === i ? {
+                                                                            ...wd,
+                                                                            slots: wd.slots.map((s, si) => si === idx ? { ...s, start: e.target.value } : s)
+                                                                        } : wd));
+                                                                    }}
+                                                                >
+                                                                    {TIME_OPTIONS.map(t => (
+                                                                        <option key={t} value={t}>{t}</option>
+                                                                    ))}
+                                                                </select>
+                                                                <ChevronDown className="cu-ep-dp-chevron" />
+                                                            </div>
+                                                            <span className="cu-ep-time-sep">~</span>
+                                                            <div className="cu-ep-time-select">
+                                                                <select
+                                                                    value={slot.end}
+                                                                    onChange={e => {
+                                                                        setWorkDays(prev => prev.map((wd, wi) => wi === i ? {
+                                                                            ...wd,
+                                                                            slots: wd.slots.map((s, si) => si === idx ? { ...s, end: e.target.value } : s)
+                                                                        } : wd));
+                                                                    }}
+                                                                >
+                                                                    {END_TIME_OPTIONS.filter(t => !slot.start || t > slot.start).map(t => (
+                                                                        <option key={t} value={t}>{t}</option>
+                                                                    ))}
+                                                                </select>
+                                                                <ChevronDown className="cu-ep-dp-chevron" />
+                                                            </div>
+                                                            {d.slots.length > 1 && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setWorkDays(prev => prev.map((wd, wi) => wi === i ? {
+                                                                            ...wd,
+                                                                            slots: wd.slots.filter((_, si) => si !== idx)
+                                                                        } : wd));
+                                                                    }}
+                                                                    className="cu-ep-slot-rm"
+                                                                >
+                                                                    <X style={{ width: '.875rem', height: '.875rem' }} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        onClick={() => addTimeSlot(i)}
+                                                        className="cu-ep-slot-add"
+                                                        title="시간 추가"
+                                                        disabled={!d.active}
+                                                    >
+                                                        <Plus style={{ width: '1rem', height: '1rem' }} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="cu-ep-day-off-msg">휴무일입니다.</div>
+                                            )}
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                    <button
-                        className="cmp-btn cmp-btn-primary"
-                        style={{ maxWidth: 130, marginTop: 14 }}
-                        onClick={handleSaveProfile}
-                    >
-                        시간 저장
-                    </button>
+                                );
+                            })}
+                        </div>
+                        <button
+                            className="cu-ep-float-btn"
+                            style={{ marginTop: 24, alignSelf: 'flex-end' }}
+                            onClick={handleSaveProfile}
+                        >
+                            <Save style={{ width: '1.2rem', height: '1.2rem' }} />
+                            <span className="cu-ep-float-label">시간 저장</span>
+                        </button>
+                    </section>
                 </div>
             </>
         );
