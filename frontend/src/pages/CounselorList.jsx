@@ -299,7 +299,19 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                         {loading && dbCounselors.length === 0 ? (
                             Array.from({ length: 6 }).map((_, idx) => <SkeletonCard key={idx} />)
                         ) : filteredCounselors.length === 0 ? (
-                            <div className="cld-counselor-empty">상담사가 없습니다.</div>
+                            <div className="cld-counselor-empty">
+                                <div className="cld-empty-icon">
+                                    <User size={32} />
+                                </div>
+                                <p className="cld-empty-title">
+                                    {searchTerm
+                                        ? `'${searchTerm}'에 해당하는 상담사가 없어요`
+                                        : selectedCategory !== '전체'
+                                        ? `'${selectedCategory}' 분야의 상담사가 없어요`
+                                        : '등록된 상담사가 없어요'}
+                                </p>
+                                <p className="cld-empty-sub">검색어나 카테고리를 바꿔서 다시 찾아보세요.</p>
+                            </div>
                         ) : (
                             <>
                                 {filteredCounselors.map((counselor) => (

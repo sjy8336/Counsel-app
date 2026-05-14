@@ -248,5 +248,5 @@ def get_favorites(db: Session = Depends(get_db), current_user = Depends(get_curr
             "center_name": profile.center_name if profile else None,
             "profile_img_url": profile.profile_img_url if profile else None
         })
-    print(f"[DEBUG] 최종 리턴 데이터: {result}") # 로그 추가
+    # print(f"[DEBUG] 최종 리턴 데이터: {result}") # base64 등 긴 데이터가 로그에 찍히지 않도록 주석 처리
     return {"favorites": result}

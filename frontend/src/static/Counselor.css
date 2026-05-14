@@ -732,3 +732,37 @@
         transform: translateX(-50%) translateY(8px);
     }
 }
+
+.cld-counselor-empty {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 100px 20px;
+    text-align: center;
+}
+
+.cld-empty-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 24px;
+    background: #faf7f2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8ba888;
+    margin-bottom: 4px;
+}
+
+.cld-empty-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: -0.3px;
+}
+
+.cld-empty-sub {
+    font-size: 13px;
+    color: #94a3b8;
+}

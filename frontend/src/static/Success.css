@@ -1,90 +1,102 @@
+/* 버튼 사이 여백 추가 및 예약관리 버튼 스타일 */
+.success-action-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-reservation {
+    margin-left: 0;
+}
 /* src/static/Success.css */
 .success-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 90vh;
-  background-color: #f9fbf9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+    background-color: #f9fbf9;
 }
 
 .success-content-card {
-  width: 100%;
-  max-width: 420px;
-  background: white;
-  padding: 40px;
-  border-radius: 28px;
-  text-align: center;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    padding: 40px;
+    border-radius: 28px;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
 }
 
 .success-icon-circle {
-  width: 75px;
-  height: 75px;
-  background-color: #2e4b3f; /* 마인드웰 메인 그린 */
-  color: white;
-  font-size: 36px;
-  line-height: 75px;
-  border-radius: 50%;
-  margin: 0 auto 25px;
+    width: 75px;
+    height: 75px;
+    background-color: #2e4b3f; /* 마인드웰 메인 그린 */
+    color: white;
+    font-size: 36px;
+    line-height: 75px;
+    border-radius: 50%;
+    margin: 0 auto 25px;
 }
 
 .success-main-text {
-  font-size: 24px;
-  color: #1a1a1a;
-  font-weight: 700;
-  margin-bottom: 12px;
+    font-size: 24px;
+    color: #1a1a1a;
+    font-weight: 700;
+    margin-bottom: 12px;
 }
 
 .success-sub-text {
-  font-size: 15px;
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 30px;
+    font-size: 15px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 30px;
 }
 
 .success-info-section {
-  background-color: #f8fbf9;
-  padding: 20px 24px;
-  border-radius: 18px;
-  margin-bottom: 35px;
+    background-color: #f8fbf9;
+    padding: 20px 24px;
+    border-radius: 18px;
+    margin-bottom: 35px;
 }
 
 .info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
 }
 
 .info-row span {
-  font-size: 14px;
-  color: #88a096;
+    font-size: 14px;
+    color: #88a096;
 }
 
 .info-value {
-  font-size: 16px;
-  color: #2e4b3f;
-  font-weight: 600;
+    font-size: 16px;
+    color: #2e4b3f;
+    font-weight: 600;
 }
 
 .info-value-small {
-  font-size: 13px;
-  color: #333;
+    font-size: 13px;
+    color: #333;
 }
 
 .btn-home {
-  width: 100%;
-  padding: 16px;
-  background-color: #2e4b3f;
-  color: white;
-  border: none;
-  border-radius: 14px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
+    width: 100%;
+    padding: 16px;
+    background-color: #2e4b3f;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 .btn-home:hover {
-  background-color: #243d33;
+    background-color: #243d33;
 }
