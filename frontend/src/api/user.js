@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const getUserInfo = async (user_id) => {
-    const response = await axios.get(`${API_URL}/user/${user_id}`);
+    const response = await axios.get(`${API_URL}/api/user/${user_id}`);
     return response.data;
 };
 

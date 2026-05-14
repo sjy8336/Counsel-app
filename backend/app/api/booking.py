@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.booking import Booking
@@ -28,56 +28,73 @@ def confirm_booking(data: dict, db: Session = Depends(get_db)):
 
 @router.post("/create")
 def create_booking(
-    booking: dict,
+    booking: dict = Body(...), # Body를 명시해주는 것이 좋습니다.
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    예약 생성 API (orderId는 서버에서 고유하게 생성)
+    예약 생성 API: 중복 시간 체크 및 설문 데이터 저장
     """
-    counselor_name = booking.get("counselorName")
+    # 1. 프론트엔드에서 보낸 데이터 추출
+    # counselorId를 명시적으로 받도록 수정해야 합니다. (프론트에서 넘겨줘야 함)
+    counselor_id = booking.get("counselorId") 
     booking_date = booking.get("selectedDate")
     booking_time = booking.get("selectedTime")
     survey = booking.get("survey") or {}
-    # 더미데이터용: counselorName, centerName을 survey_content에 항상 저장
-    if booking.get("counselorName"):
-        survey["counselorName"] = booking["counselorName"]
-    if booking.get("centerName"):
-        survey["centerName"] = booking["centerName"]
     amount = booking.get("amount", 20000)
-    payment_status = booking.get("paymentStatus", "pending")
-    booking_status = 'waiting'
+    
+    # 필수 정보 검증
+    if not all([counselor_id, booking_date, booking_time]):
+        raise HTTPException(status_code=400, detail="상담사 정보, 날짜, 시간은 필수입니다.")
 
-    if not all([counselor_name, booking_date, booking_time]):
-        raise HTTPException(status_code=400, detail="필수 예약 정보가 누락되었습니다.")
-
-    # 날짜 파싱
+    # 2. 날짜 파싱
     try:
         booking_date_obj = datetime.strptime(booking_date, "%Y-%m-%d").date()
     except Exception:
-        raise HTTPException(status_code=400, detail="날짜 형식이 올바르지 않습니다.")
+        raise HTTPException(status_code=400, detail="날짜 형식이 올바르지 않습니다. (YYYY-MM-DD)")
 
-    # 프론트에서 orderId를 전달하면 그 값을 사용, 없으면 기존대로 생성
-    order_id = booking.get("orderId")
-    if not order_id:
-        order_id = f"ORDER-{uuid.uuid4().hex[:12].upper()}"
+    # 3. [핵심] 중복 예약 체크 (이미 확정된 예약이 있는지)
+    existing_booking = db.query(Booking).filter(
+        Booking.counselor_id == counselor_id,
+        Booking.booking_date == booking_date_obj,
+        Booking.booking_time == booking_time,
+        Booking.booking_status != 'canceled' # 취소된 예약은 제외하고 체크
+    ).first()
 
-    # client_id는 현재 로그인한 사용자로 저장
+    if existing_booking:
+        raise HTTPException(status_code=400, detail="해당 시간대는 이미 예약이 완료되었습니다.")
+
+    # 4. 설문 데이터 보강: 더미 counselorName/centerName은 저장하지 않음
+
+    # 5. 고유 주문번호(orderId) 생성
+    order_id = booking.get("orderId") or f"ORDER-{uuid.uuid4().hex[:12].upper()}"
+
+    # 6. DB 저장
     new_booking = Booking(
         client_id=current_user.id,
-        counselor_id=1,  # TODO: 실제 상담사 id로 연동 필요
+        counselor_id=counselor_id, # 고정된 1 대신 실제 ID 사용
         booking_date=booking_date_obj,
         booking_time=booking_time,
-        survey_content=survey,
-        payment_status=payment_status,
-        booking_status=booking_status,
+        survey_content=survey, # JSON 타입 컬럼에 dict 그대로 투입
+        payment_status="pending", # 초기값
+        booking_status="waiting", # 관리자/상담사 승인 대기 상태
         amount=amount,
         order_id=order_id
     )
-    db.add(new_booking)
-    db.commit()
-    db.refresh(new_booking)
-    return {"message": "예약이 생성되었습니다.", "orderId": order_id}
+
+    try:
+        db.add(new_booking)
+        db.commit()
+        db.refresh(new_booking)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"예약 저장 중 오류 발생: {str(e)}")
+
+    return {
+        "message": "예약이 생성되었습니다.",
+        "orderId": order_id,
+        "bookingId": new_booking.id
+    }
 
 @router.get("/list")
 def get_all_bookings(
@@ -85,32 +102,20 @@ def get_all_bookings(
     current_user: User = Depends(get_current_user)
 ):
     """
-    로그인한 사용자의 예약(취소 제외)만 반환
+    로그인한 사용자의 모든 예약(취소 포함) 반환
     """
     bookings = db.query(Booking).filter(
-        Booking.payment_status != 'canceled',
         Booking.client_id == current_user.id
     ).all()
     results = []
+    from app.models.user import User
+    from app.models.counselor import CounselorProfile
     for b in bookings:
-        # 더미데이터(프론트에서 예약 생성 시 전달된 counselorName) 우선
-        dummy_counselor_name = None
-        dummy_center_name = None
-        if hasattr(b, 'survey_content') and b.survey_content:
-            # survey_content에 counselorName, centerName이 들어있을 수 있음
-            if isinstance(b.survey_content, dict):
-                dummy_counselor_name = b.survey_content.get('counselorName')
-                dummy_center_name = b.survey_content.get('centerName')
-        # DB에서 상담사 이름/센터명 조회
-        counselor_name = dummy_counselor_name or ""
-        center_name = dummy_center_name or ""
-        if not counselor_name and b.counselor_id:
-            from app.models.user import User
-            from app.models.counselor import CounselorProfile
-            user = db.query(User).filter(User.id == b.counselor_id).first()
-            counselor_name = user.full_name if user else "상담사"
-            profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == b.counselor_id).first()
-            center_name = profile.center_name if profile else "센터"
+        # DB에서 상담사 이름/센터명만 조회
+        user = db.query(User).filter(User.id == b.counselor_id).first()
+        counselor_name = user.full_name if user else "상담사"
+        profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == b.counselor_id).first()
+        center_name = profile.center_name if profile else "센터"
         # 상담 상태 매핑 (booking_status 기준)
         if b.booking_status == 'waiting':
             status = '예약 대기'
@@ -129,7 +134,7 @@ def get_all_bookings(
             "status": status,
             "booking_status": b.booking_status,
             "payment_status": b.payment_status,
-            "location": center_name or "센터"
+            "location": center_name
         })
     return results
 
@@ -139,9 +144,10 @@ def cancel_booking(order_id: str, db: Session = Depends(get_db)):
     booking = db.query(Booking).filter(Booking.order_id == order_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="예약을 찾을 수 없습니다.")
-    db.delete(booking)
+    booking.booking_status = 'canceled'
     db.commit()
-    return {"message": "예약이 취소(삭제)되었습니다."}
+    db.refresh(booking)
+    return {"message": "예약이 취소 처리되었습니다.", "order_id": order_id, "booking_status": booking.booking_status}
 
 # 상담 완료 처리 API (예약 날짜+시간이 지난 경우 자동 처리용)
 @router.post("/complete/{order_id}")
@@ -153,3 +159,21 @@ def complete_booking(order_id: str, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(booking)
     return {"message": "상담이 완료 처리되었습니다.", "order_id": order_id, "booking_status": booking.booking_status}
+
+@router.get("/reserved-times")
+def get_bookings_by_counselor_and_date(
+    counselor_id: int = Query(..., description="상담사 ID"),
+    date: str = Query(..., description="예약 날짜 (YYYY-MM-DD)"),
+    db: Session = Depends(get_db)
+):
+    try:
+        booking_date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+    except Exception:
+        raise HTTPException(status_code=400, detail="날짜 형식이 올바르지 않습니다.")
+    bookings = db.query(Booking).filter(
+        Booking.counselor_id == counselor_id,
+        Booking.booking_date == booking_date_obj,
+        Booking.payment_status != 'canceled',
+        Booking.booking_status != 'canceled',
+    ).all()
+    return [b.booking_time for b in bookings]

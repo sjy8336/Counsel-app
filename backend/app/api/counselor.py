@@ -191,9 +191,25 @@ def check_counselor_profile_exists(db: Session = Depends(get_db), current_user=D
     return {"exists": exists}
 
 # 승인된 상담사 전체 목록 조회 (status='수락')
+from fastapi import Query
+
 @router.get("/counselors/approved")
-def get_approved_counselors(db: Session = Depends(get_db)):
-    profiles = db.query(CounselorProfile).filter(CounselorProfile.status == '수락').all()
+def get_approved_counselors(
+    db: Session = Depends(get_db),
+    offset: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100)
+):
+    # 전체 승인된 상담사 수
+    total = db.query(CounselorProfile).filter(CounselorProfile.status == '수락').count()
+    # 페이징 적용
+    profiles = (
+        db.query(CounselorProfile)
+        .filter(CounselorProfile.status == '수락')
+        .order_by(CounselorProfile.id.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
     result = []
     for profile in profiles:
         user = db.query(User).filter(User.id == profile.user_id).first()
@@ -219,7 +235,7 @@ def get_approved_counselors(db: Session = Depends(get_db)):
             "experiences": experiences,
             "schedules": schedules,
         })
-    return result
+    return {"total": total, "counselors": result}
 
 @router.get("/counselors/{user_id}")
 def get_counselor_detail(user_id: int, db: Session = Depends(get_db)):

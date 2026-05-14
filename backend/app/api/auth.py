@@ -227,15 +227,26 @@ def get_favorites(db: Session = Depends(get_db), current_user = Depends(get_curr
     print(f"[DEBUG] get_favorites 호출: user_id={current_user.id}") # 로그 추가
     favorites = db.query(Favorite).filter(Favorite.client_id == current_user.id).all()
     print(f"[DEBUG] DB에서 찾은 찜 개수: {len(favorites)}") # 로그 추가
+    from app.models.counselor import CounselorProfile, CounselorSpecialty
     result = []
     for fav in favorites:
-        # 상담사 정보 가져오기
+        # 상담사 기본 정보
         counselor = db.query(User).filter(User.id == fav.counselor_id).first()
-        # counselor가 DB에 없더라도 일단 리스트에 담아서 프론트에 보내줘야 하트가 유지됩니다!
+        # 상담사 프로필 정보
+        profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == fav.counselor_id).first()
+        # 상담사 전문분야(여러 개 가능)
+        specialties = db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == fav.counselor_id).all()
+        specialty_names = [s.specialty_name for s in specialties] if specialties else []
         result.append({
             "id": fav.id,
             "counselor_id": fav.counselor_id,
-            "counselor_name": counselor.full_name if counselor else "알 수 없는 상담사"
+            "counselor_name": counselor.full_name if counselor else "알 수 없는 상담사",
+            "category": specialty_names[0] if specialty_names else None,
+            "field": ", ".join(specialty_names) if specialty_names else None,
+            "intro": profile.intro_line if profile else None,
+            "consultation_price": profile.consultation_price if profile else None,
+            "center_name": profile.center_name if profile else None,
+            "profile_img_url": profile.profile_img_url if profile else None
         })
     print(f"[DEBUG] 최종 리턴 데이터: {result}") # 로그 추가
     return {"favorites": result}

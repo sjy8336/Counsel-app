@@ -1,26 +1,3 @@
-// 고객센터(고객지원) 더미 렌더 함수 - 실제 구현 필요시 교체
-// 기존 renderSupportCenter 함수 교체 (CounselorMyPage의 renderCustomer 스타일로)
-const renderSupportCenter = () => (
-  <div className="mw-main" style={{ padding: 0 }}>
-    <div className="mw-page-header">
-      <div className="mw-page-title">고객 지원</div>
-      <div className="mw-page-sub">이용 중 불편한 점이 있으신가요?</div>
-    </div>
-    <div className="mw-support-grid">
-      { [
-        { icon: <HelpCircle size={21} />, label: '자주 묻는 질문' },
-        { icon: <MessageCircle size={21} />, label: '1:1 문의하기' },
-        { icon: <FileText size={21} />, label: '가이드북' },
-      ].map(({ icon, label }) => (
-        <div key={label} className="mw-support-card">
-          <div className="mw-support-icon">{icon}</div>
-          <p className="mw-support-label">{label}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
 import React, { useState, useEffect } from 'react';
 import { mockNotifications } from '../components/mockNotifications';
 import { deleteAccount } from '../api/auth';
@@ -76,6 +53,27 @@ const notifSettingsData = [
     { key: 'marketing', title: '이벤트 및 혜택 알림', desc: '새로운 프로그램 및 할인 쿠폰 정보' },
 ];
 
+const renderSupportCenter = () => (
+    <div className="mw-main" style={{ padding: 0 }}>
+        <div className="mw-page-header">
+            <div className="mw-page-title">고객 지원</div>
+            <div className="mw-page-sub">이용 중 불편한 점이 있으신가요?</div>
+        </div>
+        <div className="mw-support-grid">
+            {[
+                { icon: <HelpCircle size={21} />, label: '자주 묻는 질문' },
+                { icon: <MessageCircle size={21} />, label: '1:1 문의하기' },
+                { icon: <FileText size={21} />, label: '가이드북' },
+            ].map(({ icon, label }) => (
+                <div key={label} className="mw-support-card">
+                    <div className="mw-support-icon">{icon}</div>
+                    <p className="mw-support-label">{label}</p>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
 const NotificationSettings = ({ notifSettings, toggleNotif }) => (
     <div className="ns-card">
         <header className="ns-header">
@@ -122,7 +120,9 @@ export default function App() {
     const navigate = useNavigate();
     const location = useLocation();
     // 문의내역 버튼에서 온 경우만 inquiry, 기본은 dashboard
-    const [activeMenu, setActiveMenu] = useState(() => (location.state && location.state.showInquiry ? 'inquiry' : 'dashboard'));
+    const [activeMenu, setActiveMenu] = useState(() =>
+        location.state && location.state.showInquiry ? 'inquiry' : 'dashboard'
+    );
     const [activeSubMenu, setActiveSubMenu] = useState(null);
     const [ticketCount, setTicketCount] = useState(2);
     const [selectedConsultation, setSelectedConsultation] = useState(null);
@@ -147,6 +147,7 @@ export default function App() {
     const [pwFields, setPwFields] = useState({ current: '', new1: '', new2: '' });
     const [pwLoading, setPwLoading] = useState(false);
     const [favoritesList, setFavoritesList] = useState([]);
+    const [favoritesLoading, setFavoritesLoading] = useState(true);
     // ── 토스트 state 추가 ──
     const [toast, setToast] = useState(null);
 
@@ -164,17 +165,6 @@ export default function App() {
         if (user) {
             const userObj = JSON.parse(user);
             setUserInfo((prev) => ({ ...prev, id: userObj.id }));
-            getUserInfo(userObj.id).then((data) => {
-                setUserInfo((prev) => ({
-                    ...prev,
-                    name: data.full_name,
-                    username: data.username,
-                    email: data.email,
-                    phone: data.phone_number,
-                    birth: data.birth || '',
-                    gender: data.gender || '',
-                }));
-            });
             if (!token || isTokenExpired(token)) {
                 alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
                 localStorage.removeItem('access_token');
@@ -182,11 +172,24 @@ export default function App() {
                 navigate('/login');
                 return;
             }
-            getFavorites(token)
-                .then((data) => {
-                    setFavoritesList(data.favorites || []);
+            setFavoritesLoading(true);
+            // getUserInfo와 getFavorites를 병렬로 호출
+            Promise.all([getUserInfo(userObj.id), getFavorites(token)])
+                .then(([userData, favoritesData]) => {
+                    setUserInfo((prev) => ({
+                        ...prev,
+                        name: userData.full_name,
+                        username: userData.username,
+                        email: userData.email,
+                        phone: userData.phone_number,
+                        birth: userData.birth || '',
+                        gender: userData.gender || '',
+                    }));
+                    setFavoritesList(favoritesData.favorites || []);
+                    setFavoritesLoading(false);
                 })
                 .catch((err) => {
+                    setFavoritesLoading(false);
                     if (err?.response?.status === 401) {
                         alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
                         localStorage.removeItem('access_token');
@@ -783,8 +786,16 @@ export default function App() {
                             </div>
                         </div>
                     </div>
-                    {(pwFields.new1 && pwFields.new2 && pwFields.new1 !== pwFields.new2) && (
-                        <div style={{ color: '#e57373', fontSize: '0.95rem', marginTop: 8, marginBottom: 0, fontWeight: 600 }}>
+                    {pwFields.new1 && pwFields.new2 && pwFields.new1 !== pwFields.new2 && (
+                        <div
+                            style={{
+                                color: '#e57373',
+                                fontSize: '0.95rem',
+                                marginTop: 8,
+                                marginBottom: 0,
+                                fontWeight: 600,
+                            }}
+                        >
                             비밀번호가 일치하지 않습니다.
                         </div>
                     )}
@@ -971,7 +982,9 @@ export default function App() {
         ];
         return (
             <div className="fade-in">
-                <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>문의내역</h3>
+                <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>
+                    문의내역
+                </h3>
                 <ul className="mypage-list mypage-list-grid">
                     {inquiryList.map((item) => (
                         <li key={item.id} className="mypage-list-item">
@@ -1001,110 +1014,52 @@ export default function App() {
         );
     };
 
-    const counselorData = [
-        {
-            id: 1,
-            name: '이은지 상담사',
-            category: '개인 심리',
-            field: '우울, 불안, 공황',
-            price: '60,000원',
-            intro: '감정 일기 분석을 통해 당신의 마음을 함께 들여다봅니다.',
-            major: '임상심리학 석사',
-            type: '대면',
-            description:
-                '당신의 마음 일기 속 숨겨진 감정을 함께 찾아냅니다. 10년 간의 임상 경험을 바탕으로, 일상에서 느끼는 미묘한 불안과 우울의 원인을 분석합니다.',
-            history: ['한국심리학회 공인 상담심리사 1급', '전 OO대학교 학생상담센터 상담원'],
-            availableTimes: ['10:00', '14:00', '16:00'],
-        },
-        {
-            id: 2,
-            name: '김태현 상담사',
-            category: '직장',
-            field: '스트레스, 번아웃, 대인관계',
-            price: '60,000원',
-            intro: '직장 내 대인관계와 커리어 고민에 솔루션을 드립니다.',
-            major: '산업심리학 박사',
-            type: '대면',
-            description: '조직 내 갈등과 업무 압박으로 인한 번아웃은 단순한 휴식만으로 해결되지 않습니다.',
-            history: ['기업 상담(EAP) 전문 상담사'],
-            availableTimes: ['11:00', '15:00', '17:00'],
-        },
-        {
-            id: 3,
-            name: '박소담 상담사',
-            category: '진로',
-            field: '취업불안, 진로고민',
-            price: '60,000원',
-            intro: '나를 사랑하는 법, 작은 기록부터 시작해봐요.',
-            major: '상담심리학 석사',
-            type: '대면',
-            description: '진로 고민과 취업 불안에 대한 실질적인 상담과 자기이해를 돕습니다.',
-            history: ['진로상담센터 전임 상담사', '청년 멘토링 프로젝트 리더'],
-            availableTimes: ['10:00', '13:00', '16:00'],
-        },
-        {
-            id: 4,
-            name: '정다은 상담사',
-            category: '개인 심리',
-            field: '자존감, 강박',
-            price: '60,000원',
-            intro: '막막한 미래, 당신의 강점을 찾는 솔루션을 제공합니다.',
-            major: '임상심리학 박사',
-            type: '대면',
-            description: '자존감 회복과 강박적 사고 개선을 위한 맞춤형 상담을 제공합니다.',
-            history: ['임상심리연구소 선임연구원', '심리치료센터 슈퍼바이저'],
-            availableTimes: ['11:00', '14:00', '17:00'],
-        },
-        {
-            id: 5,
-            name: '한지우 상담사',
-            category: '직장',
-            field: '소통, 대인관계',
-            price: '60,000원',
-            intro: '오늘의 감정이 내일의 평온이 되도록 돕겠습니다.',
-            major: '상담심리학 석사',
-            type: '대면',
-            description: '직장 내 소통과 대인관계 문제를 효과적으로 해결할 수 있도록 지원합니다.',
-            history: ['기업교육 전문 강사', '직장인 심리상담 경력 8년'],
-            availableTimes: ['09:00', '13:00', '18:00'],
-        },
-        {
-            id: 6,
-            name: '최민준 상담사',
-            category: '진로',
-            field: '진로고민, 번아웃',
-            price: '60,000원',
-            intro: '지친 마음을 회복하고 다시 나아갈 힘을 드립니다.',
-            major: '상담심리학 박사',
-            type: '대면',
-            description: '진로 고민과 번아웃 극복을 위한 심층 상담을 제공합니다.',
-            history: ['청소년 진로상담센터장', '진로코칭 전문가'],
-            availableTimes: ['10:00', '15:00', '19:00'],
-        },
-    ];
-
     const renderFavoritesList = () => (
         <div className="fade-in">
-            <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>찜 목록</h3>
+            <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>
+                찜 목록
+            </h3>
             <ul className="mypage-list mypage-list-grid">
-                {favoritesList.length === 0 ? (
+                {favoritesLoading ? (
+                    <li className="mypage-list-empty">불러오는 중...</li>
+                ) : favoritesList.length === 0 ? (
                     <li className="mypage-list-empty">찜내역이 없습니다.</li>
                 ) : (
                     favoritesList.map((item) => {
-                        const counselor = counselorData.find((c) => String(c.id) === String(item.counselor_id || item.id));
-                        const counselorName = counselor ? counselor.name : item.counselor_name || '알 수 없는 상담사';
-                        const field = counselor ? counselor.field : item.field;
-                        const category = counselor ? counselor.category : item.category;
-                        const intro = counselor ? counselor.intro : item.intro;
-                        const price = counselor ? counselor.price : item.price;
+                        // DB에서 받아온 실제 상담사 정보만 사용
+                        const counselorName = item.counselor_name || item.name || item.full_name || '알 수 없는 상담사';
+                        // 전문 분야 배열 추출
+                        let specialtiesArr = [];
+                        if (item.field) {
+                            specialtiesArr = item.field
+                                .split(',')
+                                .map((f) => f.trim())
+                                .filter(Boolean);
+                        } else if (Array.isArray(item.specialties)) {
+                            specialtiesArr = item.specialties
+                                .map((s) => s.specialty_name || s.name || s)
+                                .filter(Boolean);
+                        }
+                        const category = item.category || '';
+                        const intro = item.intro || item.description || '';
+                        const price = item.price || item.consultation_price || '';
                         const avatarInitial = counselorName.slice(0, 1);
                         const itemId = item.counselor_id ? item.counselor_id : item.id;
+
+                        // 3개까지만 보여주고, 초과 시 +N 뱃지
+                        const maxSpecialties = 3;
+                        const shownSpecialties = specialtiesArr.slice(0, maxSpecialties);
+                        const extraCount = specialtiesArr.length - maxSpecialties;
+
+                        // 상담사 프로필 이미지 경로 (있으면)
+                        const profileImg =
+                            item.profile_img_url || item.profile_image || item.profileImg || item.profile_url || null;
 
                         return (
                             <li
                                 key={itemId}
                                 className="mypage-list-item mypage-favorite-item"
-                                onClick={() => navigate('/counselor/' + itemId, { state: { counselor, isLiked: true } })}
+                                onClick={() => navigate('/counselor/' + itemId, { state: { isLiked: true } })}
                             >
                                 <div
                                     className="mypage-favorite-heart"
@@ -1116,17 +1071,33 @@ export default function App() {
                                 >
                                     <Heart size={14} color="#e74c3c" fill="#e74c3c" />
                                 </div>
-                                <div className="mypage-favorite-avatar">{avatarInitial}</div>
+                                <div className="mypage-favorite-avatar">
+                                    {profileImg ? (
+                                        <img
+                                            src={profileImg}
+                                            alt={counselorName + ' 프로필'}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                            }}
+                                        />
+                                    ) : (
+                                        avatarInitial
+                                    )}
+                                </div>
                                 <div className="mypage-favorite-content">
                                     <div className="mypage-list-title">{counselorName}</div>
                                     <div className="mypage-list-meta">
                                         {category && <span className="mypage-list-category">{category}</span>}
-                                        {field &&
-                                            field.split(',').map((f, i) => (
-                                                <span key={i} className="mypage-list-field">
-                                                    {f.trim()}
-                                                </span>
-                                            ))}
+                                        {shownSpecialties.map((f, i) => (
+                                            <span key={i} className="mypage-list-field">
+                                                {f}
+                                            </span>
+                                        ))}
+                                        {extraCount > 0 && (
+                                            <span className="mypage-list-field-extra">+{extraCount}</span>
+                                        )}
                                     </div>
                                     {intro && <div className="mypage-list-intro">{intro}</div>}
                                     {price && (
@@ -1368,7 +1339,13 @@ export default function App() {
             {toast && <div className="mp-toast">{toast}</div>}
 
             <aside className="mypage-sidebar">
-                <div className="sidebar-logo-section mp-cursor-pointer" onClick={e => { e.stopPropagation(); navigate('/'); }}>
+                <div
+                    className="sidebar-logo-section mp-cursor-pointer"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/');
+                    }}
+                >
                     <h1 className="sidebar-brand-logo">MINDWELL</h1>
                     <p className="sidebar-brand-sub">Mental Health Care</p>
                 </div>
