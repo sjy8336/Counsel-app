@@ -88,16 +88,19 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
 
             <div className="cc-container">
                 <aside className={`cc-sidebar ${isMobileListOpen ? 'is-open' : 'is-closed'}`}>
-                    <div className="cc-sidebar__header" onClick={() => setIsMobileListOpen(!isMobileListOpen)}>
-                        <h3 className="cc-sidebar__title">내담자 관리</h3>
-                        <span className="cc-mobile-toggle">{isMobileListOpen ? '접기 ▲' : '목록 보기 ▼'}</span>
-                    </div>
+                {/* 모바일에서만 보이는 헤더 버튼 */}
+                <div className="cc-sidebar__header" onClick={() => setIsMobileListOpen(!isMobileListOpen)}>
+                    <h3 className="cc-sidebar__title">내담자 목록</h3>
+                    <span className="cc-mobile-toggle">
+                        {isMobileListOpen ? '접기 ▲' : '목록 보기 ▼'}
+                    </span>
+                </div>
                     <div className="cc-sidebar-content">
                         <input className="cc-search" placeholder="이름 검색..." value={search} onChange={(e) => setSearch(e.target.value)} />
                         <ul className="cc-client-list">
                             {filtered.map((c) => (
                                 <li key={c.id} className={`cc-client-item${selectedId === c.id ? ' is-active' : ''}`} onClick={() => { setSelectedId(c.id); setOpenLogId(null); setIsMobileListOpen(false); }}>
-                                    <span className={`cc-dot ${STATUS_CLASS[c.status]}`} />
+                                    
                                     <div className="cc-client-info">
                                         <strong>{c.name}</strong>
                                         <span>{c.birth} · {c.gender}</span>
