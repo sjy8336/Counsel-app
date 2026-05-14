@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getAllBookings } from '../api/booking';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, ChevronRight, PenTool, MapPin, Clock, Heart, Coffee, User, Lock } from 'lucide-react';
 import '../static/home.css';
 import Header from '../components/header';
@@ -79,6 +81,46 @@ const GuideCard = ({ guide }) => (
 // --- Home 컴포넌트 ---
 const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
     const [activeTab, setActiveTab] = useState('home');
+    const [bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!isLoggedIn) {
+            setBookings([]);
+            setLoading(false);
+            return;
+        }
+        setLoading(true);
+        getAllBookings()
+            .then((data) => {
+                const now = new Date();
+                const futureBookings = data
+                    .filter((b) => {
+                        const date = b.date.replace(/\./g, '-');
+                        const dt = new Date(`${date}T${b.time}`);
+                        return dt > now && b.booking_status !== 'canceled';
+                    })
+                    .sort((a, b) => {
+                        const aDate = new Date(a.date.replace(/\./g, '-') + 'T' + a.time);
+                        const bDate = new Date(b.date.replace(/\./g, '-') + 'T' + b.time);
+                        return aDate - bDate;
+                    });
+                setBookings(futureBookings);
+            })
+            .finally(() => setLoading(false));
+    }, [isLoggedIn]);
+
+    const primaryBooking = bookings[0];
+    const upcomingBookings = bookings.slice(1);
+
+    const getDDay = (dateStr, timeStr) => {
+        const date = dateStr.replace(/\./g, '-');
+        const dt = new Date(`${date}T${timeStr}`);
+        const now = new Date();
+        return Math.max(1, Math.ceil((dt - now) / (1000 * 60 * 60 * 24)));
+    };
+
     return (
         <div className="mwl-root">
             <Header
@@ -111,7 +153,7 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                                 <br />
                                 가장 따뜻한 처방을 내려드려요.
                             </p>
-                            <button className="mwl-banner__cta">
+                            <button className="mwl-banner__cta" onClick={() => navigate('/AIdiary')}>
                                 <PenTool size={18} />
                                 오늘의 마음 기록하기
                             </button>
@@ -132,7 +174,13 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                                     콘텐츠입니다.
                                 </p>
                             </div>
-                            <button className="mwl-guide-section__more-btn">
+                            <button
+                                className="mwl-guide-section__more-btn"
+                                onClick={() => {
+                                    window.scrollTo(0, 0);
+                                    navigate('/healing');
+                                }}
+                            >
                                 전체보기 <ChevronRight size={14} />
                             </button>
                         </div>
@@ -160,7 +208,13 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                                     <span className="mwl-widget-card__counselor-name">박민우 상담사</span>님을 찾았어요.
                                 </p>
                             </div>
-                            <button className="mwl-widget-card__cta">
+                            <button
+                                className="mwl-widget-card__cta"
+                                onClick={() => {
+                                    window.scrollTo(0, 0);
+                                    navigate('/counselors');
+                                }}
+                            >
                                 전문가 찾기 <ChevronRight size={14} />
                             </button>
                         </div>
@@ -188,86 +242,80 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                     </div>
                 </div>
 
-                {/* Right Column */}
+                {/* Right Column - 예약 현황/다가오는 예약 */}
+
                 <div className="mwl-col-right">
                     <div className="mwl-sidebar-header">
                         <h3 className="mwl-sidebar-header__title">
                             <Calendar size={18} /> 예약 현황
                         </h3>
-                        <button className="mwl-sidebar-header__btn">전체보기</button>
                     </div>
-
-                    {/* Primary Appointment */}
-                    <div className={isLoggedIn ? 'mwl-appt-primary' : 'mwl-appt-primary--login-required'}>
-                        {isLoggedIn ? (
-                            <>
+                    {/* 예약 현황: 항상 렌더링, 내부에서 로그인 여부 분기 */}
+                    {!isLoggedIn ? (
+                        <div className="mwl-appt-primary--login-required">
+                            <Lock size={28} className="mwl-appt-login__icon" />
+                            <p className="mwl-appt-login__title">로그인 후 이용 가능합니다</p>
+                            <p className="mwl-appt-login__desc">
+                                예약 현황을 확인하려면
+                                <br />
+                                로그인이 필요해요.
+                            </p>
+                            <button className="mwl-appt-login__btn" onClick={() => navigate('/login')}>
+                                로그인하기
+                            </button>
+                        </div>
+                    ) : !loading ? (
+                        bookings.length > 0 ? (
+                            <div
+                                className="mwl-appt-primary"
+                                onClick={() => navigate('/reserve')}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <div className="mwl-appt-primary__top-row">
                                     <div className="mwl-appt-primary__map-icon-box">
                                         <MapPin size={20} />
                                     </div>
-                                    <span className="mwl-appt-primary__d-badge">D-2</span>
+                                    <span className="mwl-appt-primary__d-badge">
+                                        D-{getDDay(primaryBooking.date, primaryBooking.time)}
+                                    </span>
                                 </div>
-                                <p className="mwl-appt-primary__type">대면 심리 상담</p>
-                                <h4 className="mwl-appt-primary__name">이은지 상담사님</h4>
+                                <p className="mwl-appt-primary__type">{primaryBooking.status}</p>
+                                <h4 className="mwl-appt-primary__name">{primaryBooking.name} 상담사님</h4>
                                 <div className="mwl-appt-primary__datetime-box">
                                     <Calendar size={14} />
-                                    5월 20일 (수) 오후 2:00
+                                    {primaryBooking.date} {primaryBooking.time}
                                 </div>
-                            </>
+                            </div>
                         ) : (
-                            <>
-                                <div className="mwl-appt-primary__lock-icon">
-                                    <Lock size={24} />
-                                </div>
-                                <span>
-                                    상담 예약 및 관리 기능은
-                                    <br />
-                                    <strong>로그인 후</strong> 이용할 수 있습니다.
-                                </span>
-                            </>
-                        )}
-                    </div>
+                            <div className="mwl-appt-primary--login-required">
+                                <span>예약 정보가 없습니다.</span>
+                            </div>
+                        )
+                    ) : null}
 
-                    {/* Upcoming */}
-                    {isLoggedIn && (
+                    {isLoggedIn && !loading && upcomingBookings.length > 0 && (
                         <div className="mwl-upcoming-list">
                             <h4 className="mwl-upcoming-list__label">다가오는 예약</h4>
-                            <div className="mwl-appt-card">
-                                <div className="mwl-appt-card__top">
-                                    <div className="mwl-appt-card__info">
-                                        <div className="mwl-appt-card__icon-box">
-                                            <MapPin size={16} />
+                            {upcomingBookings.map((b) => (
+                                <div className="mwl-appt-card" key={b.order_id}>
+                                    <div className="mwl-appt-card__top">
+                                        <div className="mwl-appt-card__info">
+                                            <div className="mwl-appt-card__icon-box">
+                                                <MapPin size={16} />
+                                            </div>
+                                            <div>
+                                                <h5 className="mwl-appt-card__type">{b.status}</h5>
+                                                <p className="mwl-appt-card__counselor">{b.name} 상담사님</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h5 className="mwl-appt-card__type">정기 대면 상담</h5>
-                                            <p className="mwl-appt-card__counselor">김준서 상담사님</p>
-                                        </div>
+                                        <ChevronRight size={16} className="mwl-appt-card__chevron" />
                                     </div>
-                                    <ChevronRight size={16} className="mwl-appt-card__chevron" />
-                                </div>
-                                <div className="mwl-appt-card__datetime">
-                                    <Calendar size={12} className="mwl-appt-card__cal-icon" />
-                                    5월 27일 (수) 오후 4:00
-                                </div>
-                            </div>
-                            <div className="mwl-appt-card mwl-appt-card--dimmed">
-                                <div className="mwl-appt-card__top">
-                                    <div className="mwl-appt-card__info">
-                                        <div className="mwl-appt-card__icon-box">
-                                            <MapPin size={16} />
-                                        </div>
-                                        <div>
-                                            <h5 className="mwl-appt-card__type">심리 인지 검사</h5>
-                                            <p className="mwl-appt-card__counselor">최유리 상담사님</p>
-                                        </div>
+                                    <div className="mwl-appt-card__datetime">
+                                        <Calendar size={12} className="mwl-appt-card__cal-icon" />
+                                        {b.date} {b.time}
                                     </div>
-                                    <ChevronRight size={16} className="mwl-appt-card__chevron" />
                                 </div>
-                                <div className="mwl-appt-card__datetime">
-                                    <Calendar size={12} className="mwl-appt-card__cal-icon" />
-                                    6월 03일 (수) 오후 1:30
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     )}
                 </div>

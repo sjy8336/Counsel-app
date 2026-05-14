@@ -5,7 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 // 찜(하트) 토글
 export const toggleFavorite = async (counselor_id, token) => {
     const response = await axios.post(
-        `${API_URL}/favorites/${counselor_id}`,
+        `${API_URL}/api/favorites/${counselor_id}`,
         {},
         { headers: token ? { Authorization: `Bearer ${token}` } : {} }
     );
@@ -14,8 +14,7 @@ export const toggleFavorite = async (counselor_id, token) => {
 
 // 찜 목록 가져오기
 export const getFavorites = async (token) => {
-    console.log('getFavorites 호출 토큰:', token);
-    const response = await axios.get(`${API_URL}/favorites`, {
+    const response = await axios.get(`${API_URL}/api/favorites`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.data;

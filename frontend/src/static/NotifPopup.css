@@ -65,16 +65,32 @@
 }
 .notif-popup-content {
     flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 .notif-popup-title {
     font-weight: 600;
     font-size: 0.97rem;
     margin-bottom: 2px;
     color: #334155;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
 }
 .notif-popup-desc {
     font-size: 0.89rem;
     color: #64748b;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
 }
 .notif-popup-time {
     font-size: 0.8rem;

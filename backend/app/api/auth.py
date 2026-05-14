@@ -1,17 +1,33 @@
-from app.schemas.user import UserUpdate, ChangePasswordRequest
-from app.core.jwt import create_access_token
-from passlib.context import CryptContext
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import List
 from app.db.session import get_db
 from app.models.user import User
 from app.models.favorite import Favorite
 from app.core.deps import get_current_user
-from app.schemas.user import UserCreate, LoginRequest
+from app.schemas.user import UserCreate, LoginRequest, UserUpdate, ChangePasswordRequest, UserResponse
+from app.core.jwt import create_access_token
 from app.crud import crud
+from passlib.context import CryptContext
 from pydantic import BaseModel
 
 router = APIRouter()
+
+# 관리자: 전체 회원 조회
+@router.get("/admin/users", response_model=List[UserResponse])
+def get_all_users(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="관리자만 접근 가능합니다.")
+    users = db.query(User).all()
+    # birth_date가 date 타입이면 str로 변환
+    user_dicts = []
+    for u in users:
+        d = u.__dict__.copy()
+        if hasattr(u, 'birth_date') and u.birth_date is not None:
+            d['birth_date'] = str(u.birth_date)
+        user_dicts.append(d)
+    return user_dicts
 
 # 계정 영구 삭제용 pydantic 모델
 class DeleteAccountRequest(BaseModel):
@@ -173,12 +189,17 @@ def get_me(current_user=Depends(get_current_user)):
         "email": user.email,
         "phone_number": user.phone_number,
         "role": user.role,  # 'counselor', 'client', 'admin'
-        "profile_image": "default.png"
+        "profile_image": "default.png",
+        "username": user.username
     }
 
 @router.post("/favorites/{counselor_id}")
 def toggle_favorite(counselor_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     print(f"[DEBUG] toggle_favorite 진입: current_user={getattr(current_user, 'id', None)}, counselor_id={counselor_id}")
+    # counselor_id가 실제 존재하는 상담사(유저)인지 확인
+    counselor = db.query(User).filter(User.id == counselor_id).first()
+    if not counselor:
+        raise HTTPException(status_code=404, detail='존재하지 않는 상담사입니다.')
     try:
         favorite = db.query(Favorite).filter(
             Favorite.client_id == current_user.id,
@@ -206,15 +227,26 @@ def get_favorites(db: Session = Depends(get_db), current_user = Depends(get_curr
     print(f"[DEBUG] get_favorites 호출: user_id={current_user.id}") # 로그 추가
     favorites = db.query(Favorite).filter(Favorite.client_id == current_user.id).all()
     print(f"[DEBUG] DB에서 찾은 찜 개수: {len(favorites)}") # 로그 추가
+    from app.models.counselor import CounselorProfile, CounselorSpecialty
     result = []
     for fav in favorites:
-        # 상담사 정보 가져오기
+        # 상담사 기본 정보
         counselor = db.query(User).filter(User.id == fav.counselor_id).first()
-        # counselor가 DB에 없더라도 일단 리스트에 담아서 프론트에 보내줘야 하트가 유지됩니다!
+        # 상담사 프로필 정보
+        profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == fav.counselor_id).first()
+        # 상담사 전문분야(여러 개 가능)
+        specialties = db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == fav.counselor_id).all()
+        specialty_names = [s.specialty_name for s in specialties] if specialties else []
         result.append({
             "id": fav.id,
             "counselor_id": fav.counselor_id,
-            "counselor_name": counselor.full_name if counselor else "알 수 없는 상담사"
+            "counselor_name": counselor.full_name if counselor else "알 수 없는 상담사",
+            "category": specialty_names[0] if specialty_names else None,
+            "field": ", ".join(specialty_names) if specialty_names else None,
+            "intro": profile.intro_line if profile else None,
+            "consultation_price": profile.consultation_price if profile else None,
+            "center_name": profile.center_name if profile else None,
+            "profile_img_url": profile.profile_img_url if profile else None
         })
-    print(f"[DEBUG] 최종 리턴 데이터: {result}") # 로그 추가
+    # print(f"[DEBUG] 최종 리턴 데이터: {result}") # base64 등 긴 데이터가 로그에 찍히지 않도록 주석 처리
     return {"favorites": result}

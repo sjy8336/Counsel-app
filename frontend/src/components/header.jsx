@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Search, User, Check, MessageSquare, AlertCircle } from 'lucide-react';
-import { getMyInfo } from '../api/user';
-import { mockNotifications } from './mockNotifications';
+import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck } from 'lucide-react';
+import { getNotifications } from '../api/notification';
+import { getMyInfo } from '../api/user.js';
+import { getCounselorProfile } from '../api/counselor.js';
 import '../static/Common.css';
 import '../static/NotifPopup.css';
 
@@ -12,6 +13,14 @@ import '../static/NotifPopup.css';
  * @param {function} setActiveTab - 탭 변경 함수
  * @param {Array} pcGnbItems - PC 네비게이션 메뉴 리스트 (방어 코드를 위해 기본값 [] 설정)
  */
+function formatTime(dateStr) {
+    if (!dateStr) return '';
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diff < 60) return '방금 전';
+    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+    return `${Math.floor(diff / 86400)}일 전`;
+}
 export default function Header({
     activeTab,
     setActiveTab,
@@ -20,24 +29,61 @@ export default function Header({
     isLoggedIn = false,
     setIsLoggedIn,
 }) {
-    // 상태는 상위에서 관리, userRole만 내부에서 관리
     const [userRole, setUserRole] = useState('');
+    const [profileImgUrl, setProfileImgUrl] = useState('');
     const [notifOpen, setNotifOpen] = useState(false);
+    const [notifications, setNotifications] = useState([]);
     const notifRef = useRef(null);
     const location = useLocation();
+
+    // 알림 불러오기
     useEffect(() => {
-        // userRole만 localStorage에서 직접 관리
-        const user = localStorage.getItem('user');
-        if (user) {
-            const userObj = JSON.parse(user);
-            setUserRole(userObj.role || '');
-        } else {
-            setUserRole('');
-        }
+        const fetchNotifications = async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        setNotifications([]);
+        return;
+    }
+    try {
+        const res = await getNotifications(token);
+        const mapped = (res.data || []).map((n) => ({
+            ...n,
+            unread: !n.read,  // read → unread 변환
+            time: formatTime(n.created_at),  // created_at → time 변환
+        }));
+        setNotifications(mapped);
+    } catch (e) {
+        setNotifications([]);
+    }
+};
+        if (notifOpen) fetchNotifications();
+    }, [notifOpen]);
+
+    // 상담사라면 DB에서 최신 프로필 이미지 fetch
+    useEffect(() => {
+        const fetchCounselorProfileImg = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.role === 'counselor') {
+                    const prof = await getCounselorProfile(token);
+                    if (prof && prof.profile_img_url) {
+                        setProfileImgUrl(prof.profile_img_url);
+                        user.profile_img_url = prof.profile_img_url;
+                        localStorage.setItem('user', JSON.stringify(user));
+                    }
+                    setUserRole('counselor'); // 명시적으로 counselor로 설정
+                }
+            } catch {
+                // ignore
+            }
+        };
+        fetchCounselorProfileImg();
     }, [location.pathname]);
+
     const navigate = useNavigate();
 
-    // PC 메뉴: role에 따라 다르게 렌더링
     let pcGnbItems = [];
     if (!isLoggedIn) {
         pcGnbItems = [
@@ -53,7 +99,6 @@ export default function Header({
             { id: 'inquiry', label: '문의하기' },
         ];
     } else {
-        // client, admin
         pcGnbItems = [
             { id: 'search', label: '전문가 찾기' },
             { id: 'reservation', label: '예약 관리' },
@@ -62,11 +107,9 @@ export default function Header({
         ];
     }
 
-    // 메뉴별 네비게이션 경로 (role별로 다르게 처리할 수 있도록 분기)
     const handleMenuClick = (item) => {
         setActiveTab(item.id);
         if (!isLoggedIn) {
-            // 비로그인 시 기존 경로
             if (item.id === 'search') navigate('/counselors');
             else if (item.id === 'reservation') navigate('/reserve');
             else if (item.id === 'diary') navigate('/diary');
@@ -76,7 +119,6 @@ export default function Header({
             else if (item.id === 'client') navigate('/CounselorClient');
             else if (item.id === 'inquiry') navigate('/CounselorMessages');
         } else {
-            // client, admin
             if (item.id === 'search') navigate('/counselors');
             else if (item.id === 'reservation') navigate('/reserve');
             else if (item.id === 'diary') navigate('/diary');
@@ -84,12 +126,10 @@ export default function Header({
         }
     };
 
-    // 벨 버튼 클릭 — 팝업 토글
     const handleBellClick = () => {
         setNotifOpen((prev) => !prev);
     };
 
-    // 외부 클릭 시 팝업 닫기
     useEffect(() => {
         if (!notifOpen) return;
         const handleClick = (e) => {
@@ -101,8 +141,9 @@ export default function Header({
         return () => document.removeEventListener('mousedown', handleClick);
     }, [notifOpen]);
 
+    const hasUnread = notifications.some((n) => n.unread);
+
     return (
-        //1. 글로벌 네비게이션 (Header)
         <header className="global-header">
             <div className="header-content">
                 <h1
@@ -132,12 +173,40 @@ export default function Header({
                 </nav>
 
                 <div className="user-actions">
+                    {/* ✅ 관리자 전용 버튼 - role이 admin일 때만 노출 */}
+                    {isLoggedIn && userRole === 'admin' && (
+                        <button
+                            className="admin-page-btn"
+                            onClick={() => navigate('/admin')}
+                            title="관리자 페이지"
+                        >
+                            <ShieldCheck size={16} />
+                            <span>관리자</span>
+                        </button>
+                    )}
+
                     {isLoggedIn && (
                         <div style={{ position: 'relative', display: 'inline-block' }} ref={notifRef}>
-                            <button className="bell-btn" onClick={handleBellClick}>
+                            {/* 벨 버튼 — 읽지 않은 알림이 있으면 빨간 점 표시 */}
+                            <button className="bell-btn" onClick={handleBellClick} style={{ position: 'relative' }}>
                                 <Bell size={22} />
-                                {mockNotifications.some((n) => n.unread) && <span className="notification-dot"></span>}
+                                {hasUnread && (
+                                    <span
+                                        style={{
+                                            position: 'absolute',
+                                            top: '2px',
+                                            right: '2px',
+                                            width: '8px',
+                                            height: '8px',
+                                            borderRadius: '50%',
+                                            background: '#ef4444',
+                                            border: '1.5px solid #fff',
+                                            display: 'block',
+                                        }}
+                                    />
+                                )}
                             </button>
+
                             {notifOpen && (
                                 <div className="notif-popup">
                                     <div className="notif-popup-header">
@@ -147,13 +216,18 @@ export default function Header({
                                         </button>
                                     </div>
                                     <div className="notif-popup-list">
-                                        {mockNotifications.length === 0 ? (
+                                        {notifications.length === 0 ? (
                                             <div className="notif-popup-empty">알림이 없습니다.</div>
                                         ) : (
-                                            mockNotifications.map((n) => (
+                                            notifications.map((n) => (
                                                 <div
                                                     key={n.id}
                                                     className={`notif-popup-item${n.unread ? ' unread' : ''}`}
+                                                    onClick={() => {
+                                                        setNotifOpen(false);
+                                                        navigate('/CounselorMyPage?tab=notifications');
+                                                    }}
+                                                    style={{ cursor: 'pointer' }}
                                                 >
                                                     <span className="notif-popup-icon">
                                                         {n.type === 'booking' && <Check size={15} />}
@@ -164,7 +238,7 @@ export default function Header({
                                                         <div className="notif-popup-title">{n.title}</div>
                                                         <div className="notif-popup-desc">{n.desc}</div>
                                                     </div>
-                                                    <span className="notif-popup-time">{n.time}</span>
+                                                    <span className="notif-popup-time">{n.time || ''}</span>
                                                 </div>
                                             ))
                                         )}
@@ -173,23 +247,27 @@ export default function Header({
                             )}
                         </div>
                     )}
+
                     {isLoggedIn ? (
                         <div
                             className="user-profile"
                             onClick={() => {
                                 if (userRole === 'counselor') {
                                     navigate('/CounselorMyPage');
-                                } else if (userRole === 'client' || userRole === 'admin') {
+                                } else if (userRole === 'client') {
+                                    navigate('/mypage');
+                                } else if (userRole === 'admin') {
                                     navigate('/mypage');
                                 } else {
-                                    // fallback: 로그인은 했지만 role 정보가 없을 때
                                     navigate('/mypage');
                                 }
                             }}
                             style={{ cursor: 'pointer' }}
                         >
                             <div className="user-avatar">
-                                {userName && userName.trim() ? (
+                                {profileImgUrl ? (
+                                    <img src={profileImgUrl} alt="프로필" className="cmp-profile-img-content" />
+                                ) : userName && userName.trim() ? (
                                     <img
                                         src={`https://api.dicebear.com/7.x/notionists/svg?seed=${userName}`}
                                         alt="User"

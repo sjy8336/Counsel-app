@@ -1357,3 +1357,13 @@
   font-size: 0.625rem;
   color: #94A3B8;
 }
+/* ── 리스트 카드 승인 버튼 - 모바일도 표시 ── */
+.mwc-list-approve-btn {
+  display: flex !important;
+}
+
+/* ── 일지 작성 버튼 - 전체 너비 가운데 정렬 ── */
+.mwc-journal-btn {
+  display: block;
+  text-align: center;
+}

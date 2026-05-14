@@ -37,11 +37,12 @@ export const deleteAccount = async (user_id) => {
 
 export const login = async (credentials) => {
     try {
-        const response = await axios.post(`${API_URL}/login`, {
-            username: credentials.username, // username 필드로 전달
+        const response = await axios.post(`${API_URL}/api/login`, {
+            username: credentials.username,
             password: credentials.password,
         });
-        return response.data;
+
+        return response;
     } catch (error) {
         console.error('로그인 에러:', error.response?.data?.detail || error.message);
         throw error;

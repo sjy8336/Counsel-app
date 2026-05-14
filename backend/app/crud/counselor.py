@@ -1,75 +1,102 @@
+
 from sqlalchemy.orm import Session
 from app.models.counselor import (
-    CounselorProfile, CounselorSpecialty, CounselorExperience, CounselorEducation, CounselorSchedule
+    CounselorProfile, CounselorSpecialty, CounselorCertificate, CounselorEducation, CounselorExperience, CounselorSchedule
 )
-from app.models.user import User
 from app.schemas.counselor import (
-    CounselorFullProfileCreate, CounselorProfileCreate, CounselorSpecialtyCreate,
-    CounselorExperienceCreate, CounselorEducationCreate, CounselorScheduleCreate
+    CounselorProfileCreate, CounselorSpecialtyCreate, CounselorCertificateCreate, CounselorEducationCreate, CounselorExperienceCreate, CounselorScheduleCreate
 )
 
-def create_counselor_full_profile(db: Session, user_id: int, data: CounselorFullProfileCreate):
-    # 1. 프로필
-    profile = CounselorProfile(
-        user_id=user_id,
-        profile_img_url=data.profile.profile_img_url,
-        center_name=data.profile.center_name,
-        center_address=data.profile.center_address,
-        bio=data.profile.bio,
-    )
+# 1. 프로필 생성/수정/조회
+def create_counselor_profile(db: Session, user_id: int, data: CounselorProfileCreate):
+    profile = CounselorProfile(user_id=user_id, **data.dict(exclude={"status"}), status='심사중')
     db.add(profile)
-    db.flush()  # id 생성
-
-    # 2. 전문분야
-    for s in data.specialties:
-        db.add(CounselorSpecialty(user_id=user_id, specialty_name=s.specialty_name))
-
-    # 3. 경력
-    for exp in data.experiences:
-        db.add(CounselorExperience(
-            user_id=user_id,
-            company_name=exp.company_name,
-            start_date=exp.start_date,
-            end_date=exp.end_date,
-            is_current=exp.is_current,
-            description=exp.description,
-        ))
-
-    # 4. 학력
-    for edu in data.educations:
-        if not edu.school_name or not edu.major:
-            raise ValueError("학교명과 전공은 필수입니다.")
-        db.add(CounselorEducation(
-            user_id=user_id,
-            school_name=edu.school_name,
-            major=edu.major,
-            degree_type=edu.degree_type,
-        ))
-
-    # 5. 일정
-        # 5. 일정
-        # 한글 요일을 영어 요일 코드로 변환
-        weekday_map = {
-            '월': 'mon',
-            '화': 'tue',
-            '수': 'wed',
-            '목': 'thu',
-            '금': 'fri',
-            '토': 'sat',
-            '일': 'sun',
-        }
-        for sch in data.schedules:
-            day_of_week = sch.day_of_week
-            # 한글 요일이면 영어로 변환
-            if day_of_week in weekday_map:
-                day_of_week = weekday_map[day_of_week]
-            db.add(CounselorSchedule(
-                user_id=user_id,
-                day_of_week=day_of_week,
-                start_time=sch.start_time,
-                end_time=sch.end_time,
-                is_holiday=sch.is_holiday,
-            ))
-
     db.commit()
+    db.refresh(profile)
     return profile
+
+def get_counselor_profile(db: Session, user_id: int):
+    profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == user_id).first()
+    if not profile:
+        return None
+    # User 테이블에서 username, email, full_name, phone_number 가져오기
+    from app.models.user import User
+    user = db.query(User).filter(User.id == user_id).first()
+    profile_dict = profile.__dict__.copy()
+    if user:
+        profile_dict['username'] = user.username
+        profile_dict['user_email'] = user.email
+        profile_dict['user_name'] = user.full_name
+        profile_dict['user_phone'] = user.phone_number
+    else:
+        profile_dict['username'] = None
+        profile_dict['user_email'] = None
+        profile_dict['user_name'] = None
+        profile_dict['user_phone'] = None
+    profile_dict.pop('_sa_instance_state', None)
+    return profile_dict
+
+def update_counselor_profile(db: Session, user_id: int, data: CounselorProfileCreate):
+    profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == user_id).first()
+    if not profile:
+        return None
+    for k, v in data.dict(exclude_unset=True).items():
+        setattr(profile, k, v)
+    db.commit()
+    db.refresh(profile)
+    return profile
+
+# 2. 전문분야
+def add_specialty(db: Session, user_id: int, data: CounselorSpecialtyCreate):
+    specialty = CounselorSpecialty(user_id=user_id, **data.dict())
+    db.add(specialty)
+    db.commit()
+    db.refresh(specialty)
+    return specialty
+
+def get_specialties(db: Session, user_id: int):
+    return db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == user_id).all()
+
+# 3. 자격증
+def add_certificate(db: Session, user_id: int, data: CounselorCertificateCreate):
+    cert = CounselorCertificate(user_id=user_id, **data.dict())
+    db.add(cert)
+    db.commit()
+    db.refresh(cert)
+    return cert
+
+def get_certificates(db: Session, user_id: int):
+    return db.query(CounselorCertificate).filter(CounselorCertificate.user_id == user_id).all()
+
+# 4. 학력
+def add_education(db: Session, user_id: int, data: CounselorEducationCreate):
+    edu = CounselorEducation(user_id=user_id, **data.dict())
+    db.add(edu)
+    db.commit()
+    db.refresh(edu)
+    return edu
+
+def get_educations(db: Session, user_id: int):
+    return db.query(CounselorEducation).filter(CounselorEducation.user_id == user_id).all()
+
+# 5. 경력
+def add_experience(db: Session, user_id: int, data: CounselorExperienceCreate):
+    exp = CounselorExperience(user_id=user_id, **data.dict())
+    db.add(exp)
+    db.commit()
+    db.refresh(exp)
+    return exp
+
+def get_experiences(db: Session, user_id: int):
+    return db.query(CounselorExperience).filter(CounselorExperience.user_id == user_id).all()
+
+# 6. 주간 상담 일정
+def add_schedule(db: Session, user_id: int, data: CounselorScheduleCreate):
+    sch = CounselorSchedule(user_id=user_id, **data.dict())
+    db.add(sch)
+    db.commit()
+    db.refresh(sch)
+    return sch
+
+def get_schedules(db: Session, user_id: int):
+    return db.query(CounselorSchedule).filter(CounselorSchedule.user_id == user_id).all()

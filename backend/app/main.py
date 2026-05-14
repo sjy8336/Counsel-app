@@ -4,11 +4,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth
 from app.api import counselor
 from app.api import upload
+from app.api import payment
+from app.api import booking
+from app.api import notification
 
 from fastapi.staticfiles import StaticFiles
 import os
 
 app = FastAPI()
+
+app.include_router(payment.router, prefix="/api/payment", tags=["payment"])
+app.include_router(booking.router, prefix="/api/booking", tags=["booking"])
 
 # CORS 설정
 app.add_middleware(
@@ -23,9 +29,11 @@ app.add_middleware(
 # 회원가입/로그인 라우터 등록
 
 # 회원가입/로그인 라우터 등록
-app.include_router(auth.router)
+app.include_router(auth.router, prefix="/api")
 # 상담사 프로필 등록 라우터 등록
-app.include_router(counselor.router)
+app.include_router(counselor.router, prefix="/api")
+# 알림(notification) 라우터 등록
+app.include_router(notification.router, prefix="/api")
 # 프로필 이미지 업로드 라우터 등록
 app.include_router(upload.router)
 
@@ -36,3 +44,4 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 @app.get("/")
 def read_root():
     return {"Hello": "Jiyoung's World"}
+

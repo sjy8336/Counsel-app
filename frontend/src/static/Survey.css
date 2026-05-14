@@ -1,85 +1,759 @@
-/* frontend/src/static/Survey.css */
+/* Survey.css — 기존 CounselorMyPage 디자인 시스템 계승 */
+@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --main-color: #8BA888;      /* Sage Green */
-  --bg-color: #FDFBF7;        /* Warm White */
-  --sub-bg: #FAF7F2;          /* Sand Beige */
-  --accent-rose: #FDA4AF;     /* Soft Rose */
-  --text-main: #1E293B;       /* Slate Navy */
+    --sv-primary: #9bb095;
+    --sv-primary-dark: #7a9474;
+    --sv-primary-light: #f3f6f2;
+    --sv-primary-mid: #e4ede2;
+    --sv-bg: #f8f9fa;
+    --sv-card: #ffffff;
+    --sv-text: #222222;
+    --sv-sub: #888888;
+    --sv-border: #eeeeee;
+    --sv-danger: #e57373;
+    --sv-danger-light: #ffebee;
+    --sv-shadow: 0 4px 24px rgba(155, 176, 149, 0.1);
+    --sv-shadow-md: 0 8px 36px rgba(155, 176, 149, 0.14);
+    --sv-radius: 14px;
+    --sv-radius-sm: 10px;
 }
 
-.survey-container {
-  max-width: 600px;
-  margin: 40px auto;
-  padding: 30px;
-  background-color: var(--bg-color);
-  color: var(--text-main);
-  border-radius: 12px;
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-.survey-header h2 {
-  color: var(--main-color);
-  margin-bottom: 8px;
+/* ── 배경 & 래퍼 ─────────────────────────────────────────── */
+.sv-bg {
+    min-height: 100vh;
+    background: var(--sv-bg);
+    display: flex;
+    justify-content: center;
+    padding: 52px 24px 80px;
+    font-family:
+        'Pretendard',
+        -apple-system,
+        sans-serif;
+    color: var(--sv-text);
 }
 
-.selected-info {
-  background: var(--sub-bg);
-  padding: 12px;
-  border-radius: 8px;
-  margin: 20px 0;
-  font-size: 0.9rem;
-  display: flex;
-  gap: 15px;
+.sv-wrap {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
-.form-group {
-  margin-bottom: 25px;
+/* ── 헤더 ────────────────────────────────────────────────── */
+.sv-header {
+    text-align: center;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: 600;
+.sv-badge {
+    display: inline-block;
+    background: var(--sv-primary-light);
+    color: var(--sv-primary-dark);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 20px;
+    margin-bottom: 18px;
 }
 
-.form-group select, 
-.form-group textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1.5px solid var(--sub-bg);
-  border-radius: 6px;
-  background-color: #fff;
+.sv-title {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.45;
+    color: var(--sv-text);
+    margin-bottom: 18px;
+    letter-spacing: -0.4px;
 }
 
-.radio-group {
-  display: flex;
-  gap: 20px;
+.sv-counselor {
+    font-style: normal;
+    color: var(--sv-primary-dark);
+    position: relative;
 }
 
-.payment-notice {
-  border-top: 1px solid var(--sub-bg);
-  padding-top: 20px;
-  margin-top: 30px;
+/* 상담사 이름 강조 밑줄 */
+.sv-counselor::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -3px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--sv-primary);
+    opacity: 0.55;
 }
 
-.payment-notice h3 {
-  color: var(--accent-rose);
-  font-size: 1.1rem;
+.sv-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--sv-card);
+    border: 1px solid var(--sv-border);
+    border-radius: 30px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sv-sub);
+    box-shadow: var(--sv-shadow);
 }
 
-.submit-btn {
-  width: 100%;
-  background-color: var(--main-color);
-  color: white;
-  padding: 15px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 20px;
+.sv-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.submit-btn:hover {
-  filter: brightness(0.9);
+.sv-meta-item svg {
+    color: var(--sv-primary);
+}
+
+.sv-meta-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--sv-border);
+}
+
+/* ── 스텝 인디케이터 ─────────────────────────────────────── */
+.sv-stepper {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 0 4px;
+}
+
+.sv-track {
+    position: absolute;
+    top: 19px;
+    left: 28px;
+    right: 28px;
+    height: 2px;
+    background: var(--sv-border);
+    z-index: 0;
+    border-radius: 2px;
+}
+
+.sv-track-fill {
+    height: 100%;
+    background: var(--sv-primary);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+}
+
+.sv-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    z-index: 1;
+    flex: 1;
+}
+
+.sv-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--sv-card);
+    border: 2px solid var(--sv-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sv-sub);
+    transition: all 0.25s ease;
+    box-shadow: var(--sv-shadow);
+}
+
+.sv-node.active .sv-circle {
+    border-color: var(--sv-primary);
+    background: var(--sv-primary-light);
+    color: var(--sv-primary-dark);
+    box-shadow: 0 0 0 5px rgba(155, 176, 149, 0.15);
+}
+
+.sv-node.done .sv-circle {
+    background: var(--sv-primary);
+    border-color: var(--sv-primary);
+    color: #fff;
+}
+
+.sv-node-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sv-sub);
+    text-align: center;
+    white-space: nowrap;
+    transition: color 0.2s;
+}
+
+.sv-node.active .sv-node-label {
+    color: var(--sv-primary-dark);
+}
+.sv-node.done .sv-node-label {
+    color: var(--sv-primary);
+}
+
+/* ── 폼 카드 ─────────────────────────────────────────────── */
+.sv-card {
+    background: var(--sv-card);
+    border-radius: 22px;
+    border: 1px solid var(--sv-border);
+    box-shadow: var(--sv-shadow-md);
+    padding: 36px 40px;
+    animation: svFadeUp 0.3s ease;
+}
+
+@keyframes svFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sv-content {
+    animation: svFadeUp 0.28s ease;
+}
+
+/* ── 질문 헤더 ───────────────────────────────────────────── */
+.sv-q {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 24px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--sv-border);
+}
+
+.sv-q-num {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--sv-primary-dark);
+    background: var(--sv-primary-light);
+    padding: 3px 9px;
+    border-radius: 8px;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+}
+
+.sv-q-text {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--sv-text);
+    line-height: 1.5;
+}
+
+/* ── 칩 ──────────────────────────────────────────────────── */
+.sv-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-bottom: 16px;
+}
+
+.sv-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 9px 18px;
+    border-radius: 22px;
+    border: 1.5px solid var(--sv-border);
+    background: var(--sv-bg);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sv-sub);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+    user-select: none;
+}
+
+.sv-chip:hover {
+    border-color: var(--sv-primary);
+    color: var(--sv-primary-dark);
+    background: var(--sv-primary-light);
+}
+
+.sv-chip.on {
+    background: var(--sv-primary);
+    border-color: var(--sv-primary);
+    color: #fff;
+}
+
+/* ── 라디오 카드 ─────────────────────────────────────────── */
+.sv-radios {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sv-radio-card {
+    display: block;
+    padding: 14px 18px;
+    border-radius: var(--sv-radius);
+    border: 1.5px solid var(--sv-border);
+    background: var(--sv-bg);
+    cursor: pointer;
+    transition: all 0.18s;
+    user-select: none;
+}
+
+.sv-radio-card:hover {
+    border-color: var(--sv-primary);
+    background: var(--sv-primary-light);
+}
+
+.sv-radio-card.selected {
+    border-color: var(--sv-primary);
+    background: var(--sv-primary-light);
+    box-shadow: 0 0 0 3px rgba(155, 176, 149, 0.12);
+}
+
+.sv-radio-card.danger.selected {
+    border-color: var(--sv-danger);
+    background: var(--sv-danger-light);
+    box-shadow: 0 0 0 3px rgba(229, 115, 115, 0.1);
+}
+
+.sv-radio-card input[type='radio'] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sv-radio-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sv-radio-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--sv-border);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.18s;
+}
+
+.sv-radio-dot.on {
+    background: var(--sv-primary);
+    border-color: var(--sv-primary);
+}
+
+.sv-radio-card.danger.selected .sv-radio-dot {
+    background: var(--sv-danger);
+    border-color: var(--sv-danger);
+}
+
+.sv-radio-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sv-radio-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sv-text);
+}
+
+.sv-radio-sub {
+    font-size: 12px;
+    color: var(--sv-sub);
+}
+
+/* ── 입력 공통 ───────────────────────────────────────────── */
+.sv-input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: var(--sv-radius-sm);
+    border: 1.5px solid var(--sv-border);
+    background: var(--sv-bg);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--sv-text);
+    outline: none;
+    transition:
+        border-color 0.2s,
+        background 0.2s;
+    margin-top: 12px;
+}
+
+.sv-input:focus {
+    border-color: var(--sv-primary);
+    background: #fff;
+}
+
+.sv-textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 14px 16px;
+    border-radius: var(--sv-radius);
+    border: 1.5px solid var(--sv-border);
+    background: var(--sv-bg);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--sv-text);
+    outline: none;
+    resize: vertical;
+    line-height: 1.65;
+    transition:
+        border-color 0.2s,
+        background 0.2s;
+}
+
+.sv-textarea:focus {
+    border-color: var(--sv-primary);
+    background: #fff;
+}
+
+/* ── 요약 ────────────────────────────────────────────────── */
+.sv-summary {
+    background: var(--sv-bg);
+    border: 1px solid var(--sv-border);
+    border-radius: var(--sv-radius);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.sv-sum-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--sv-sub);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+.sv-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--sv-border);
+    font-size: 13px;
+}
+
+.sv-summary-row:last-child {
+    border-bottom: none;
+}
+
+.sv-summary-row.multiline {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.sv-sum-key {
+    color: var(--sv-sub);
+    font-weight: 500;
+    white-space: nowrap;
+}
+.sv-sum-val {
+    font-weight: 700;
+    color: var(--sv-text);
+    text-align: right;
+    line-height: 1.5;
+}
+.sv-summary-row.multiline .sv-sum-val {
+    text-align: left;
+}
+
+/* ── 결제 안내 ───────────────────────────────────────────── */
+.sv-payment {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    border: 1.5px dashed var(--sv-primary);
+    border-radius: var(--sv-radius);
+    padding: 20px 22px;
+    background: var(--sv-primary-light);
+    margin-bottom: 24px;
+}
+
+.sv-pay-icon {
+    color: var(--sv-primary-dark);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.sv-pay-body strong {
+    display: block;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--sv-text);
+    margin-bottom: 5px;
+}
+
+.sv-pay-body p {
+    font-size: 13px;
+    color: var(--sv-sub);
+    margin-bottom: 3px;
+}
+.sv-pay-sub {
+    font-size: 11px !important;
+}
+
+/* ── 버튼 ────────────────────────────────────────────────── */
+.sv-nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--sv-border);
+}
+
+.sv-prev {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 11px 20px;
+    border-radius: var(--sv-radius-sm);
+    border: 1.5px solid var(--sv-border);
+    background: #fff;
+    color: var(--sv-sub);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.18s;
+}
+
+.sv-prev:hover {
+    border-color: var(--sv-primary);
+    color: var(--sv-primary-dark);
+    background: var(--sv-primary-light);
+}
+
+.sv-next {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 12px;
+    border-radius: var(--sv-radius-sm);
+    border: none;
+    background: var(--sv-primary);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.18s;
+}
+
+.sv-next:hover:not(.off) {
+    background: var(--sv-primary-dark);
+}
+
+.sv-next.off {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.sv-submit {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 15px;
+    border-radius: var(--sv-radius);
+    border: none;
+    background: var(--sv-primary);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: -0.2px;
+    transition: all 0.2s;
+}
+
+.sv-submit:hover {
+    background: var(--sv-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(155, 176, 149, 0.28);
+}
+
+.sv-error {
+    padding: 80px 20px;
+    text-align: center;
+    color: var(--sv-sub);
+    font-family: 'Pretendard', sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   반응형 — PC (≥1024px) / Tablet (640~1023px) / Mobile (<640px)
+════════════════════════════════════════════════════════════ */
+
+/* PC */
+@media (min-width: 1024px) {
+    .sv-bg {
+        padding: 64px 40px 100px;
+    }
+    .sv-wrap {
+        max-width: 680px;
+        gap: 28px;
+    }
+    .sv-title {
+        font-size: 30px;
+    }
+    .sv-card {
+        padding: 44px 52px;
+    }
+    .sv-q-text {
+        font-size: 17px;
+    }
+
+    .sv-chips {
+        gap: 10px;
+    }
+    .sv-chip {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    .sv-radio-card {
+        padding: 16px 20px;
+    }
+    .sv-radio-label {
+        font-size: 15px;
+    }
+    .sv-radio-sub {
+        font-size: 12px;
+    }
+
+    .sv-textarea {
+        min-height: 160px;
+        font-size: 14px;
+    }
+    .sv-input {
+        font-size: 14px;
+    }
+
+    .sv-circle {
+        width: 42px;
+        height: 42px;
+    }
+    .sv-track {
+        top: 21px;
+    }
+    .sv-node-label {
+        font-size: 12px;
+    }
+}
+
+/* Tablet */
+@media (min-width: 640px) and (max-width: 1023px) {
+    .sv-bg {
+        padding: 44px 28px 80px;
+    }
+    .sv-wrap {
+        max-width: 600px;
+    }
+    .sv-title {
+        font-size: 24px;
+    }
+    .sv-card {
+        padding: 32px 36px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 639px) {
+    .sv-bg {
+        padding: 20px 14px 60px;
+    }
+    .sv-wrap {
+        gap: 18px;
+    }
+    .sv-title {
+        font-size: 20px;
+        letter-spacing: -0.3px;
+    }
+
+    .sv-card {
+        padding: 22px 18px;
+        border-radius: 18px;
+    }
+
+    .sv-stepper {
+        padding: 0 2px;
+    }
+    .sv-node-label {
+        font-size: 9px;
+    }
+    .sv-circle {
+        width: 32px;
+        height: 32px;
+    }
+    .sv-track {
+        top: 16px;
+        left: 22px;
+        right: 22px;
+    }
+
+    .sv-q-text {
+        font-size: 14px;
+    }
+    .sv-q-num {
+        font-size: 10px;
+    }
+
+    .sv-chip {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+
+    .sv-radio-card {
+        padding: 12px 14px;
+    }
+    .sv-radio-label {
+        font-size: 13px;
+    }
+
+    .sv-meta {
+        font-size: 12px;
+        padding: 8px 16px;
+        gap: 8px;
+    }
+
+    .sv-nav {
+        margin-top: 24px;
+        padding-top: 18px;
+    }
+    .sv-next,
+    .sv-prev {
+        font-size: 13px;
+        padding: 11px 16px;
+    }
+
+    .sv-payment {
+        flex-direction: column;
+        gap: 10px;
+    }
 }

@@ -5,13 +5,20 @@
    ============================================================ */
 
 /* ---------- 전역 레이아웃 ---------- */
+:root {
+    --mobile-tab-h: 60px;
+}
+
 .mwci-root {
-    min-height: 100vh;
+    height: 100dvh;
+    padding-bottom: var(--mobile-tab-h);
+    box-sizing: border-box;
     font-family: sans-serif;
     display: flex;
     flex-direction: column;
     background-color: #FDFBF7;
     color: #1E293B;
+    overflow: hidden;
 }
 
 /* ---------- 헤더 ---------- */
@@ -166,6 +173,7 @@
     margin: 0 auto;
     width: 100%;
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -175,6 +183,7 @@
 /* ---------- 왼쪽: 문의 목록 ---------- */
 .mwci-list-section {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -511,6 +520,7 @@
 /* ---------- 오른쪽: 상세 / 답변 ---------- */
 .mwci-detail-section {
     flex: 1.6;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -521,7 +531,7 @@
 }
 
 .mwci-detail-section--empty {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     background-color: #FAF7F2;
@@ -558,12 +568,14 @@
 .mwci-detail-panel {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     background-color: #ffffff;
     border-left: 1px solid #f1f5f9;
     border-right: 1px solid #f1f5f9;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .mwci-detail-mobile-topbar {
@@ -600,8 +612,7 @@
 
 /* ---------- 상세 스크롤 영역 ---------- */
 .mwci-detail-body {
-    flex: 1;
-    overflow-y: auto;
+    flex-shrink: 0;
     padding: 1rem;
     display: flex;
     flex-direction: column;
@@ -835,6 +846,8 @@
     border-top: 1px solid #f1f5f9;
     padding: 1rem;
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.03);
+    position: sticky;
+    bottom: 0;
 }
 
 .mwci-reply-header-row {
@@ -892,7 +905,7 @@
     padding-right: 3.5rem;
     font-size: 0.875rem;
     resize: none;
-    height: 110px;
+    height: 72px;
     transition: all 0.2s;
     overflow-y: auto;
     box-sizing: border-box;
@@ -1057,6 +1070,18 @@
    Responsive — md (≥ 768px)
    ============================================================ */
 @media (min-width: 768px) {
+    .mwci-root {
+        padding-bottom: 0;
+        height: auto;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .mwci-detail-section--empty {
+        display: flex;
+    }
+
     .mwci-header-inner {
         padding: 0 1.5rem;
     }
