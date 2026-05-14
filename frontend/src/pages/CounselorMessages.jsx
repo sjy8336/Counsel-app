@@ -68,6 +68,18 @@ const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
 
     const filterRef = useRef(null);
 
+    /* ── 탭바 높이 동적 측정 ── */
+    useEffect(() => {
+        const updateTabBarHeight = () => {
+            const nav = document.querySelector('.mobile-nav');
+            const h = nav ? nav.getBoundingClientRect().height : 0;
+            document.documentElement.style.setProperty('--mobile-tab-h', `${h}px`);
+        };
+        updateTabBarHeight();
+        window.addEventListener('resize', updateTabBarHeight);
+        return () => window.removeEventListener('resize', updateTabBarHeight);
+    }, []);
+
     /* ── 3. 필터링 ── */
     const filteredInquiries = inquiries.filter((inquiry) => {
         const matchesSearch = inquiry.sender.toLowerCase().includes(searchTerm.toLowerCase());
@@ -268,7 +280,7 @@ const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                                             <div className="mwci-sender-avatar">{selectedInquiry.sender[0]}</div>
                                             <div>
                                                 <div className="mwci-sender-name-row">
-                                                    <h4 className="mwci-sender-name">{selectedInquiry.sender}님</h4>
+                                                    <h4 className="mwci-sender-name">{selectedInquiry.sender}</h4>
                                                     <span className="mwci-sender-tag-badge">
                                                         #{selectedInquiry.tag}
                                                     </span>
