@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { confirmBooking } from '../api/bookingConfirm';
+import { getCounselorBookings } from '../api/bookingCounselor';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import MobileTap from '../components/mobileTap';
@@ -43,48 +44,39 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
     const [endTime, setEndTime] = useState('10:00');
     const [activePicker, setActivePicker] = useState(null);
 
-    const [reservations, setReservations] = useState([
-        {
-            id: 1,
-            client: '김지아',
-            date: '2026-04-21',
-            time: '14:00 - 15:00',
-            type: '상담',
-            status: '확정됨',
-            location: '마인드웰 서울 센터 3번실',
-            topic: '대인관계 및 사회 공포증',
-        },
-        {
-            id: 2,
-            client: '박민우',
-            date: '2026-04-21',
-            time: '16:30 - 17:30',
-            type: '상담',
-            status: '확정됨',
-            location: '마인드웰 서울 센터 1번실',
-            topic: '직장 내 번아웃 및 스트레스 관리',
-        },
-        {
-            id: 3,
-            client: '이하늘',
-            date: '2026-04-22',
-            time: '10:00 - 11:00',
-            type: '상담',
-            status: '대기 중',
-            location: '미정',
-            topic: '자기이해 및 자존감 향상',
-        },
-        {
-            id: 4,
-            client: '최현우',
-            date: '2026-05-12',
-            time: '13:00 - 14:00',
-            type: '상담',
-            status: '확정됨',
-            location: '마인드웰 서울 센터 2번실',
-            topic: '진로 고민 및 취업 스트레스',
-        },
-    ]);
+    const [reservations, setReservations] = useState([]);
+    // 상담사 본인 예약 목록 불러오기
+    useEffect(() => {
+        const fetchCounselorBookings = async () => {
+            try {
+                const data = await getCounselorBookings();
+                // API 응답을 화면에 맞게 변환
+                setReservations(
+                    data.map((b) => ({
+                        id: b.id,
+                        client: b.client_name || b.client || '',
+                        date: b.date || b.booking_date,
+                        time: b.time || b.booking_time,
+                        type: '상담',
+                        status:
+                            b.status || b.booking_status === 'waiting'
+                                ? '대기 중'
+                                : b.booking_status === 'confirmed'
+                                  ? '확정됨'
+                                  : b.booking_status === 'completed'
+                                    ? '상담 완료'
+                                    : '취소됨',
+                        location: b.location || b.center_name || '',
+                        topic: b.survey_content?.reason || b.survey_content?.topic || b.topic || '',
+                        order_id: b.order_id,
+                    }))
+                );
+            } catch (e) {
+                // 실패 시 더미 데이터 유지
+            }
+        };
+        fetchCounselorBookings();
+    }, []);
 
     const [offDays, setOffDays] = useState(['2026-04-25', '2026-04-26']);
     const [blockedSlots, setBlockedSlots] = useState([
@@ -552,15 +544,19 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
             const isOff = offDays.includes(dateString);
             const dayBlocks = blockedSlots.filter((b) => b.date === dateString);
             const isToday = today.toDateString() === new Date(year, month, d).toDateString();
+            const thisDate = new Date(year, month, d);
+            const isPast = thisDate < today;
 
             calendarDays.push(
                 <div
                     key={d}
                     onClick={() => {
+                        if (isPast) return; // 오늘 이전 날짜는 선택 불가
                         setSelectedDateDetails(dateString);
                         setManualSelectedDate(dateString);
                     }}
-                    className={`mwc-calendar-cell${isOff ? ' mwc-calendar-cell--off' : ''}`}
+                    className={`mwc-calendar-cell${isOff ? ' mwc-calendar-cell--off' : ''}${isPast ? ' mwc-calendar-cell--disabled' : ''}`}
+                    style={isPast ? { pointerEvents: 'none', opacity: 0.4, cursor: 'not-allowed' } : {}}
                 >
                     <div className="mwc-cell-top">
                         <span className={`mwc-cell-day${isToday ? ' mwc-cell-day--today' : ''}`}>{d}</span>

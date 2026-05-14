@@ -114,7 +114,7 @@ const Success = () => {
                         홈으로 돌아가기
                     </button>
                     {status === 'success' && (
-                        <button className="btn-home" onClick={() => navigate('/schedule')}>
+                        <button className="btn-home btn-reservation" onClick={() => navigate('/reservation')}>
                             예약 관리로 이동
                         </button>
                     )}

@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from sqlalchemy.orm import Session
 from app.db.session import get_db
@@ -6,8 +7,48 @@ from app.core.deps import get_current_user
 from app.models.user import User
 from datetime import datetime
 import uuid
-
 router = APIRouter()
+
+@router.get("/counselor-list")
+def get_bookings_for_counselor(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    (상담사 본인만) 본인이 받은 모든 예약 목록 반환 (내담자 정보 포함)
+    """
+    from app.models.user import User
+    from app.models.counselor import CounselorProfile
+    # 상담사 본인만 조회
+    bookings = db.query(Booking).filter(Booking.counselor_id == current_user.id).all()
+    results = []
+    for b in bookings:
+        client = db.query(User).filter(User.id == b.client_id).first()
+        client_name = client.full_name if client else "내담자"
+        profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == b.counselor_id).first()
+        center_name = profile.center_name if profile else "센터"
+        # 프론트 요구에 맞게 status 변환
+        if b.booking_status == 'waiting':
+            status = '대기 중'
+        elif b.booking_status == 'confirmed':
+            status = '확정됨'
+        elif b.booking_status == 'completed':
+            status = '상담 완료'
+        else:
+            status = '취소됨'
+        results.append({
+            "id": b.id,
+            "order_id": b.order_id,
+            "client_name": client_name,
+            "date": b.booking_date.strftime('%Y-%m-%d'),
+            "time": b.booking_time,
+            "status": status,
+            "location": center_name,
+            "survey_content": b.survey_content,
+        })
+    return results
+
+# 중복 import 및 router 선언 제거
 
 @router.post("/confirm")
 def confirm_booking(data: dict, db: Session = Depends(get_db)):
