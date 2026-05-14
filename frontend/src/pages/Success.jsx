@@ -21,17 +21,20 @@ const Success = () => {
     let selectedDate = '';
     let selectedTime = '';
     let survey = {};
+    let counselorId = '';
     try {
         const pendingBooking = JSON.parse(localStorage.getItem('pendingBooking'));
         counselorName = pendingBooking?.counselorName || '';
         selectedDate = pendingBooking?.selectedDate || '';
         selectedTime = pendingBooking?.selectedTime || '';
         survey = pendingBooking?.survey || {};
+        counselorId = Number(pendingBooking?.counselorId);
     } catch (e) {
         counselorName = '';
         selectedDate = '';
         selectedTime = '';
         survey = {};
+        counselorId = '';
     }
 
     useEffect(() => {
@@ -46,9 +49,16 @@ const Success = () => {
         setStatus('pending');
         setMessage('예약 정보를 저장 중입니다...');
 
-        // 1. 예약 먼저 생성
+        // 1. 예약 먼저 생성 (counselorId 유효성 체크)
+        if (!counselorId || isNaN(counselorId) || counselorId <= 0) {
+            setStatus('fail');
+            setMessage('상담사 정보가 올바르지 않습니다. 예약이 생성되지 않았습니다.');
+            localStorage.removeItem('pendingBooking');
+            return;
+        }
         createBooking({
             counselorName,
+            counselorId,
             selectedDate,
             selectedTime,
             survey,
@@ -103,6 +113,11 @@ const Success = () => {
                     <button className="btn-home" onClick={() => navigate('/')}>
                         홈으로 돌아가기
                     </button>
+                    {status === 'success' && (
+                        <button className="btn-home" onClick={() => navigate('/schedule')}>
+                            예약 관리로 이동
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

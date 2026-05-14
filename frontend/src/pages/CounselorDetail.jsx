@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toggleFavorite } from '../api/favorite';
 import { isTokenExpired } from '../utils/jwt';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { getAllBookings } from '../api/booking';
 import { User, Calendar, ChevronLeft, ChevronRight, Clock, CheckCircle, MessageCircle } from 'lucide-react';
 import Header from '../components/header';
 import Footer from '../components/footer';
@@ -13,6 +14,17 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     const navigate = useNavigate();
     const location = useLocation();
     const containerRef = useRef(null);
+
+    // 예약 성공 후 돌아올 때 state로 selectedDate가 넘어오면 자동으로 예약 시간 갱신 (콘솔로 값 확인)
+    useEffect(() => {
+        const stateDate = location.state?.selectedDate;
+        if (stateDate) {
+            const day = Number(stateDate.split('-')[2]);
+            if (!isNaN(day)) {
+                handleDateClick(day);
+            }
+        }
+    }, [location.state?.selectedDate]);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -106,6 +118,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
     const [availableTimesForDate, setAvailableTimesForDate] = useState([]);
+    const [reservedTimes, setReservedTimes] = useState([]); // 예약된 시간 목록
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [liked, setLiked] = useState(location.state?.isLiked || false);
     const [toast, setToast] = useState(null);
@@ -128,12 +141,33 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleReservation = () => {
+    const handleReservation = async () => {
         if (!selectedDate || !selectedTime) {
             alert('상담 일자와 시간을 모두 선택해주세요.');
             return;
         }
-        navigate('/survey', { state: { counselorName: counselor.name, selectedDate, selectedTime } });
+        // 내 예약 목록에서 해당 상담사 예약 이력 확인
+        try {
+            const bookings = await getAllBookings();
+            const counselorId = counselor?.id || counselor?.user?.id;
+            const hasBooked = bookings.some(
+                (b) =>
+                    b.booking_status !== 'canceled' && (b.counselor_id === counselorId || b.counselorId === counselorId)
+            );
+            if (!hasBooked) {
+                // 최초 예약: 설문 페이지로 이동 (counselorId 포함)
+                navigate('/survey', {
+                    state: { counselorName: safeCounselor.name, selectedDate, selectedTime, counselorId },
+                });
+            } else {
+                // 이미 예약한 적 있음: 바로 결제 페이지로 이동 (counselorId 포함)
+                navigate('/payment', {
+                    state: { counselorName: safeCounselor.name, selectedDate, selectedTime, counselorId },
+                });
+            }
+        } catch (e) {
+            alert('예약 이력 확인에 실패했습니다. 다시 시도해 주세요.');
+        }
     };
 
     const handleLike = async () => {
@@ -172,8 +206,8 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
     const firstDayOfMonth = (y, m) => new Date(y, m, 1).getDay();
 
-    // 날짜 클릭 시 해당 요일의 상담 가능 시간대 추출
-    const handleDateClick = (day) => {
+    // 날짜 클릭 시 해당 요일의 상담 가능 시간대 추출 및 예약된 시간 조회
+    const handleDateClick = async (day) => {
         const clicked = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
         if (clicked >= today) {
             const dateStr = `${clicked.getFullYear()}-${String(clicked.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -194,7 +228,24 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                     times.push(`${String(h).padStart(2, '0')}:00`);
                 }
             });
-            setAvailableTimesForDate(times);
+
+            // 예약된 시간 조회
+            try {
+                const res = await axios.get(`/api/booking/reserved-times`, {
+                    params: {
+                        counselor_id: counselor?.id || counselor?.user?.id,
+                        date: dateStr,
+                    },
+                });
+                // 예약된 시간 배열 추출 (API는 booking_time 배열 반환, 하지만 실제로는 그냥 배열임)
+                const reserved = Array.isArray(res.data) ? res.data : [];
+                setReservedTimes(reserved);
+                // 예약된 시간은 아예 버튼 자체가 렌더링되지 않도록 availableTimesForDate에서 제외
+                setAvailableTimesForDate(times.filter((t) => !reserved.includes(t)));
+            } catch (e) {
+                setReservedTimes([]);
+                setAvailableTimesForDate(times);
+            }
             setSelectedTime(''); // 날짜 바뀌면 시간 초기화
         }
     };
@@ -428,9 +479,15 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                 <button
                                     className="cld-reserve-submit-btn"
                                     onClick={handleReservation}
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || !counselor || !selectedDate || !selectedTime}
                                 >
-                                    {isSubmitting ? '처리 중...' : '예약 신청하기'}
+                                    {isSubmitting
+                                        ? '처리 중...'
+                                        : !counselor
+                                          ? '상담사 정보 로딩 중'
+                                          : !selectedDate || !selectedTime
+                                            ? '날짜와 시간을 선택하세요'
+                                            : '예약 신청하기'}
                                 </button>
                                 <button
                                     className={`cld-heart-btn-reserve${liked ? ' liked' : ''}`}

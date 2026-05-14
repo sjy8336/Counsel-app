@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import { toggleFavorite, getFavorites } from '../api/favorite';
 import { useNavigate } from 'react-router-dom';
 import { Search, User, Heart } from 'lucide-react';
@@ -12,6 +12,11 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
     const [liked, setLiked] = useState({}); // { [id]: true/false }
     const [toast, setToast] = useState(null);
     const [dbCounselors, setDbCounselors] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [visibleCount, setVisibleCount] = useState(20); // 한 번에 보여줄 상담사 수
+    const [totalCount, setTotalCount] = useState(0); // 전체 상담사 수
+    const [pageOffset, setPageOffset] = useState(0); // 현재 불러온 offset
+    const loaderRef = useRef(null);
     const navigate = useNavigate();
 
     // 토스트 표시 함수
@@ -23,50 +28,28 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
         }
     }, [toast]);
 
+    // 검색어/카테고리 변경 시 서버에 조건에 맞는 상담사 리스트를 offset=0부터 새로 요청
     useEffect(() => {
-        const fetchLikes = async () => {
+        const fetchAll = async () => {
+            setLoading(true);
             const token = localStorage.getItem('access_token');
-            if (!token) return;
-
             try {
-                const favList = await getFavorites(token);
-                const initialLikes = {};
-                if (favList && Array.isArray(favList.favorites)) {
-                    favList.favorites.forEach((fav) => {
-                        const cId = Number(fav.counselor_id);
-                        if (cId) {
-                            initialLikes[cId] = true;
-                        }
-                    });
-                }
-                setLiked(initialLikes);
-            } catch (err) {
-                console.error('찜 목록 로드 실패:', err);
-                // 401 에러(세션만료) 시 처리
-                if (err.response?.status === 401) {
-                    localStorage.removeItem('access_token');
-                    alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
-                    navigate('/login');
-                }
-            }
-        };
-        fetchLikes();
-    }, []); // 빈 배열: 컴포넌트 마운트 시 1회 실행
-
-    useEffect(() => {
-        const fetchDbCounselors = async () => {
-            try {
-                const res = await fetch('/api/counselors/approved');
-                if (!res.ok) throw new Error('상담사 목록 조회 실패');
-                const data = await res.json();
-                // created_at 기준 내림차순 정렬
-                const sorted = data.slice().sort((a, b) => {
-                    const aTime = a.profile?.created_at ? new Date(a.profile.created_at).getTime() : 0;
-                    const bTime = b.profile?.created_at ? new Date(b.profile.created_at).getTime() : 0;
-                    return bTime - aTime;
-                });
+                // 쿼리 파라미터 구성
+                const params = new URLSearchParams();
+                params.append('offset', 0);
+                params.append('limit', 20);
+                if (searchTerm) params.append('search', searchTerm);
+                if (selectedCategory && selectedCategory !== '전체') params.append('category', selectedCategory);
+                const [counselorRes, favList] = await Promise.all([
+                    fetch(`/api/counselors/approved?${params.toString()}`),
+                    token ? getFavorites(token) : Promise.resolve({ favorites: [] }),
+                ]);
+                if (!counselorRes.ok) throw new Error('상담사 목록 조회 실패');
+                const data = await counselorRes.json();
+                setTotalCount(data.total || 0);
+                setPageOffset(data.counselors.length);
                 setDbCounselors(
-                    sorted.map((item) => ({
+                    data.counselors.map((item) => ({
                         id: item.user?.id,
                         name: item.user?.full_name,
                         category:
@@ -81,13 +64,26 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                         profile_img_url: item.profile?.profile_img_url,
                     }))
                 );
+                // 찜 상태 세팅
+                const initialLikes = {};
+                if (favList && Array.isArray(favList.favorites)) {
+                    favList.favorites.forEach((fav) => {
+                        const cId = Number(fav.counselor_id);
+                        if (cId) {
+                            initialLikes[cId] = true;
+                        }
+                    });
+                }
+                setLiked(initialLikes);
             } catch (err) {
                 alert('상담사 목록을 불러오지 못했습니다.');
                 setDbCounselors([]);
+            } finally {
+                setLoading(false);
             }
         };
-        fetchDbCounselors();
-    }, []);
+        fetchAll();
+    }, [searchTerm, selectedCategory]);
 
     const handleLike = async (id, e) => {
         e.stopPropagation();
@@ -112,12 +108,153 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
         }
     };
 
-    const allCounselors = dbCounselors;
+    // filter/sort/map 연산 useMemo로 최적화
+    const filteredCounselors = useMemo(() => {
+        return dbCounselors.filter((c) => {
+            const matchesSearch = (c.name && c.name.includes(searchTerm)) || (c.field && c.field.includes(searchTerm));
+            const matchesCategory = selectedCategory === '전체' || c.category === selectedCategory;
+            return matchesSearch && matchesCategory;
+        });
+    }, [dbCounselors, searchTerm, selectedCategory]);
 
-    const filteredCounselors = allCounselors.filter((c) => {
-        const matchesSearch = (c.name && c.name.includes(searchTerm)) || (c.field && c.field.includes(searchTerm));
-        const matchesCategory = selectedCategory === '전체' || c.category === selectedCategory;
-        return matchesSearch && matchesCategory;
+    // 무한스크롤: 하단 도달 시 추가 데이터 페이징 요청 (검색/카테고리 조건 반영)
+    const handleObserver = useCallback(
+        (entries) => {
+            const target = entries[0];
+            if (target.isIntersecting && !loading && dbCounselors.length < totalCount) {
+                // 다음 페이지 요청
+                const fetchNext = async () => {
+                    setLoading(true);
+                    try {
+                        const params = new URLSearchParams();
+                        params.append('offset', pageOffset);
+                        params.append('limit', 20);
+                        if (searchTerm) params.append('search', searchTerm);
+                        if (selectedCategory && selectedCategory !== '전체')
+                            params.append('category', selectedCategory);
+                        const res = await fetch(`/api/counselors/approved?${params.toString()}`);
+                        if (!res.ok) throw new Error('상담사 추가 조회 실패');
+                        const data = await res.json();
+                        setDbCounselors((prev) => [
+                            ...prev,
+                            ...data.counselors.map((item) => ({
+                                id: item.user?.id,
+                                name: item.user?.full_name,
+                                category:
+                                    item.specialties && item.specialties[0]?.specialty_name
+                                        ? item.specialties[0].specialty_name
+                                        : '',
+                                field: item.specialties ? item.specialties.map((s) => s.specialty_name).join(', ') : '',
+                                price: item.profile?.consultation_price
+                                    ? `${item.profile.consultation_price.toLocaleString()}원`
+                                    : '',
+                                intro: item.profile?.intro_line,
+                                profile_img_url: item.profile?.profile_img_url,
+                            })),
+                        ]);
+                        setPageOffset((prev) => prev + data.counselors.length);
+                    } catch (err) {
+                        alert('상담사 추가 목록을 불러오지 못했습니다.');
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                fetchNext();
+            }
+        },
+        [loading, dbCounselors.length, totalCount, pageOffset, searchTerm, selectedCategory]
+    );
+
+    useEffect(() => {
+        if (loading) return;
+        const option = { root: null, rootMargin: '0px', threshold: 0.1 };
+        const observer = new window.IntersectionObserver(handleObserver, option);
+        if (loaderRef.current) observer.observe(loaderRef.current);
+        return () => {
+            if (loaderRef.current) observer.unobserve(loaderRef.current);
+        };
+    }, [handleObserver, loading]);
+
+    // 검색/카테고리 변경 시 페이징 초기화 (추후 확장 가능)
+    // useEffect(() => {
+    //     setVisibleCount(20);
+    // }, [searchTerm, selectedCategory, allCounselors.length]);
+
+    // 스켈레톤 카드 컴포넌트
+    const SkeletonCard = () => (
+        <div className="cld-counselor-card skeleton">
+            <div className="cld-card-top">
+                <div className="cld-profile-placeholder skeleton-img" />
+                <div className="cld-heart-btn skeleton-heart" />
+            </div>
+            <div className="cld-card-body">
+                <div className="skeleton-line skeleton-category" />
+                <div className="skeleton-line skeleton-name" />
+                <div className="skeleton-line skeleton-field" />
+                <div className="skeleton-line skeleton-intro" />
+            </div>
+            <div className="cld-card-footer">
+                <div className="skeleton-line skeleton-price" />
+                <div className="skeleton-line skeleton-btn" />
+            </div>
+        </div>
+    );
+
+    // 상담사 카드 컴포넌트 (React.memo 적용)
+    const CounselorCard = memo(function CounselorCard({
+        id,
+        name,
+        category,
+        field,
+        price,
+        intro,
+        profile_img_url,
+        liked,
+        onLike,
+        onClick,
+    }) {
+        return (
+            <div key={id} className="cld-counselor-card" onClick={onClick}>
+                <div className="cld-card-top">
+                    <div className="cld-profile-placeholder">
+                        {profile_img_url ? (
+                            <img
+                                src={profile_img_url}
+                                alt="프로필"
+                                loading="lazy"
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    borderRadius: '16px',
+                                    display: 'block',
+                                }}
+                            />
+                        ) : (
+                            <User size={32} />
+                        )}
+                    </div>
+                    <button className={`cld-heart-btn${liked ? ' liked' : ''}`} onClick={onLike} aria-label="좋아요">
+                        <Heart
+                            size={22}
+                            fill={liked ? '#e74c3c' : 'none'}
+                            color={liked ? '#e74c3c' : '#bbb'}
+                            strokeWidth={2.2}
+                        />
+                    </button>
+                </div>
+                <div className="cld-card-body">
+                    <span className="cld-counselor-category-label">{category}</span>
+                    <h3 className="cld-counselor-name">{name}</h3>
+                    <span className="cld-counselor-field-tags">{field}</span>
+                    <p className="cld-counselor-intro">{intro}</p>
+                </div>
+                <div className="cld-card-footer">
+                    <span className="cld-price-info">{price} / 50분</span>
+                    <button className="cld-view-detail-btn">상세보기</button>
+                </div>
+            </div>
+        );
     });
 
     return (
@@ -159,66 +296,43 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                     </header>
 
                     <main className="cld-counselor-grid cld-pc-full">
-                        {filteredCounselors.map((counselor) => (
-                            <div
-                                key={counselor.id + (counselor.profile_img_url ? '-db' : '-dummy')}
-                                className="cld-counselor-card"
-                                onClick={() =>
-                                    navigate(`/counselor/${counselor.id}`, {
-                                        state: {
-                                            isLiked: !!liked[counselor.id],
-                                            counselor: {
-                                                ...counselor,
-                                                // DB에서 온 상담사라면 상세 정보도 함께 넘김
-                                                ...(dbCounselors.find((c) => c.id === counselor.id) || {}),
-                                            },
-                                        },
-                                    })
-                                }
-                            >
-                                <div className="cld-card-top">
-                                    <div className="cld-profile-placeholder">
-                                        {counselor.profile_img_url ? (
-                                            <img
-                                                src={counselor.profile_img_url}
-                                                alt="프로필"
-                                                style={{
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    objectFit: 'cover',
-                                                    borderRadius: '16px',
-                                                    display: 'block',
-                                                }}
-                                            />
-                                        ) : (
-                                            <User size={32} />
-                                        )}
-                                    </div>
-                                    <button
-                                        className={`cld-heart-btn${liked[counselor.id] ? ' liked' : ''}`}
-                                        onClick={(e) => handleLike(counselor.id, e)}
-                                        aria-label="좋아요"
-                                    >
-                                        <Heart
-                                            size={22}
-                                            fill={liked[counselor.id] ? '#e74c3c' : 'none'}
-                                            color={liked[counselor.id] ? '#e74c3c' : '#bbb'}
-                                            strokeWidth={2.2}
-                                        />
-                                    </button>
-                                </div>
-                                <div className="cld-card-body">
-                                    <span className="cld-counselor-category-label">{counselor.category}</span>
-                                    <h3 className="cld-counselor-name">{counselor.name}</h3>
-                                    <span className="cld-counselor-field-tags">{counselor.field}</span>
-                                    <p className="cld-counselor-intro">{counselor.intro}</p>
-                                </div>
-                                <div className="cld-card-footer">
-                                    <span className="cld-price-info">{counselor.price} / 50분</span>
-                                    <button className="cld-view-detail-btn">상세보기</button>
-                                </div>
-                            </div>
-                        ))}
+                        {loading && dbCounselors.length === 0 ? (
+                            Array.from({ length: 6 }).map((_, idx) => <SkeletonCard key={idx} />)
+                        ) : filteredCounselors.length === 0 ? (
+                            <div className="cld-counselor-empty">상담사가 없습니다.</div>
+                        ) : (
+                            <>
+                                {filteredCounselors.map((counselor) => (
+                                    <CounselorCard
+                                        key={counselor.id}
+                                        id={counselor.id}
+                                        name={counselor.name}
+                                        category={counselor.category}
+                                        field={counselor.field}
+                                        price={counselor.price}
+                                        intro={counselor.intro}
+                                        profile_img_url={counselor.profile_img_url}
+                                        liked={!!liked[counselor.id]}
+                                        onLike={(e) => handleLike(counselor.id, e)}
+                                        onClick={() =>
+                                            navigate(`/counselor/${counselor.id}`, {
+                                                state: {
+                                                    isLiked: !!liked[counselor.id],
+                                                    counselor: {
+                                                        ...counselor,
+                                                        ...(dbCounselors.find((c) => c.id === counselor.id) || {}),
+                                                    },
+                                                },
+                                            })
+                                        }
+                                    />
+                                ))}
+                                {/* 무한스크롤 로더 */}
+                                {dbCounselors.length < totalCount && (
+                                    <div ref={loaderRef} style={{ height: 40, background: 'none' }} />
+                                )}
+                            </>
+                        )}
                     </main>
                 </div>
                 <Footer />

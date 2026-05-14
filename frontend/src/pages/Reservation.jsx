@@ -51,17 +51,6 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                 // 항상 HH:mm:00 형식으로 맞추기
                 const dateTimeStr = dateStr + 'T' + endTime + ':00';
                 const dateObj = new Date(dateTimeStr);
-                // 디버깅용 로그 추가
-                console.log('[예약상태비교]', {
-                    item_date: item.date,
-                    item_time: item.time,
-                    dateStr,
-                    endTime,
-                    dateTimeStr,
-                    dateObj: dateObj.toString(),
-                    now: now.toString(),
-                    isCompleted: item.status === '예약 확정' && !isNaN(dateObj) && dateObj < now,
-                });
                 // dateObj가 유효한 날짜일 때만 상담 완료 처리
                 if (item.status === '예약 확정' && !isNaN(dateObj) && dateObj < now) {
                     await completeBooking(item.order_id);
@@ -71,16 +60,6 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
             if (needsRefresh) {
                 data = await getAllBookings();
             }
-            data.forEach((item, idx) => {
-                console.log(`[예약리스트][${idx}]`, {
-                    id: item.id,
-                    order_id: item.order_id,
-                    name: item.name,
-                    date: item.date,
-                    time: item.time,
-                    status: item.status,
-                });
-            });
             setHistoryData(data);
         };
         fetchAndUpdate();
@@ -185,46 +164,50 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
 
                 <div className="res-history-list">
                     {filteredData.map((item) => (
-                        <div key={item.id} className="res-history-list-item">
-                            <div className="res-item-main-info">
-                                <div className="res-date-badge-column">
-                                    <span className="res-date-display">{item.date}</span>
-                                    <span
-                                        className={`res-status-tag ${getStatusClass(getStatusText(item.booking_status))}`}
-                                    >
-                                        {getStatusText(item.booking_status)}
-                                    </span>
-                                </div>
-                                <div className="res-item-content-box">
-                                    <h3 className="res-counselor-name">
-                                        {item.name} <span className="res-type-tag">대면 상담</span>
-                                    </h3>
-                                    <div className="res-item-details">
-                                        <span>
-                                            <Clock size={16} /> {item.time}
-                                        </span>
-                                        <span className="res-divider">|</span>
-                                        <span>
-                                            <MapPin size={16} /> {item.location}
+                            <div key={item.id} className="res-history-list-item">
+                                <div className="res-item-main-info">
+                                    <div className="res-date-badge-column">
+                                        <span className="res-date-display">{item.date}</span>
+                                        <span
+                                            className={`res-status-tag ${getStatusClass(getStatusText(item.booking_status))}`}
+                                        >
+                                            {getStatusText(item.booking_status)}
                                         </span>
                                     </div>
+                                    <div className="res-item-content-box">
+                                        <h3 className="res-counselor-name">{item.name}</h3>
+                                        <div className="res-item-details">
+                                            <span>
+                                                <Clock size={16} /> {item.time}
+                                            </span>
+                                            <span className="res-divider">|</span>
+                                            <span>
+                                                <MapPin size={16} />{' '}
+                                                {item.location ||
+                                                    item.centerName ||
+                                                    item.center_name ||
+                                                    item.center ||
+                                                    '센터'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="res-item-actions">
+                                    {(getStatusText(item.booking_status) === '예약 대기' ||
+                                        getStatusText(item.booking_status) === '예약 확정') && (
+                                        <button
+                                            className="res-cancel-trigger-btn"
+                                            onClick={() => handleCancelClick(item.id)}
+                                        >
+                                            취소하기
+                                        </button>
+                                    )}
+                                    <ChevronRight size={24} className="res-arrow-icon" />
                                 </div>
                             </div>
-
-                            <div className="res-item-actions">
-                                {(getStatusText(item.booking_status) === '예약 대기' ||
-                                    getStatusText(item.booking_status) === '예약 확정') && (
-                                    <button
-                                        className="res-cancel-trigger-btn"
-                                        onClick={() => handleCancelClick(item.id)}
-                                    >
-                                        취소하기
-                                    </button>
-                                )}
-                                <ChevronRight size={24} className="res-arrow-icon" />
-                            </div>
-                        </div>
-                    ))}
+                        ))}
+                    
                 </div>
             </main>
 

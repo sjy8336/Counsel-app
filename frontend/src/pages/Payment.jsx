@@ -7,20 +7,24 @@ import '../static/Payment.css';
 const Payment = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { counselorName, selectedDate, selectedTime, survey } = location.state || {};
+    const { counselorName, selectedDate, selectedTime, survey, counselorId } = location.state || {};
     const [paymentMethod, setPaymentMethod] = useState('CARD');
 
     const clientKey = import.meta.env.VITE_TOSS_CLIENT_KEY;
 
     const handlePayment = async () => {
         try {
-            // 예약 정보 localStorage에 저장
-            localStorage.setItem('pendingBooking', JSON.stringify({
-                counselorName,
-                selectedDate,
-                selectedTime,
-                survey
-            }));
+            // 예약 정보 localStorage에 저장 (counselorId 반드시 포함)
+            localStorage.setItem(
+                'pendingBooking',
+                JSON.stringify({
+                    counselorName,
+                    counselorId,
+                    selectedDate,
+                    selectedTime,
+                    survey,
+                })
+            );
             // 1. 결제창 호출 (토스 서버로 이동)
             const tossPayments = await loadTossPayments(clientKey);
             await tossPayments.requestPayment(paymentMethod, {
