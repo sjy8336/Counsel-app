@@ -14,6 +14,7 @@
         );
     };
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../static/CounselorMyPage.css';
 import axios from 'axios';
@@ -66,6 +67,8 @@ const TIME_OPTIONS = Array.from({ length: 30 }, (_, i) => {
     const total = 9 * 60 + i * 30;
     return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 });
+// END_TIME_OPTIONS가 정의되어 있지 않아 ReferenceError가 발생하므로, TIME_OPTIONS와 동일하게 정의합니다.
+const END_TIME_OPTIONS = TIME_OPTIONS;
 const SPECIALTY_OPTIONS = [
     '개인심리',
     '취업상담',
@@ -172,7 +175,14 @@ const MonthPicker = ({ value, onChange, icon = true, placeholder = '', className
     const [open, setOpen] = useState(false);
     const [viewYear, setViewYear] = useState(() => (value ? Number(value.split('-')[0]) : new Date().getFullYear()));
     const ref = useRef(null);
+    const [popoverPos, setPopoverPos] = useState({ left: 0, top: 0, width: 0 });
     useOutsideClose(open, ref, () => setOpen(false));
+    useEffect(() => {
+        if (open && ref.current) {
+            const rect = ref.current.getBoundingClientRect();
+            setPopoverPos({ left: rect.left, top: rect.bottom, width: rect.width });
+        }
+    }, [open]);
 
     return (
         <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
@@ -189,8 +199,8 @@ const MonthPicker = ({ value, onChange, icon = true, placeholder = '', className
                 <span>{value ? formatMonth(value) : placeholder || '연/월 선택'}</span>
                 <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
             </button>
-            {open && (
-                <div className="cmp-picker-popover cmp-monthpicker-modal">
+            {open && createPortal(
+                <div className="cmp-picker-popover cmp-monthpicker-modal" style={{ position: 'fixed', left: popoverPos.left, top: popoverPos.top, width: popoverPos.width, zIndex: 9999 }}>
                     <div className="cmp-picker-popover-head">
                         <div>
                             <div className="cmp-picker-popover-eyebrow">Month</div>
@@ -245,7 +255,14 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
     const [viewYear, setViewYear] = useState(init.getFullYear());
     const [viewMonth, setViewMonth] = useState(init.getMonth());
     const ref = useRef(null);
+    const [popoverPos, setPopoverPos] = useState({ left: 0, top: 0, width: 0 });
     useOutsideClose(open, ref, () => setOpen(false));
+    useEffect(() => {
+        if (open && ref.current) {
+            const rect = ref.current.getBoundingClientRect();
+            setPopoverPos({ left: rect.left, top: rect.bottom, width: rect.width });
+        }
+    }, [open]);
 
     useEffect(() => {
         if (!value) return;
@@ -279,8 +296,8 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
                 <span>{value ? formatDate(value) : placeholder || '날짜 선택'}</span>
                 <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
             </button>
-            {open && (
-                <div className="cmp-picker-popover cmp-datepicker-modal">
+            {open && createPortal(
+                <div className="cmp-picker-popover cmp-datepicker-modal" style={{ position: 'fixed', left: popoverPos.left, top: popoverPos.top, width: popoverPos.width, zIndex: 9999 }}>
                     <div className="cmp-picker-popover-head">
                         <div>
                             <div className="cmp-picker-popover-eyebrow">Date</div>
@@ -333,7 +350,14 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
 const TimePicker = ({ value, onChange, minTime = '', disabled = false, className = '' }) => {
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
+    const [popoverPos, setPopoverPos] = useState({ left: 0, top: 0, width: 0 });
     useOutsideClose(open, ref, () => setOpen(false));
+    useEffect(() => {
+        if (open && ref.current) {
+            const rect = ref.current.getBoundingClientRect();
+            setPopoverPos({ left: rect.left, top: rect.bottom, width: rect.width });
+        }
+    }, [open]);
     const times = TIME_OPTIONS.filter((t) => !minTime || t >= minTime);
 
     return (
@@ -352,8 +376,8 @@ const TimePicker = ({ value, onChange, minTime = '', disabled = false, className
                 <span>{value || '시간 선택'}</span>
                 <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
             </button>
-            {open && (
-                <div className="cmp-picker-popover cmp-timepicker-modal">
+            {open && createPortal(
+                <div className="cmp-picker-popover cmp-timepicker-modal" style={{ position: 'fixed', left: popoverPos.left, top: popoverPos.top, width: popoverPos.width, zIndex: 9999 }}>
                     <div className="cmp-picker-popover-head">
                         <div>
                             <div className="cmp-picker-popover-eyebrow">Time</div>
@@ -744,7 +768,13 @@ const App = () => {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
             });
-            if (res.data?.url) setProfile((p) => ({ ...p, profile_img_url: res.data.url }));
+            if (res.data?.url) {
+                setProfile((p) => ({ ...p, profile_img_url: res.data.url }));
+                // localStorage user에도 반영
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                user.profile_img_url = res.data.url;
+                localStorage.setItem('user', JSON.stringify(user));
+            }
         } catch {
             alert('이미지 업로드에 실패했습니다.');
         }
@@ -783,7 +813,11 @@ const App = () => {
         <>
             <header className="cmp-header">
                 <div className="cmp-profile-section">
-                    <div className="cmp-profile-img">🧔‍♂️</div>
+                    <div className="cmp-profile-img">
+                        {profile.profile_img_url
+                            ? <img src={profile.profile_img_url} alt="프로필" className="cmp-profile-img-content" />
+                            : "🧔‍♂️"}
+                    </div>
                     <div>
                         <h2 className="cmp-welcome">안녕하세요, {getCounselorName()} 상담사님!</h2>
                         <p className="cmp-welcome-sub">오늘도 따뜻한 상담 부탁드립니다 🌿</p>
@@ -1070,9 +1104,16 @@ const App = () => {
                             <span className="cmp-field-label" style={{ margin: 0 }}>
                                 경력 사항
                             </span>
-                            <button className="cmp-btn-outline-sm" onClick={addCareer}>
-                                + 추가
-                            </button>
+                            <div style={{ display: 'flex', gap: 4 }}>
+                                <button className="cmp-btn-outline-sm" onClick={addCareer}>
+                                    + 추가
+                                </button>
+                                {careers.length > 0 && (
+                                    <button className="cmp-btn-icon" onClick={() => careers.length > 1 && removeCareer(careers.at(-1).id)} disabled={careers.length === 1}>
+                                        <X size={12} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         {careers.map((c) => (
                             <div key={c.id} className="cmp-row-card">
@@ -1105,9 +1146,6 @@ const App = () => {
                                             onChange={(e) => updateCareerField(c.id, 'description', e.target.value)}
                                         />
                                     </div>
-                                    <button className="cmp-btn-icon" onClick={() => removeCareer(c.id)}>
-                                        <X size={12} />
-                                    </button>
                                 </div>
                                 <div className="cmp-checkbox-row">
                                     <input
@@ -1131,10 +1169,11 @@ const App = () => {
                                 <button className="cmp-btn-outline-sm" onClick={addCertificate}>
                                     + 추가
                                 </button>
-                                {certificates.length > 1 && (
+                                {certificates.length > 0 && (
                                     <button
                                         className="cmp-btn-icon"
-                                        onClick={() => removeCertificate(certificates.at(-1).id)}
+                                        onClick={() => certificates.length > 1 && removeCertificate(certificates.at(-1).id)}
+                                        disabled={certificates.length === 1}
                                     >
                                         <X size={14} />
                                     </button>
@@ -1181,9 +1220,20 @@ const App = () => {
                             <span className="cmp-field-label" style={{ margin: 0 }}>
                                 학력 사항
                             </span>
-                            <button className="cmp-btn-outline-sm" onClick={addEducation}>
-                                + 추가
-                            </button>
+                            <div style={{ display: 'flex', gap: 4 }}>
+                                <button className="cmp-btn-outline-sm" onClick={addEducation}>
+                                    + 추가
+                                </button>
+                                {educations.length > 0 && (
+                                    <button
+                                        className="cmp-btn-icon"
+                                        onClick={() => educations.length > 1 && removeEducation(educations.at(-1).id)}
+                                        disabled={educations.length === 1}
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         {educations.map((e) => (
                             <div key={e.id} className="cmp-row-card">
@@ -1222,9 +1272,6 @@ const App = () => {
                                             onChange={(ev) => updateEducationField(e.id, 'degree', ev.target.value)}
                                         />
                                     </div>
-                                    <button className="cmp-btn-icon" onClick={() => removeEducation(e.id)}>
-                                        <X size={12} />
-                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -1258,7 +1305,11 @@ const App = () => {
                         />
                     </div>
 
-                    <button className="cmp-btn cmp-btn-primary" style={{ maxWidth: 130 }} onClick={handleSaveProfile}>
+                    <button
+                        className="cmp-btn cmp-btn-primary"
+                        style={{ maxWidth: 130, display: 'block', marginLeft: 'auto' }}
+                        onClick={handleSaveProfile}
+                    >
                         프로필 저장
                     </button>
                 </div>
@@ -1315,7 +1366,11 @@ const App = () => {
                                                                         } : wd));
                                                                     }}
                                                                 >
-                                                                    {END_TIME_OPTIONS.filter(t => !slot.start || t > slot.start).map(t => (
+                                                                    {END_TIME_OPTIONS.filter(t => {
+                                                                        // 18:00부터만 나오게
+                                                                        if (!slot.start) return t >= '18:00';
+                                                                        return t > slot.start && t >= '18:00';
+                                                                    }).map(t => (
                                                                         <option key={t} value={t}>{t}</option>
                                                                     ))}
                                                                 </select>
@@ -1354,12 +1409,12 @@ const App = () => {
                             })}
                         </div>
                         <button
-                            className="cu-ep-float-btn"
-                            style={{ marginTop: 24, alignSelf: 'flex-end' }}
+                            className="cmp-btn cmp-btn-primary"
+                            style={{ marginTop: 24, maxWidth: 130, display: 'block', marginLeft: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px' }}
                             onClick={handleSaveProfile}
                         >
-                            <Save style={{ width: '1.2rem', height: '1.2rem' }} />
-                            <span className="cu-ep-float-label">시간 저장</span>
+                            <Save style={{ width: '1.2rem', height: '1.2rem', verticalAlign: 'middle' }} />
+                            <span style={{ verticalAlign: 'middle' }}>시간 저장</span>
                         </button>
                     </section>
                 </div>

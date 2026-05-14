@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck } from 'lucide-react';
 import { getNotifications } from '../api/notification';
+import { getMyInfo } from '../api/user.js';
+import { getCounselorProfile } from '../api/counselor.js';
 import '../static/Common.css';
 import '../static/NotifPopup.css';
 
@@ -28,6 +30,7 @@ export default function Header({
     setIsLoggedIn,
 }) {
     const [userRole, setUserRole] = useState('');
+    const [profileImgUrl, setProfileImgUrl] = useState('');
     const [notifOpen, setNotifOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const notifRef = useRef(null);
@@ -56,14 +59,27 @@ export default function Header({
         if (notifOpen) fetchNotifications();
     }, [notifOpen]);
 
+    // 상담사라면 DB에서 최신 프로필 이미지 fetch
     useEffect(() => {
-        const user = localStorage.getItem('user');
-        if (user) {
-            const userObj = JSON.parse(user);
-            setUserRole(userObj.role || '');
-        } else {
-            setUserRole('');
-        }
+        const fetchCounselorProfileImg = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.role === 'counselor') {
+                    const prof = await getCounselorProfile(token);
+                    if (prof && prof.profile_img_url) {
+                        setProfileImgUrl(prof.profile_img_url);
+                        user.profile_img_url = prof.profile_img_url;
+                        localStorage.setItem('user', JSON.stringify(user));
+                    }
+                    setUserRole('counselor'); // 명시적으로 counselor로 설정
+                }
+            } catch {
+                // ignore
+            }
+        };
+        fetchCounselorProfileImg();
     }, [location.pathname]);
 
     const navigate = useNavigate();
@@ -209,7 +225,7 @@ export default function Header({
                                                     className={`notif-popup-item${n.unread ? ' unread' : ''}`}
                                                     onClick={() => {
                                                         setNotifOpen(false);
-                                                        navigate('/notifications');
+                                                        navigate('/CounselorMyPage?tab=notifications');
                                                     }}
                                                     style={{ cursor: 'pointer' }}
                                                 >
@@ -249,7 +265,9 @@ export default function Header({
                             style={{ cursor: 'pointer' }}
                         >
                             <div className="user-avatar">
-                                {userName && userName.trim() ? (
+                                {profileImgUrl ? (
+                                    <img src={profileImgUrl} alt="프로필" className="cmp-profile-img-content" />
+                                ) : userName && userName.trim() ? (
                                     <img
                                         src={`https://api.dicebear.com/7.x/notionists/svg?seed=${userName}`}
                                         alt="User"

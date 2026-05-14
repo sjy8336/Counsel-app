@@ -221,6 +221,10 @@ const App = () => {
                 },
                 token
             );
+            // 프로필 등록 성공 후 localStorage의 user.profile_img_url도 동기화
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            user.profile_img_url = profileImage;
+            localStorage.setItem('user', JSON.stringify(user));
             await registerSpecialty(
                 expertType.map((name) => ({
                     specialty_name: name,
