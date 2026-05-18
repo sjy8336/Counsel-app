@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, User, Heart } from 'lucide-react';
 import Header from '../components/header';
 import Footer from '../components/footer';
+import MobileTap from '../components/mobileTap';
 import '../static/Counselor.css';
 
 export default function CounselorListPage({ userName, setUserName, isLoggedIn, setIsLoggedIn, onFavoriteChange }) {
@@ -347,6 +348,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                         )}
                     </main>
                 </div>
+                <MobileTap />
                 <Footer />
             </div>
         </>

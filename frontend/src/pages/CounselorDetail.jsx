@@ -7,6 +7,7 @@ import { getAllBookings } from '../api/booking';
 import { User, Calendar, ChevronLeft, ChevronRight, Clock, CheckCircle, MessageCircle } from 'lucide-react';
 import Header from '../components/header';
 import Footer from '../components/footer';
+import MobileTap from '../components/mobileTap';
 import '../static/Counselor.css';
 
 export default function CounselorDetailPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
@@ -124,6 +125,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     const [toast, setToast] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
 
     const showToast = (msg) => setToast(msg);
     useEffect(() => {
@@ -521,6 +523,121 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                     </section>
                 </div>
 
+                {/* 모바일 전용: 우하단 고정 예약 FAB */}
+                <button
+                    className="cld-mobile-reserve-fab"
+                    onClick={() => setIsBottomSheetOpen(true)}
+                    aria-label="예약하기"
+                >
+                    <Calendar size={20} />
+                    <span>예약하기</span>
+                </button>
+
+                {/* Bottom Sheet 오버레이 */}
+                {isBottomSheetOpen && (
+                    <div
+                        className="cld-bottom-sheet-overlay"
+                        onClick={() => setIsBottomSheetOpen(false)}
+                    />
+                )}
+
+                {/* Bottom Sheet 본체 */}
+                <div className={`cld-bottom-sheet${isBottomSheetOpen ? ' open' : ''}`}>
+                    <div className="cld-bottom-sheet-handle-bar" onClick={() => setIsBottomSheetOpen(false)}>
+                        <div className="cld-bottom-sheet-handle" />
+                    </div>
+                    <div className="cld-bottom-sheet-inner">
+                        <h3>상담 예약하기</h3>
+                        <div className="cld-price-tag-large">
+                            <span className="cld-price-label">대면 상담 (50분)</span>
+                            <span className="cld-price-value">{safeCounselor.price}</span>
+                        </div>
+                        <div className="cld-reservation-step">
+                            <label><Calendar size={18} /> 상담 일자 선택</label>
+                            <div className="cld-date-picker-container" ref={containerRef}>
+                                <div className="cld-date-input-wrapper" onClick={() => setIsOpen(!isOpen)}>
+                                    <span className="cld-calendar-icon"><Calendar size={16} /></span>
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        placeholder="상담 날짜를 선택해주세요"
+                                        value={selectedDate}
+                                        className="cld-date-display-input"
+                                    />
+                                </div>
+                                {isOpen && (
+                                    <div className="cld-calendar-popup">
+                                        <div className="cld-calendar-header">
+                                            <button onClick={() => changeMonth(-1)} className="cld-nav-button"><ChevronLeft size={20} /></button>
+                                            <span className="cld-current-month-text">
+                                                {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
+                                            </span>
+                                            <button onClick={() => changeMonth(1)} className="cld-nav-button"><ChevronRight size={20} /></button>
+                                        </div>
+                                        <div className="cld-calendar-weekdays">
+                                            {['일','월','화','수','목','금','토'].map((d) => (
+                                                <div key={d} className="cld-weekday-label">{d}</div>
+                                            ))}
+                                        </div>
+                                        <div className="cld-calendar-grid">{renderCalendar()}</div>
+                                        <div className="cld-calendar-footer">
+                                            <div className="cld-legend-item">
+                                                <span className="cld-dot accent" /> 오늘 이후 예약 가능
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="cld-reservation-step">
+                            <label><Clock size={18} /> 시간 선택</label>
+                            <div className="cld-time-grid">
+                                {availableTimesForDate.length === 0 && selectedDate && (
+                                    <span style={{ color: '#b0b0b0', fontSize: '14px' }}>선택한 날짜에 가능한 시간이 없습니다.</span>
+                                )}
+                                {availableTimesForDate.map((time, idx) => (
+                                    <button
+                                        key={time + idx}
+                                        className={`cld-time-btn${selectedTime === time ? ' active' : ''}`}
+                                        onClick={() => setSelectedTime(time)}
+                                        disabled={isSubmitting}
+                                    >
+                                        {time}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="cld-reserve-action-row">
+                            <button
+                                className="cld-reserve-submit-btn"
+                                onClick={handleReservation}
+                                disabled={isSubmitting || !counselor || !selectedDate || !selectedTime}
+                            >
+                                {isSubmitting ? '처리 중...' : !counselor ? '상담사 정보 로딩 중' : !selectedDate || !selectedTime ? '날짜와 시간을 선택하세요' : '예약 신청하기'}
+                            </button>
+                            <button
+                                className={`cld-heart-btn-reserve${liked ? ' liked' : ''}`}
+                                aria-label="찜하기"
+                                onClick={handleLike}
+                                type="button"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"
+                                    fill={liked ? '#fda4af' : 'none'} stroke={liked ? '#f43f5e' : '#64748b'}
+                                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M19.5 13.6l-7.5 7.4-7.5-7.4C2.1 11.7 2.1 8.7 4 6.9c1.8-1.8 4.8-1.8 6.6 0l.9.9.9-.9c1.8-1.8 4.8-1.8 6.6 0 1.9 1.8 1.9 4.8 0 6.7z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <button
+                            className="cld-inquiry-btn"
+                            onClick={() => navigate('/contact-coach', { state: { counselorName: counselor.name } })}
+                        >
+                            <MessageCircle size={18} /> 상담사에게 예약 문의하기
+                        </button>
+                    </div>
+                </div>
+
+                <MobileTap />
                 <Footer />
             </div>
         </>
