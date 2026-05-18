@@ -297,7 +297,12 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                         <div className="mwl-upcoming-list">
                             <h4 className="mwl-upcoming-list__label">다가오는 예약</h4>
                             {upcomingBookings.map((b) => (
-                                <div className="mwl-appt-card" key={b.order_id}>
+                                <div
+                                    className="mwl-appt-card"
+                                    key={b.order_id}
+                                    onClick={() => navigate('/reserve')}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <div className="mwl-appt-card__top">
                                         <div className="mwl-appt-card__info">
                                             <div className="mwl-appt-card__icon-box">

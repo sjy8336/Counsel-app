@@ -81,13 +81,11 @@ const SPECIALTY_OPTIONS = [
     '대인관계',
     '기타',
 ];
-const INIT_WORK_DAYS = DAY_LABELS.slice(1)
-    .concat(DAY_LABELS[0])
-    .map((day) => ({
-        day,
-        active: !['토', '일'].includes(day),
-        slots: [{ start: '09:00', end: '18:00' }],
-    }));
+const INIT_WORK_DAYS = DAY_LABELS.map((day) => ({
+    day,
+    active: !['토', '일'].includes(day), // 토, 일은 휴무
+    slots: [{ start: '09:00', end: '18:00' }],
+}));
 const INIT_NOTIF_SETTINGS = [
     { id: 'schedule', label: '상담 일정 알림', desc: '오늘 예정된 상담 일정을 알려드립니다.', on: true },
     { id: 'booking', label: '예약 확정 알림', desc: '새로운 예약이 확정되면 알려드립니다.', on: true },
@@ -175,14 +173,7 @@ const MonthPicker = ({ value, onChange, icon = true, placeholder = '', className
     const [open, setOpen] = useState(false);
     const [viewYear, setViewYear] = useState(() => (value ? Number(value.split('-')[0]) : new Date().getFullYear()));
     const ref = useRef(null);
-    const [popoverPos, setPopoverPos] = useState({ left: 0, top: 0, width: 0 });
     useOutsideClose(open, ref, () => setOpen(false));
-    useEffect(() => {
-        if (open && ref.current) {
-            const rect = ref.current.getBoundingClientRect();
-            setPopoverPos({ left: rect.left, top: rect.bottom, width: rect.width });
-        }
-    }, [open]);
 
     return (
         <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
@@ -199,8 +190,8 @@ const MonthPicker = ({ value, onChange, icon = true, placeholder = '', className
                 <span>{value ? formatMonth(value) : placeholder || '연/월 선택'}</span>
                 <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
             </button>
-            {open && createPortal(
-                <div className="cmp-picker-popover cmp-monthpicker-modal" style={{ position: 'fixed', left: popoverPos.left, top: popoverPos.top, width: popoverPos.width, zIndex: 9999 }}>
+            {open && (
+                <div className="cmp-picker-popover cmp-monthpicker-modal" style={{ position: 'absolute', top: '100%', left: 0, width: '100%', zIndex: 9999 }}>
                     <div className="cmp-picker-popover-head">
                         <div>
                             <div className="cmp-picker-popover-eyebrow">Month</div>
@@ -255,14 +246,7 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
     const [viewYear, setViewYear] = useState(init.getFullYear());
     const [viewMonth, setViewMonth] = useState(init.getMonth());
     const ref = useRef(null);
-    const [popoverPos, setPopoverPos] = useState({ left: 0, top: 0, width: 0 });
     useOutsideClose(open, ref, () => setOpen(false));
-    useEffect(() => {
-        if (open && ref.current) {
-            const rect = ref.current.getBoundingClientRect();
-            setPopoverPos({ left: rect.left, top: rect.bottom, width: rect.width });
-        }
-    }, [open]);
 
     useEffect(() => {
         if (!value) return;
@@ -296,8 +280,8 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
                 <span>{value ? formatDate(value) : placeholder || '날짜 선택'}</span>
                 <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
             </button>
-            {open && createPortal(
-                <div className="cmp-picker-popover cmp-datepicker-modal" style={{ position: 'fixed', left: popoverPos.left, top: popoverPos.top, width: popoverPos.width, zIndex: 9999 }}>
+            {open && (
+                <div className="cmp-picker-popover cmp-datepicker-modal" style={{ position: 'absolute', top: '100%', left: 0, width: '100%', zIndex: 9999 }}>
                     <div className="cmp-picker-popover-head">
                         <div>
                             <div className="cmp-picker-popover-eyebrow">Date</div>
@@ -613,8 +597,8 @@ const App = () => {
                     });
                     setWorkDays(grouped);
                 } else {
-                    // 기본값도 09:00~18:00
-                    setWorkDays(DAY_LABELS.slice(1).concat(DAY_LABELS[0]).map((day) => ({
+                    // 기본값: 일요일, 토요일은 휴무(active: false)
+                    setWorkDays(DAY_LABELS.map((day) => ({
                         day,
                         active: !['토', '일'].includes(day),
                         slots: [{ start: '09:00', end: '18:00' }],

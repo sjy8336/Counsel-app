@@ -40,12 +40,14 @@ const FieldLabel = ({ label, required }) => (
   </label>
 );
 
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 
 export default function App() {
   // --- 1. 상태 관리 (State) ---
   const location = useLocation();
-  const passedCounselorName = location.state?.counselorName;
+  const [searchParams] = useSearchParams();
+  // 1. state → 2. 쿼리스트링 → 3. 기본값
+  const passedCounselorName = location.state?.counselorName || searchParams.get('counselorName') || '상담사';
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -124,7 +126,7 @@ export default function App() {
                       <User className="cont-recipient-box__avatar-icon" />
                     </div>
                     <div>
-                      <div className="cont-recipient-box__name">{(passedCounselorName || '이은지') + '님'}</div>
+                      <div className="cont-recipient-box__name">{(passedCounselorName || '이은지') + ' 상담사님'}</div>
                     </div>
                   </div>
                 </div>

@@ -54,24 +54,24 @@ const notifSettingsData = [
 ];
 
 const renderSupportCenter = () => (
-    <div className="mw-main" style={{ padding: 0 }}>
-        <div className="mw-page-header">
-            <div className="mw-page-title">고객 지원</div>
-            <div className="mw-page-sub">이용 중 불편한 점이 있으신가요?</div>
+    <>
+        <div className="cmp-page-header">
+            <h2 className="cmp-page-title">고객 지원</h2>
+            <p className="cmp-page-sub">이용 중 불편한 점이 있으신가요?</p>
         </div>
-        <div className="mw-support-grid">
+        <div className="cmp-support-grid">
             {[
                 { icon: <HelpCircle size={21} />, label: '자주 묻는 질문' },
                 { icon: <MessageCircle size={21} />, label: '1:1 문의하기' },
                 { icon: <FileText size={21} />, label: '가이드북' },
             ].map(({ icon, label }) => (
-                <div key={label} className="mw-support-card">
-                    <div className="mw-support-icon">{icon}</div>
-                    <p className="mw-support-label">{label}</p>
+                <div key={label} className="cmp-support-card">
+                    <div className="cmp-support-icon">{icon}</div>
+                    <p className="cmp-support-label">{label}</p>
                 </div>
             ))}
         </div>
-    </div>
+    </>
 );
 
 const NotificationSettings = ({ notifSettings, toggleNotif }) => (
@@ -1299,38 +1299,46 @@ export default function App() {
 
     // 알림센터 렌더링 (CounselorMyPage 스타일)
     const renderNotifications = () => (
-        <div className="mw-main">
-            <div className="mw-page-header">
-                <h2 className="mw-page-title">알림 센터</h2>
-                <p className="mw-page-sub">상담 일정, 예약 확정 등 최근 알림을 확인하세요.</p>
+        <>
+            <div className="cmp-page-header">
+                <h2 className="cmp-page-title">알림 센터</h2>
+                <p className="cmp-page-sub">상담 일정, 예약 확정 등 최근 알림을 확인하세요.</p>
             </div>
-            <div className="mw-list-card">
+            <div className="cmp-list-card">
                 {mockNotifications.length === 0 ? (
-                    <div className="mw-notif-group-label">알림이 없습니다.</div>
+                    <div className="cmp-notif-empty">
+                        <div className="cmp-notif-empty-icon">
+                            <Bell size={22} />
+                        </div>
+                        <p className="cmp-notif-empty-title">새로운 알림이 없습니다</p>
+                        <p className="cmp-notif-empty-sub">
+                            상담 일정, 예약 확정 등 새로운 알림이<br />생기면 여기에 표시됩니다.
+                        </p>
+                    </div>
                 ) : (
-                    <div>
-                        <div className="mw-notif-group-label">최근 알림</div>
+                    <>
+                        <div className="cmp-notif-group-label">최근 알림</div>
                         {mockNotifications.map((item) => (
-                            <div key={item.id} className={`mw-notif-item${item.unread ? ' unread' : ''}`}>
-                                <span className="mw-item-avatar notif">
+                            <div key={item.id} className={`cmp-notif-item${item.unread ? ' unread' : ''}`}> 
+                                <span className="cmp-item-avatar notif">
                                     {item.type === 'booking' && <Check size={15} />}
                                     {item.type === 'msg' && <MessageSquare size={15} />}
                                     {item.type === 'notice' && <AlertCircle size={15} />}
                                 </span>
-                                <div className="mw-notif-content">
-                                    <div className="mw-notif-title">{item.title}</div>
-                                    <div className="mw-notif-desc">{item.desc}</div>
+                                <div className="cmp-notif-content">
+                                    <div className="cmp-notif-title">{item.title}</div>
+                                    <div className="cmp-notif-desc">{item.desc}</div>
                                 </div>
-                                <div className="mw-notif-meta">
-                                    <span className="mw-notif-time">{item.time}</span>
-                                    {item.unread && <span className="mw-notif-dot" />}
+                                <div className="cmp-notif-meta">
+                                    <span className="cmp-notif-time">{item.time}</span>
+                                    {item.unread && <span className="cmp-notif-dot" />}
                                 </div>
                             </div>
                         ))}
-                    </div>
+                    </>
                 )}
             </div>
-        </div>
+        </>
     );
 
     return (
