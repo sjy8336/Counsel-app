@@ -31,9 +31,15 @@ import ContactCoach from './pages/ContactCoach';
 const ProtectedAdminRoute = ({ children }) => {
     const token = localStorage.getItem('access_token');
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-
+    const navigate = useNavigate();
     if (!token || isTokenExpired(token) || user?.role !== 'admin') {
-        return <Navigate to="/" replace />;
+        alert('접근 권한이 없습니다.');
+        if (user?.role === 'counselor') {
+            navigate('/CounselorHome', { replace: true });
+        } else {
+            navigate('/', { replace: true });
+        }
+        return null;
     }
     return children;
 };
@@ -46,10 +52,10 @@ function App() {
 
     // ✅ 페이지 이동 시 항상 최상단으로 스크롤
     useEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTo(0, 0);
-    document.body.scrollTo(0, 0);
-}, [location.pathname]);
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTo(0, 0);
+        document.body.scrollTo(0, 0);
+    }, [location.pathname]);
 
     useEffect(() => {
         const user = localStorage.getItem('user');
@@ -225,8 +231,6 @@ function App() {
                     />
                 }
             />
-
-
 
             {/* ✅ 관리자 라우트 - role: 'admin' 계정만 접근 가능 */}
             <Route

@@ -145,3 +145,27 @@ DELETE FROM counselor_schedules WHERE user_id = 2;
 
 commit;
 
+-- counseling_db.bookings definition
+
+CREATE TABLE `bookings` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `client_id` int NOT NULL,
+  `counselor_id` int NOT NULL,
+  `booking_date` date NOT NULL,
+  `booking_time` varchar(20) NOT NULL,
+  `survey_content` json DEFAULT NULL,
+  `payment_status` enum('pending','completed','canceled') DEFAULT 'pending',
+  `booking_status` enum('waiting','confirmed','completed','canceled') DEFAULT 'waiting',
+  `amount` int DEFAULT '20000',
+  `order_id` varchar(100) DEFAULT NULL,
+  `payment_key` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_booking_slot` (`counselor_id`,`booking_date`,`booking_time`),
+  UNIQUE KEY `order_id` (`order_id`),
+  KEY `fk_client` (`client_id`),
+  CONSTRAINT `fk_client` FOREIGN KEY (`client_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_counselor` FOREIGN KEY (`counselor_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+

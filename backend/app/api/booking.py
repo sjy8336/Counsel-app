@@ -1,3 +1,31 @@
+from fastapi import APIRouter, HTTPException, Depends, Query, Body
+from sqlalchemy.orm import Session
+from app.db.session import get_db
+from app.models.booking import Booking
+from app.core.deps import get_current_user
+from app.models.user import User
+from datetime import datetime
+import uuid
+from app.services.notification_service import send_booking_request_notification
+router = APIRouter()
+
+# ...existing code...
+
+@router.post("/reject")
+def reject_booking(data: dict, db: Session = Depends(get_db)):
+    """
+    상담사가 예약을 거절(취소)할 때 호출 (order_id로 예약 상태를 'canceled'로 변경)
+    """
+    order_id = data.get("order_id")
+    if not order_id:
+        raise HTTPException(status_code=400, detail="order_id가 필요합니다.")
+    booking = db.query(Booking).filter(Booking.order_id == order_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="예약을 찾을 수 없습니다.")
+    booking.booking_status = 'canceled'
+    db.commit()
+    db.refresh(booking)
+    return {"message": "예약이 거절(취소)되었습니다.", "order_id": order_id, "booking_status": booking.booking_status}
 
 from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from sqlalchemy.orm import Session
@@ -7,6 +35,7 @@ from app.core.deps import get_current_user
 from app.models.user import User
 from datetime import datetime
 import uuid
+from app.services.notification_service import send_booking_request_notification
 router = APIRouter()
 
 @router.get("/counselor-list")
@@ -123,10 +152,19 @@ def create_booking(
         order_id=order_id
     )
 
+
     try:
         db.add(new_booking)
         db.commit()
         db.refresh(new_booking)
+        # 예약 생성 성공 시 상담사에게 예약 신청 알림 전송
+        send_booking_request_notification(
+            db=db,
+            counselor_id=counselor_id,
+            client_name=current_user.full_name,
+            booking_date=booking_date,
+            booking_time=booking_time
+        )
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"예약 저장 중 오류 발생: {str(e)}")
