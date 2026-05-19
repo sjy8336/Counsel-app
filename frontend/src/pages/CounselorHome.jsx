@@ -1,25 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
 import MobileTap from '../components/mobileTap.jsx';
 import '../static/CounselorHome.css';
 
+import { getCounselorBookings } from '../api/bookingCounselor';
+import { confirmBooking } from '../api/bookingConfirm';
+import { rejectBooking } from '../api/bookingReject';
+
 const CounselorHome = () => {
     const navigate = useNavigate();
 
     const getCounselorName = () => {
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        if (storedUser?.full_name) return storedUser.full_name;
-        if (storedUser?.name) return storedUser.name;
-        if (storedUser?.username) return storedUser.username;
-        if (typeof storedUser === 'string') return storedUser;
-        return '상담사';
+        const u = JSON.parse(localStorage.getItem('user'));
+        return u?.full_name || u?.name || u?.username || (typeof u === 'string' ? u : '상담사');
     };
 
     const userName = getCounselorName();
     const [headerUserName, setHeaderUserName] = useState(userName);
     const [isLoggedIn, setIsLoggedIn] = useState(!!userName);
+    const [reservations, setReservations] = useState([]);
+    const [toast, setToast] = useState(null);
 
     const getToday = () => {
         const now = new Date();
@@ -27,36 +29,135 @@ const CounselorHome = () => {
         return `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${days[now.getDay()]}요일`;
     };
 
-    const todaySessions = [
-        { time: '13:00', name: '이은지', room: '제1상담실' },
-        { time: '15:00', name: '박지연', room: '제2상담실' },
-        { time: '17:00', name: '정민우', room: '제3상담실' },
-    ];
+    // 오늘 날짜(yyyy-mm-dd)
+    const todayStr = (() => {
+        const now = new Date();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        return `${now.getFullYear()}-${mm}-${dd}`;
+    })();
 
-    const sessionCount = todaySessions.length;
+    // 오늘 확정된 상담 건수(내담자 신청+상담사 등록 모두 포함)
+    const todaySessions = reservations.filter(
+        (r) => r.status.includes('확정') && r.dateObj && r.dateObj.toISOString().slice(0, 10) === todayStr
+    );
 
-    const [reservations, setReservations] = useState([
-        { id: 1, name: '최민수', type: '심리 상담', date: '5월 27일 (화) 오후 2:00', dday: 2, status: '확정' },
-        { id: 2, name: '김지아', type: '심리 상담', date: '6월 3일 (화) 오후 3:00', dday: 9, status: '대기' },
-        { id: 3, name: '이하늘', type: '초기 면담', date: '6월 10일 (화) 오전 11:00', dday: 16, status: '대기' },
-    ]);
+    // 예약 데이터 변환 함수
+    const mapReservations = (data) => {
+        const today = new Date();
+        return (data || []).map((r) => {
+            const dateObj = new Date(r.date);
+            const dday = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            return {
+                id: r.id,
+                order_id: r.order_id,
+                name: r.client_name,
+                type: r.survey_content?.type || '상담',
+                date: `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 (${days[dateObj.getDay()]}) ${r.time}`,
+                dateObj,
+                dday,
+                status: r.status,
+            };
+        });
+    };
 
-    const [toast, setToast] = useState(null);
+    const fetchReservations = async () => {
+        try {
+            const data = await getCounselorBookings();
+            setReservations(mapReservations(data));
+        } catch {
+            setReservations([]);
+        }
+    };
+
+    useEffect(() => {
+        fetchReservations();
+    }, []);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 3000);
     };
 
-    const handleConfirm = (id, name) => {
-        setReservations((prev) => prev.map((r) => (r.id === id ? { ...r, status: '확정' } : r)));
-        showToast(`${name} 내담자 예약이 승인되었습니다.`, 'success');
+    const handleConfirm = async (order_id, name) => {
+        try {
+            await confirmBooking(order_id);
+            showToast(`${name} 내담자 예약이 승인되었습니다.`, 'success');
+            fetchReservations();
+        } catch {
+            showToast('예약 승인에 실패했습니다.', 'error');
+        }
     };
 
-    const handleReject = (id, name) => {
-        showToast(`${name} 내담자 예약이 거절되었습니다.`, 'error');
-        setReservations((prev) => prev.filter((r) => r.id !== id));
+    const handleReject = async (id, name, order_id) => {
+        try {
+            await rejectBooking(order_id);
+            showToast(`${name} 내담자 예약이 거절되었습니다.`, 'error');
+            fetchReservations();
+        } catch {
+            showToast('예약 거절에 실패했습니다.', 'error');
+        }
     };
+
+    // ── 예약 분리 로직 ─────────────────────────────────────
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 확정된 예약 중 오늘 이후 가장 가까운 1개
+    const nextConfirmed =
+        reservations
+            .filter((r) => r.status.includes('확정') && r.dateObj >= today)
+            .sort((a, b) => a.dateObj - b.dateObj)[0] || null;
+
+    // 대기 중인 예약 전체
+    const pendingList = reservations.filter((r) => r.status.includes('대기'));
+
+    // 이번 달, 지난달 확정 상담 건수 계산
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+    const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+    const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+
+    const monthCount = (year, month) =>
+        reservations.filter(
+            (r) =>
+                r.status.includes('확정') &&
+                r.dateObj &&
+                r.dateObj.getFullYear() === year &&
+                r.dateObj.getMonth() === month
+        ).length;
+
+    const thisMonthCount = monthCount(thisYear, thisMonth);
+    const lastMonthCount = monthCount(lastMonthYear, lastMonth);
+    const diffCount = thisMonthCount - lastMonthCount;
+
+    // 이번 주(월~일) 확정 상담 건수, 내일 확정 상담 건수 계산
+    const getWeekRange = (date) => {
+        const day = date.getDay(); // 0(일)~6(토)
+        const monday = new Date(date);
+        monday.setDate(date.getDate() - ((day + 6) % 7)); // 월요일
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6); // 일요일
+        return [monday, sunday];
+    };
+    const nowDate = new Date();
+    const [weekStart, weekEnd] = getWeekRange(nowDate);
+    weekStart.setHours(0, 0, 0, 0);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    const weekCount = reservations.filter(
+        (r) => r.status.includes('확정') && r.dateObj && r.dateObj >= weekStart && r.dateObj <= weekEnd
+    ).length;
+
+    const tomorrow = new Date(nowDate);
+    tomorrow.setDate(nowDate.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+    const tomorrowCount = reservations.filter(
+        (r) => r.status.includes('확정') && r.dateObj && r.dateObj.toISOString().slice(0, 10) === tomorrowStr
+    ).length;
 
     return (
         <div className="counselor-main">
@@ -70,33 +171,43 @@ const CounselorHome = () => {
             />
             <div className="counselor-container">
                 <section className="banner-card">
-    <div className="banner-text">
-            <p className="banner-date">{getToday()}</p>
-            <h1 style={{ 
-                wordBreak: 'keep-all', 
-                lineHeight: '1.4',
-                display: 'block' 
-            }}>
-                {userName}님, 오늘 상담은 <span className="point-color">총 {sessionCount}건</span>입니다.
-            </h1>
-            <p className="banner-sub">오늘도 내담자들의 마음을 따뜻하게 안아주세요.</p>
-        </div>
-    </section>
+                    <div className="banner-text">
+                        <p className="banner-date">{getToday()}</p>
+                        <h1 style={{ wordBreak: 'keep-all', lineHeight: '1.4' }}>
+                            {userName}님, 오늘 상담은 <span className="point-color">총 {todaySessions.length}건</span>
+                            입니다.
+                        </h1>
+                        <p className="banner-sub">오늘도 내담자들의 마음을 따뜻하게 안아주세요.</p>
+                    </div>
+                </section>
 
                 <div className="stats-container">
                     <div className="stat-card">
                         <span className="stat-label">이번 달 상담</span>
-                        <strong>24<em>건</em></strong>
-                        <p className="stat-note">지난달보다 <b>+3건</b> 많아요</p>
+                        <strong>
+                            {thisMonthCount}
+                            <em>건</em>
+                        </strong>
+                        <p className="stat-note">
+                            지난달보다 <b>{diffCount >= 0 ? `+${diffCount}` : diffCount}건</b>{' '}
+                            {diffCount >= 0 ? '많아요' : '적어요'}
+                        </p>
                     </div>
                     <div className="stat-card">
                         <span className="stat-label">이번 주 예정</span>
-                        <strong>8<em>건</em></strong>
-                        <p className="stat-note">내일 <b>2건</b> 포함</p>
+                        <strong>
+                            {weekCount}
+                            <em>건</em>
+                        </strong>
+                        <p className="stat-note">
+                            내일 <b>{tomorrowCount}건</b> 포함
+                        </p>
                     </div>
                     <div className="stat-card accent-rose clickable" onClick={() => navigate('/CounselorMessages')}>
                         <span className="stat-label">미답변 문의</span>
-                        <strong>3<em>건</em></strong>
+                        <strong>
+                            3<em>건</em>
+                        </strong>
                         <p className="stat-note">확인이 필요해요 →</p>
                     </div>
                 </div>
@@ -106,41 +217,80 @@ const CounselorHome = () => {
                         <section className="content-box">
                             <h3 className="section-title">오늘의 상담 요약</h3>
                             <div className="list-wrapper">
-                                {todaySessions.map((s, i) => (
-                                    <div 
-                                        className="list-item" 
-                                        key={i}
-                                        style={{ 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            justifyContent: 'space-between', 
-                                            gap: '12px',
-                                            padding: '12px 16px',
-                                            marginBottom: '10px' 
+                                {todaySessions.length === 0 ? (
+                                    <div
+                                        style={{
+                                            padding: '32px 0',
+                                            textAlign: 'center',
+                                            color: '#888',
+                                            fontSize: '1.05rem',
                                         }}
                                     >
-                                        <div className="item-info" style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-                                            <span className="time" style={{ minWidth: '45px', fontWeight: 'bold' }}>{s.time}</span>
-                                            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                                                <strong style={{ fontSize: '1rem', whiteSpace: 'nowrap' }}>{s.name} 내담자</strong>
-                                                <span className="desc" style={{ fontSize: '0.85rem', color: '#666', whiteSpace: 'nowrap' }}>{s.room}</span>
-                                            </div>
-                                        </div>
-                                        <button 
-                                            className="action-btn" 
-                                            onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}
-                                            style={{ 
-                                                width: 'auto', 
-                                                minWidth: '80px', 
-                                                padding: '8px 12px', 
-                                                fontSize: '0.85rem',
-                                                flexShrink: 0 
+                                        오늘 예정된 상담이 없습니다.
+                                        <br />
+                                        편안한 하루 보내세요!
+                                    </div>
+                                ) : (
+                                    todaySessions.map((s, i) => (
+                                        <div
+                                            key={i}
+                                            className="list-item"
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                gap: '12px',
+                                                padding: '12px 16px',
+                                                marginBottom: '10px',
                                             }}
                                         >
-                                            일지 작성
-                                        </button>
-                                    </div>
-                                ))}
+                                            <div
+                                                className="item-info"
+                                                style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}
+                                            >
+                                                <span className="time" style={{ minWidth: '45px', fontWeight: 'bold' }}>
+                                                    {s.time}
+                                                </span>
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        overflow: 'hidden',
+                                                    }}
+                                                >
+                                                    <strong style={{ fontSize: '1rem', whiteSpace: 'nowrap' }}>
+                                                        {s.name} 내담자
+                                                    </strong>
+                                                    <span
+                                                        className="desc"
+                                                        style={{
+                                                            fontSize: '0.85rem',
+                                                            color: '#666',
+                                                            whiteSpace: 'nowrap',
+                                                        }}
+                                                    >
+                                                        {s.room}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                className="action-btn"
+                                                onClick={() =>
+                                                    navigate('/CounselorClient', { state: { scrollToTop: true } })
+                                                }
+                                                style={{
+                                                    width: 'auto',
+                                                    minWidth: '80px',
+                                                    padding: '8px 12px',
+                                                    fontSize: '0.85rem',
+                                                    flexShrink: 0,
+                                                }}
+                                            >
+                                                일지 작성
+                                            </button>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </section>
 
@@ -148,9 +298,15 @@ const CounselorHome = () => {
                             <div className="work-card highlight">
                                 <div className="card-header">작성 대기 중인 상담 일지</div>
                                 <div className="card-body">
-                                    <strong>1<span>건</span></strong>
-                                    <p>최민수 님 (5.19 상담)</p>
-                                    <button className="go-btn primary" onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}>
+                                    <strong>
+                                        {reservations.filter((r) => r.status.includes('확정')).length}
+                                        <span>건</span>
+                                    </strong>
+                                    <p>대기 중인 일지를 작성해주세요.</p>
+                                    <button
+                                        className="go-btn primary"
+                                        onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}
+                                    >
                                         지금 작성하기
                                     </button>
                                 </div>
@@ -158,9 +314,15 @@ const CounselorHome = () => {
                             <div className="work-card">
                                 <div className="card-header">신규 매칭 내담자</div>
                                 <div className="card-body">
-                                    <strong>2<span>명</span></strong>
+                                    <strong>
+                                        {reservations.filter((r) => r.status.includes('확정')).length}
+                                        <span>명</span>
+                                    </strong>
                                     <p>사전 질문지가 도착했습니다.</p>
-                                    <button className="go-btn secondary" onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}>
+                                    <button
+                                        className="go-btn secondary"
+                                        onClick={() => navigate('/CounselorClient', { state: { scrollToTop: true } })}
+                                    >
                                         설문지 확인하기
                                     </button>
                                 </div>
@@ -172,38 +334,67 @@ const CounselorHome = () => {
                         <div className="side-header">
                             <h3>다가오는 예약</h3>
                         </div>
-                        {reservations.map((r, i) => (
+
+                        {/* 확정된 예약 — 가장 가까운 1개만, 없으면 렌더링 안 함 */}
+                        {nextConfirmed && (
                             <div
-                                key={r.id}
-                                className={`reservation-card ${i === 0 ? 'is-next' : ''}`}
+                                className="reservation-card is-next"
                                 onClick={() => navigate('/CounselorPlanner')}
                                 style={{ cursor: 'pointer' }}
                             >
-                                {i === 0 && <span className="next-badge">NEXT</span>}
+                                <span className="next-badge">NEXT</span>
+                                <div className="res-top">
+                                    <div className="res-avatar">{nextConfirmed.name[0]}</div>
+                                    <div className="res-info">
+                                        <strong>{nextConfirmed.name} 내담자</strong>
+                                        <span>{nextConfirmed.type}</span>
+                                    </div>
+                                    <span className="dday-badge">D-{nextConfirmed.dday}</span>
+                                </div>
+                                <p className="res-date">📅 {nextConfirmed.date}</p>
+                            </div>
+                        )}
+
+                        {/* 대기 중인 예약 — 전체 표시 */}
+                        {pendingList.map((r) => (
+                            <div
+                                key={r.id}
+                                className="reservation-card"
+                                onClick={() => navigate('/CounselorPlanner')}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <div className="res-top">
                                     <div className="res-avatar">{r.name[0]}</div>
                                     <div className="res-info">
                                         <strong>{r.name} 내담자</strong>
                                         <span>{r.type}</span>
                                     </div>
-                                    <span className={`dday-badge ${r.status === '대기' ? 'dday-wait' : ''}`}>
-                                        D-{r.dday}
-                                    </span>
+                                    <span className="dday-badge dday-wait">D-{r.dday}</span>
                                 </div>
                                 <p className="res-date">📅 {r.date}</p>
-                                {r.status === '대기' && (
-                                    <div className="res-actions" onClick={(e) => e.stopPropagation()}>
-                                        <button className="res-btn confirm" onClick={() => handleConfirm(r.id, r.name)}>
-                                            승인
-                                        </button>
-                                        <button className="res-btn reject" onClick={() => handleReject(r.id, r.name)}>
-                                            거절
-                                        </button>
-                                    </div>
-                                )}
-                                {r.status === '확정' && i !== 0 && <p className="res-confirmed">✓ 승인 완료</p>}
+                                <div className="res-actions" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                        className="res-btn confirm"
+                                        onClick={() => handleConfirm(r.order_id, r.name)}
+                                    >
+                                        승인
+                                    </button>
+                                    <button
+                                        className="res-btn reject"
+                                        onClick={() => handleReject(r.id, r.name, r.order_id)}
+                                    >
+                                        거절
+                                    </button>
+                                </div>
                             </div>
                         ))}
+
+                        {/* 확정도 대기도 없을 때 */}
+                        {!nextConfirmed && pendingList.length === 0 && (
+                            <div className="res-empty-side">
+                                <p>다가오는 예약이 없습니다.</p>
+                            </div>
+                        )}
                     </aside>
                 </div>
             </div>

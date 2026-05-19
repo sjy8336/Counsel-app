@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck, CalendarPlus } from 'lucide-react';
 import { getNotifications } from '../api/notification';
 import { getMyInfo } from '../api/user.js';
 import { getCounselorProfile } from '../api/counselor.js';
@@ -15,7 +15,10 @@ import '../static/NotifPopup.css';
  */
 function formatTime(dateStr) {
     if (!dateStr) return '';
-    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    // 서버에서 UTC로 내려올 경우 KST(+9시간) 보정
+    const date = new Date(dateStr);
+    const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    const diff = Math.floor((Date.now() - kstDate.getTime()) / 1000);
     if (diff < 60) return '방금 전';
     if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
@@ -29,35 +32,91 @@ export default function Header({
     isLoggedIn = false,
     setIsLoggedIn,
 }) {
-    const [userRole, setUserRole] = useState('');
+    // localStorage에서 바로 읽어서 초기값 세팅
+    const getInitialRole = () => {
+        try {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                if (user.role) return user.role;
+            }
+        } catch {}
+        return '';
+    };
+    const [userRole, setUserRole] = useState(getInitialRole());
     const [profileImgUrl, setProfileImgUrl] = useState('');
     const [notifOpen, setNotifOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const notifRef = useRef(null);
     const location = useLocation();
 
-    // 알림 불러오기
+    // 로그인 시점 또는 알림창 열릴 때 알림 불러오기
     useEffect(() => {
         const fetchNotifications = async () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-        setNotifications([]);
-        return;
-    }
-    try {
-        const res = await getNotifications(token);
-        const mapped = (res.data || []).map((n) => ({
-            ...n,
-            unread: !n.read,  // read → unread 변환
-            time: formatTime(n.created_at),  // created_at → time 변환
-        }));
-        setNotifications(mapped);
-    } catch (e) {
-        setNotifications([]);
-    }
-};
-        if (notifOpen) fetchNotifications();
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                setNotifications([]);
+                return;
+            }
+            try {
+                const res = await getNotifications(token);
+                // 최신순 정렬
+                const mapped = (res.data || [])
+                    .map((n) => ({
+                        ...n,
+                        unread: !n.read,
+                        time: formatTime(n.created_at),
+                    }))
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                setNotifications(mapped);
+            } catch (e) {
+                setNotifications([]);
+            }
+        };
+        if (isLoggedIn) fetchNotifications();
+    }, [isLoggedIn]);
+
+    // 로그인/페이지 이동 시 userRole을 항상 세팅
+    useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user.role) setUserRole(user.role);
+            } catch {}
+        }
+    }, [isLoggedIn, location.pathname]);
+
+    // 알림창 열릴 때마다 새로고침 (알림 삭제 X, 최신순 5개만 보여줌)
+    useEffect(() => {
+        if (!notifOpen) return;
+        const fetchNotifications = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            try {
+                const res = await getNotifications(token);
+                const mapped = (res.data || [])
+                    .map((n) => ({
+                        ...n,
+                        unread: !n.read,
+                        time: formatTime(n.created_at),
+                    }))
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                setNotifications(mapped);
+            } catch {}
+        };
+        fetchNotifications();
     }, [notifOpen]);
+    // 로그인/페이지 이동 시 userRole을 항상 세팅
+    useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user.role) setUserRole(user.role);
+            } catch {}
+        }
+    }, [isLoggedIn, location.pathname]);
 
     // 상담사라면 DB에서 최신 프로필 이미지 fetch
     useEffect(() => {
@@ -175,11 +234,7 @@ export default function Header({
                 <div className="user-actions">
                     {/* ✅ 관리자 전용 버튼 - role이 admin일 때만 노출 */}
                     {isLoggedIn && userRole === 'admin' && (
-                        <button
-                            className="admin-page-btn"
-                            onClick={() => navigate('/admin')}
-                            title="관리자 페이지"
-                        >
+                        <button className="admin-page-btn" onClick={() => navigate('/admin')} title="관리자 페이지">
                             <ShieldCheck size={16} />
                             <span>관리자</span>
                         </button>
@@ -219,18 +274,20 @@ export default function Header({
                                         {notifications.length === 0 ? (
                                             <div className="notif-popup-empty">알림이 없습니다.</div>
                                         ) : (
-                                            notifications.map((n) => (
+                                            notifications.slice(0, 5).map((n) => (
                                                 <div
                                                     key={n.id}
                                                     className={`notif-popup-item${n.unread ? ' unread' : ''}`}
                                                     onClick={() => {
-                                                        setNotifOpen(false);
+                                                        // 알림 삭제/숨김 없이, 단순히 페이지 이동만
                                                         navigate('/CounselorMyPage?tab=notifications');
+                                                        setNotifOpen(false);
                                                     }}
                                                     style={{ cursor: 'pointer' }}
                                                 >
                                                     <span className="notif-popup-icon">
                                                         {n.type === 'booking' && <Check size={15} />}
+                                                        {n.type === 'booking_request' && <CalendarPlus size={15} />}
                                                         {n.type === 'msg' && <MessageSquare size={15} />}
                                                         {n.type === 'notice' && <AlertCircle size={15} />}
                                                     </span>
