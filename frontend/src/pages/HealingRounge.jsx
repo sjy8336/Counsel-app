@@ -120,17 +120,15 @@ export default function HealingLounge({ userName, setUserName, isLoggedIn, setIs
 
     return (
         <div className="hr-root">
-            {/* PC Header (hidden on mobile) */}
-            {!isMobile && (
-                <Header
-                    activeTab="lounge"
-                    setActiveTab={() => {}}
-                    userName={userName}
-                    setUserName={setUserName}
-                    isLoggedIn={isLoggedIn}
-                    setIsLoggedIn={setIsLoggedIn}
-                />
-            )}
+            {/* Header: 모바일/PC 모두 항상 노출 */}
+            <Header
+                activeTab="lounge"
+                setActiveTab={() => {}}
+                userName={userName}
+                setUserName={setUserName}
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+            />
             {/* MobileTap (only on mobile) */}
             {isMobile && <MobileTap activeTab="lounge" setActiveTab={() => {}} />}
 

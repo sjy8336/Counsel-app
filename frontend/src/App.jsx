@@ -136,6 +136,17 @@ function App() {
                 }
             />
             <Route
+                path="/reservation"
+                element={
+                    <ReservationPage
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
+            <Route
                 path="/counselors"
                 element={
                     <CounselorListPage
@@ -207,6 +218,17 @@ function App() {
             <Route path="/counselorhome" element={<CounselorHome />} />
             <Route
                 path="/AIdiary"
+                element={
+                    <AIDiary
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
+            <Route
+                path="/ai-diary"
                 element={
                     <AIDiary
                         userName={userName}
