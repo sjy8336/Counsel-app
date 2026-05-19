@@ -40,9 +40,14 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
 
     const [newClientName, setNewClientName] = useState('');
     const [manualSelectedDate, setManualSelectedDate] = useState('');
-    const [startTime, setStartTime] = useState('09:00');
-    const [endTime, setEndTime] = useState('10:00');
-    const [activePicker, setActivePicker] = useState(null);
+    // 상담 일정 추가용 시간대
+    const [addStartTime, setAddStartTime] = useState('09:00');
+    const [addEndTime, setAddEndTime] = useState('10:00');
+    const [addActivePicker, setAddActivePicker] = useState(null);
+    // 예약 불가 시간대용
+    const [blockStartTime, setBlockStartTime] = useState('09:00');
+    const [blockEndTime, setBlockEndTime] = useState('10:00');
+    const [blockActivePicker, setBlockActivePicker] = useState(null);
 
     const [reservations, setReservations] = useState([]);
     // 상담사 본인 예약 목록 불러오기
@@ -123,7 +128,7 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
             id: Date.now(),
             client: newClientName,
             date: manualSelectedDate,
-            time: `${startTime} - ${endTime}`,
+            time: `${addStartTime} - ${addEndTime}`,
             type: '상담',
             status: '확정됨',
             location: '지정되지 않음',
@@ -133,6 +138,9 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
         setReservations((prev) => [...prev, newRes]);
         setNewClientName('');
         setShowAddReservation(false);
+        // 시간대 초기화
+        setAddStartTime('09:00');
+        setAddEndTime('10:00');
         // 여기서 바로 navigate를 쓰지 않고, 사용자가 상세 내역의 '일지 작성' 버튼을 누를 때 넘어가도록 흐름 유지
     };
 
@@ -161,12 +169,15 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
     };
 
     const handleAddBlock = () => {
-        if (startTime && endTime && selectedDateDetails) {
+        if (blockStartTime && blockEndTime && selectedDateDetails) {
             setBlockedSlots([
                 ...blockedSlots,
-                { date: selectedDateDetails, time: `${startTime} - ${endTime}`, reason: '개인 일정' },
+                { date: selectedDateDetails, time: `${blockStartTime} - ${blockEndTime}`, reason: '개인 일정' },
             ]);
             setShowBlockInput(false);
+            // 시간대 초기화
+            setBlockStartTime('09:00');
+            setBlockEndTime('10:00');
         }
     };
 
@@ -354,17 +365,17 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                                         <div className="mwc-time-row">
                                             <TimePicker
                                                 label="시작 시간"
-                                                value={startTime}
-                                                onChange={setStartTime}
-                                                isActive={activePicker === 'start'}
-                                                setIsActive={(val) => setActivePicker(val ? 'start' : null)}
+                                                value={addStartTime}
+                                                onChange={setAddStartTime}
+                                                isActive={addActivePicker === 'start'}
+                                                setIsActive={(val) => setAddActivePicker(val ? 'start' : null)}
                                             />
                                             <TimePicker
                                                 label="종료 시간"
-                                                value={endTime}
-                                                onChange={setEndTime}
-                                                isActive={activePicker === 'end'}
-                                                setIsActive={(val) => setActivePicker(val ? 'end' : null)}
+                                                value={addEndTime}
+                                                onChange={setAddEndTime}
+                                                isActive={addActivePicker === 'end'}
+                                                setIsActive={(val) => setAddActivePicker(val ? 'end' : null)}
                                             />
                                         </div>
                                         <div className="mwc-add-res-actions">
@@ -487,17 +498,17 @@ const CounselorPlanner = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) 
                                             <div className="mwc-time-row">
                                                 <TimePicker
                                                     label="시작"
-                                                    value={startTime}
-                                                    onChange={setStartTime}
-                                                    isActive={activePicker === 'start'}
-                                                    setIsActive={(v) => setActivePicker(v ? 'start' : null)}
+                                                    value={blockStartTime}
+                                                    onChange={setBlockStartTime}
+                                                    isActive={blockActivePicker === 'start'}
+                                                    setIsActive={(v) => setBlockActivePicker(v ? 'start' : null)}
                                                 />
                                                 <TimePicker
                                                     label="종료"
-                                                    value={endTime}
-                                                    onChange={setEndTime}
-                                                    isActive={activePicker === 'end'}
-                                                    setIsActive={(v) => setActivePicker(v ? 'end' : null)}
+                                                    value={blockEndTime}
+                                                    onChange={setBlockEndTime}
+                                                    isActive={blockActivePicker === 'end'}
+                                                    setIsActive={(v) => setBlockActivePicker(v ? 'end' : null)}
                                                 />
                                             </div>
                                             <div className="mwc-block-actions">
