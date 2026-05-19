@@ -15,6 +15,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     const navigate = useNavigate();
     const location = useLocation();
     const containerRef = useRef(null);
+    const bottomSheetContainerRef = useRef(null);
 
     // 예약 성공 후 돌아올 때 state로 selectedDate가 넘어오면 자동으로 예약 시간 갱신 (콘솔로 값 확인)
     useEffect(() => {
@@ -137,7 +138,9 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
 
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
+            const inPC = containerRef.current && containerRef.current.contains(e.target);
+            const inMobile = bottomSheetContainerRef.current && bottomSheetContainerRef.current.contains(e.target);
+            if (!inPC && !inMobile) setIsOpen(false);
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -554,7 +557,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                         </div>
                         <div className="cld-reservation-step">
                             <label><Calendar size={18} /> 상담 일자 선택</label>
-                            <div className="cld-date-picker-container" ref={containerRef}>
+                            <div className="cld-date-picker-container" ref={bottomSheetContainerRef}>
                                 <div className="cld-date-input-wrapper" onClick={() => setIsOpen(!isOpen)}>
                                     <span className="cld-calendar-icon"><Calendar size={16} /></span>
                                     <input

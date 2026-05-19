@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import { toggleFavorite, getFavorites } from '../api/favorite';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, User, Heart } from 'lucide-react';
 import Header from '../components/header';
 import Footer from '../components/footer';
@@ -19,6 +19,14 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
     const [pageOffset, setPageOffset] = useState(0); // 현재 불러온 offset
     const loaderRef = useRef(null);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // 헤더 검색창에서 ?q= 파라미터로 넘어오면 searchTerm 자동 세팅
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const q = params.get('q');
+        if (q) setSearchTerm(q);
+    }, [location.search]);
 
     // 토스트 표시 함수
     const showToast = (msg) => setToast(msg);
