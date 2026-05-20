@@ -2623,575 +2623,900 @@ img {
 
 /* ==========================================
    PaymentHistory.css
-   MINDWELL - 결제 내역 페이지 스타일
+   MINDWELL - 결제 페이지 스타일 (반응형 포함)
    ========================================== */
 
 /* ---------- 레이아웃 ---------- */
 
 .ph-root {
-  display: flex;
-  min-height: 100vh;
-  background-color: #FDFBF7;
-  color: #1E293B;
-  font-family: sans-serif;
+    display: flex;
+    min-height: 100vh;
+    background-color: #FDFBF7;
+    color: #1E293B;
+    font-family: sans-serif;
 }
 
 .ph-root ::selection {
-  background-color: #8BA888;
-  color: #ffffff;
+    background-color: #8BA888;
+    color: #ffffff;
 }
 
 /* ---------- 사이드바 ---------- */
 
 .ph-sidebar {
-  width: 256px;
-  border-right: 1px solid #FAF7F2;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: fixed;
-  height: 100%;
-  background-color: #FDFBF7;
-  z-index: 10;
+    width: 256px;
+    border-right: 1px solid #FAF7F2;
+    display: none; /* 모바일에서 숨김 */
+    flex-direction: column;
+    justify-content: space-between;
+    position: fixed;
+    height: 100%;
+    background-color: #FDFBF7;
+    z-index: 10;
+}
+
+/* 태블릿(768px) 이상에서 사이드바 표시 */
+@media (min-width: 768px) {
+    .ph-sidebar {
+        display: flex;
+    }
 }
 
 .ph-sidebar-top {
-  padding: 32px;
+    padding: 32px;
 }
 
 /* 로고 */
 .ph-logo-wrap {
-  margin-bottom: 48px;
+    margin-bottom: 48px;
 }
 
 .ph-logo-title {
-  font-size: 24px;
-  font-weight: 900;
-  color: #8BA888;
-  letter-spacing: -0.025em;
-  margin: 0;
+    font-size: 24px;
+    font-weight: 900;
+    color: #8BA888;
+    letter-spacing: -0.025em;
+    margin: 0;
 }
 
 .ph-logo-sub {
-  font-size: 10px;
-  color: #9ca3af;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  margin-top: 4px;
+    font-size: 10px;
+    color: #9ca3af;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    margin-top: 4px;
 }
 
 /* 내비게이션 */
 .ph-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .ph-nav-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s, color 0.2s;
-  background: transparent;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s, color 0.2s;
+    background: transparent;
 }
 
 .ph-nav-btn--active {
-  background-color: #FAF7F2;
-  color: #8BA888;
-  font-weight: 700;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    background-color: #FAF7F2;
+    color: #8BA888;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .ph-nav-btn--inactive {
-  color: #6b7280;
+    color: #6b7280;
 }
 
 .ph-nav-btn--inactive:hover {
-  background-color: rgba(250, 247, 242, 0.5);
-  color: #1E293B;
+    background-color: rgba(250, 247, 242, 0.5);
+    color: #1E293B;
 }
 
 .ph-nav-icon--active {
-  color: #8BA888;
-  flex-shrink: 0;
+    color: #8BA888;
+    flex-shrink: 0;
 }
 
 .ph-nav-icon--inactive {
-  color: #9ca3af;
-  flex-shrink: 0;
+    color: #9ca3af;
+    flex-shrink: 0;
 }
 
 /* 사이드바 하단 */
 .ph-sidebar-bottom {
-  padding: 32px;
-  border-top: 1px solid #FAF7F2;
+    padding: 32px;
+    border-top: 1px solid #FAF7F2;
 }
 
 .ph-sidebar-support-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  color: #6b7280;
-  border: none;
-  cursor: pointer;
-  background: transparent;
-  border-radius: 12px;
-  transition: color 0.2s, background-color 0.2s;
-  font-size: 14px;
-  margin-bottom: 8px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #6b7280;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    border-radius: 12px;
+    transition: color 0.2s, background-color 0.2s;
+    font-size: 14px;
+    margin-bottom: 8px;
 }
 
 .ph-sidebar-support-btn:hover {
-  color: #1E293B;
-  background-color: rgba(250, 247, 242, 0.5);
+    color: #1E293B;
+    background-color: rgba(250, 247, 242, 0.5);
 }
 
 .ph-sidebar-support-icon {
-  color: #9ca3af;
-  flex-shrink: 0;
+    color: #9ca3af;
+    flex-shrink: 0;
 }
 
 .ph-sidebar-logout-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  color: #FDA4AF;
-  border: none;
-  cursor: pointer;
-  background: transparent;
-  border-radius: 12px;
-  transition: background-color 0.2s;
-  font-size: 14px;
-  font-weight: 500;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #FDA4AF;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    border-radius: 12px;
+    transition: background-color 0.2s;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .ph-sidebar-logout-btn:hover {
-  background-color: rgba(253, 164, 175, 0.1);
+    background-color: rgba(253, 164, 175, 0.1);
 }
 
 /* ---------- 메인 컨텐츠 ---------- */
 
 .ph-main {
-  flex: 1;
-  margin-left: 256px;
-  padding: 40px;
+    flex: 1;
+    /* 모바일: 사이드바 없으므로 margin-left 0 */
+    margin-left: 0;
+    padding: 24px 16px;
 }
 
+/* 태블릿: 사이드바(256px) 만큼 밀어냄 */
+@media (min-width: 768px) {
+    .ph-main {
+        margin-left: 256px;
+        padding: 40px 32px;
+    }
+}
+
+/* PC */
 @media (min-width: 1024px) {
-  .ph-main {
-    padding: 56px;
-  }
+    .ph-main {
+        padding: 56px 48px;
+    }
 }
 
 .ph-header {
-  margin-bottom: 40px;
+    margin-bottom: 28px;
+}
+
+@media (min-width: 768px) {
+    .ph-header {
+        margin-bottom: 40px;
+    }
 }
 
 .ph-header-title {
-  font-size: 30px;
-  font-weight: 700;
-  color: #1E293B;
-  margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1E293B;
+    margin: 0;
+}
+
+@media (min-width: 768px) {
+    .ph-header-title {
+        font-size: 30px;
+    }
 }
 
 .ph-header-desc {
-  color: #6b7280;
-  margin-top: 8px;
-  font-size: 14px;
+    color: #6b7280;
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+@media (min-width: 768px) {
+    .ph-header-desc {
+        font-size: 14px;
+    }
 }
 
 /* ---------- 그리드 ---------- */
 
 .ph-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+@media (min-width: 768px) {
+    .ph-grid {
+        gap: 28px;
+    }
 }
 
 @media (min-width: 1024px) {
-  .ph-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+    .ph-grid {
+        flex-direction: row;
+        gap: 32px;
+    }
+    .ph-col-main {
+        width: 66.6667%;
+        max-width: 900px;
+    }
+    .ph-col-side {
+        width: 33.3333%;
+        max-width: 400px;
+    }
 }
 
 .ph-col-main {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
 }
 
-@media (min-width: 1024px) {
-  .ph-col-main {
-    grid-column: span 2;
-  }
+@media (min-width: 768px) {
+    .ph-col-main {
+        gap: 28px;
+    }
 }
 
 .ph-col-side {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .ph-col-side {
+        gap: 24px;
+    }
 }
 
 /* ---------- 최근 결제 하이라이트 카드 ---------- */
 
 .ph-highlight-card {
-  background-color: #FAF7F2;
-  border: 1px solid rgba(139, 168, 136, 0.2);
-  border-radius: 24px;
-  padding: 32px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    background-color: #FAF7F2;
+    border: 1px solid rgba(139, 168, 136, 0.2);
+    border-radius: 20px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 768px) {
+    .ph-highlight-card {
+        border-radius: 24px;
+        padding: 32px;
+    }
 }
 
 .ph-highlight-inner {
-  position: relative;
-  z-index: 10;
+    position: relative;
+    z-index: 10;
 }
 
 .ph-highlight-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+    .ph-highlight-meta {
+        margin-bottom: 24px;
+    }
 }
 
 .ph-status-badge {
-  background-color: #8BA888;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 9999px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+    background-color: #8BA888;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+@media (min-width: 768px) {
+    .ph-status-badge {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
 }
 
 .ph-highlight-date {
-  font-size: 14px;
-  font-weight: 500;
-  color: #6b7280;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+@media (min-width: 768px) {
+    .ph-highlight-date {
+        font-size: 14px;
+    }
 }
 
 .ph-highlight-title {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0 0 8px;
-  color: #1E293B;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    color: #1E293B;
+}
+
+@media (min-width: 768px) {
+    .ph-highlight-title {
+        font-size: 24px;
+        margin: 0 0 8px;
+    }
 }
 
 .ph-highlight-schedule {
-  color: #8BA888;
-  font-weight: 500;
-  margin: 0 0 32px;
-  font-size: 14px;
+    color: #8BA888;
+    font-weight: 500;
+    margin: 0 0 20px;
+    font-size: 13px;
+}
+
+@media (min-width: 768px) {
+    .ph-highlight-schedule {
+        margin: 0 0 32px;
+        font-size: 14px;
+    }
 }
 
 .ph-highlight-payment-box {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  border: 1px solid #f3f4f6;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background-color: #ffffff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f3f4f6;
 }
 
 @media (min-width: 640px) {
-  .ph-highlight-payment-box {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
+    .ph-highlight-payment-box {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: 16px;
+        padding: 24px;
+    }
 }
 
 .ph-payment-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+@media (min-width: 768px) {
+    .ph-payment-info {
+        gap: 16px;
+    }
 }
 
 .ph-payment-icon-wrap {
-  width: 48px;
-  height: 48px;
-  background-color: #FAF7F2;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background-color: #FAF7F2;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+    .ph-payment-icon-wrap {
+        width: 48px;
+        height: 48px;
+    }
 }
 
 .ph-payment-icon {
-  color: #8BA888;
+    color: #8BA888;
 }
 
 .ph-payment-label {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 0 0 4px;
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0 0 3px;
+}
+
+@media (min-width: 768px) {
+    .ph-payment-label {
+        font-size: 14px;
+        margin: 0 0 4px;
+    }
 }
 
 .ph-payment-amount {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-  color: #1E293B;
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0;
+    color: #1E293B;
+}
+
+@media (min-width: 768px) {
+    .ph-payment-amount {
+        font-size: 20px;
+    }
 }
 
 .ph-payment-amount-unit {
-  font-size: 16px;
-  font-weight: 400;
-  margin-left: 4px;
+    font-size: 14px;
+    font-weight: 400;
+    margin-left: 4px;
+}
+
+@media (min-width: 768px) {
+    .ph-payment-amount-unit {
+        font-size: 16px;
+    }
 }
 
 .ph-highlight-actions {
-  display: flex;
-  gap: 12px;
+    display: flex;
+    gap: 10px;
+}
+
+@media (min-width: 768px) {
+    .ph-highlight-actions {
+        gap: 12px;
+    }
 }
 
 .ph-detail-btn {
-  padding: 10px 24px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #8BA888;
-  border: 1px solid #8BA888;
-  background: transparent;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #8BA888;
+    border: 1px solid #8BA888;
+    background: transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .ph-detail-btn {
+        padding: 10px 24px;
+        font-size: 14px;
+        border-radius: 12px;
+    }
 }
 
 .ph-detail-btn:hover {
-  background-color: #8BA888;
-  color: #ffffff;
+    background-color: #8BA888;
+    color: #ffffff;
 }
 
 /* ---------- 전체 결제 내역 섹션 ---------- */
 
-.ph-history-section {
-  /* 섹션 래퍼 */
+.ph-history-heading {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    color: #1E293B;
 }
 
-.ph-history-heading {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0 0 16px;
-  display: flex;
-  align-items: center;
-  color: #1E293B;
+@media (min-width: 768px) {
+    .ph-history-heading {
+        font-size: 18px;
+        margin: 0 0 16px;
+    }
 }
 
 .ph-history-heading-icon {
-  color: #8BA888;
-  margin-right: 8px;
+    color: #8BA888;
+    margin-right: 8px;
 }
 
 .ph-table-wrap {
-  background-color: #ffffff;
-  border: 1px solid #f3f4f6;
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    background-color: #ffffff;
+    border: 1px solid #f3f4f6;
+    border-radius: 16px;
+    overflow: hidden; /* 모바일에서 가로 스크롤 방지용 래퍼 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 768px) {
+    .ph-table-wrap {
+        border-radius: 24px;
+        overflow: visible;
+    }
+}
+
+/* 모바일: 테이블을 가로 스크롤로 보여주는 래퍼 */
+.ph-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .ph-table {
-  width: 100%;
-  text-align: left;
-  border-collapse: collapse;
+    width: 100%;
+    min-width: 520px; /* 모바일에서 최소 너비 확보 → 가로 스크롤 발생 */
+    text-align: left;
+    border-collapse: collapse;
+}
+
+@media (min-width: 768px) {
+    .ph-table {
+        min-width: unset;
+    }
 }
 
 .ph-table-head {
-  background-color: #FAF7F2;
-  font-size: 14px;
-  color: #6b7280;
-  border-bottom: 1px solid #f3f4f6;
+    background-color: #FAF7F2;
+    font-size: 13px;
+    color: #6b7280;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+@media (min-width: 768px) {
+    .ph-table-head {
+        font-size: 14px;
+    }
 }
 
 .ph-table-th {
-  padding: 16px 24px;
-  font-weight: 500;
+    padding: 12px 16px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .ph-table-th {
+        padding: 16px 24px;
+    }
 }
 
 .ph-table-th--right {
-  text-align: right;
+    text-align: right;
 }
 
 .ph-table-th--center {
-  text-align: center;
+    text-align: center;
 }
 
 .ph-table-row {
-  border-bottom: 1px solid #f9fafb;
-  transition: background-color 0.15s;
+    border-bottom: 1px solid #f9fafb;
+    transition: background-color 0.15s;
 }
 
 .ph-table-row:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .ph-table-row:hover {
-  background-color: rgba(249, 250, 251, 0.5);
+    background-color: rgba(249, 250, 251, 0.5);
 }
 
 .ph-table-td {
-  padding: 16px 24px;
+    padding: 12px 16px;
+    vertical-align: middle;
+}
+
+@media (min-width: 768px) {
+    .ph-table-td {
+        padding: 16px 24px;
+    }
 }
 
 .ph-td-date-main {
-  font-size: 14px;
-  font-weight: 500;
-  margin: 0;
-  color: #1E293B;
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0;
+    color: #1E293B;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .ph-td-date-main {
+        font-size: 14px;
+    }
 }
 
 .ph-td-date-sub {
-  font-size: 12px;
-  color: #9ca3af;
-  margin: 0;
+    font-size: 11px;
+    color: #9ca3af;
+    margin: 0;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .ph-td-date-sub {
+        font-size: 12px;
+    }
 }
 
 .ph-td-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0;
-  color: #1E293B;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0;
+    color: #1E293B;
+}
+
+@media (min-width: 768px) {
+    .ph-td-title {
+        font-size: 14px;
+    }
 }
 
 .ph-td-method {
-  font-size: 12px;
-  color: #6b7280;
-  margin: 2px 0 0;
+    font-size: 11px;
+    color: #6b7280;
+    margin: 2px 0 0;
+}
+
+@media (min-width: 768px) {
+    .ph-td-method {
+        font-size: 12px;
+    }
 }
 
 .ph-td-amount-wrap {
-  text-align: right;
+    text-align: right;
 }
 
 .ph-td-amount {
-  font-size: 14px;
-  font-weight: 700;
-  margin: 0;
-  color: #1E293B;
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0;
+    color: #1E293B;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .ph-td-amount {
+        font-size: 14px;
+    }
 }
 
 .ph-td-status-wrap {
-  text-align: center;
+    text-align: center;
 }
 
 .ph-status-pill {
-  display: inline-block;
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: 9999px;
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 9999px;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .ph-status-pill {
+        padding: 4px 12px;
+        font-size: 12px;
+    }
 }
 
 .ph-status-pill--complete {
-  background-color: #f0fdf4;
-  color: #15803d;
+    background-color: #f0fdf4;
+    color: #15803d;
 }
 
 .ph-status-pill--cancel {
-  background-color: #fff1f2;
-  color: #FDA4AF;
+    background-color: #fff1f2;
+    color: #FDA4AF;
 }
 
 /* ---------- 우측 사이드 패널 ---------- */
 
 .ph-panel-card {
-  background-color: #ffffff;
-  border: 1px solid #f3f4f6;
-  border-radius: 24px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    background-color: #ffffff;
+    border: 1px solid #f3f4f6;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 768px) {
+    .ph-panel-card {
+        border-radius: 24px;
+        padding: 24px;
+    }
 }
 
 .ph-panel-heading {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: #374151;
-  margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #374151;
+    margin: 0 0 14px;
+}
+
+@media (min-width: 768px) {
+    .ph-panel-heading {
+        font-size: 14px;
+        margin: 0 0 16px;
+    }
 }
 
 .ph-panel-heading-icon {
-  color: #8BA888;
-  margin-right: 8px;
-  flex-shrink: 0;
+    color: #8BA888;
+    margin-right: 8px;
+    flex-shrink: 0;
 }
 
 /* 환불 규정 */
 .ph-refund-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+@media (min-width: 768px) {
+    .ph-refund-list {
+        gap: 16px;
+    }
 }
 
 .ph-refund-item {
-  display: flex;
-  align-items: flex-start;
-  font-size: 14px;
-  color: #4b5563;
-  line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    font-size: 13px;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+    .ph-refund-item {
+        font-size: 14px;
+    }
 }
 
 .ph-refund-dot {
-  min-width: 4px;
-  height: 4px;
-  border-radius: 9999px;
-  margin-top: 8px;
-  margin-right: 12px;
-  flex-shrink: 0;
+    min-width: 4px;
+    height: 4px;
+    border-radius: 9999px;
+    margin-top: 8px;
+    margin-right: 12px;
+    flex-shrink: 0;
 }
 
 .ph-refund-dot--green {
-  background-color: #8BA888;
+    background-color: #8BA888;
 }
 
 .ph-refund-dot--amber {
-  background-color: #F59E0B;
+    background-color: #F59E0B;
 }
 
 /* 영수증 발급 */
 .ph-receipt-desc {
-  font-size: 14px;
-  color: #4b5563;
-  line-height: 1.625;
-  margin: 0 0 16px;
+    font-size: 13px;
+    color: #4b5563;
+    line-height: 1.625;
+    margin: 0 0 14px;
+}
+
+@media (min-width: 768px) {
+    .ph-receipt-desc {
+        font-size: 14px;
+        margin: 0 0 16px;
+    }
 }
 
 .ph-inquiry-btn {
-  width: 100%;
-  padding: 10px 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-  background-color: #f9fafb;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+    width: 100%;
+    padding: 10px 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    background-color: #f9fafb;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+@media (min-width: 768px) {
+    .ph-inquiry-btn {
+        font-size: 14px;
+        border-radius: 12px;
+    }
 }
 
 .ph-inquiry-btn:hover {
-  background-color: #f3f4f6;
+    background-color: #f3f4f6;
+}
+
+/* ---------- 모바일 바텀 탭 내비게이션 (태블릿 미만에서만 표시) ---------- */
+
+.ph-mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #FDFBF7;
+    border-top: 1px solid #FAF7F2;
+    z-index: 100;
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 768px) {
+    .ph-mobile-nav {
+        display: none;
+    }
+}
+
+.ph-mobile-nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 4px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 600;
+    color: #9ca3af;
+    transition: color 0.2s;
+}
+
+.ph-mobile-nav-btn--active {
+    color: #8BA888;
+}
+
+.ph-mobile-nav-btn:active {
+    opacity: 0.7;
+}
+
+/* 모바일 바텀 탭 표시 시 하단 여백 확보 */
+@media (max-width: 767px) {
+    .ph-main {
+        padding-bottom: calc(70px + env(safe-area-inset-bottom));
+    }
 }

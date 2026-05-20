@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../static/Common.css';
 import {
     Bell,
@@ -19,12 +19,11 @@ import {
     Zap,
     MessageCircle,
 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-
-export default function mobileTap() {
+export default function MobileTap() {
     const [activeTab, setActiveTab] = useState('home');
+    const location = useLocation();
     const [userRole, setUserRole] = useState('');
     const navigate = useNavigate();
 
@@ -39,11 +38,29 @@ export default function mobileTap() {
         }
     }, []);
 
+    // URL 경로에 따라 activeTab 자동 설정
+    useEffect(() => {
+        const path = location.pathname;
+        if (userRole === 'counselor') {
+            if (path.startsWith('/CounselorHome')) setActiveTab('home');
+            else if (path.startsWith('/CounselorPlanner')) setActiveTab('reservation');
+            else if (path.startsWith('/CounselorClient')) setActiveTab('client');
+            else if (path.startsWith('/CounselorMessages')) setActiveTab('inquiry');
+            else if (path.startsWith('/CounselorMyPage')) setActiveTab('mypage');
+        } else {
+            if (path === '/' || path.startsWith('/home')) setActiveTab('home');
+            else if (path.startsWith('/reserve') || path.startsWith('/reservation')) setActiveTab('reservation');
+            else if (path.startsWith('/diary') || path.startsWith('/AIdiary') || path.startsWith('/ai-diary')) setActiveTab('diary');
+            else if (path.startsWith('/healing')) setActiveTab('lounge');
+            else if (path.startsWith('/mypage')) setActiveTab('mypage');
+        }
+    }, [location.pathname, userRole]);
+
     let mobileMenuItems = [];
     if (userRole === 'counselor') {
         mobileMenuItems = [
             { id: 'home', icon: Home, label: '홈' },
-            { id: 'reservation', icon: Calendar, label: '예약관리' }, // 예약관리(예약하기)
+            { id: 'reservation', icon: Calendar, label: '예약관리' },
             { id: 'client', icon: UserCircle, label: '내담자관리' },
             { id: 'inquiry', icon: MessageCircle, label: '문의하기' },
             { id: 'mypage', icon: UserCircle, label: '마이페이지' },
@@ -63,7 +80,7 @@ export default function mobileTap() {
         setActiveTab(item.id);
         if (userRole === 'counselor') {
             if (item.id === 'home') navigate('/CounselorHome');
-            else if (item.id === 'reservation') navigate('/CounselorPlanner'); // 예약관리(예약하기) 클릭 시 CounselorPlanner로 이동
+            else if (item.id === 'reservation') navigate('/CounselorPlanner');
             else if (item.id === 'client') navigate('/CounselorClient');
             else if (item.id === 'inquiry') navigate('/CounselorMessages');
             else if (item.id === 'mypage') navigate('/CounselorMyPage');

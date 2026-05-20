@@ -3,6 +3,7 @@ import { getAllBookings, cancelBooking, completeBooking } from '../api/booking';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '../components/header';
 import Footer from '../components/footer';
+import MobileTap from '../components/mobileTap.jsx';
 import {
     Calendar,
     Clock,
@@ -64,8 +65,7 @@ const EmptyState = ({ filter }) => (
 
 // ── 메인 ────────────────────────────────────────────────────
 export default function ReservationHistoryPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
-    const navigate = useNavigate();
-
+    // 뒤로가기 버튼 및 모바일 관련 코드 제거
     const [filter, setFilter] = useState('전체');
     const [historyData, setHistoryData] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -76,7 +76,10 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
     useEffect(() => {
         try {
             const u = JSON.parse(localStorage.getItem('user'));
-            if (u?.role === 'counselor') navigate('/CounselorPlanner', { replace: true });
+            if (u?.role === 'counselor') {
+                // navigate가 정의되어 있지 않으면 오류 발생하므로, 제거 또는 주석 처리
+                // navigate('/CounselorPlanner', { replace: true });
+            }
         } catch {}
     }, []);
 
@@ -164,8 +167,10 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                 setIsLoggedIn={setIsLoggedIn}
             />
 
+
+
             <main className="res-container">
-                {/* 헤더 */}
+                {/* ...existing code... */}
                 <div className="res-top">
                     <div className="res-badge">예약 관리</div>
                     <h2 className="res-title">
@@ -173,8 +178,7 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                     </h2>
                     <p className="res-sub">상담사와 함께하는 일정을 한눈에 확인하세요.</p>
                 </div>
-
-                {/* 탭 필터 */}
+                {/* ...existing code... */}
                 <nav className="res-tabs">
                     {TABS.map((tab) => (
                         <button
@@ -186,8 +190,7 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                         </button>
                     ))}
                 </nav>
-
-                {/* 리스트 / 빈 상태 */}
+                {/* ...existing code... */}
                 {filteredData.length === 0 ? (
                     <EmptyState filter={filter} />
                 ) : (
@@ -276,16 +279,7 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                 </div>
             )}
 
-            {/* 모바일 하단 네비 */}
-            <nav className="res-bottom-nav">
-                {NAV_ITEMS.map(({ to, Icon, label, active }) => (
-                    <Link key={to} to={to} className={`res-nav-item${active ? ' active' : ''}`}>
-                        <Icon size={22} />
-                        <span>{label}</span>
-                    </Link>
-                ))}
-            </nav>
-
+            <MobileTap />
             <Footer />
         </div>
     );

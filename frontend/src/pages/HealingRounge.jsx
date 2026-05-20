@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Coffee, Sparkles, ExternalLink, ChevronRight } from 'lucide-react';
+import { Coffee, Sparkles, ExternalLink } from 'lucide-react';
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
-import MobileTap from '../components/mobileTap.jsx';
 import '../static/HealingRounge.css';
+import MobileTap from '../components/mobileTap.jsx';
 
 export default function HealingLounge({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
+    // 모바일/뒤로가기/탭 관련 코드 완전 제거
     // 차와 향 추천 데이터
     const teaAndScentContents = [
         {
@@ -109,14 +110,6 @@ export default function HealingLounge({ userName, setUserName, isLoggedIn, setIs
         },
     ];
 
-    // 모바일/PC 구분
-    const [isMobile, setIsMobile] = useState(false);
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 1024);
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
 
     return (
         <div className="hr-root">
@@ -129,8 +122,9 @@ export default function HealingLounge({ userName, setUserName, isLoggedIn, setIs
                 isLoggedIn={isLoggedIn}
                 setIsLoggedIn={setIsLoggedIn}
             />
-            {/* MobileTap (only on mobile) */}
-            {isMobile && <MobileTap activeTab="lounge" setActiveTab={() => {}} />}
+
+            {/* MobileTap (항상 노출, 필요시 조건부 렌더링으로 변경 가능) */}
+            <MobileTap activeTab="lounge" setActiveTab={() => {}} />
 
             {/* ── 메인 ── */}
             <main className="hr-main">
@@ -186,9 +180,6 @@ export default function HealingLounge({ userName, setUserName, isLoggedIn, setIs
                 <section className="hr-section">
                     <div className="hr-section-header">
                         <h3 className="hr-section-title hr-section-title-left">마음을 어루만지는 책 📚</h3>
-                        <div className="hr-section-header-actions">
-                            <span className="hr-scroll-hint">Scroll →</span>
-                        </div>
                     </div>
                     <div className="hr-hscroll-outer">
                         <div className="hr-hscroll-inner hr-hscroll-inner-book hr-scrollbar-hide hr-scroll-area">
@@ -221,9 +212,6 @@ export default function HealingLounge({ userName, setUserName, isLoggedIn, setIs
                         <div className="hr-section-header-left">
                             <h3 className="hr-section-title hr-section-title-left">일상의 평온을 돕는 큐레이션 ✨</h3>
                             <p className="hr-section-subtitle-sm">당신의 공간과 시간을 더 안온하게</p>
-                        </div>
-                        <div className="hr-section-header-actions">
-                            <span className="hr-scroll-hint">Scroll →</span>
                         </div>
                     </div>
 

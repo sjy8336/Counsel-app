@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
-    const navigate = useNavigate();
+    // 뒤로가기 버튼 및 모바일 관련 코드 제거
     const [diaryText, setDiaryText] = useState('');
     const [selectedEmotion, setSelectedEmotion] = useState(null);
     const [emotionIntensity, setEmotionIntensity] = useState(0);
@@ -121,7 +121,7 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
         else if (tab === 'CounselorList') navigate('/CounselorList');
         else if (tab === 'Reservation') navigate('/Reservation');
         else if (tab === 'AIdiary') navigate('/AIdiary');
-        else if (tab === 'HealingRounge') navigate('/HealingRounge');
+        else if (tab === 'HealingLounge') navigate('/healing');
         else if (tab === 'CounselorClient') navigate('/CounselorClient');
         else if (tab === 'CounselorPlanner') navigate('/CounselorPlanner');
         else if (tab === 'mypage') navigate('/mypage');
@@ -137,6 +137,9 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
                 isLoggedIn={isLoggedIn}
                 setIsLoggedIn={setIsLoggedIn}
             />
+
+
+
             <main className="mw3-main">
                 {/* Left Section */}
                 <div className="mw3-left">

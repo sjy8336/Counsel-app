@@ -10,6 +10,7 @@ import {
     Bell,
     LogOut,
     ChevronRight,
+    ChevronLeft,
     CalendarHeart,
     MessageSquareHeart,
     History,
@@ -432,41 +433,69 @@ export default function App() {
 
         return (
             <div className="fade-in">
-                <div className="history-header">
-                    <div>
-                        <h3 className="history-title">상담 히스토리</h3>
-                        <p className="history-subtitle">소현님이 걸어온 마음의 발자취입니다.</p>
-                    </div>
-                    <div className="history-total-badge-wrapper">
-                        <span className="history-total-badge">총 12회 상담 완료</span>
-                    </div>
-                </div>
-                <div className="history-list-container">
-                    {historyList.map((item) => (
-                        <div key={item.id} onClick={() => setSelectedConsultation(item)} className="history-item-card">
-                            <div className="history-item-main">
-                                <div className="history-icon-box">
-                                    <CalendarDays size={24} />
-                                </div>
-                                <div>
-                                    <div className="history-item-meta">
-                                        <span className="meta-date">
-                                            {item.date} {item.time}
-                                        </span>
-                                        <span className="meta-type">{item.type}</span>
-                                    </div>
-                                    <h4 className="history-item-counselor">{item.counselor}</h4>
-                                    <p className="history-item-topic">상담 주제: {item.topic}</p>
-                                </div>
-                            </div>
-                            <div className="history-item-right">
-                                <div className="history-link-text">
-                                    <p>상담 기록지 보기</p>
-                                </div>
-                                <ChevronRight size={20} className="history-arrow-icon" />
-                            </div>
+                {/* 모바일 뒤로가기 버튼 (상담히스토리 목록, 모바일에서만) */}
+                {isMobile && (
+                    <button
+                        className="mobile-back-btn"
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
+                            boxShadow: 'none',
+                            padding: '1rem 0.5rem 0.5rem 0.5rem',
+                            margin: '0 0 0 0.2rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: '#222',
+                            fontSize: 18,
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            zIndex: 1000,
+                        }}
+                        onClick={() => setActiveMenu('dashboard')}
+                        aria-label="뒤로가기"
+                    >
+                        <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
+                    </button>
+                )}
+                <div style={{ paddingTop: isMobile ? 48 : 0 }}>
+                    <div className="history-header">
+                        <div>
+                            <h3 className="history-title">상담 히스토리</h3>
+                            <p className="history-subtitle">소현님이 걸어온 마음의 발자취입니다.</p>
                         </div>
-                    ))}
+                        <div className="history-total-badge-wrapper">
+                            <span className="history-total-badge">총 12회 상담 완료</span>
+                        </div>
+                    </div>
+                    <div className="history-list-container">
+                        {historyList.map((item) => (
+                            <div key={item.id} onClick={() => setSelectedConsultation(item)} className="history-item-card">
+                                <div className="history-item-main">
+                                    <div className="history-icon-box">
+                                        <CalendarDays size={24} />
+                                    </div>
+                                    <div>
+                                        <div className="history-item-meta">
+                                            <span className="meta-date">
+                                                {item.date} {item.time}
+                                            </span>
+                                            <span className="meta-type">{item.type}</span>
+                                        </div>
+                                        <h4 className="history-item-counselor">{item.counselor}</h4>
+                                        <p className="history-item-topic">상담 주제: {item.topic}</p>
+                                    </div>
+                                </div>
+                                <div className="history-item-right">
+                                    <div className="history-link-text">
+                                        <p>상담 기록지 보기</p>
+                                    </div>
+                                    <ChevronRight size={20} className="history-arrow-icon" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -474,130 +503,158 @@ export default function App() {
 
     const renderTicketsDetail = () => (
         <div className="fade-in">
-            <div className="ph-header">
-                <h2 className="ph-header-title">결제 내역</h2>
-                <p className="ph-header-desc">상담 예약금 및 추가 결제 내역을 확인할 수 있습니다.</p>
-            </div>
-
-            <div className="ph-grid">
-                <div className="ph-col-main">
-                    <section className="ph-highlight-card">
-                        <div className="ph-highlight-inner">
-                            <div className="ph-highlight-meta">
-                                <span className="ph-status-badge">
-                                    <CheckCircle2 size={14} /> 예약 확정
-                                </span>
-                                <span className="ph-highlight-date">결제일시: 2026. 05. 20 14:32</span>
-                            </div>
-
-                            <h3 className="ph-highlight-title">이지은 상담사 - 1:1 심리상담</h3>
-                            <p className="ph-highlight-schedule">2026. 05. 27 (수) 오후 2:00 예정</p>
-
-                            <div className="ph-highlight-payment-box">
-                                <div className="ph-payment-info">
-                                    <div className="ph-payment-icon-wrap">
-                                        <CreditCard className="ph-payment-icon" size={24} />
-                                    </div>
-                                    <div>
-                                        <p className="ph-payment-label">결제 금액 (예약금)</p>
-                                        <p className="ph-payment-amount">
-                                            20,000<span className="ph-payment-amount-unit">원</span>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="ph-highlight-actions">
-                                    <button className="ph-detail-btn" onClick={() => navigate('/reservation')}>예약 상세 보기</button>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section className="ph-history-section">
-                        <h4 className="ph-history-heading">
-                            <History className="ph-history-heading-icon" size={20} />
-                            전체 결제 내역
-                        </h4>
-                        <div className="ph-table-wrap">
-                            <table className="ph-table">
-                                <thead className="ph-table-head">
-                                    <tr>
-                                        <th className="ph-table-th">결제일시</th>
-                                        <th className="ph-table-th">결제 내용</th>
-                                        <th className="ph-table-th ph-table-th--right">금액</th>
-                                        <th className="ph-table-th ph-table-th--center">상태</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {PAYMENT_HISTORY.map((item) => (
-                                        <tr key={item.id} className="ph-table-row">
-                                            <td className="ph-table-td">
-                                                <p className="ph-td-date-main">{item.date}</p>
-                                                <p className="ph-td-date-sub">{item.time}</p>
-                                            </td>
-                                            <td className="ph-table-td">
-                                                <p className="ph-td-title">{item.title}</p>
-                                                <p className="ph-td-method">{item.method}</p>
-                                            </td>
-                                            <td className="ph-table-td ph-td-amount-wrap">
-                                                <p className="ph-td-amount">{item.amount}원</p>
-                                            </td>
-                                            <td className="ph-table-td ph-td-status-wrap">
-                                                <span
-                                                    className={`ph-status-pill ${
-                                                        item.status === '결제완료'
-                                                            ? 'ph-status-pill--complete'
-                                                            : 'ph-status-pill--cancel'
-                                                    }`}
-                                                >
-                                                    {item.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
+            {/* 모바일 뒤로가기 버튼 (결제내역, 모바일에서만) */}
+            {isMobile && (
+                <button
+                    className="mobile-back-btn"
+                    style={{
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        boxShadow: 'none',
+                        padding: '1rem 0.5rem 0.5rem 0.5rem',
+                        margin: '0 0 0 0.2rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: '#222',
+                        fontSize: 18,
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        zIndex: 1000,
+                    }}
+                    onClick={() => setActiveMenu('dashboard')}
+                    aria-label="뒤로가기"
+                >
+                    <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
+                </button>
+            )}
+            <div style={{ paddingTop: isMobile ? 48 : 0 }}>
+                <div className="ph-header">
+                    <h2 className="ph-header-title">결제 내역</h2>
+                    <p className="ph-header-desc">상담 예약금 및 추가 결제 내역을 확인할 수 있습니다.</p>
                 </div>
 
-                <div className="ph-col-side">
-                    <div className="ph-panel-card">
-                        <h4 className="ph-panel-heading">
-                            <AlertCircle size={16} className="ph-panel-heading-icon" />
-                            예약금 및 환불 규정
-                        </h4>
-                        <ul className="ph-refund-list">
-                            <li className="ph-refund-item">
-                                <div className="ph-refund-dot ph-refund-dot--green" />
-                                <p>
-                                    상담 예약 확정을 위해 <strong>20,000원의 예약금</strong> 결제가 필요합니다.
-                                </p>
-                            </li>
-                            <li className="ph-refund-item">
-                                <div className="ph-refund-dot ph-refund-dot--green" />
-                                <p>
-                                    상담 시작 <strong>24시간 전</strong> 취소 시 예약금은 100% 환불됩니다.
-                                </p>
-                            </li>
-                            <li className="ph-refund-item">
-                                <div className="ph-refund-dot ph-refund-dot--amber" />
-                                <p>
-                                    상담 시작 24시간 이내 취소 또는 노쇼(No-Show) 시 예약금은 환불되지 않습니다.
-                                </p>
-                            </li>
-                        </ul>
+                <div className="ph-grid">
+                    <div className="ph-col-main">
+                        <section className="ph-highlight-card">
+                            <div className="ph-highlight-inner">
+                                <div className="ph-highlight-meta">
+                                    <span className="ph-status-badge">
+                                        <CheckCircle2 size={14} /> 예약 확정
+                                    </span>
+                                    <span className="ph-highlight-date">결제일시: 2026. 05. 20 14:32</span>
+                                </div>
+
+                                <h3 className="ph-highlight-title">이지은 상담사 - 1:1 심리상담</h3>
+                                <p className="ph-highlight-schedule">2026. 05. 27 (수) 오후 2:00 예정</p>
+
+                                <div className="ph-highlight-payment-box">
+                                    <div className="ph-payment-info">
+                                        <div className="ph-payment-icon-wrap">
+                                            <CreditCard className="ph-payment-icon" size={24} />
+                                        </div>
+                                        <div>
+                                            <p className="ph-payment-label">결제 금액 (예약금)</p>
+                                            <p className="ph-payment-amount">
+                                                20,000<span className="ph-payment-amount-unit">원</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="ph-highlight-actions">
+                                        <button className="ph-detail-btn" onClick={() => navigate('/reservation')}>예약 상세 보기</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="ph-history-section">
+                            <h4 className="ph-history-heading">
+                                <History className="ph-history-heading-icon" size={20} />
+                                전체 결제 내역
+                            </h4>
+                            <div className="ph-table-wrap">
+                                <table className="ph-table">
+                                    <thead className="ph-table-head">
+                                        <tr>
+                                            <th className="ph-table-th">결제일시</th>
+                                            <th className="ph-table-th">결제 내용</th>
+                                            <th className="ph-table-th ph-table-th--right">금액</th>
+                                            <th className="ph-table-th ph-table-th--center">상태</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {PAYMENT_HISTORY.map((item) => (
+                                            <tr key={item.id} className="ph-table-row">
+                                                <td className="ph-table-td">
+                                                    <p className="ph-td-date-main">{item.date}</p>
+                                                    <p className="ph-td-date-sub">{item.time}</p>
+                                                </td>
+                                                <td className="ph-table-td">
+                                                    <p className="ph-td-title">{item.title}</p>
+                                                    <p className="ph-td-method">{item.method}</p>
+                                                </td>
+                                                <td className="ph-table-td ph-td-amount-wrap">
+                                                    <p className="ph-td-amount">{item.amount}원</p>
+                                                </td>
+                                                <td className="ph-table-td ph-td-status-wrap">
+                                                    <span
+                                                        className={`ph-status-pill ${
+                                                            item.status === '결제완료'
+                                                                ? 'ph-status-pill--complete'
+                                                                : 'ph-status-pill--cancel'
+                                                        }`}
+                                                    >
+                                                        {item.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
                     </div>
 
-                    <div className="ph-panel-card">
-                        <h4 className="ph-panel-heading">
-                            <Receipt size={16} className="ph-panel-heading-icon" />
-                            증빙 서류 발급 안내
-                        </h4>
-                        <p className="ph-receipt-desc">
-                            결제하신 예약금 및 상담비에 대한 현금영수증 및 카드 전표가 필요한 경우 고객센터 혹은 1:1
-                            문의를 통해 발급을 요청하실 수 있습니다.
-                        </p>
-                        <button className="ph-inquiry-btn">1:1 문의하기</button>
+                    <div className="ph-col-side">
+                        <div className="ph-panel-card">
+                            <h4 className="ph-panel-heading">
+                                <AlertCircle size={16} className="ph-panel-heading-icon" />
+                                예약금 및 환불 규정
+                            </h4>
+                            <ul className="ph-refund-list">
+                                <li className="ph-refund-item">
+                                    <div className="ph-refund-dot ph-refund-dot--green" />
+                                    <p>
+                                        상담 예약 확정을 위해 <strong>20,000원의 예약금</strong> 결제가 필요합니다.
+                                    </p>
+                                </li>
+                                <li className="ph-refund-item">
+                                    <div className="ph-refund-dot ph-refund-dot--green" />
+                                    <p>
+                                        상담 시작 <strong>24시간 전</strong> 취소 시 예약금은 100% 환불됩니다.
+                                    </p>
+                                </li>
+                                <li className="ph-refund-item">
+                                    <div className="ph-refund-dot ph-refund-dot--amber" />
+                                    <p>
+                                        상담 시작 24시간 이내 취소 또는 노쇼(No-Show) 시 예약금은 환불되지 않습니다.
+                                    </p>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div className="ph-panel-card">
+                            <h4 className="ph-panel-heading">
+                                <Receipt size={16} className="ph-panel-heading-icon" />
+                                증빙 서류 발급 안내
+                            </h4>
+                            <p className="ph-receipt-desc">
+                                결제하신 예약금 및 상담비에 대한 현금영수증 및 카드 전표가 필요한 경우 고객센터 혹은 1:1
+                                문의를 통해 발급을 요청하실 수 있습니다.
+                            </p>
+                            <button className="ph-inquiry-btn">1:1 문의하기</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1063,35 +1120,74 @@ export default function App() {
             case 'tickets':
                 return renderTicketsDetail();
             case 'profile':
+                // 계정설정(메인)에서만(서브메뉴X) 상담히스토리와 완전히 동일한 모바일 뒤로가기 버튼 노출
                 return (
-                    <div className="fade-in">
-                        <h3 className="account-main-title">계정 설정</h3>
-                        <div className="setting-items-list">
-                            {[
-                                { key: 'personal', label: '개인정보 수정 및 보안', icon: User, type: 'personal' },
-                                { key: 'notification', label: '알림 설정', icon: Bell, type: 'notification' },
-                                { key: 'quit', label: '서비스 탈퇴', icon: UserX, type: 'quit' },
-                            ].map((item) => (
-                                <div
-                                    key={item.key}
-                                    className="setting-item-card"
-                                    onClick={() => setActiveSubMenu(item.key)}
-                                >
-                                    <div className="setting-item-left">
-                                        <div className={`setting-item-icon-box is-${item.type}`}>
-                                            <item.icon size={20} />
-                                        </div>
-                                        <span className="setting-item-label">{item.label}</span>
-                                    </div>
-                                    <ChevronRight size={20} className="setting-item-arrow" />
-                                </div>
-                            ))}
-                        </div>
-                        <div className="account-logout-section">
-                            <button className="account-logout-btn" onClick={handleLogout}>
-                                <LogOut size={20} />
-                                로그아웃
+                    <div className="fade-in" style={{ position: 'relative' }}>
+                        {/* 모바일 뒤로가기 버튼이 항상 맨 위 */}
+                        {isMobile && !activeSubMenu && (
+                            <button
+                                className="mobile-back-btn"
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    outline: 'none',
+                                    boxShadow: 'none',
+                                    margin: '0 0 0 0.2rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    color: '#222',
+                                    fontSize: 18,
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    zIndex: 1000,
+                                }}
+                                onClick={() => setActiveMenu('dashboard')}
+                                aria-label="뒤로가기"
+                            >
+                                <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
                             </button>
+                        )}
+                        <div style={{ paddingTop: isMobile && !activeSubMenu ? 48 : 0 }}>
+                            <h3
+                                className="account-main-title"
+                                style={{
+                                    marginTop: isMobile ? 0 : '2.2rem',
+                                    marginLeft: isMobile ? 40 : 0,
+                                    textAlign: 'left',
+                                    minHeight: 40,
+                                    lineHeight: '40px',
+                                }}
+                            >
+                                계정 설정
+                            </h3>
+                            <div className="setting-items-list">
+                                {[
+                                    { key: 'personal', label: '개인정보 수정 및 보안', icon: User, type: 'personal' },
+                                    { key: 'notification', label: '알림 설정', icon: Bell, type: 'notification' },
+                                    { key: 'quit', label: '서비스 탈퇴', icon: UserX, type: 'quit' },
+                                ].map((item) => (
+                                    <div
+                                        key={item.key}
+                                        className="setting-item-card"
+                                        onClick={() => setActiveSubMenu(item.key)}
+                                    >
+                                        <div className={`setting-item-left is-${item.type}`}>
+                                            <div className={`setting-item-icon-box is-${item.type}`}>
+                                                <item.icon size={20} />
+                                            </div>
+                                            <span className="setting-item-label">{item.label}</span>
+                                        </div>
+                                        <ChevronRight size={20} className="setting-item-arrow" />
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="account-logout-section">
+                                <button className="account-logout-btn" onClick={handleLogout}>
+                                    <LogOut size={20} />
+                                    로그아웃
+                                </button>
+                            </div>
                         </div>
                     </div>
                 );
@@ -1234,40 +1330,69 @@ export default function App() {
 
     const renderNotifications = () => (
         <>
-            <div className="cmp-page-header">
-                <h2 className="cmp-page-title">알림 센터</h2>
-                <p className="cmp-page-sub">상담 일정, 예약 확정 등 최근 알림을 확인하세요.</p>
-            </div>
-            <div className="cmp-list-card">
-                {mockNotifications.length === 0 ? (
-                    <div className="cmp-notif-empty">
-                        <div className="cmp-notif-empty-icon">
-                            <Bell size={22} />
-                        </div>
-                        <p className="cmp-notif-empty-title">새로운 알림이 없습니다</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="cmp-notif-group-label">최근 알림</div>
-                        {mockNotifications.map((item) => (
-                            <div key={item.id} className={`cmp-notif-item${item.unread ? ' unread' : ''}`}>
-                                <span className="cmp-item-avatar notif">
-                                    {item.type === 'booking' && <Check size={15} />}
-                                    {item.type === 'msg' && <MessageSquare size={15} />}
-                                    {item.type === 'notice' && <AlertCircle size={15} />}
-                                </span>
-                                <div className="cmp-notif-content">
-                                    <div className="cmp-notif-title">{item.title}</div>
-                                    <div className="cmp-notif-desc">{item.desc}</div>
-                                </div>
-                                <div className="cmp-notif-meta">
-                                    <span className="cmp-notif-time">{item.time}</span>
-                                    {item.unread && <span className="cmp-notif-dot" />}
-                                </div>
+            {/* 모바일 뒤로가기 버튼 (알림센터에서만, 모바일에서만 노출) */}
+            {isMobile && (
+                <button
+                    className="mobile-back-btn"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        background: 'transparent', // 완전 투명
+                        border: 'none', // 테두리 제거
+                        outline: 'none', // 포커스 테두리 제거
+                        boxShadow: 'none', // 그림자 제거
+                        fontSize: 16,
+                        padding: '1rem',
+                        cursor: 'pointer',
+                        margin: '16px 0 0 8px',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        zIndex: 1000,
+                        color: '#222', // 텍스트만 보이게
+                    }}
+                    onClick={() => setActiveMenu('dashboard')}
+                >
+                    <ChevronRight style={{ transform: 'rotate(180deg)' }} size={20} /> 뒤로가기
+                </button>
+            )}
+            <div style={{ paddingTop: isMobile ? 56 : 0 }}>
+                <div className="cmp-page-header">
+                    <h2 className="cmp-page-title">알림 센터</h2>
+                    <p className="cmp-page-sub">상담 일정, 예약 확정 등 최근 알림을 확인하세요.</p>
+                </div>
+                <div className="cmp-list-card">
+                    {mockNotifications.length === 0 ? (
+                        <div className="cmp-notif-empty">
+                            <div className="cmp-notif-empty-icon">
+                                <Bell size={22} />
                             </div>
-                        ))}
-                    </>
-                )}
+                            <p className="cmp-notif-empty-title">새로운 알림이 없습니다</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="cmp-notif-group-label">최근 알림</div>
+                            {mockNotifications.map((item) => (
+                                <div key={item.id} className={`cmp-notif-item${item.unread ? ' unread' : ''}`}>
+                                    <span className="cmp-item-avatar notif">
+                                        {item.type === 'booking' && <Check size={15} />}
+                                        {item.type === 'msg' && <MessageSquare size={15} />}
+                                        {item.type === 'notice' && <AlertCircle size={15} />}
+                                    </span>
+                                    <div className="cmp-notif-content">
+                                        <div className="cmp-notif-title">{item.title}</div>
+                                        <div className="cmp-notif-desc">{item.desc}</div>
+                                    </div>
+                                    <div className="cmp-notif-meta">
+                                        <span className="cmp-notif-time">{item.time}</span>
+                                        {item.unread && <span className="cmp-notif-dot" />}
+                                    </div>
+                                </div>
+                            ))}
+                        </>
+                    )}
+                </div>
             </div>
         </>
     );

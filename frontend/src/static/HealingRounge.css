@@ -617,8 +617,8 @@
 
 .hr-section-title-left {
     justify-content: flex-start;
-    font-size: 2.4rem;
-}  
+    font-size: 1.35rem;
+}
 @media (min-width: 640px) {
     .hr-section-title-left {
         font-size: 1.7rem;
