@@ -152,6 +152,20 @@ CREATE TABLE `counselor_schedules` (
 SELECT * From counselor_schedules;
 DELETE FROM counselor_schedules WHERE user_id = 2;
 
+-- 기존 holiday 테이블 삭제
+
+DROP TABLE IF EXISTS holiday;
+
+CREATE TABLE holiday (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  date DATE NOT NULL,
+  user_id INT NOT NULL,
+  UNIQUE KEY uix_date_user (date, user_id),
+  CONSTRAINT fk_holiday_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+SELECT * From holiday;
+
 commit;
 
 -- counseling_db.bookings definition
@@ -180,6 +194,8 @@ CREATE TABLE `bookings` (
 
 SELECT * From bookings;
 
+DROP TABLE IF EXISTS counseling_logs;
+
 CREATE TABLE counseling_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     booking_id INT NOT NULL COMMENT '어떤 예약 건에 대한 일지인지 연결',
@@ -196,6 +212,8 @@ CREATE TABLE counseling_logs (
     CONSTRAINT fk_log_client FOREIGN KEY (client_id) REFERENCES users (id) ON DELETE CASCADE,
     CONSTRAINT fk_log_counselor FOREIGN KEY (counselor_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+ALTER TABLE counseling_logs ADD COLUMN keywords JSON COMMENT '자동 추출된 키워드 리스트';
 
 SELECT * From counseling_logs;
 commit;

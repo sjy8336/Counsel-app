@@ -195,14 +195,19 @@ function App() {
             <Route path="/schedule" element={<Schedule />} />
             <Route
                 path="/CounselorPlanner"
-                element={
-                    <CounselorPlanner
-                        userName={userName}
-                        setUserName={setUserName}
-                        isLoggedIn={isLoggedIn}
-                        setIsLoggedIn={setIsLoggedIn}
-                    />
-                }
+                element={(() => {
+                    const userObj = JSON.parse(localStorage.getItem('user') || '{}');
+                    const userId = userObj?.id;
+                    return (
+                        <CounselorPlanner
+                            userId={userId}
+                            userName={userName}
+                            setUserName={setUserName}
+                            isLoggedIn={isLoggedIn}
+                            setIsLoggedIn={setIsLoggedIn}
+                        />
+                    );
+                })()}
             />
             <Route
                 path="/CounselorClient"

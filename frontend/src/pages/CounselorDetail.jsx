@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import { getBlockedSlots } from '../api/blockedSlot';
 import { toggleFavorite } from '../api/favorite';
 import { isTokenExpired } from '../utils/jwt';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getAllBookings } from '../api/booking';
+import { getScheduleCalendar } from '../api/schedule';
 import { User, Calendar, ChevronLeft, ChevronRight, Clock, CheckCircle, MessageCircle } from 'lucide-react';
 import Header from '../components/header';
 import Footer from '../components/footer';
@@ -127,6 +129,28 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     const [isOpen, setIsOpen] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+    const [holidays, setHolidays] = useState([]); // 휴무일(YYYY-MM-DD)
+    // 상담사 휴무일 정보 불러오기
+    useEffect(() => {
+        const fetchHolidays = async () => {
+            try {
+                const userId = counselor?.id || counselor?.user?.id;
+                if (userId) {
+                    const data = await getScheduleCalendar(userId);
+                    // holidays: ['YYYY-MM-DD', ...] 또는 [{date: 'YYYY-MM-DD'}, ...]
+                    if (Array.isArray(data.holidays)) {
+                        setHolidays(data.holidays.map((h) => (typeof h === 'string' ? h : h.date)));
+                    } else {
+                        setHolidays([]);
+                    }
+                }
+            } catch (e) {
+                setHolidays([]);
+            }
+        };
+        fetchHolidays();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [counselor?.id, counselor?.user?.id]);
 
     const showToast = (msg) => setToast(msg);
     useEffect(() => {
@@ -211,7 +235,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
     const firstDayOfMonth = (y, m) => new Date(y, m, 1).getDay();
 
-    // 날짜 클릭 시 해당 요일의 상담 가능 시간대 추출 및 예약된 시간 조회
+    // 날짜 클릭 시 해당 요일의 상담 가능 시간대 추출 및 예약/블록된 시간 조회
     const handleDateClick = async (day) => {
         const clicked = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
         if (clicked >= today) {
@@ -234,19 +258,31 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                 }
             });
 
-            // 예약된 시간 조회
+            // 예약된 시간, 예약불가시간(블록) 조회
             try {
-                const res = await axios.get(`/api/booking/reserved-times`, {
-                    params: {
-                        counselor_id: counselor?.id || counselor?.user?.id,
-                        date: dateStr,
-                    },
-                });
-                // 예약된 시간 배열 추출 (API는 booking_time 배열 반환, 하지만 실제로는 그냥 배열임)
-                const reserved = Array.isArray(res.data) ? res.data : [];
+                const [reservedRes, blockedRes] = await Promise.all([
+                    axios.get(`/api/booking/reserved-times`, {
+                        params: {
+                            counselor_id: counselor?.id || counselor?.user?.id,
+                            date: dateStr,
+                        },
+                    }),
+                    getBlockedSlots(counselor?.id || counselor?.user?.id, dateStr),
+                ]);
+                const reserved = Array.isArray(reservedRes.data) ? reservedRes.data : [];
                 setReservedTimes(reserved);
-                // 예약된 시간은 아예 버튼 자체가 렌더링되지 않도록 availableTimesForDate에서 제외
-                setAvailableTimesForDate(times.filter((t) => !reserved.includes(t)));
+                // blockedRes: [{start_time, end_time, ...}]
+                let blockedTimes = [];
+                blockedRes.forEach((block) => {
+                    // 1시간 단위로만 막는다고 가정, 실제로는 30분 단위 등 확장 가능
+                    const start = parseInt(block.start_time.split(':')[0], 10);
+                    const end = parseInt(block.end_time.split(':')[0], 10);
+                    for (let h = start; h < end; h++) {
+                        blockedTimes.push(`${String(h).padStart(2, '0')}:00`);
+                    }
+                });
+                // 예약된 시간, 블록된 시간 모두 제외
+                setAvailableTimesForDate(times.filter((t) => !reserved.includes(t) && !blockedTimes.includes(t)));
             } catch (e) {
                 setReservedTimes([]);
                 setAvailableTimesForDate(times);
@@ -258,6 +294,11 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     const changeMonth = (offset) =>
         setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1));
 
+    // 날짜를 항상 YYYY-MM-DD로 포맷팅
+    const formatDate = (y, m, d) => {
+        return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    };
+
     const renderCalendar = () => {
         const y = currentMonth.getFullYear(),
             m = currentMonth.getMonth();
@@ -268,14 +309,28 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
         for (let d = 1; d <= totalDays; d++) {
             const dateObj = new Date(y, m, d);
             const isPast = dateObj < today;
-            // DB에 등록된 상담 가능 요일만 활성화, 나머지는 휴무일(비활성화)
-            const isHoliday = !availableDaysOfWeek.includes(dateObj.getDay());
-            const isSelected = selectedDate === `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const isDayOff = !availableDaysOfWeek.includes(dateObj.getDay());
+            const dateStr = formatDate(y, m, d);
+            // holidays 배열의 모든 값도 포맷을 맞춰서 비교
+            const isHoliday = holidays.some((h) => {
+                if (!h) return false;
+                // 빠른 경로: h가 이미 YYYY-MM-DD 포맷이면 바로 비교
+                if (h === dateStr) return true;
+                // 아니면 Date로 변환 후 월+1 보정
+                const hd = new Date(h);
+                if (isNaN(hd)) return false;
+                const hStr = formatDate(hd.getFullYear(), hd.getMonth(), hd.getDate());
+                // getMonth()는 0부터 시작하므로 +1 필요
+                const hStrFixed = `${hd.getFullYear()}-${String(hd.getMonth() + 1).padStart(2, '0')}-${String(hd.getDate()).padStart(2, '0')}`;
+                return hStrFixed === dateStr;
+            });
+            const isDisabled = isPast || isDayOff || isHoliday;
+            const isSelected = selectedDate === dateStr;
             days.push(
                 <div
                     key={d}
-                    className={`cld-calendar-day${isPast || isHoliday ? ' disabled' : ' enabled'}${isSelected ? ' selected' : ''}`}
-                    onClick={isPast || isHoliday ? undefined : () => handleDateClick(d)}
+                    className={`cld-calendar-day${isDisabled ? ' disabled' : ' enabled'}${isSelected ? ' selected' : ''}`}
+                    onClick={isDisabled ? undefined : () => handleDateClick(d)}
                 >
                     {d}
                 </div>
@@ -518,7 +573,9 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
 
                             <button
                                 className="cld-inquiry-btn"
-                                onClick={() => navigate('/contact-coach', { state: { counselorName: safeCounselor.name } })}
+                                onClick={() =>
+                                    navigate('/contact-coach', { state: { counselorName: safeCounselor.name } })
+                                }
                             >
                                 <MessageCircle size={18} /> 상담사에게 예약 문의하기
                             </button>
@@ -538,10 +595,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
 
                 {/* Bottom Sheet 오버레이 */}
                 {isBottomSheetOpen && (
-                    <div
-                        className="cld-bottom-sheet-overlay"
-                        onClick={() => setIsBottomSheetOpen(false)}
-                    />
+                    <div className="cld-bottom-sheet-overlay" onClick={() => setIsBottomSheetOpen(false)} />
                 )}
 
                 {/* Bottom Sheet 본체 */}
@@ -556,10 +610,14 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                             <span className="cld-price-value">{safeCounselor.price}</span>
                         </div>
                         <div className="cld-reservation-step">
-                            <label><Calendar size={18} /> 상담 일자 선택</label>
+                            <label>
+                                <Calendar size={18} /> 상담 일자 선택
+                            </label>
                             <div className="cld-date-picker-container" ref={bottomSheetContainerRef}>
                                 <div className="cld-date-input-wrapper" onClick={() => setIsOpen(!isOpen)}>
-                                    <span className="cld-calendar-icon"><Calendar size={16} /></span>
+                                    <span className="cld-calendar-icon">
+                                        <Calendar size={16} />
+                                    </span>
                                     <input
                                         type="text"
                                         readOnly
@@ -571,15 +629,21 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                 {isOpen && (
                                     <div className="cld-calendar-popup">
                                         <div className="cld-calendar-header">
-                                            <button onClick={() => changeMonth(-1)} className="cld-nav-button"><ChevronLeft size={20} /></button>
+                                            <button onClick={() => changeMonth(-1)} className="cld-nav-button">
+                                                <ChevronLeft size={20} />
+                                            </button>
                                             <span className="cld-current-month-text">
                                                 {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
                                             </span>
-                                            <button onClick={() => changeMonth(1)} className="cld-nav-button"><ChevronRight size={20} /></button>
+                                            <button onClick={() => changeMonth(1)} className="cld-nav-button">
+                                                <ChevronRight size={20} />
+                                            </button>
                                         </div>
                                         <div className="cld-calendar-weekdays">
-                                            {['일','월','화','수','목','금','토'].map((d) => (
-                                                <div key={d} className="cld-weekday-label">{d}</div>
+                                            {['일', '월', '화', '수', '목', '금', '토'].map((d) => (
+                                                <div key={d} className="cld-weekday-label">
+                                                    {d}
+                                                </div>
                                             ))}
                                         </div>
                                         <div className="cld-calendar-grid">{renderCalendar()}</div>
@@ -593,10 +657,14 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                             </div>
                         </div>
                         <div className="cld-reservation-step">
-                            <label><Clock size={18} /> 시간 선택</label>
+                            <label>
+                                <Clock size={18} /> 시간 선택
+                            </label>
                             <div className="cld-time-grid">
                                 {availableTimesForDate.length === 0 && selectedDate && (
-                                    <span style={{ color: '#b0b0b0', fontSize: '14px' }}>선택한 날짜에 가능한 시간이 없습니다.</span>
+                                    <span style={{ color: '#b0b0b0', fontSize: '14px' }}>
+                                        선택한 날짜에 가능한 시간이 없습니다.
+                                    </span>
                                 )}
                                 {availableTimesForDate.map((time, idx) => (
                                     <button
@@ -616,7 +684,13 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                 onClick={handleReservation}
                                 disabled={isSubmitting || !counselor || !selectedDate || !selectedTime}
                             >
-                                {isSubmitting ? '처리 중...' : !counselor ? '상담사 정보 로딩 중' : !selectedDate || !selectedTime ? '날짜와 시간을 선택하세요' : '예약 신청하기'}
+                                {isSubmitting
+                                    ? '처리 중...'
+                                    : !counselor
+                                      ? '상담사 정보 로딩 중'
+                                      : !selectedDate || !selectedTime
+                                        ? '날짜와 시간을 선택하세요'
+                                        : '예약 신청하기'}
                             </button>
                             <button
                                 className={`cld-heart-btn-reserve${liked ? ' liked' : ''}`}
@@ -624,9 +698,17 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                 onClick={handleLike}
                                 type="button"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"
-                                    fill={liked ? '#fda4af' : 'none'} stroke={liked ? '#f43f5e' : '#64748b'}
-                                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="26"
+                                    height="26"
+                                    viewBox="0 0 24 24"
+                                    fill={liked ? '#fda4af' : 'none'}
+                                    stroke={liked ? '#f43f5e' : '#64748b'}
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
                                     <path d="M19.5 13.6l-7.5 7.4-7.5-7.4C2.1 11.7 2.1 8.7 4 6.9c1.8-1.8 4.8-1.8 6.6 0l.9.9.9-.9c1.8-1.8 4.8-1.8 6.6 0 1.9 1.8 1.9 4.8 0 6.7z" />
                                 </svg>
                             </button>
