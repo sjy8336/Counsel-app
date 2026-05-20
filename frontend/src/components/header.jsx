@@ -47,8 +47,18 @@ export default function Header({
     const [profileImgUrl, setProfileImgUrl] = useState('');
     const [notifOpen, setNotifOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
     const notifRef = useRef(null);
+    const searchInputRef = useRef(null);
     const location = useLocation();
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // 로그인 시점 또는 알림창 열릴 때 알림 불러오기
     useEffect(() => {
@@ -202,6 +212,37 @@ export default function Header({
 
     const hasUnread = notifications.some((n) => n.unread);
 
+    // 검색창 열릴 때 자동 포커스
+    useEffect(() => {
+        if (searchOpen && searchInputRef.current) {
+            setTimeout(() => searchInputRef.current?.focus(), 100);
+        }
+    }, [searchOpen]);
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/counselors?q=${encodeURIComponent(searchQuery.trim())}`);
+        } else {
+            navigate('/counselors');
+        }
+        setSearchOpen(false);
+        setSearchQuery('');
+    };
+
+    const quickMenuItems = userRole === 'counselor'
+        ? [
+            { label: '예약 관리', path: '/CounselorPlanner' },
+            { label: '내담자 관리', path: '/CounselorClient' },
+            { label: '문의하기', path: '/CounselorMessages' },
+          ]
+        : [
+            { label: '전문가 찾기', path: '/counselors' },
+            { label: '예약 관리', path: '/reserve' },
+            { label: 'AI 일기', path: '/diary' },
+            { label: '힐링 라운지', path: '/healing' },
+          ];
+
     return (
         <header className="global-header">
             <div className="header-content">
@@ -232,6 +273,16 @@ export default function Header({
                 </nav>
 
                 <div className="user-actions">
+                    {/* 모바일 전용 검색 버튼 */}
+                    {isMobile && (
+                        <button
+                            className="mobile-search-btn"
+                            onClick={() => setSearchOpen((prev) => !prev)}
+                            aria-label="검색"
+                        >
+                            <Search size={22} />
+                        </button>
+                    )}
                     {/* ✅ 관리자 전용 버튼 - role이 admin일 때만 노출 */}
                     {isLoggedIn && userRole === 'admin' && (
                         <button className="admin-page-btn" onClick={() => navigate('/admin')} title="관리자 페이지">
@@ -341,6 +392,32 @@ export default function Header({
                     )}
                 </div>
             </div>
+
+                       {/* 모바일 전용 검색 패널 - searchOpen일 때만 렌더링 */}
+            {isMobile && searchOpen && (
+                <div className="mobile-search-panel open">
+                    <form onSubmit={handleSearchSubmit} className="mobile-search-form">
+                        <div className="mobile-search-input-wrap">
+                            <Search size={18} className="mobile-search-input-icon" />
+                            <input
+                                ref={searchInputRef}
+                                type="text"
+                                className="mobile-search-input"
+                                placeholder="상담사 이름, 고민 분야 검색..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            {searchQuery ? (
+                                <button
+                                    type="button"
+                                    className="mobile-search-clear"
+                                    onClick={() => setSearchQuery('')}
+                                >×</button>
+                            ) : null}
+                        </div>
+                    </form>
+                </div>
+            )}
         </header>
     );
 }
