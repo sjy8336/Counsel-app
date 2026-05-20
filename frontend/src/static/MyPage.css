@@ -2456,10 +2456,8 @@ img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* border-radius: 12px; */
     display: block;
 }
-
 
 /* 하트 — 우측 상단 고정 */
 .mypage-favorite-heart {
@@ -2621,4 +2619,579 @@ img {
         opacity: 0;
         transform: translateX(-50%) translateY(8px);
     }
+}
+
+/* ==========================================
+   PaymentHistory.css
+   MINDWELL - 결제 내역 페이지 스타일
+   ========================================== */
+
+/* ---------- 레이아웃 ---------- */
+
+.ph-root {
+  display: flex;
+  min-height: 100vh;
+  background-color: #FDFBF7;
+  color: #1E293B;
+  font-family: sans-serif;
+}
+
+.ph-root ::selection {
+  background-color: #8BA888;
+  color: #ffffff;
+}
+
+/* ---------- 사이드바 ---------- */
+
+.ph-sidebar {
+  width: 256px;
+  border-right: 1px solid #FAF7F2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: fixed;
+  height: 100%;
+  background-color: #FDFBF7;
+  z-index: 10;
+}
+
+.ph-sidebar-top {
+  padding: 32px;
+}
+
+/* 로고 */
+.ph-logo-wrap {
+  margin-bottom: 48px;
+}
+
+.ph-logo-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #8BA888;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.ph-logo-sub {
+  font-size: 10px;
+  color: #9ca3af;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  margin-top: 4px;
+}
+
+/* 내비게이션 */
+.ph-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ph-nav-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s, color 0.2s;
+  background: transparent;
+}
+
+.ph-nav-btn--active {
+  background-color: #FAF7F2;
+  color: #8BA888;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.ph-nav-btn--inactive {
+  color: #6b7280;
+}
+
+.ph-nav-btn--inactive:hover {
+  background-color: rgba(250, 247, 242, 0.5);
+  color: #1E293B;
+}
+
+.ph-nav-icon--active {
+  color: #8BA888;
+  flex-shrink: 0;
+}
+
+.ph-nav-icon--inactive {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+/* 사이드바 하단 */
+.ph-sidebar-bottom {
+  padding: 32px;
+  border-top: 1px solid #FAF7F2;
+}
+
+.ph-sidebar-support-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #6b7280;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  border-radius: 12px;
+  transition: color 0.2s, background-color 0.2s;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.ph-sidebar-support-btn:hover {
+  color: #1E293B;
+  background-color: rgba(250, 247, 242, 0.5);
+}
+
+.ph-sidebar-support-icon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.ph-sidebar-logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #FDA4AF;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  border-radius: 12px;
+  transition: background-color 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ph-sidebar-logout-btn:hover {
+  background-color: rgba(253, 164, 175, 0.1);
+}
+
+/* ---------- 메인 컨텐츠 ---------- */
+
+.ph-main {
+  flex: 1;
+  margin-left: 256px;
+  padding: 40px;
+}
+
+@media (min-width: 1024px) {
+  .ph-main {
+    padding: 56px;
+  }
+}
+
+.ph-header {
+  margin-bottom: 40px;
+}
+
+.ph-header-title {
+  font-size: 30px;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0;
+}
+
+.ph-header-desc {
+  color: #6b7280;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+/* ---------- 그리드 ---------- */
+
+.ph-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+
+@media (min-width: 1024px) {
+  .ph-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.ph-col-main {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+@media (min-width: 1024px) {
+  .ph-col-main {
+    grid-column: span 2;
+  }
+}
+
+.ph-col-side {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ---------- 최근 결제 하이라이트 카드 ---------- */
+
+.ph-highlight-card {
+  background-color: #FAF7F2;
+  border: 1px solid rgba(139, 168, 136, 0.2);
+  border-radius: 24px;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.ph-highlight-inner {
+  position: relative;
+  z-index: 10;
+}
+
+.ph-highlight-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.ph-status-badge {
+  background-color: #8BA888;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ph-highlight-date {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.ph-highlight-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #1E293B;
+}
+
+.ph-highlight-schedule {
+  color: #8BA888;
+  font-weight: 500;
+  margin: 0 0 32px;
+  font-size: 14px;
+}
+
+.ph-highlight-payment-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f3f4f6;
+}
+
+@media (min-width: 640px) {
+  .ph-highlight-payment-box {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.ph-payment-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ph-payment-icon-wrap {
+  width: 48px;
+  height: 48px;
+  background-color: #FAF7F2;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ph-payment-icon {
+  color: #8BA888;
+}
+
+.ph-payment-label {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 4px;
+}
+
+.ph-payment-amount {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: #1E293B;
+}
+
+.ph-payment-amount-unit {
+  font-size: 16px;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.ph-highlight-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.ph-detail-btn {
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #8BA888;
+  border: 1px solid #8BA888;
+  background: transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.ph-detail-btn:hover {
+  background-color: #8BA888;
+  color: #ffffff;
+}
+
+/* ---------- 전체 결제 내역 섹션 ---------- */
+
+.ph-history-section {
+  /* 섹션 래퍼 */
+}
+
+.ph-history-heading {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  color: #1E293B;
+}
+
+.ph-history-heading-icon {
+  color: #8BA888;
+  margin-right: 8px;
+}
+
+.ph-table-wrap {
+  background-color: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.ph-table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.ph-table-head {
+  background-color: #FAF7F2;
+  font-size: 14px;
+  color: #6b7280;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.ph-table-th {
+  padding: 16px 24px;
+  font-weight: 500;
+}
+
+.ph-table-th--right {
+  text-align: right;
+}
+
+.ph-table-th--center {
+  text-align: center;
+}
+
+.ph-table-row {
+  border-bottom: 1px solid #f9fafb;
+  transition: background-color 0.15s;
+}
+
+.ph-table-row:last-child {
+  border-bottom: none;
+}
+
+.ph-table-row:hover {
+  background-color: rgba(249, 250, 251, 0.5);
+}
+
+.ph-table-td {
+  padding: 16px 24px;
+}
+
+.ph-td-date-main {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+  color: #1E293B;
+}
+
+.ph-td-date-sub {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.ph-td-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: #1E293B;
+}
+
+.ph-td-method {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 2px 0 0;
+}
+
+.ph-td-amount-wrap {
+  text-align: right;
+}
+
+.ph-td-amount {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+  color: #1E293B;
+}
+
+.ph-td-status-wrap {
+  text-align: center;
+}
+
+.ph-status-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 9999px;
+}
+
+.ph-status-pill--complete {
+  background-color: #f0fdf4;
+  color: #15803d;
+}
+
+.ph-status-pill--cancel {
+  background-color: #fff1f2;
+  color: #FDA4AF;
+}
+
+/* ---------- 우측 사이드 패널 ---------- */
+
+.ph-panel-card {
+  background-color: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.ph-panel-heading {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 16px;
+}
+
+.ph-panel-heading-icon {
+  color: #8BA888;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+/* 환불 규정 */
+.ph-refund-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ph-refund-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.ph-refund-dot {
+  min-width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  margin-top: 8px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.ph-refund-dot--green {
+  background-color: #8BA888;
+}
+
+.ph-refund-dot--amber {
+  background-color: #F59E0B;
+}
+
+/* 영수증 발급 */
+.ph-receipt-desc {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.625;
+  margin: 0 0 16px;
+}
+
+.ph-inquiry-btn {
+  width: 100%;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  background-color: #f9fafb;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.ph-inquiry-btn:hover {
+  background-color: #f3f4f6;
 }

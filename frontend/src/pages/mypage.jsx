@@ -42,8 +42,11 @@ import {
     MessageCircle,
     FileText,
     MessageSquare,
+    CreditCard,
+    Receipt,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import MobileTap from '../components/mobileTap';
 import '../static/MyPage.css';
 import '../static/CounselorMyPage.css';
 
@@ -51,6 +54,36 @@ const notifSettingsData = [
     { key: 'session', title: '상담 일정 알림', desc: '예약된 상담 시간 및 변동 사항 안내' },
     { key: 'service', title: '서비스 공지사항', desc: '점검 안내 및 주요 이용 정보' },
     { key: 'marketing', title: '이벤트 및 혜택 알림', desc: '새로운 프로그램 및 할인 쿠폰 정보' },
+];
+
+const PAYMENT_HISTORY = [
+    {
+        id: 1,
+        date: '2026.05.20',
+        time: '14:32',
+        title: '이지은 상담사 - 1:1 심리상담 예약금',
+        amount: '20,000',
+        method: '카카오페이',
+        status: '결제완료',
+    },
+    {
+        id: 2,
+        date: '2026.05.02',
+        time: '10:15',
+        title: '김민수 상담사 - 1:1 심리상담 잔금',
+        amount: '60,000',
+        method: '신용카드 (현대 12**)',
+        status: '결제완료',
+    },
+    {
+        id: 3,
+        date: '2026.04.15',
+        time: '16:40',
+        title: '박지영 상담사 - 커플 상담 예약금',
+        amount: '30,000',
+        method: '네이버페이',
+        status: '취소완료',
+    },
 ];
 
 const renderSupportCenter = () => (
@@ -119,7 +152,14 @@ const NotificationSettings = ({ notifSettings, toggleNotif }) => (
 export default function App() {
     const navigate = useNavigate();
     const location = useLocation();
-    // 문의내역 버튼에서 온 경우만 inquiry, 기본은 dashboard
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const [activeMenu, setActiveMenu] = useState(() =>
         location.state && location.state.showInquiry ? 'inquiry' : 'dashboard'
     );
@@ -148,12 +188,10 @@ export default function App() {
     const [pwLoading, setPwLoading] = useState(false);
     const [favoritesList, setFavoritesList] = useState([]);
     const [favoritesLoading, setFavoritesLoading] = useState(true);
-    // ── 토스트 state 추가 ──
     const [toast, setToast] = useState(null);
 
     const completedConsultations = 12;
 
-    // ── 토스트 표시 헬퍼 ──
     const showToast = (msg) => {
         setToast(msg);
         setTimeout(() => setToast(null), 2500);
@@ -173,7 +211,6 @@ export default function App() {
                 return;
             }
             setFavoritesLoading(true);
-            // getUserInfo와 getFavorites를 병렬로 호출
             Promise.all([getUserInfo(userObj.id), getFavorites(token)])
                 .then(([userData, favoritesData]) => {
                     setUserInfo((prev) => ({
@@ -200,7 +237,7 @@ export default function App() {
                     }
                 });
         }
-    }, []);
+    }, [navigate]);
 
     const menuItems = [
         { id: 'history', label: '상담 히스토리', icon: History },
@@ -215,7 +252,9 @@ export default function App() {
         setActiveSubMenu(null);
         setSelectedConsultation(null);
     };
+
     const toggleNotif = (key) => setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+
     const handleLogout = () => {
         localStorage.removeItem('user');
         navigate('/');
@@ -286,14 +325,11 @@ export default function App() {
         }
     };
 
-    // ── 찜 해제: optimistic update + 토스트 ──
     const handleUnfavorite = async (id, e, onUpdate) => {
         e.stopPropagation();
-        // optimistic update (즉시 UI에서 제거)
         setFavoritesList((prev) => prev.filter((item) => String(item.id ?? item.counselor_id) !== String(id)));
         if (typeof onUpdate === 'function') onUpdate(id, false);
         showToast('찜이 취소되었습니다.');
-        // 서버 요청 및 동기화
         const token = localStorage.getItem('access_token');
         if (!token) {
             alert('로그인 후 이용 가능한 기능입니다.');
@@ -301,7 +337,6 @@ export default function App() {
         }
         try {
             await toggleFavorite(id, token);
-            // 서버에서 최신 찜 목록 동기화
             const data = await getFavorites(token);
             setFavoritesList(data.favorites || []);
         } catch (err) {
@@ -337,32 +372,6 @@ export default function App() {
                 feedback:
                     '감정적인 대응보다는 업무 효율성과 연계된 소통 방식을 제안했습니다. 본인의 감정이 "무시당함"에 집중되어 있음을 인지하고 이를 객관적으로 분리하는 훈련을 진행했습니다.',
                 nextStep: '갈등 상황 발생 시 즉시 반응하지 않고 10초간 호흡하기',
-            },
-            {
-                id: 3,
-                counselor: '이은지 상담사',
-                date: '2024.04.29',
-                time: '14:00',
-                type: '대면 상담',
-                status: '상담 완료',
-                topic: '자존감 회복 훈련',
-                summary: '과거의 실패 경험이 현재의 의사 결정에 미치는 부정적 영향 분석.',
-                feedback:
-                    '성취 경험을 기록하는 "칭찬 일기"를 통해 자신감을 회복하는 단계입니다. 오늘은 본인이 가진 강점 5가지를 찾아내는 시간을 가졌습니다.',
-                nextStep: '매일 잠들기 전 나를 위한 칭찬 한 문장 적기',
-            },
-            {
-                id: 4,
-                counselor: '김하나 상담사',
-                date: '2024.04.15',
-                time: '16:30',
-                type: '대면 상담',
-                status: '상담 완료',
-                topic: '불안 장애 상담',
-                summary: '원인 모를 급격한 심박수 증가와 신체적 불안 증상에 대한 대처법.',
-                feedback:
-                    '공황 증상과 유사한 불안 발작 시 사용할 수 있는 접지법(Grounding)과 복식 호흡법을 숙달했습니다. 심리적 안전 기지를 설정하는 명상을 함께 진행했습니다.',
-                nextStep: '불안 신호 포착 시 5-4-3-2-1 접지법 시행하기',
             },
         ];
 
@@ -465,164 +474,133 @@ export default function App() {
 
     const renderTicketsDetail = () => (
         <div className="fade-in">
-            <h2 className="history-title">멤버십 및 결제</h2>
-            <main className="mwp-main">
-                <div className="mwp-layout mwp-section-gap">
-                    <div className="mwp-left">
-                        <section className="mwp-card mwp-status-card mwp-ai-glow">
-                            <div className="mwp-status-top">
-                                <div className="mwp-status-title-group">
-                                    <div className="mwp-status-badge-row">
-                                        <span className="mwp-active-badge">Active</span>
-                                        <h3 className="mwp-status-title">AI 감정 일기 이용 중</h3>
-                                    </div>
-                                    <p className="mwp-status-desc">
-                                        매일 기록된 감정 데이터는 다음 상담 시 전문가에게 분석 리포트로 전달됩니다.
-                                    </p>
-                                </div>
-                                <div className="mwp-billing-info">
-                                    <p className="mwp-billing-label">Next Billing</p>
-                                    <p className="mwp-billing-date">2026. 05. 27</p>
-                                </div>
+            <div className="ph-header">
+                <h2 className="ph-header-title">결제 내역</h2>
+                <p className="ph-header-desc">상담 예약금 및 추가 결제 내역을 확인할 수 있습니다.</p>
+            </div>
+
+            <div className="ph-grid">
+                <div className="ph-col-main">
+                    <section className="ph-highlight-card">
+                        <div className="ph-highlight-inner">
+                            <div className="ph-highlight-meta">
+                                <span className="ph-status-badge">
+                                    <CheckCircle2 size={14} /> 예약 확정
+                                </span>
+                                <span className="ph-highlight-date">결제일시: 2026. 05. 20 14:32</span>
                             </div>
-                            <div className="mwp-stats-grid">
-                                <div className="mwp-stat-item">
-                                    <div className="mwp-stat-icon">
-                                        <i className="fa-solid fa-wand-magic-sparkles text-lg"></i>
+
+                            <h3 className="ph-highlight-title">이지은 상담사 - 1:1 심리상담</h3>
+                            <p className="ph-highlight-schedule">2026. 05. 27 (수) 오후 2:00 예정</p>
+
+                            <div className="ph-highlight-payment-box">
+                                <div className="ph-payment-info">
+                                    <div className="ph-payment-icon-wrap">
+                                        <CreditCard className="ph-payment-icon" size={24} />
                                     </div>
-                                    <div className="mwp-stat-inner">
-                                        <p className="mwp-stat-label">이용 플랜</p>
-                                        <p className="mwp-stat-value-name">프리미엄 플러스</p>
-                                    </div>
-                                </div>
-                                <div className="mwp-stat-item mwp-stat-item--highlight">
-                                    <div className="mwp-stat-icon mwp-stat-icon--green">
-                                        <i className="fa-solid fa-ticket text-lg"></i>
-                                    </div>
-                                    <div className="mwp-stat-inner">
-                                        <p className="mwp-stat-label mwp-stat-label--green">잔여 이용권</p>
-                                        <p className="mwp-stat-value">
-                                            12 <span className="mwp-stat-value-sub">회 남음</span>
+                                    <div>
+                                        <p className="ph-payment-label">결제 금액 (예약금)</p>
+                                        <p className="ph-payment-amount">
+                                            20,000<span className="ph-payment-amount-unit">원</span>
                                         </p>
                                     </div>
                                 </div>
-                                <div className="mwp-stat-item">
-                                    <div className="mwp-stat-icon mwp-stat-icon--amber">
-                                        <i className="fa-solid fa-calendar-check text-lg"></i>
-                                    </div>
-                                    <div className="mwp-stat-inner">
-                                        <p className="mwp-stat-label">이번 달 기록</p>
-                                        <p className="mwp-stat-value">
-                                            18 <span className="mwp-stat-value-sub">/ 30일</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mwp-status-actions">
-                                <button className="mwp-cancel-link">이용 해지</button>
-                                <button className="mwp-plan-change-btn">플랜 변경하기</button>
-                            </div>
-                        </section>
-                        <section className="mwp-pass-section">
-                            <h3 className="mwp-pass-section-title">
-                                <i className="fa-solid fa-ticket mwp-pass-section-icon"></i>AI 일기 감정 이용권 구매
-                            </h3>
-                            <div className="mwp-pass-list">
-                                {[
-                                    {
-                                        name: 'AI 일기 3회 이용권',
-                                        desc: '가벼운 마음 정리를 위한 입문용 플랜',
-                                        price: '15,000원',
-                                        cls: '',
-                                    },
-                                    {
-                                        name: 'AI 일기 5회 이용권',
-                                        desc: '심층 분석 리포트가 포함된 인기 플랜',
-                                        price: '22,000원',
-                                        cls: 'mwp-pass-card--best',
-                                    },
-                                    {
-                                        name: 'AI 일기 10회 이용권',
-                                        desc: '장기적인 변화를 원하는 분들을 위한 프리미엄 플랜',
-                                        price: '39,000원',
-                                        cls: '',
-                                    },
-                                    {
-                                        name: 'AI 일기 30회 이용권',
-                                        desc: '한 달간 매일 기록하며 성장을 확인하는 마스터 플랜',
-                                        price: '99,000원',
-                                        cls: 'mwp-pass-card--premium',
-                                    },
-                                ].map((p) => (
-                                    <div key={p.name} className={`mwp-card mwp-pass-card ${p.cls}`}>
-                                        <div className="mwp-pass-inner">
-                                            <div className="mwp-pass-info">
-                                                <div className="mwp-pass-text">
-                                                    <h4 className="mwp-pass-name">{p.name}</h4>
-                                                    <p className="mwp-pass-desc">{p.desc}</p>
-                                                </div>
-                                            </div>
-                                            <div className="mwp-pass-price-wrap">
-                                                <span className="mwp-price-amount">{p.price}</span>
-                                            </div>
-                                            <button className="mwp-btn-primary mwp-buy-btn">구매하기</button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    </div>
-                    <aside className="mwp-sidebar">
-                        <div className="mwp-card mwp-sidebar-card">
-                            <h5 className="mwp-sidebar-card-title">
-                                <i className="fa-solid fa-circle-info"></i>이용권 안내 사항
-                            </h5>
-                            <div className="mwp-sidebar-info-list">
-                                <div className="mwp-sidebar-info-item">
-                                    <div className="mwp-sidebar-icon">
-                                        <i className="fa-solid fa-calendar-check"></i>
-                                    </div>
-                                    <div className="mwp-sidebar-item-inner">
-                                        <p className="mwp-sidebar-item-title">유효 기간</p>
-                                        <p className="mwp-sidebar-item-desc">
-                                            구매일로부터 90일 이내에 사용 가능합니다.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="mwp-sidebar-info-item">
-                                    <div className="mwp-sidebar-icon">
-                                        <i className="fa-solid fa-rotate"></i>
-                                    </div>
-                                    <div className="mwp-sidebar-item-inner">
-                                        <p className="mwp-sidebar-item-title">자동 갱신 안내</p>
-                                        <p className="mwp-sidebar-item-desc">
-                                            횟수 차감형 이용권은 자동 갱신되지 않습니다.
-                                        </p>
-                                    </div>
+                                <div className="ph-highlight-actions">
+                                    <button className="ph-detail-btn" onClick={() => navigate('/reservation')}>예약 상세 보기</button>
                                 </div>
                             </div>
                         </div>
-                        <div className="mwp-card mwp-sidebar-card">
-                            <h5 className="mwp-sidebar-card-title">
-                                <i className="fa-solid fa-location-arrow"></i>센터 이용 정보
-                            </h5>
-                            <div className="mwp-sidebar-info-list mwp-sidebar-info-list--lg">
-                                <div className="mwp-sidebar-info-item">
-                                    <div className="mwp-sidebar-icon">
-                                        <i className="fa-solid fa-location-dot"></i>
-                                    </div>
-                                    <div className="mwp-sidebar-item-inner">
-                                        <p className="mwp-sidebar-item-title">마인드웰 강남 센터</p>
-                                        <p className="mwp-sidebar-item-desc">
-                                            서울특별시 강남구 테헤란로 123 4F (강남역 5번 출구)
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                    </section>
+
+                    <section className="ph-history-section">
+                        <h4 className="ph-history-heading">
+                            <History className="ph-history-heading-icon" size={20} />
+                            전체 결제 내역
+                        </h4>
+                        <div className="ph-table-wrap">
+                            <table className="ph-table">
+                                <thead className="ph-table-head">
+                                    <tr>
+                                        <th className="ph-table-th">결제일시</th>
+                                        <th className="ph-table-th">결제 내용</th>
+                                        <th className="ph-table-th ph-table-th--right">금액</th>
+                                        <th className="ph-table-th ph-table-th--center">상태</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {PAYMENT_HISTORY.map((item) => (
+                                        <tr key={item.id} className="ph-table-row">
+                                            <td className="ph-table-td">
+                                                <p className="ph-td-date-main">{item.date}</p>
+                                                <p className="ph-td-date-sub">{item.time}</p>
+                                            </td>
+                                            <td className="ph-table-td">
+                                                <p className="ph-td-title">{item.title}</p>
+                                                <p className="ph-td-method">{item.method}</p>
+                                            </td>
+                                            <td className="ph-table-td ph-td-amount-wrap">
+                                                <p className="ph-td-amount">{item.amount}원</p>
+                                            </td>
+                                            <td className="ph-table-td ph-td-status-wrap">
+                                                <span
+                                                    className={`ph-status-pill ${
+                                                        item.status === '결제완료'
+                                                            ? 'ph-status-pill--complete'
+                                                            : 'ph-status-pill--cancel'
+                                                    }`}
+                                                >
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                    </aside>
+                    </section>
                 </div>
-            </main>
+
+                <div className="ph-col-side">
+                    <div className="ph-panel-card">
+                        <h4 className="ph-panel-heading">
+                            <AlertCircle size={16} className="ph-panel-heading-icon" />
+                            예약금 및 환불 규정
+                        </h4>
+                        <ul className="ph-refund-list">
+                            <li className="ph-refund-item">
+                                <div className="ph-refund-dot ph-refund-dot--green" />
+                                <p>
+                                    상담 예약 확정을 위해 <strong>20,000원의 예약금</strong> 결제가 필요합니다.
+                                </p>
+                            </li>
+                            <li className="ph-refund-item">
+                                <div className="ph-refund-dot ph-refund-dot--green" />
+                                <p>
+                                    상담 시작 <strong>24시간 전</strong> 취소 시 예약금은 100% 환불됩니다.
+                                </p>
+                            </li>
+                            <li className="ph-refund-item">
+                                <div className="ph-refund-dot ph-refund-dot--amber" />
+                                <p>
+                                    상담 시작 24시간 이내 취소 또는 노쇼(No-Show) 시 예약금은 환불되지 않습니다.
+                                </p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div className="ph-panel-card">
+                        <h4 className="ph-panel-heading">
+                            <Receipt size={16} className="ph-panel-heading-icon" />
+                            증빙 서류 발급 안내
+                        </h4>
+                        <p className="ph-receipt-desc">
+                            결제하신 예약금 및 상담비에 대한 현금영수증 및 카드 전표가 필요한 경우 고객센터 혹은 1:1
+                            문의를 통해 발급을 요청하실 수 있습니다.
+                        </p>
+                        <button className="ph-inquiry-btn">1:1 문의하기</button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 
@@ -707,12 +685,7 @@ export default function App() {
                         <label className="input-label">아이디</label>
                         <div className="relative-input-box">
                             <Hash className="input-icon" size={20} />
-                            <input
-                                type="text"
-                                className="custom-input bg-readonly"
-                                value={userInfo.username}
-                                readOnly
-                            />
+                            <input type="text" className="custom-input bg-readonly" value={userInfo.username} readOnly />
                         </div>
                         <p className="input-helper-text">* 아이디는 변경할 수 없습니다.</p>
                     </div>
@@ -812,8 +785,6 @@ export default function App() {
                     </div>
                 </div>
             </div>
-
-            {/* 변경사항 저장 버튼: 개인정보 전체 저장용, 섹션 마지막에 위치 */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 32 }}>
                 <button className="profile-save-full-btn" onClick={handleSaveProfile}>
                     <CheckCircle2 size={20} />
@@ -913,8 +884,7 @@ export default function App() {
                                 <span className="wd-highlight" onClick={() => setActiveSubMenu('notification')}>
                                     알림 설정
                                 </span>
-                                이나 <span className="wd-highlight">상담 일시 중지</span>를 이용해 보세요. 언제든지 다시
-                                돌아오실 수 있어요.
+                                이나 <span className="wd-highlight">상담 일시 중지</span>를 이용해 보세요.
                             </p>
                         </div>
                     </div>
@@ -971,20 +941,10 @@ export default function App() {
                 status: '처리 중',
                 answer: null,
             },
-            {
-                id: 3,
-                title: '상담사 변경 문의',
-                content: '상담사 변경을 원합니다.',
-                date: '2026.04.10',
-                status: '답변 완료',
-                answer: '상담사 변경이 완료되었습니다. 새로운 상담사와의 일정을 확인해 주세요.',
-            },
         ];
         return (
             <div className="fade-in">
-                <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>
-                    문의내역
-                </h3>
+                <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>문의내역</h3>
                 <ul className="mypage-list mypage-list-grid">
                     {inquiryList.map((item) => (
                         <li key={item.id} className="mypage-list-item">
@@ -1016,9 +976,7 @@ export default function App() {
 
     const renderFavoritesList = () => (
         <div className="fade-in">
-            <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>
-                찜 목록
-            </h3>
+            <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>찜 목록</h3>
             <ul className="mypage-list mypage-list-grid">
                 {favoritesLoading ? (
                     <li className="mypage-list-empty">불러오는 중...</li>
@@ -1026,32 +984,20 @@ export default function App() {
                     <li className="mypage-list-empty">찜내역이 없습니다.</li>
                 ) : (
                     favoritesList.map((item) => {
-                        // DB에서 받아온 실제 상담사 정보만 사용
                         const counselorName = item.counselor_name || item.name || item.full_name || '알 수 없는 상담사';
-                        // 전문 분야 배열 추출
                         let specialtiesArr = [];
                         if (item.field) {
-                            specialtiesArr = item.field
-                                .split(',')
-                                .map((f) => f.trim())
-                                .filter(Boolean);
+                            specialtiesArr = item.field.split(',').map((f) => f.trim()).filter(Boolean);
                         } else if (Array.isArray(item.specialties)) {
-                            specialtiesArr = item.specialties
-                                .map((s) => s.specialty_name || s.name || s)
-                                .filter(Boolean);
+                            specialtiesArr = item.specialties.map((s) => s.specialty_name || s.name || s).filter(Boolean);
                         }
                         const category = item.category || '';
                         const intro = item.intro || item.description || '';
                         const price = item.price || item.consultation_price || '';
                         const avatarInitial = counselorName.slice(0, 1);
                         const itemId = item.counselor_id ? item.counselor_id : item.id;
-
-                        // 3개까지만 보여주고, 초과 시 +N 뱃지
-                        const maxSpecialties = 3;
-                        const shownSpecialties = specialtiesArr.slice(0, maxSpecialties);
-                        const extraCount = specialtiesArr.length - maxSpecialties;
-
-                        // 상담사 프로필 이미지 경로 (있으면)
+                        const shownSpecialties = specialtiesArr.slice(0, 3);
+                        const extraCount = specialtiesArr.length - 3;
                         const profileImg =
                             item.profile_img_url || item.profile_image || item.profileImg || item.profile_url || null;
 
@@ -1073,15 +1019,7 @@ export default function App() {
                                 </div>
                                 <div className="mypage-favorite-avatar">
                                     {profileImg ? (
-                                        <img
-                                            src={profileImg}
-                                            alt={counselorName + ' 프로필'}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'cover',
-                                            }}
-                                        />
+                                        <img src={profileImg} alt={counselorName + ' 프로필'} />
                                     ) : (
                                         avatarInitial
                                     )}
@@ -1091,13 +1029,9 @@ export default function App() {
                                     <div className="mypage-list-meta">
                                         {category && <span className="mypage-list-category">{category}</span>}
                                         {shownSpecialties.map((f, i) => (
-                                            <span key={i} className="mypage-list-field">
-                                                {f}
-                                            </span>
+                                            <span key={i} className="mypage-list-field">{f}</span>
                                         ))}
-                                        {extraCount > 0 && (
-                                            <span className="mypage-list-field-extra">+{extraCount}</span>
-                                        )}
+                                        {extraCount > 0 && <span className="mypage-list-field-extra">+{extraCount}</span>}
                                     </div>
                                     {intro && <div className="mypage-list-intro">{intro}</div>}
                                     {price && (
@@ -1118,6 +1052,7 @@ export default function App() {
     const renderContent = () => {
         if (activeMenu === 'profile' && activeSubMenu) return renderProfileDetail();
         if (activeMenu === 'support') return renderSupportCenter();
+
         switch (activeMenu) {
             case 'history':
                 return renderHistoryDetail();
@@ -1297,7 +1232,6 @@ export default function App() {
         }
     };
 
-    // 알림센터 렌더링 (CounselorMyPage 스타일)
     const renderNotifications = () => (
         <>
             <div className="cmp-page-header">
@@ -1311,15 +1245,12 @@ export default function App() {
                             <Bell size={22} />
                         </div>
                         <p className="cmp-notif-empty-title">새로운 알림이 없습니다</p>
-                        <p className="cmp-notif-empty-sub">
-                            상담 일정, 예약 확정 등 새로운 알림이<br />생기면 여기에 표시됩니다.
-                        </p>
                     </div>
                 ) : (
                     <>
                         <div className="cmp-notif-group-label">최근 알림</div>
                         {mockNotifications.map((item) => (
-                            <div key={item.id} className={`cmp-notif-item${item.unread ? ' unread' : ''}`}> 
+                            <div key={item.id} className={`cmp-notif-item${item.unread ? ' unread' : ''}`}>
                                 <span className="cmp-item-avatar notif">
                                     {item.type === 'booking' && <Check size={15} />}
                                     {item.type === 'msg' && <MessageSquare size={15} />}
@@ -1343,7 +1274,6 @@ export default function App() {
 
     return (
         <div className="mypage-layout-root">
-            {/* ── 토스트 팝업 ── */}
             {toast && <div className="mp-toast">{toast}</div>}
 
             <aside className="mypage-sidebar">
@@ -1357,6 +1287,7 @@ export default function App() {
                     <h1 className="sidebar-brand-logo">MINDWELL</h1>
                     <p className="sidebar-brand-sub">Mental Health Care</p>
                 </div>
+
                 <nav className="sidebar-nav-list">
                     <div
                         onClick={() => handleMenuClick('dashboard')}
@@ -1376,6 +1307,7 @@ export default function App() {
                         </div>
                     ))}
                 </nav>
+
                 <div className="sidebar-footer-nav">
                     <div
                         className={`sidebar-nav-item${activeMenu === 'support' ? ' is-active' : ''} mp-cursor-pointer`}
@@ -1411,10 +1343,14 @@ export default function App() {
                         </button>
                     </div>
                 )}
+
                 <div className="dynamic-render-content">
                     {activeMenu === 'notifications' ? renderNotifications() : renderContent()}
                 </div>
             </main>
+
+            {/* 모바일 사이즈일 때 하단에 모바일 탭 노출 */}
+            {isMobile && <MobileTap />}
         </div>
     );
 }
