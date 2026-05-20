@@ -18,7 +18,6 @@ CREATE TABLE users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SELECT * From users;
-SELECT * FROM favorites WHERE client_id = 1;
 
 DELETE FROM users WHERE id = 2;
 INSERT INTO users (id, full_name, username, email, hashed_password, phone_number, birth_date, gender, role, is_active) 
@@ -71,45 +70,54 @@ SELECT * FROM favorites;
 
 -- 1. 상담사 기본 프로필 테이블
 
-CREATE TABLE counselor_profiles (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL UNIQUE COMMENT 'users 테이블의 id 참조',
-    profile_img_url VARCHAR(255) COMMENT '상담사 사진 URL',
-    center_name VARCHAR(100) NOT NULL COMMENT '상담소명',
-    center_address VARCHAR(255) NOT NULL COMMENT '상담소 주소',
-    bio TEXT COMMENT '상담사 자기소개',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_profile_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE `counselor_profiles` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL COMMENT 'users 테이블의 id 참조',
+  `profile_img_url` longtext COMMENT '프로필 이미지 (Base64 또는 URL)',
+  `intro_line` varchar(100) DEFAULT NULL COMMENT '한줄 소개 (최대 40자)',
+  `center_name` varchar(100) NOT NULL COMMENT '상담소명',
+  `center_phone` varchar(20) DEFAULT NULL COMMENT '상담소 전화번호',
+  `center_address` varchar(255) NOT NULL COMMENT '상담소 주소',
+  `consultation_price` int DEFAULT '0' COMMENT '상담 가격 (1회 기준)',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `status` enum('심사중','수락','반려') NOT NULL DEFAULT '심사중' COMMENT '프로필 심사 상태',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  CONSTRAINT `fk_profile_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 SELECT * From counselor_profiles;
 
 
 -- 2. 전문 상담분야 테이블 (중복 선택 대응용)
 
-CREATE TABLE counselor_specialties (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    specialty_name VARCHAR(50) NOT NULL COMMENT '상담 분야 (예: 우울, 불안, 아동 등)',
-    CONSTRAINT fk_specialty_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE `counselor_specialties` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `specialty_name` varchar(50) NOT NULL COMMENT '분야명 (개인심리, 취업상담 등)',
+  `custom_description` text COMMENT '기타 전문분야 직접 입력 내용',
+  PRIMARY KEY (`id`),
+  KEY `fk_specialty_user` (`user_id`),
+  CONSTRAINT `fk_specialty_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 SELECT * From counselor_specialties;
 
 
 -- 3. 경력 사항 테이블 (다중 입력 대응)
 
-CREATE TABLE counselor_experiences (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    company_name VARCHAR(100) NOT NULL COMMENT '기관명',
-    start_date DATE NOT NULL COMMENT '시작일',
-    end_date DATE NULL COMMENT '종료일 (NULL이면 진행중)',
-    is_current TINYINT(1) DEFAULT 0 COMMENT '현재 재직 여부',
-    description TEXT COMMENT '담당 업무 상세',
-    CONSTRAINT fk_exp_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE `counselor_experiences` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `start_date` varchar(10) NOT NULL COMMENT '시작일 (YYYY-MM)',
+  `end_date` varchar(10) DEFAULT NULL COMMENT '종료일 (현재진행중이면 NULL)',
+  `is_current` tinyint(1) DEFAULT '0' COMMENT '현재 진행중 여부 (1이면 진행중)',
+  `content` text NOT NULL COMMENT '활동 내용 (소속 및 직책)',
+  PRIMARY KEY (`id`),
+  KEY `fk_exp_user` (`user_id`),
+  CONSTRAINT `fk_exp_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 SELECT * From counselor_experiences;
 
@@ -130,15 +138,16 @@ SELECT * From counselor_educations;
 
 -- 5. 상담 일정 설정 테이블 (달력/예약 연동용)
 
-CREATE TABLE counselor_schedules (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    day_of_week ENUM('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun') NOT NULL COMMENT '요일',
-    start_time TIME NOT NULL COMMENT '상담 시작 시간',
-    end_time TIME NOT NULL COMMENT '상담 종료 시간',
-    is_holiday TINYINT(1) DEFAULT 0 COMMENT '해당 요일 휴무 여부',
-    CONSTRAINT fk_schedule_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE `counselor_schedules` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `day_of_week` enum('월요일','화요일','수요일','목요일','금요일','토요일','일요일') NOT NULL,
+  `start_time` time NOT NULL COMMENT '상담 시작 시간',
+  `end_time` time NOT NULL COMMENT '상담 종료 시간',
+  PRIMARY KEY (`id`),
+  KEY `fk_schedule_user` (`user_id`),
+  CONSTRAINT `fk_schedule_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 SELECT * From counselor_schedules;
 DELETE FROM counselor_schedules WHERE user_id = 2;
@@ -169,3 +178,24 @@ CREATE TABLE `bookings` (
   CONSTRAINT `fk_counselor` FOREIGN KEY (`counselor_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+SELECT * From bookings;
+
+CREATE TABLE counseling_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    booking_id INT NOT NULL COMMENT '어떤 예약 건에 대한 일지인지 연결',
+    client_id INT NOT NULL COMMENT '내담자 유저 ID',
+    counselor_id INT NOT NULL COMMENT '상담사 유저 ID',
+    title VARCHAR(255) NOT NULL COMMENT '일지 제목 (예: 1회차 상담 일지)',
+    session_number INT DEFAULT 1 COMMENT '상담 회차 (1, 2, 3...)',
+    content LONGTEXT NOT NULL COMMENT 'cc-log-editor 입력창에 들어가는 상담 상세 내용',
+    quick_memo TEXT COMMENT '우측 utility 바의 Quick Memo 내용 저장',
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_booking_log (booking_id),
+    CONSTRAINT fk_log_booking FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE CASCADE,
+    CONSTRAINT fk_log_client FOREIGN KEY (client_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_log_counselor FOREIGN KEY (counselor_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+SELECT * From counseling_logs;
+commit;

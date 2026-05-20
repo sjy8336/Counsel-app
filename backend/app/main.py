@@ -1,12 +1,7 @@
 # FastAPI 실행을 위한 기본 코드
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth
-from app.api import counselor
-from app.api import upload
-from app.api import payment
-from app.api import booking
-from app.api import notification
+from app.api import auth, counselor, upload, payment, booking, notification, counseling_log
 
 from fastapi.staticfiles import StaticFiles
 import os
@@ -27,14 +22,9 @@ app.add_middleware(
 
 
 # 회원가입/로그인 라우터 등록
-
-# 회원가입/로그인 라우터 등록
 app.include_router(auth.router, prefix="/api")
-# 상담사 프로필 등록 라우터 등록
 app.include_router(counselor.router, prefix="/api")
-# 알림(notification) 라우터 등록
 app.include_router(notification.router, prefix="/api")
-# 프로필 이미지 업로드 라우터 등록
 app.include_router(upload.router)
 
 # 정적 파일 서빙 (profile_images 등)
@@ -45,3 +35,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 def read_root():
     return {"Hello": "Jiyoung's World"}
 
+app.include_router(auth.router)
+app.include_router(booking.router)
+app.include_router(counselor.router)
+app.include_router(counseling_log.router, prefix="/api/counseling-logs")
