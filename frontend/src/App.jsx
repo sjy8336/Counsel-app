@@ -8,7 +8,6 @@ import LoginPage from './pages/Login';
 import SignUp from './pages/SignUp';
 import MyPage from './pages/mypage';
 import Diary from './pages/Diary';
-import HealingRounge from './pages/HealingRounge';
 import FindPwPage from './pages/FindPw';
 import ReservationPage from './pages/Reservation';
 import CounselorListPage from './pages/CounselorList';
@@ -26,6 +25,7 @@ import Success from './pages/Success';
 import Fail from './pages/Fail';
 import CounselorMessages from './pages/CounselorMessages';
 import ContactCoach from './pages/ContactCoach';
+import HealingRounge from './pages/HealingRounge';
 
 // ✅ 관리자 전용 보호 라우트 (App.jsx 내부에 인라인 선언)
 const ProtectedAdminRoute = ({ children }) => {
@@ -181,17 +181,6 @@ function App() {
                     />
                 }
             />
-            <Route
-                path="/healing"
-                element={
-                    <HealingRounge
-                        userName={userName}
-                        setUserName={setUserName}
-                        isLoggedIn={isLoggedIn}
-                        setIsLoggedIn={setIsLoggedIn}
-                    />
-                }
-            />
             <Route path="/schedule" element={<Schedule />} />
             <Route
                 path="/CounselorPlanner"
@@ -258,6 +247,7 @@ function App() {
                     />
                 }
             />
+            <Route path="/healing" element={<HealingRounge />} />
 
             {/* ✅ 관리자 라우트 - role: 'admin' 계정만 접근 가능 */}
             <Route

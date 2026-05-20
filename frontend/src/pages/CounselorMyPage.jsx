@@ -17,6 +17,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../static/CounselorMyPage.css';
+import MobileTap from '../components/mobileTap.jsx';
 import axios from 'axios';
 import {
     getCounselorProfile,
@@ -686,6 +687,9 @@ const App = () => {
     const handleNotifClick = async (groupId, itemId) => {
         const token = localStorage.getItem('access_token');
         try {
+            // Find the clicked notification item
+            const group = notifications.find((g) => g.id === groupId);
+            const notifItem = group?.items?.find((item) => item.id === itemId);
             await markNotificationRead(itemId, token);
             setNotifications((p) =>
                 p.map((g) =>
@@ -697,6 +701,11 @@ const App = () => {
                           }
                 )
             );
+            // Reservation-related types (customize as needed)
+            const reservationTypes = ['booking', 'booking_request', '예약신청', '예약확정', '상담예약'];
+            if (notifItem && reservationTypes.includes(notifItem.type)) {
+                navigate('/CounselorPlanner');
+            }
         } catch {
             /* ignore */
         }
@@ -1641,19 +1650,7 @@ const App = () => {
             </aside>
 
             <main className="cmp-main">{renderContent()}</main>
-
-            <nav className="cmp-bottom-tab">
-                {tabItems.map((item) => (
-                    <div
-                        key={item.id}
-                        className={`cmp-tab-item${activeMenu === item.id ? ' active' : ''}`}
-                        onClick={() => go(item.id)}
-                    >
-                        <span className="cmp-tab-icon">{item.icon}</span>
-                        <span className="cmp-tab-label">{item.label}</span>
-                    </div>
-                ))}
-            </nav>
+            <MobileTap />
         </div>
     );
 };
