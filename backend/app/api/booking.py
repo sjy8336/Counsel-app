@@ -54,6 +54,10 @@ def get_bookings_for_counselor(
     for b in bookings:
         client = db.query(User).filter(User.id == b.client_id).first()
         client_name = client.full_name if client else "내담자"
+        client_id = client.id if client else None
+        client_birth = client.birth_date if client else ""
+        client_gender = client.gender if client else ""
+        client_phone = client.phone_number if client else ""
         profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == b.counselor_id).first()
         center_name = profile.center_name if profile else "센터"
         # 프론트 요구에 맞게 status 변환
@@ -68,7 +72,11 @@ def get_bookings_for_counselor(
         results.append({
             "id": b.id,
             "order_id": b.order_id,
+            "client_id": client_id,
             "client_name": client_name,
+            "client_birth": client_birth,
+            "client_gender": client_gender,
+            "client_phone": client_phone,
             "date": b.booking_date.strftime('%Y-%m-%d'),
             "time": b.booking_time,
             "status": status,

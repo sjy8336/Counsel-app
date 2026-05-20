@@ -8,7 +8,7 @@ email-validator
 annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.13.0
-bcrypt==5.0.0
+bcrypt==4.0.1
 cffi==2.0.0
 click==8.3.2
 cryptography==46.0.7
@@ -39,3 +39,17 @@ pymysql
 sqlalchemy
 email-validator
 requests
+certifi
+charset-normalizer
+dnspython
+httptools
+jpype1
+konlpy
+lxml
+numpy
+packaging
+PyYAML
+urllib3
+uvloop
+watchfiles
+websockets
