@@ -920,3 +920,33 @@
         transform: translateX(-50%) translateY(0);
     }
 }
+
+/* 회원 필터 컨트롤 */
+.ac-member-controls { display: flex; gap: 10px; align-items: center; }
+
+.ac-role-select {
+    padding: 9px 14px;
+    border: 1px solid var(--ac-border);
+    border-radius: 10px;
+    background: var(--ac-bg);
+    color: var(--ac-text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+}
+
+.ac-role-select:focus { border-color: var(--ac-green); }
+
+/* 역할 라벨 — 배경 없이 아이콘+컬러 텍스트 */
+.ac-role-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13.5px;
+    font-weight: 700;
+}
+
+.ac-role-label.client  { color: #16A34A; }
+.ac-role-label.counselor { color: #2563EB; }
+.ac-role-label.admin   { color: #EA580C; }
