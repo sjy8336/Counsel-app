@@ -150,10 +150,57 @@ const NotificationSettings = ({ notifSettings, toggleNotif }) => (
     </div>
 );
 
+import { getAllBookings } from '../api/booking';
+
 export default function App() {
     const navigate = useNavigate();
     const location = useLocation();
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // 예약 데이터 불러오기 (home.jsx와 동일)
+    useEffect(() => {
+        const fetchBookings = async () => {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                setBookings([]);
+                setLoading(false);
+                return;
+            }
+            setLoading(true);
+            try {
+                const data = await getAllBookings();
+                const now = new Date();
+                const futureBookings = (data || [])
+                    .filter((b) => {
+                        const date = b.date.replace(/\./g, '-');
+                        const dt = new Date(`${date}T${b.time}`);
+                        return dt > now && b.booking_status !== 'canceled';
+                    })
+                    .sort((a, b) => {
+                        const aDate = new Date(a.date.replace(/\./g, '-') + 'T' + a.time);
+                        const bDate = new Date(b.date.replace(/\./g, '-') + 'T' + b.time);
+                        return aDate - bDate;
+                    });
+                setBookings(futureBookings);
+            } catch {
+                setBookings([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchBookings();
+    }, []);
+
+    // 가장 가까운 예약
+    const primaryBooking = bookings[0];
+    const getDDay = (dateStr, timeStr) => {
+        const date = dateStr.replace(/\./g, '-');
+        const dt = new Date(`${date}T${timeStr}`);
+        const now = new Date();
+        return Math.max(1, Math.ceil((dt - now) / (1000 * 60 * 60 * 24)));
+    };
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -191,7 +238,36 @@ export default function App() {
     const [favoritesLoading, setFavoritesLoading] = useState(true);
     const [toast, setToast] = useState(null);
 
-    const completedConsultations = 12;
+    const historyList = [
+        {
+            id: 1,
+            counselor: '이은지 상담사',
+            date: '2024.05.13',
+            time: '14:00',
+            type: '대면 상담',
+            status: '상담 완료',
+            topic: '대인관계 스트레스',
+            summary:
+                '주변인들의 부탁을 거절하지 못해 발생하는 번아웃과 스트레스에 대해 논의함. 자신의 욕구를 먼저 파악하는 연습이 필요함.',
+            feedback:
+                '소현님은 타인에 대한 배려가 깊지만, 그만큼 자신을 돌보는 데 소홀해져 있었습니다. 오늘은 "나의 경계선 설정하기"를 주제로 구체적인 거절의 기술을 연습해 보았습니다.',
+            nextStep: '하루에 한 번, 내키지 않는 제안에 대해 정중히 거절해 보기',
+        },
+        {
+            id: 2,
+            counselor: '박민우 상담사',
+            date: '2024.05.06',
+            time: '11:00',
+            type: '대면 상담',
+            status: '상담 완료',
+            topic: '직장 내 갈등 관리',
+            summary: '상사의 일방적인 업무 지시 방식으로 인한 무력감과 갈등 상황을 공유함.',
+            feedback:
+                '감정적인 대응보다는 업무 효율성과 연계된 소통 방식을 제안했습니다. 본인의 감정이 "무시당함"에 집중되어 있음을 인지하고 이를 객관적으로 분리하는 훈련을 진행했습니다.',
+            nextStep: '갈등 상황 발생 시 즉시 반응하지 않고 10초간 호흡하기',
+        },
+    ];
+    const completedConsultations = historyList.filter((item) => item.status === '상담 완료').length;
 
     const showToast = (msg) => {
         setToast(msg);
@@ -346,36 +422,7 @@ export default function App() {
     };
 
     const renderHistoryDetail = () => {
-        const historyList = [
-            {
-                id: 1,
-                counselor: '이은지 상담사',
-                date: '2024.05.13',
-                time: '14:00',
-                type: '대면 상담',
-                status: '상담 완료',
-                topic: '대인관계 스트레스',
-                summary:
-                    '주변인들의 부탁을 거절하지 못해 발생하는 번아웃과 스트레스에 대해 논의함. 자신의 욕구를 먼저 파악하는 연습이 필요함.',
-                feedback:
-                    '소현님은 타인에 대한 배려가 깊지만, 그만큼 자신을 돌보는 데 소홀해져 있었습니다. 오늘은 "나의 경계선 설정하기"를 주제로 구체적인 거절의 기술을 연습해 보았습니다.',
-                nextStep: '하루에 한 번, 내키지 않는 제안에 대해 정중히 거절해 보기',
-            },
-            {
-                id: 2,
-                counselor: '박민우 상담사',
-                date: '2024.05.06',
-                time: '11:00',
-                type: '대면 상담',
-                status: '상담 완료',
-                topic: '직장 내 갈등 관리',
-                summary: '상사의 일방적인 업무 지시 방식으로 인한 무력감과 갈등 상황을 공유함.',
-                feedback:
-                    '감정적인 대응보다는 업무 효율성과 연계된 소통 방식을 제안했습니다. 본인의 감정이 "무시당함"에 집중되어 있음을 인지하고 이를 객관적으로 분리하는 훈련을 진행했습니다.',
-                nextStep: '갈등 상황 발생 시 즉시 반응하지 않고 10초간 호흡하기',
-            },
-        ];
-
+        // historyList는 App 함수 상단에서 선언됨
         if (selectedConsultation) {
             return (
                 <div className="consultation-detail-container">
@@ -463,10 +510,10 @@ export default function App() {
                     <div className="history-header">
                         <div>
                             <h3 className="history-title">상담 히스토리</h3>
-                            <p className="history-subtitle">소현님이 걸어온 마음의 발자취입니다.</p>
+                            <p className="history-subtitle">{userInfo.name ? `${userInfo.name}님이 걸어온 마음의 발자취입니다.` : '상담 내역입니다.'}</p>
                         </div>
                         <div className="history-total-badge-wrapper">
-                            <span className="history-total-badge">총 12회 상담 완료</span>
+                            <span className="history-total-badge">총 {completedConsultations}회 상담 완료</span>
                         </div>
                     </div>
                     <div className="history-list-container">
@@ -574,49 +621,61 @@ export default function App() {
                                 전체 결제 내역
                             </h4>
                             <div className="ph-table-wrap">
-                                <table className="ph-table">
-                                    <thead className="ph-table-head">
-                                        <tr>
-                                            <th className="ph-table-th">결제일시</th>
-                                            <th className="ph-table-th">결제 내용</th>
-                                            <th className="ph-table-th ph-table-th--right">금액</th>
-                                            <th className="ph-table-th ph-table-th--center">상태</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {PAYMENT_HISTORY.map((item) => (
-                                            <tr key={item.id} className="ph-table-row">
-                                                <td className="ph-table-td">
-                                                    <p className="ph-td-date-main">{item.date}</p>
-                                                    <p className="ph-td-date-sub">{item.time}</p>
-                                                </td>
-                                                <td className="ph-table-td">
-                                                    <p className="ph-td-title">{item.title}</p>
-                                                    <p className="ph-td-method">{item.method}</p>
-                                                </td>
-                                                <td className="ph-table-td ph-td-amount-wrap">
-                                                    <p className="ph-td-amount">{item.amount}원</p>
-                                                </td>
-                                                <td className="ph-table-td ph-td-status-wrap">
-                                                    <span
-                                                        className={`ph-status-pill ${
-                                                            item.status === '결제완료'
-                                                                ? 'ph-status-pill--complete'
-                                                                : 'ph-status-pill--cancel'
-                                                        }`}
-                                                    >
-                                                        {item.status}
-                                                    </span>
-                                                </td>
+                                <div className="ph-table-scroll">
+                                    <table className="ph-table">
+                                        <thead className="ph-table-head">
+                                            <tr>
+                                                <th className="ph-table-th">결제일시</th>
+                                                <th className="ph-table-th ph-table-th--right">금액</th>
+                                                <th className="ph-table-th ph-table-th--center">상태</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {PAYMENT_HISTORY.map((item) => (
+                                                <tr key={item.id} className="ph-table-row">
+                                                    <td className="ph-table-td">
+                                                        <p className="ph-td-date-main">{item.date}</p>
+                                                        <p className="ph-td-date-sub">{item.time}</p>
+                                                        {/* ooo상담사만 표시 (예약금 문구 제거) */}
+                                                        {(() => {
+                                                            const match = item.title.match(/^(.*?) 상담사/);
+                                                            if (match) {
+                                                                return (
+                                                                    <span style={{ color: '#222', fontWeight: 600 }}>
+                                                                        {match[1]} 상담사
+                                                                    </span>
+                                                                );
+                                                            }
+                                                            return (
+                                                                <span style={{ color: '#222', fontWeight: 600 }}>{item.title}</span>
+                                                            );
+                                                        })()}
+                                                        <p className="ph-td-method">{item.method}</p>
+                                                    </td>
+                                                    <td className="ph-table-td ph-td-amount-wrap">
+                                                        <p className="ph-td-amount">{item.amount}원</p>
+                                                    </td>
+                                                    <td className="ph-table-td ph-td-status-wrap">
+                                                        <span
+                                                            className={`ph-status-pill ${
+                                                                item.status === '결제완료'
+                                                                    ? 'ph-status-pill--complete'
+                                                                    : 'ph-status-pill--cancel'
+                                                            }`}
+                                                        >
+                                                            {item.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </section>
                     </div>
 
-                    <div className="ph-col-side">
+                    <div className="ph-col-side" style={isMobile ? { paddingBottom: 88 } : {}}>
                         <div className="ph-panel-card">
                             <h4 className="ph-panel-heading">
                                 <AlertCircle size={16} className="ph-panel-heading-icon" />
@@ -1000,109 +1059,165 @@ export default function App() {
             },
         ];
         return (
-            <div className="fade-in">
-                <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>문의내역</h3>
-                <ul className="mypage-list mypage-list-grid">
-                    {inquiryList.map((item) => (
-                        <li key={item.id} className="mypage-list-item">
-                            <div className="mypage-list-title">{item.title}</div>
-                            <div className="mypage-list-meta">
-                                {item.date} <span className="mypage-list-status">{item.status}</span>
-                            </div>
-                            <div className="mypage-list-content">{item.content}</div>
-                            {item.answer && (
-                                <button
-                                    className="inquiry-answer-btn"
-                                    onClick={() => setOpenInquiryId(openInquiryId === item.id ? null : item.id)}
-                                >
-                                    {openInquiryId === item.id ? '답변 닫기' : '답변 보기'}
-                                </button>
-                            )}
-                            {item.answer && openInquiryId === item.id && (
-                                <div className="inquiry-answer-box">
-                                    <div className="inquiry-answer-label">관리자 답변</div>
-                                    <div className="inquiry-answer-content">{item.answer}</div>
+            <div className="fade-in" style={{ position: 'relative' }}>
+                {/* 모바일 뒤로가기 버튼 (문의내역) */}
+                {isMobile && (
+                    <button
+                        className="mobile-back-btn"
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
+                            boxShadow: 'none',
+                            padding: '1rem 0.5rem 0.5rem 0.5rem',
+                            margin: '0 0 0 0.2rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: '#222',
+                            fontSize: 18,
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            zIndex: 1000,
+                        }}
+                        onClick={() => setActiveMenu('dashboard')}
+                        aria-label="뒤로가기"
+                    >
+                        <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
+                    </button>
+                )}
+                <div style={{ paddingTop: isMobile ? 48 : 0 }}>
+                    <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>문의내역</h3>
+                    <ul className="mypage-list mypage-list-grid">
+                        {inquiryList.map((item) => (
+                            <li key={item.id} className="mypage-list-item">
+                                <div className="mypage-list-title">{item.title}</div>
+                                <div className="mypage-list-meta">
+                                    {item.date} <span className="mypage-list-status">{item.status}</span>
                                 </div>
-                            )}
-                        </li>
-                    ))}
-                </ul>
+                                <div className="mypage-list-content">{item.content}</div>
+                                {item.answer && (
+                                    <button
+                                        className="inquiry-answer-btn"
+                                        onClick={() => setOpenInquiryId(openInquiryId === item.id ? null : item.id)}
+                                    >
+                                        {openInquiryId === item.id ? '답변 닫기' : '답변 보기'}
+                                    </button>
+                                )}
+                                {item.answer && openInquiryId === item.id && (
+                                    <div className="inquiry-answer-box">
+                                        <div className="inquiry-answer-label">관리자 답변</div>
+                                        <div className="inquiry-answer-content">{item.answer}</div>
+                                    </div>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             </div>
         );
     };
 
     const renderFavoritesList = () => (
-        <div className="fade-in">
-            <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>찜 목록</h3>
-            <ul className="mypage-list mypage-list-grid">
-                {favoritesLoading ? (
-                    <li className="mypage-list-empty">불러오는 중...</li>
-                ) : favoritesList.length === 0 ? (
-                    <li className="mypage-list-empty">찜내역이 없습니다.</li>
-                ) : (
-                    favoritesList.map((item) => {
-                        const counselorName = item.counselor_name || item.name || item.full_name || '알 수 없는 상담사';
-                        let specialtiesArr = [];
-                        if (item.field) {
-                            specialtiesArr = item.field.split(',').map((f) => f.trim()).filter(Boolean);
-                        } else if (Array.isArray(item.specialties)) {
-                            specialtiesArr = item.specialties.map((s) => s.specialty_name || s.name || s).filter(Boolean);
-                        }
-                        const category = item.category || '';
-                        const intro = item.intro || item.description || '';
-                        const price = item.price || item.consultation_price || '';
-                        const avatarInitial = counselorName.slice(0, 1);
-                        const itemId = item.counselor_id ? item.counselor_id : item.id;
-                        const shownSpecialties = specialtiesArr.slice(0, 3);
-                        const extraCount = specialtiesArr.length - 3;
-                        const profileImg =
-                            item.profile_img_url || item.profile_image || item.profileImg || item.profile_url || null;
+        <div className="fade-in" style={{ position: 'relative' }}>
+            {/* 모바일 뒤로가기 버튼 (찜내역) */}
+            {isMobile && (
+                <button
+                    className="mobile-back-btn"
+                    style={{
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        boxShadow: 'none',
+                        padding: '1rem 0.5rem 0.5rem 0.5rem',
+                        margin: '0 0 0 0.2rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: '#222',
+                        fontSize: 18,
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        zIndex: 1000,
+                    }}
+                    onClick={() => setActiveMenu('dashboard')}
+                    aria-label="뒤로가기"
+                >
+                    <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
+                </button>
+            )}
+            <div style={{ paddingTop: isMobile ? 48 : 0 }}>
+                <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>찜 목록</h3>
+                <ul className="mypage-list mypage-list-grid">
+                    {favoritesLoading ? (
+                        <li className="mypage-list-empty">불러오는 중...</li>
+                    ) : favoritesList.length === 0 ? (
+                        <li className="mypage-list-empty">찜내역이 없습니다.</li>
+                    ) : (
+                        favoritesList.map((item) => {
+                            const counselorName = item.counselor_name || item.name || item.full_name || '알 수 없는 상담사';
+                            let specialtiesArr = [];
+                            if (item.field) {
+                                specialtiesArr = item.field.split(',').map((f) => f.trim()).filter(Boolean);
+                            } else if (Array.isArray(item.specialties)) {
+                                specialtiesArr = item.specialties.map((s) => s.specialty_name || s.name || s).filter(Boolean);
+                            }
+                            const category = item.category || '';
+                            const intro = item.intro || item.description || '';
+                            const price = item.price || item.consultation_price || '';
+                            const avatarInitial = counselorName.slice(0, 1);
+                            const itemId = item.counselor_id ? item.counselor_id : item.id;
+                            const shownSpecialties = specialtiesArr.slice(0, 3);
+                            const extraCount = specialtiesArr.length - 3;
+                            const profileImg =
+                                item.profile_img_url || item.profile_image || item.profileImg || item.profile_url || null;
 
-                        return (
-                            <li
-                                key={itemId}
-                                className="mypage-list-item mypage-favorite-item"
-                                onClick={() => navigate('/counselor/' + itemId, { state: { isLiked: true } })}
-                            >
-                                <div
-                                    className="mypage-favorite-heart"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleUnfavorite(itemId, e);
-                                    }}
-                                    title="찜 취소"
+                            return (
+                                <li
+                                    key={itemId}
+                                    className="mypage-list-item mypage-favorite-item"
+                                    onClick={() => navigate('/counselor/' + itemId, { state: { isLiked: true } })}
                                 >
-                                    <Heart size={14} color="#e74c3c" fill="#e74c3c" />
-                                </div>
-                                <div className="mypage-favorite-avatar">
-                                    {profileImg ? (
-                                        <img src={profileImg} alt={counselorName + ' 프로필'} />
-                                    ) : (
-                                        avatarInitial
-                                    )}
-                                </div>
-                                <div className="mypage-favorite-content">
-                                    <div className="mypage-list-title">{counselorName}</div>
-                                    <div className="mypage-list-meta">
-                                        {category && <span className="mypage-list-category">{category}</span>}
-                                        {shownSpecialties.map((f, i) => (
-                                            <span key={i} className="mypage-list-field">{f}</span>
-                                        ))}
-                                        {extraCount > 0 && <span className="mypage-list-field-extra">+{extraCount}</span>}
+                                    <div
+                                        className="mypage-favorite-heart"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleUnfavorite(itemId, e);
+                                        }}
+                                        title="찜 취소"
+                                    >
+                                        <Heart size={14} color="#e74c3c" fill="#e74c3c" />
                                     </div>
-                                    {intro && <div className="mypage-list-intro">{intro}</div>}
-                                    {price && (
-                                        <div className="mypage-list-price">
-                                            <span className="price-value">{price}</span>
-                                            <span className="mypage-list-cta">상세보기</span>
+                                    <div className="mypage-favorite-avatar">
+                                        {profileImg ? (
+                                            <img src={profileImg} alt={counselorName + ' 프로필'} />
+                                        ) : (
+                                            avatarInitial
+                                        )}
+                                    </div>
+                                    <div className="mypage-favorite-content">
+                                        <div className="mypage-list-title">{counselorName}</div>
+                                        <div className="mypage-list-meta">
+                                            {category && <span className="mypage-list-category">{category}</span>}
+                                            {shownSpecialties.map((f, i) => (
+                                                <span key={i} className="mypage-list-field">{f}</span>
+                                            ))}
+                                            {extraCount > 0 && <span className="mypage-list-field-extra">+{extraCount}</span>}
                                         </div>
-                                    )}
-                                </div>
-                            </li>
-                        );
-                    })
-                )}
-            </ul>
+                                        {intro && <div className="mypage-list-intro">{intro}</div>}
+                                        {price && (
+                                            <div className="mypage-list-price">
+                                                <span className="price-value">{price}</span>
+                                                <span className="mypage-list-cta">상세보기</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </li>
+                            );
+                        })
+                    )}
+                </ul>
+            </div>
         </div>
     );
 
@@ -1220,7 +1335,7 @@ export default function App() {
                                 </div>
                                 <p className="status-label">완료한 상담</p>
                                 <p className="status-value">
-                                    12<span className="unit">회</span>
+                                    {completedConsultations}<span className="unit">회</span>
                                 </p>
                             </div>
                         </div>
@@ -1230,12 +1345,26 @@ export default function App() {
                                     <MessagesSquare size={28} />
                                 </div>
                                 <div className="hero-text-group">
-                                    <div className="hero-badge-row">
-                                        <span className="hero-d-badge">D-2</span>
-                                        <p className="hero-subtitle">Next Session</p>
-                                    </div>
-                                    <h3 className="hero-main-title">5월 20일(수) 오후 2:00</h3>
-                                    <p className="mypage-hero-desc">이은지 상담사와 1:1 상담 예정</p>
+                                    {/* 가장 가까운 예약 정보 표시 (home.jsx 참고) */}
+                                    {primaryBooking ? (
+                                        <>
+                                            <div className="hero-badge-row">
+                                                <span className="hero-d-badge">D-{getDDay(primaryBooking.date, primaryBooking.time)}</span>
+                                                <p className="hero-subtitle">Next Session</p>
+                                            </div>
+                                            <h3 className="hero-main-title">{primaryBooking.date} {primaryBooking.time}</h3>
+                                            <p className="mypage-hero-desc">{primaryBooking.name} 상담사와 1:1 상담 예정</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="hero-badge-row">
+                                                <span className="hero-d-badge">-</span>
+                                                <p className="hero-subtitle">Next Session</p>
+                                            </div>
+                                            <h3 className="hero-main-title">다가오는 예약이 없습니다</h3>
+                                            <p className="mypage-hero-desc">상담 예약을 진행해 주세요.</p>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                             <button className="hero-action-btn" onClick={() => handleMenuClick('history')}>
@@ -1301,7 +1430,7 @@ export default function App() {
                                 <ChevronRight size={14} />
                             </div>
                         </div>
-                        <section className="mobile-only-menu">
+                        <section className="mobile-only-menu" style={{ paddingBottom: 72 }}>
                             <h4 className="mobile-menu-label">전체 메뉴</h4>
                             <div className="mobile-menu-group">
                                 <div onClick={() => handleMenuClick('history')} className="mobile-menu-item border-b">
@@ -1310,6 +1439,14 @@ export default function App() {
                                 </div>
                                 <div onClick={() => handleMenuClick('tickets')} className="mobile-menu-item border-b">
                                     <span>이용권/결제</span>
+                                    <ChevronRight size={16} />
+                                </div>
+                                <div onClick={() => handleMenuClick('inquiry')} className="mobile-menu-item border-b">
+                                    <span>문의내역</span>
+                                    <ChevronRight size={16} />
+                                </div>
+                                <div onClick={() => handleMenuClick('favorites')} className="mobile-menu-item border-b">
+                                    <span>찜 내역</span>
                                     <ChevronRight size={16} />
                                 </div>
                             </div>

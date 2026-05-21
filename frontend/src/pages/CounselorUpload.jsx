@@ -93,29 +93,22 @@ const App = () => {
     const [confirmChecked, setConfirmChecked] = useState(false);
 
     useEffect(() => {
-        const saved = localStorage.getItem('counselor_upload_draft');
-        if (saved) {
-            try {
-                const d = JSON.parse(saved);
-                if (d.basicName) setBasicName(d.basicName);
-                if (d.basicId) setBasicId(d.basicId);
-                if (d.basicEmail) setBasicEmail(d.basicEmail);
-                if (d.basicPhone) setBasicPhone(d.basicPhone);
-                if (d.basicCenter) setBasicCenter(d.basicCenter);
-                if (d.basicAddress) setBasicAddress(d.basicAddress);
-                if (d.basicPrice) setBasicPrice(d.basicPrice);
-                if (d.basicIntro) setBasicIntro(d.basicIntro);
-                if (d.expertType) setExpertType(d.expertType);
-                if (d.customExpertise) setCustomExpertise(d.customExpertise);
-                if (d.certificates) setCertificates(d.certificates);
-                if (d.educations) setEducations(d.educations);
-                if (d.experiences) setExperiences(d.experiences);
-                if (d.weeklySchedule) setWeeklySchedule(d.weeklySchedule);
-                if (d.profileImage) setProfileImage(d.profileImage);
-            } catch (e) {
-                console.warn('임시저장 파싱 오류:', e);
-            }
-        }
+        // draft 불러오는 로직 완전히 제거: 항상 빈 폼으로 시작
+        setBasicName('');
+        setBasicId('');
+        setBasicEmail('');
+        setBasicPhone('');
+        setBasicCenter('');
+        setBasicAddress('');
+        setBasicPrice('');
+        setBasicIntro('');
+        setExpertType([]);
+        setCustomExpertise('');
+        setCertificates([{ id: 1, yearMonth: '', name: '', issuer: '' }]);
+        setEducations([{ id: 1, startYearMonth: '', endYearMonth: '', school: '', major: '' }]);
+        setExperiences([{ id: 1, startYearMonth: '', endYearMonth: '', content: '', isCurrent: false }]);
+        setWeeklySchedule(initSchedule());
+        setProfileImage(null);
         const fetchUser = async () => {
             const token = localStorage.getItem('access_token');
             if (!token) return;

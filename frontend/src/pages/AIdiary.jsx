@@ -38,6 +38,8 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
         emotionId: null,
     });
 
+    const navigate = useNavigate();
+
     const MAX_LENGTH = 500;
 
     const emotions = [

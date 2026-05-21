@@ -45,9 +45,11 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const fetchClients = async () => {
         try {
             const data = await getCounselorClients();
+            console.log('getCounselorClients() 내담자 목록:', data);
             setClients(data);
             if (!selectedId && data.length > 0) setSelectedId(data[0].id);
-        } catch {
+        } catch (e) {
+            console.error('내담자 목록 불러오기 실패:', e);
             setClients([]);
         }
     };
@@ -65,6 +67,8 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
 
     const filtered = clients.filter((c) => c.name.includes(search));
     const client = clients.find((c) => c.id === selectedId) || clients[0] || {};
+    // 직접 입력 내담자(비회원) 여부 판별: client_id가 null이었던 예약에서 생성된 경우 id가 falsy(null/undefined)
+    const isManualClient = !client.id;
 
     const handleTabClick = (tabId) => {
         setActiveTab(tabId);
@@ -239,7 +243,15 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                 {client.name || ''}{' '}
                                 <small>{(client.gender || '') + (client.birth ? ' · ' + client.birth : '')}</small>
                             </h2>
-                            <p>{client.phone || ''}</p>
+                            {isManualClient ? (
+                                <p className="cc-manual-info">
+                                    이 내담자는 상담사가 직접 입력한 일정입니다.
+                                    <br />
+                                    상담일지는 소장용으로만 저장됩니다.
+                                </p>
+                            ) : (
+                                <p>{client.phone || ''}</p>
+                            )}
                         </div>
                         <div className="cc-profile-actions">
                             <button className="cc-btn cc-btn--outline" onClick={() => setSurveyModal(true)}>
