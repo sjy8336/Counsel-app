@@ -455,23 +455,26 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
         const [addStart, setAddStart] = useState('09:00');
         const [addEnd, setAddEnd] = useState('10:00');
         const [addPicker, setAddPicker] = useState(null);
+        const [newClientPhone, setNewClientPhone] = useState('');
 
         // 직접 일정 추가 핸들러도 내부에서 정의
         const handleAddReservation = async () => {
-            if (!newClientName || !manualDate) {
-                alert('상담 날짜와 내담자 성함을 모두 입력해 주세요.');
+            if (!newClientName || !manualDate || !newClientPhone) {
+                alert('상담 날짜, 내담자 성함, 전화번호를 모두 입력해 주세요.');
                 return;
             }
             try {
                 await createBooking({
                     counselorId: userId,
                     selectedDate: manualDate,
-                    selectedTime: `${addStart} - ${addEnd}`,
+                    selectedTime: addStart, // 단일 시작 시간만 전달
                     survey: { reason: '직접 추가', topic: '직접 추가된 일정입니다.' },
                     client_name: newClientName, // 필드명 통일
+                    client_phone: newClientPhone,
                 });
                 await fetchBookings();
                 setNewClientName('');
+                setNewClientPhone('');
                 setShowAddReservation(false);
                 setAddStart('09:00');
                 setAddEnd('10:00');
@@ -516,6 +519,16 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                             value={newClientName}
                                             onChange={(e) => setNewClientName(e.target.value)}
                                             placeholder="이름 입력"
+                                            className="mwc-text-input"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="mwc-field-label">전화번호</label>
+                                        <input
+                                            type="text"
+                                            value={newClientPhone}
+                                            onChange={(e) => setNewClientPhone(e.target.value)}
+                                            placeholder="전화번호 입력 (예: 010-1234-5678)"
                                             className="mwc-text-input"
                                         />
                                     </div>

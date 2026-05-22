@@ -11,6 +11,7 @@ class BookingCreate(BaseModel):
     counselor_id: int
     booking_date: date
     booking_time: str
-    survey_content: dict = None
-    survey_content: Optional[Dict[str, Any]] = None 
+    client_name: Optional[str] = None
+    client_phone: Optional[str] = None
+    survey_content: Optional[Dict[str, Any]] = None
     amount: int = 20000

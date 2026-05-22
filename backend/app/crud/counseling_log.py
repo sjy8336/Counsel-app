@@ -4,6 +4,13 @@ from app.schemas.counseling_log import CounselingLogCreate
 from app.utils.keyword_extractor import extract_keywords
 import json
 
+# 예약ID로 상담일지 단건 조회 (직접입력 내담자용)
+def get_log_by_booking(db: Session, booking_id: int, counselor_id: int):
+    return db.query(CounselingLog).filter(
+        CounselingLog.booking_id == booking_id,
+        CounselingLog.counselor_id == counselor_id
+    ).first()
+
 # 특정 내담자의 모든 일지 조회
 def get_client_logs(db: Session, client_id: int, counselor_id: int):
     return db.query(CounselingLog).filter(
@@ -22,7 +29,7 @@ def create_log(db: Session, data: CounselingLogCreate, counselor_id: int):
     # 💡 2. 이제 DB 모델에 keywords가 존재하므로 당당하게 함께 매핑해 줍니다!
     db_log = CounselingLog(
         booking_id=log_dict["booking_id"],
-        client_id=log_dict["client_id"],
+        client_id=log_dict.get("client_id"),
         counselor_id=counselor_id,
         title=log_dict["title"],
         session_number=log_dict.get("session_number", 1),

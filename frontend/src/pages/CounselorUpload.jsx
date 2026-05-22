@@ -48,6 +48,9 @@ const EXPERTISE_LIST = [
     '학업/시험',
 ];
 
+const EMPTY_CERT = () => ({ id: Date.now(), yearMonth: '', name: '', issuer: '' });
+const EMPTY_EDU = () => ({ id: Date.now(), startYearMonth: '', endYearMonth: '', school: '', major: '' });
+const EMPTY_EXP = () => ({ id: Date.now(), startYearMonth: '', endYearMonth: '', content: '', isCurrent: false });
 const initSchedule = () =>
     DAYS.reduce(
         (acc, day) => ({
@@ -57,19 +60,39 @@ const initSchedule = () =>
         {}
     );
 
-const App = () => {
-    const [basicCenterPhone, setBasicCenterPhone] = useState('');
-    const navigate = useNavigate();
-    const [toastMsg, setToastMsg] = useState('');
-    const toastTimer = useRef(null);
-    const [activeTab, setActiveTab] = useState('basic');
-    const [profileImage, setProfileImage] = useState(null);
-    const fileInputRef = useRef(null);
+const DRAFT_KEY = (id) => `counselor_upload_draft_${id}`;
 
+const App = () => {
+    const navigate = useNavigate();
+    const fileInputRef = useRef(null);
+    const toastTimer = useRef(null);
+
+    const [userId, setUserId] = useState(null);
+    const [activeTab, setActiveTab] = useState('basic');
+    const [toastMsg, setToastMsg] = useState('');
+    const [submitSuccess, setSubmitSuccess] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmChecked, setConfirmChecked] = useState(false);
+    const [profileImage, setProfileImage] = useState(null);
+
+    // 기본 정보
+    const [basicName, setBasicName] = useState('');
+    const [basicId, setBasicId] = useState('');
+    const [basicEmail, setBasicEmail] = useState('');
+    const [basicPhone, setBasicPhone] = useState('');
+    const [basicCenterPhone, setBasicCenterPhone] = useState('');
+    const [basicCenter, setBasicCenter] = useState('');
+    const [basicAddress, setBasicAddress] = useState('');
+    const [basicPrice, setBasicPrice] = useState('');
+    const [basicIntro, setBasicIntro] = useState('');
+    const [showWarn, setShowWarn] = useState({ name: false, phone: false, center: false, address: false });
+
+    // 전문 분야 / 일정
     const [expertType, setExpertType] = useState([]);
     const [customExpertise, setCustomExpertise] = useState('');
     const [weeklySchedule, setWeeklySchedule] = useState(initSchedule);
 
+    // 이력
     const [certificates, setCertificates] = useState([{ id: 1, yearMonth: '', name: '', issuer: '' }]);
     const [educations, setEducations] = useState([
         { id: 1, startYearMonth: '', endYearMonth: '', school: '', major: '' },
@@ -78,62 +101,151 @@ const App = () => {
         { id: 1, startYearMonth: '', endYearMonth: '', content: '', isCurrent: false },
     ]);
 
-    const [basicName, setBasicName] = useState('');
-    const [basicId, setBasicId] = useState('');
-    const [basicEmail, setBasicEmail] = useState('');
-    const [basicPhone, setBasicPhone] = useState('');
-    const [userId, setUserId] = useState(null); // 실제 user id 저장
-    const [basicCenter, setBasicCenter] = useState('');
-    const [basicAddress, setBasicAddress] = useState('');
-    const [basicPrice, setBasicPrice] = useState('');
-    const [basicIntro, setBasicIntro] = useState('');
-    const [showWarn, setShowWarn] = useState({ name: false, phone: false, center: false, address: false });
-
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [confirmChecked, setConfirmChecked] = useState(false);
-
+    // ── 유저 정보 로드 + draft 복원 (한 번에 처리) ──────────────────────────
+    // 1. 마운트 시 userId만 세팅
     useEffect(() => {
-        const saved = localStorage.getItem('counselor_upload_draft');
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        (async () => {
+            try {
+                const user = await getMyInfo(token);
+                if (!user) return;
+                const uid = user.id;
+                setUserId(uid);
+                // 다른 계정의 draft 정리
+                const prevUid = localStorage.getItem('counselor_upload_prev_userid');
+                if (prevUid && prevUid !== String(uid)) {
+                    localStorage.removeItem(DRAFT_KEY(prevUid));
+                }
+                localStorage.setItem('counselor_upload_prev_userid', String(uid));
+            } catch (e) {}
+        })();
+    }, []);
+
+    // 2. userId가 세팅될 때마다 draft 복원
+    useEffect(() => {
+        if (!userId) return;
+        const draftKey = DRAFT_KEY(userId);
+        const saved = localStorage.getItem(draftKey);
         if (saved) {
             try {
                 const d = JSON.parse(saved);
-                if (d.basicName) setBasicName(d.basicName);
-                if (d.basicId) setBasicId(d.basicId);
-                if (d.basicEmail) setBasicEmail(d.basicEmail);
-                if (d.basicPhone) setBasicPhone(d.basicPhone);
-                if (d.basicCenter) setBasicCenter(d.basicCenter);
-                if (d.basicAddress) setBasicAddress(d.basicAddress);
-                if (d.basicPrice) setBasicPrice(d.basicPrice);
-                if (d.basicIntro) setBasicIntro(d.basicIntro);
-                if (d.expertType) setExpertType(d.expertType);
-                if (d.customExpertise) setCustomExpertise(d.customExpertise);
-                if (d.certificates) setCertificates(d.certificates);
-                if (d.educations) setEducations(d.educations);
-                if (d.experiences) setExperiences(d.experiences);
-                if (d.weeklySchedule) setWeeklySchedule(d.weeklySchedule);
-                if (d.profileImage) setProfileImage(d.profileImage);
+                setBasicName(d.basicName ?? '');
+                setBasicId(d.basicId ?? '');
+                setBasicEmail(d.basicEmail ?? '');
+                setBasicPhone(d.basicPhone ?? '');
+                setBasicCenterPhone(d.basicCenterPhone ?? '');
+                setBasicCenter(d.basicCenter ?? '');
+                setBasicAddress(d.basicAddress ?? '');
+                setBasicPrice(d.basicPrice ?? '');
+                setBasicIntro(d.basicIntro ?? '');
+                setExpertType(d.expertType ?? []);
+                setCustomExpertise(d.customExpertise ?? '');
+                setCertificates(d.certificates ?? [{ id: 1, yearMonth: '', name: '', issuer: '' }]);
+                setEducations(d.educations ?? [{ id: 1, startYearMonth: '', endYearMonth: '', school: '', major: '' }]);
+                setExperiences(
+                    d.experiences ?? [{ id: 1, startYearMonth: '', endYearMonth: '', content: '', isCurrent: false }]
+                );
+                setWeeklySchedule(d.weeklySchedule ?? initSchedule());
+                setProfileImage(d.profileImage ?? null);
             } catch (e) {
-                console.warn('임시저장 파싱 오류:', e);
+                // draft 파싱 실패 시 user 정보로 초기화
+                fetchAndApplyUser(userId);
             }
+        } else {
+            fetchAndApplyUser(userId);
         }
-        const fetchUser = async () => {
-            const token = localStorage.getItem('access_token');
-            if (!token) return;
-            try {
-                const user = await getMyInfo(token);
-                if (user) {
-                    setBasicName((prev) => prev || user.full_name || '');
-                    setBasicId((prev) => prev || user.username || user.id || '');
-                    setBasicEmail((prev) => prev || user.email || '');
-                    setBasicPhone((prev) => prev || user.phone_number || '');
-                    setUserId(user.id);
-                }
-            } catch (e) {}
-        };
-        fetchUser();
-    }, []);
+    }, [userId]);
 
-    /* ── 스케줄 헬퍼 ── */
+    // userId로 user 정보 fetch 후 기본값 세팅
+    const fetchAndApplyUser = async (uid) => {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        try {
+            const user = await getMyInfo(token);
+            if (user && user.id === uid) {
+                setBasicName(user.full_name || '');
+                setBasicId(user.username || user.id || '');
+                setBasicEmail(user.email || '');
+                setBasicPhone(user.phone_number || '');
+            }
+        } catch (e) {}
+    };
+
+    const applyUserDefaults = (user) => {
+        setBasicName(user.full_name || '');
+        setBasicId(user.username || user.id || '');
+        setBasicEmail(user.email || '');
+        setBasicPhone(user.phone_number || '');
+    };
+
+    // ── 로그아웃 시 draft 전체 정리 (로그아웃/계정전환에만 반응, 새로고침엔 절대 삭제 X) ───────────
+    const prevUserId = useRef(null);
+    useEffect(() => {
+        // 최초 마운트 시에는 아무것도 하지 않음
+        if (prevUserId.current === null) {
+            prevUserId.current = userId;
+            return;
+        }
+        // userId가 null로 바뀌는 경우(로그아웃 등)만 draft 전체 삭제
+        if (!userId && prevUserId.current) {
+            Object.keys(localStorage)
+                .filter((k) => k.startsWith('counselor_upload_draft_') || k === 'counselor_upload_draft')
+                .forEach((k) => localStorage.removeItem(k));
+            localStorage.removeItem('counselor_upload_prev_userid');
+        }
+        prevUserId.current = userId;
+    }, [userId]);
+
+    // ── 임시저장 ─────────────────────────────────────────────────────────────
+    const handleSaveDraft = () => {
+        if (!userId) {
+            showToast('로그인 후 임시저장이 가능합니다.');
+            return;
+        }
+        const draftKey = DRAFT_KEY(userId);
+        const draftValue = JSON.stringify({
+            basicName,
+            basicId,
+            basicEmail,
+            basicPhone,
+            basicCenterPhone,
+            basicCenter,
+            basicAddress,
+            basicPrice,
+            basicIntro,
+            expertType,
+            customExpertise,
+            certificates,
+            educations,
+            experiences,
+            weeklySchedule,
+            profileImage,
+        });
+        localStorage.setItem(draftKey, draftValue);
+        showToast('임시 저장되었습니다.');
+    };
+
+    // ── 토스트 ───────────────────────────────────────────────────────────────
+    const showToast = (msg) => {
+        setToastMsg(msg);
+        if (toastTimer.current) clearTimeout(toastTimer.current);
+        toastTimer.current = setTimeout(() => setToastMsg(''), 2500);
+    };
+
+    // ── 유효성 검사 ──────────────────────────────────────────────────────────
+    const validateBasic = () => {
+        const w = {
+            name: !basicName.trim(),
+            phone: !basicPhone.trim(),
+            center: !basicCenter.trim(),
+            address: !basicAddress.trim(),
+        };
+        setShowWarn(w);
+        return !Object.values(w).some(Boolean);
+    };
+
+    // ── 스케줄 헬퍼 ──────────────────────────────────────────────────────────
     const toggleDayActive = (day) => setWeeklySchedule((p) => ({ ...p, [day]: { ...p[day], active: !p[day].active } }));
     const updateTime = (day, idx, type, value) => {
         const newSlots = [...weeklySchedule[day].slots];
@@ -148,48 +260,25 @@ const App = () => {
     const removeTimeSlot = (day, idx) =>
         setWeeklySchedule((p) => ({ ...p, [day]: { ...p[day], slots: p[day].slots.filter((_, i) => i !== idx) } }));
 
-    /* ── 자격증 헬퍼 ── */
-    const addCertificate = () =>
-        setCertificates((p) => [...p, { id: Date.now(), yearMonth: '', name: '', issuer: '' }]);
+    // ── 자격증 헬퍼 ──────────────────────────────────────────────────────────
+    const addCertificate = () => setCertificates((p) => [...p, EMPTY_CERT()]);
     const removeCertificate = (id) => setCertificates((p) => p.filter((c) => c.id !== id));
     const updateCertificate = (id, field, value) =>
         setCertificates((p) => p.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
 
-    /* ── 학력 헬퍼 ── */
-    const addEducation = () =>
-        setEducations((p) => [...p, { id: Date.now(), startYearMonth: '', endYearMonth: '', school: '', major: '' }]);
+    // ── 학력 헬퍼 ────────────────────────────────────────────────────────────
+    const addEducation = () => setEducations((p) => [...p, EMPTY_EDU()]);
     const removeEducation = (id) => setEducations((p) => p.filter((e) => e.id !== id));
     const updateEducation = (id, field, value) =>
         setEducations((p) => p.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
 
-    /* ── 경력 헬퍼 ── */
-    const addExperience = () =>
-        setExperiences((p) => [
-            ...p,
-            { id: Date.now(), startYearMonth: '', endYearMonth: '', content: '', isCurrent: false },
-        ]);
+    // ── 경력 헬퍼 ────────────────────────────────────────────────────────────
+    const addExperience = () => setExperiences((p) => [...p, EMPTY_EXP()]);
     const removeExperience = (id) => setExperiences((p) => p.filter((e) => e.id !== id));
     const updateExperience = (id, field, value) =>
         setExperiences((p) => p.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
 
-    const showToast = (msg) => {
-        setToastMsg(msg);
-        if (toastTimer.current) clearTimeout(toastTimer.current);
-        toastTimer.current = setTimeout(() => setToastMsg(''), 2500);
-    };
-
-    const validateBasic = () => {
-        const w = {
-            name: !basicName.trim(),
-            phone: !basicPhone.trim(),
-            center: !basicCenter.trim(),
-            address: !basicAddress.trim(),
-        };
-        setShowWarn(w);
-        return !Object.values(w).some(Boolean);
-    };
-
-    const [submitSuccess, setSubmitSuccess] = useState(false);
+    // ── 최종 제출 ────────────────────────────────────────────────────────────
     const handleFinalSubmit = async () => {
         const token = localStorage.getItem('access_token');
         if (!token) {
@@ -197,23 +286,20 @@ const App = () => {
             return;
         }
         try {
-            // 이름이 바뀌었으면 DB에 반영
             if (userId && basicName) {
                 await updateUserInfo(
                     { id: userId, full_name: basicName, email: basicEmail, phone_number: basicPhone },
                     token
                 );
-                // localStorage의 user 정보도 갱신
                 const user = JSON.parse(localStorage.getItem('user') || '{}');
                 user.full_name = basicName;
                 localStorage.setItem('user', JSON.stringify(user));
-                // setUserName이 props로 전달된 경우 바로 갱신
                 if (typeof window.setUserName === 'function') window.setUserName(basicName);
             }
             await registerCounselorProfile(
                 {
                     center_name: basicCenter,
-                    center_phone: basicPhone,
+                    center_phone: basicCenterPhone,
                     center_address: basicAddress,
                     consultation_price: Number(basicPrice.replace(/,/g, '')) || 0,
                     intro_line: basicIntro,
@@ -221,15 +307,11 @@ const App = () => {
                 },
                 token
             );
-            // 프로필 등록 성공 후 localStorage의 user.profile_img_url도 동기화
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             user.profile_img_url = profileImage;
             localStorage.setItem('user', JSON.stringify(user));
             await registerSpecialty(
-                expertType.map((name) => ({
-                    specialty_name: name,
-                    custom_description: customExpertise || undefined,
-                })),
+                expertType.map((name) => ({ specialty_name: name, custom_description: customExpertise || undefined })),
                 token
             );
             await registerCertificate(
@@ -260,7 +342,7 @@ const App = () => {
             );
             await registerSchedule(
                 Object.entries(weeklySchedule)
-                    .filter(([_, val]) => val.active)
+                    .filter(([, val]) => val.active)
                     .flatMap(([day, val]) =>
                         val.slots.map((slot) => ({
                             day_of_week: day,
@@ -270,24 +352,39 @@ const App = () => {
                     ),
                 token
             );
+            // 제출 완료 후 draft 삭제
+            if (userId) localStorage.removeItem(DRAFT_KEY(userId));
             setShowConfirmModal(false);
             setSubmitSuccess(true);
             showToast('등록 신청이 완료되었습니다.');
-            setTimeout(() => {
-                navigate('/CounselorMyPage', { state: { profileStatus: '심사중' } });
-            }, 1200);
+            setTimeout(() => navigate('/CounselorMyPage', { state: { profileStatus: '심사중' } }), 1200);
         } catch (err) {
             alert('등록 중 오류가 발생했습니다.');
             console.error(err);
         }
     };
 
-    /* ────────────────── 확인 모달 ────────────────── */
+    // ── 탭 이동 ──────────────────────────────────────────────────────────────
+    const handleTabChange = (tabId) => {
+        if ((tabId === 'expertise' || tabId === 'history') && activeTab === 'basic' && !validateBasic()) return;
+        setActiveTab(tabId);
+    };
+    const handleNext = () => {
+        if (activeTab === 'basic') {
+            if (!validateBasic()) return;
+            setActiveTab('expertise');
+        } else if (activeTab === 'expertise') setActiveTab('history');
+        else {
+            setConfirmChecked(false);
+            setShowConfirmModal(true);
+        }
+    };
+
+    // ── 확인 모달 ────────────────────────────────────────────────────────────
     const renderConfirmModal = () => {
         const fmt = (ym) => ym || '—';
         const fmtPeriod = (s, e, isCurrent) => `${fmt(s)} ~ ${isCurrent ? '현재 진행중' : fmt(e)}`;
         const activeSchedule = Object.entries(weeklySchedule).filter(([, v]) => v.active);
-
         return (
             <div
                 className="cu-modal-backdrop"
@@ -306,25 +403,19 @@ const App = () => {
                         </button>
                     </div>
 
-                    {/* 기본 정보 */}
                     <p className="cu-modal-section-label">기본 정보</p>
                     <div className="cu-modal-info-card">
-                        <div className="cu-modal-info-row">
-                            <span className="cu-modal-info-key">이름</span>
-                            <span className="cu-modal-info-val">{basicName || '—'}</span>
-                        </div>
-                        <div className="cu-modal-info-row">
-                            <span className="cu-modal-info-key">연락처</span>
-                            <span className="cu-modal-info-val">{basicPhone || '—'}</span>
-                        </div>
-                        <div className="cu-modal-info-row">
-                            <span className="cu-modal-info-key">상담소명</span>
-                            <span className="cu-modal-info-val">{basicCenter || '—'}</span>
-                        </div>
-                        <div className="cu-modal-info-row">
-                            <span className="cu-modal-info-key">상담 가격</span>
-                            <span className="cu-modal-info-val">{basicPrice ? `${basicPrice}원` : '—'}</span>
-                        </div>
+                        {[
+                            ['이름', basicName],
+                            ['연락처', basicPhone],
+                            ['상담소명', basicCenter],
+                            ['상담 가격', basicPrice ? `${basicPrice}원` : ''],
+                        ].map(([k, v]) => (
+                            <div key={k} className="cu-modal-info-row">
+                                <span className="cu-modal-info-key">{k}</span>
+                                <span className="cu-modal-info-val">{v || '—'}</span>
+                            </div>
+                        ))}
                         <div className="cu-modal-info-row cu-modal-span2">
                             <span className="cu-modal-info-key">주소</span>
                             <span className="cu-modal-info-val">{basicAddress || '—'}</span>
@@ -337,7 +428,6 @@ const App = () => {
                         )}
                     </div>
 
-                    {/* 전문 분야 */}
                     {expertType.length > 0 && (
                         <>
                             <p className="cu-modal-section-label">전문 분야</p>
@@ -353,7 +443,6 @@ const App = () => {
 
                     <hr className="cu-modal-divider" />
 
-                    {/* 자격증 */}
                     <p className="cu-modal-section-label">자격증</p>
                     {certificates.some((c) => c.name) ? (
                         <div className="cu-modal-list">
@@ -375,7 +464,6 @@ const App = () => {
                         <p className="cu-modal-empty">입력된 자격증이 없습니다.</p>
                     )}
 
-                    {/* 학력 */}
                     <p className="cu-modal-section-label">학력 사항</p>
                     {educations.some((e) => e.school) ? (
                         <div className="cu-modal-list">
@@ -400,7 +488,6 @@ const App = () => {
                         <p className="cu-modal-empty">입력된 학력 정보가 없습니다.</p>
                     )}
 
-                    {/* 경력 */}
                     <p className="cu-modal-section-label">경력 사항</p>
                     {experiences.some((e) => e.content) ? (
                         <div className="cu-modal-list">
@@ -422,7 +509,6 @@ const App = () => {
                         <p className="cu-modal-empty">입력된 경력 정보가 없습니다.</p>
                     )}
 
-                    {/* 상담 운영 시간 */}
                     <p className="cu-modal-section-label">상담 운영 시간</p>
                     {activeSchedule.length > 0 ? (
                         <div className="cu-modal-list">
@@ -432,7 +518,7 @@ const App = () => {
                                     <div>
                                         <p className="cu-modal-list-main">{day}</p>
                                         <p className="cu-modal-list-sub">
-                                            {val.slots.map((s, i) => `${s.start} ~ ${s.end}`).join(' / ')}
+                                            {val.slots.map((s) => `${s.start} ~ ${s.end}`).join(' / ')}
                                         </p>
                                     </div>
                                 </div>
@@ -455,7 +541,10 @@ const App = () => {
                     </div>
 
                     <label className="cu-modal-check-row">
-                        <div className={`cu-modal-checkbox${confirmChecked ? ' cu-modal-checkbox-on' : ''}`}>
+                        <div
+                            className={`cu-modal-checkbox${confirmChecked ? ' cu-modal-checkbox-on' : ''}`}
+                            onClick={() => setConfirmChecked((v) => !v)}
+                        >
                             {confirmChecked && (
                                 <CheckCircle2 style={{ width: '.75rem', height: '.75rem', color: '#fff' }} />
                             )}
@@ -488,7 +577,7 @@ const App = () => {
         );
     };
 
-    /* ────────────────── 탭 렌더 ────────────────── */
+    // ── 탭 렌더: 기본 정보 ───────────────────────────────────────────────────
     const renderBasicInfo = () => (
         <div className="cu-ep-basic cu-ep-animate">
             <div className="cu-ep-photo-section">
@@ -553,6 +642,7 @@ const App = () => {
                         value={basicEmail}
                         onChange={(e) => setBasicEmail(e.target.value)}
                         className="cu-ep-input"
+                        autoComplete="off"
                     />
                 </div>
                 <div className="cu-ep-field">
@@ -568,7 +658,7 @@ const App = () => {
                             setBasicPhone(e.target.value);
                             setShowWarn((w) => ({ ...w, phone: false }));
                         }}
-                        readOnly
+                        autoComplete="off"
                     />
                     {showWarn.phone && <span className="cu-ep-required-msg">필수 입력 항목입니다.</span>}
                 </div>
@@ -615,18 +705,13 @@ const App = () => {
                         value={basicCenterPhone}
                         onChange={(e) => {
                             let v = e.target.value.replace(/[^0-9]/g, '');
-                            // 02로 시작하는 번호(서울)
                             if (v.startsWith('02')) {
                                 if (v.length > 2 && v.length <= 5) v = v.replace(/(02)(\d{0,3})/, '$1-$2');
-                                else if (v.length > 5 && v.length <= 9)
-                                    v = v.replace(/(02)(\d{3,4})(\d{0,4})/, '$1-$2-$3');
-                                else if (v.length > 9) v = v.replace(/(02)(\d{4})(\d{4}).*/, '$1-$2-$3');
+                                else if (v.length <= 9) v = v.replace(/(02)(\d{3,4})(\d{0,4})/, '$1-$2-$3');
+                                else v = v.replace(/(02)(\d{4})(\d{4}).*/, '$1-$2-$3');
                             } else {
-                                // 3자리 지역번호(010, 031 등)
-                                if (v.length <= 3);
-                                else if (v.length > 3 && v.length <= 7) v = v.replace(/(\d{3})(\d{0,4})/, '$1-$2');
+                                if (v.length > 3 && v.length <= 7) v = v.replace(/(\d{3})(\d{0,4})/, '$1-$2');
                                 else if (v.length > 7) v = v.replace(/(\d{3})(\d{3,4})(\d{0,4})/, '$1-$2-$3');
-                                else if (v.length > 11) v = v.replace(/(\d{3})(\d{4})(\d{4}).*/, '$1-$2-$3');
                             }
                             setBasicCenterPhone(v);
                         }}
@@ -671,6 +756,7 @@ const App = () => {
         </div>
     );
 
+    // ── 탭 렌더: 전문 분야 ───────────────────────────────────────────────────
     const renderExpertise = () => (
         <div className="cu-ep-expertise cu-ep-animate">
             <section>
@@ -789,9 +875,9 @@ const App = () => {
         </div>
     );
 
+    // ── 탭 렌더: 학력/경력 ───────────────────────────────────────────────────
     const renderHistory = () => (
         <div className="cu-ep-history cu-ep-animate">
-            {/* ── 자격증 ── */}
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
@@ -838,7 +924,6 @@ const App = () => {
                 </div>
             </section>
 
-            {/* ── 학력 ── */}
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
@@ -909,7 +994,6 @@ const App = () => {
                 </div>
             </section>
 
-            {/* ── 경력 ── */}
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
@@ -998,49 +1082,7 @@ const App = () => {
         </div>
     );
 
-    /* ────────────────── 메인 렌더 ────────────────── */
-    const handleSaveDraft = () => {
-        localStorage.setItem(
-            'counselor_upload_draft',
-            JSON.stringify({
-                basicName,
-                basicId,
-                basicEmail,
-                basicPhone,
-                basicCenter,
-                basicAddress,
-                basicPrice,
-                basicIntro,
-                expertType,
-                customExpertise,
-                certificates,
-                educations,
-                experiences,
-                weeklySchedule,
-                profileImage,
-            })
-        );
-        showToast('임시 저장되었습니다.');
-    };
-
-    const handleTabChange = (tabId) => {
-        if ((tabId === 'expertise' || tabId === 'history') && activeTab === 'basic') {
-            if (!validateBasic()) return;
-        }
-        setActiveTab(tabId);
-    };
-
-    const handleNext = () => {
-        if (activeTab === 'basic') {
-            if (!validateBasic()) return;
-            setActiveTab('expertise');
-        } else if (activeTab === 'expertise') setActiveTab('history');
-        else {
-            setConfirmChecked(false);
-            setShowConfirmModal(true);
-        }
-    };
-
+    // ── 메인 렌더 ────────────────────────────────────────────────────────────
     return (
         <div className="cu-ep-page">
             {showConfirmModal && renderConfirmModal()}

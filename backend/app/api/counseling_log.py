@@ -48,3 +48,13 @@ def remove_counseling_log(log_id: int, db: Session = Depends(get_db), current_us
     if not success:
         raise HTTPException(status_code=404, detail="삭제 실패")
     return {"message": "성공적으로 삭제되었습니다."}
+
+# 5. 예약ID로 상담일지 단건 조회 (직접입력 내담자용)
+@router.get("/booking/{booking_id}", response_model=CounselingLogResponse)
+def get_log_by_booking(booking_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != "counselor":
+        raise HTTPException(status_code=403, detail="상담사만 접근 가능합니다.")
+    log = crud_log.get_log_by_booking(db, booking_id=booking_id, counselor_id=current_user.id)
+    if not log:
+        raise HTTPException(status_code=404, detail="상담일지를 찾을 수 없습니다.")
+    return log
