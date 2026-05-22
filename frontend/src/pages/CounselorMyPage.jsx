@@ -33,6 +33,7 @@ import {
     getSchedules,
     updateSchedule,
 } from '../api/counselor.js';
+import { getCounselorBookings } from '../api/bookingCounselor.js';
 import { getNotifications, markNotificationRead } from '../api/notification.js';
 import {
     LayoutDashboard,
@@ -813,18 +814,20 @@ const App = () => {
                 const data = await getCounselorBookings();
                 // 날짜 파싱 등 홈과 동일하게 변환
                 const days = ['일', '월', '화', '수', '목', '금', '토'];
-                setReservations(
-                    (data || []).map((r) => {
-                        const dateObj = new Date(r.date);
-                        return {
-                            ...r,
-                            dateObj,
-                            dayLabel: days[dateObj.getDay()],
-                        };
-                    })
-                );
-            } catch {
+                const mapped = (data || []).map((r, idx) => {
+                    console.log(`[예약 원본 ${idx}]`, r);
+                    const dateObj = new Date(r.date);
+                    return {
+                        ...r,
+                        dateObj,
+                        dayLabel: days[dateObj.getDay()],
+                    };
+                });
+                console.log('[마이페이지] 예약 변환:', mapped);
+                setReservations(mapped);
+            } catch (e) {
                 setReservations([]);
+                console.error('[마이페이지] 예약 데이터 불러오기 오류:', e);
             }
         };
         fetchReservations();
@@ -875,6 +878,7 @@ const App = () => {
         return `${now.getFullYear()}-${mm}-${dd}`;
     })();
 
+
     // 오늘 확정된 상담 건수
     const todaySessions = reservations.filter(
         (r) => r.status && r.status.includes('확정') && r.dateObj && r.dateObj.toISOString().slice(0, 10) === todayStr
@@ -882,6 +886,23 @@ const App = () => {
 
     // 대기 중인 예약 전체
     const pendingList = reservations.filter((r) => r.status && r.status.includes('대기'));
+
+    // 다가오는 확정 예약 (오늘 이후)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const nextConfirmed =
+        reservations
+            .filter((r) => r.status && r.status.includes('확정') && r.dateObj >= today)
+            .sort((a, b) => a.dateObj - b.dateObj)[0] || null;
+    // 디버깅: 다가오는 예약 상태 출력
+    useEffect(() => {
+        console.log('[마이페이지] nextConfirmed:', nextConfirmed);
+        if (nextConfirmed) {
+            Object.keys(nextConfirmed).forEach(k => {
+                console.log(`[nextConfirmed.${k}]`, nextConfirmed[k]);
+            });
+        }
+    }, [reservations]);
 
     // 미답변 문의(읽지 않은 메시지)
     const unreadInquiries = inquiries.filter((i) => i.status === 'pending');
@@ -936,26 +957,31 @@ const App = () => {
                     </span>
                 </div>
             </div>
-            {/* 다음 상담(예시, 실제 데이터 연동 필요) */}
-            <div className="cmp-next-session" onClick={() => navigate('/CounselorClient')}>
+            {/* 다가오는 예약(상담사 홈과 동일) */}
+            <div className="cmp-next-session" onClick={() => nextConfirmed && navigate('/CounselorPlanner')}>
                 <div className="cmp-next-session-icon">
                     <User size={24} color="#fff" />
                 </div>
                 <div className="cmp-next-session-body">
                     <div className="cmp-next-session-label">NEXT SESSION</div>
                     <div className="cmp-next-session-name">
-                        {todaySessions[0] ? `${todaySessions[0].time || ''} ${todaySessions[0].name || ''} 님` : '예정 없음'}
+                        {nextConfirmed
+                            ? `${nextConfirmed.time || ''} ${nextConfirmed.client_name || ''} 님`
+                            : '다가오는 예약이 없습니다.'}
                     </div>
                     <div className="cmp-next-session-sub">
-                        {todaySessions[0] ? `${todaySessions[0].type || ''} • ${todaySessions[0].room || ''} • ${todaySessions[0].session_number ? todaySessions[0].session_number + '회차 예정' : ''}` : ''}
+                        {nextConfirmed
+                            ? `${nextConfirmed.location || ''} ${nextConfirmed.status ? '• ' + nextConfirmed.status : ''}`
+                            : ''}
                     </div>
                 </div>
                 <button
                     className="cmp-next-session-btn"
                     onClick={(e) => {
                         e.stopPropagation();
-                        navigate('/CounselorClient');
+                        if (nextConfirmed) navigate('/CounselorPlanner');
                     }}
+                    disabled={!nextConfirmed}
                 >
                     내담자 관리 <ChevronRight size={14} />
                 </button>

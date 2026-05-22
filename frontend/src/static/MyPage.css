@@ -3411,3 +3411,26 @@ img {
 .ph-mobile-nav {
     display: none !important;
 }
+/* ================================================
+   MyPage 스크롤 최상단 이동 수정 — MyPage.css 맨 아래에 추가
+   ================================================ */
+
+/* 페이지 전체가 스크롤되지 않도록 고정 */
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+}
+
+/* 루트 레이아웃도 뷰포트 높이에 고정 */
+.mypage-layout-root {
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* 실제 스크롤은 이 컨테이너 안에서만 발생 */
+.mypage-content-area {
+    overflow-y: auto;
+    height: 100vh;
+    /* 기존 padding 유지 */
+}
