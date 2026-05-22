@@ -13,9 +13,6 @@ import {
 } from 'lucide-react';
 import '../static/ContactCoach.css';
 
-/**
- * 하위 컴포넌트: 네비게이션 링크
- */
 const NavLinks = ({ className, onClick }) => (
   <nav className={className && className.replace(/\bmw/g, 'cont')}>
     {['전문가 찾기', '예약 관리', 'AI 일기', '힐링 라운지'].map((item) => (
@@ -31,9 +28,6 @@ const NavLinks = ({ className, onClick }) => (
   </nav>
 );
 
-/**
- * 하위 컴포넌트: 입력 필드 라벨
- */
 const FieldLabel = ({ label, required }) => (
   <label className="cont-field__label">
     {label} {required && <span className="cont-field__required">*</span>}

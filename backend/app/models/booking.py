@@ -7,8 +7,9 @@ class Booking(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     
     # 외래키 설정: users 테이블의 id를 참조
-    client_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    client_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     counselor_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    client_name = Column(String(100), nullable=True)
 
     # 예약 정보
     booking_date = Column(Date, nullable=False)  # 년, 월, 일

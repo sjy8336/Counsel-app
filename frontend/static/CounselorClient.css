@@ -1,0 +1,11 @@
+/* 직접 입력 내담자 안내문구 */
+.cc-manual-info {
+    color: #8ba888;
+    font-size: 0.98em;
+    background: #f6f8f6;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 8px 0 0 0;
+    line-height: 1.6;
+    word-break: keep-all;
+}
