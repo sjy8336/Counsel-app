@@ -192,7 +192,14 @@ CREATE TABLE `bookings` (
   CONSTRAINT `fk_counselor` FOREIGN KEY (`counselor_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+ALTER TABLE bookings
+ADD COLUMN client_name VARCHAR(100) NULL AFTER counselor_id;
+ALTER TABLE bookings MODIFY COLUMN client_id INT NULL;
+
 SELECT * From bookings;
+commit;
+
+DELETE FROM bookings WHERE id = 32;
 
 DROP TABLE IF EXISTS counseling_logs;
 

@@ -7,9 +7,8 @@ from app.models.user import User
 from datetime import datetime
 import uuid
 from app.services.notification_service import send_booking_request_notification
-router = APIRouter()
 
-# ...existing code...
+router = APIRouter()
 
 @router.post("/reject")
 def reject_booking(data: dict, db: Session = Depends(get_db)):
@@ -27,16 +26,7 @@ def reject_booking(data: dict, db: Session = Depends(get_db)):
     db.refresh(booking)
     return {"message": "예약이 거절(취소)되었습니다.", "order_id": order_id, "booking_status": booking.booking_status}
 
-from fastapi import APIRouter, HTTPException, Depends, Query, Body
-from sqlalchemy.orm import Session
-from app.db.session import get_db
-from app.models.booking import Booking
-from app.core.deps import get_current_user
-from app.models.user import User
-from datetime import datetime
-import uuid
-from app.services.notification_service import send_booking_request_notification
-router = APIRouter()
+
 
 @router.get("/counselor-list")
 def get_bookings_for_counselor(
@@ -52,12 +42,20 @@ def get_bookings_for_counselor(
     bookings = db.query(Booking).filter(Booking.counselor_id == current_user.id).all()
     results = []
     for b in bookings:
-        client = db.query(User).filter(User.id == b.client_id).first()
-        client_name = client.full_name if client else "내담자"
-        client_id = client.id if client else None
-        client_birth = client.birth_date if client else ""
-        client_gender = client.gender if client else ""
-        client_phone = client.phone_number if client else ""
+        # client_name이 있으면 우선 사용, 없으면 기존 로직
+        if b.client_name:
+            client_name = b.client_name
+            client_id = None
+            client_birth = ""
+            client_gender = ""
+            client_phone = ""
+        else:
+            client = db.query(User).filter(User.id == b.client_id).first()
+            client_name = client.full_name if client else "내담자"
+            client_id = client.id if client else None
+            client_birth = client.birth_date if client else ""
+            client_gender = client.gender if client else ""
+            client_phone = client.phone_number if client else ""
         profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == b.counselor_id).first()
         center_name = profile.center_name if profile else "센터"
         # 프론트 요구에 맞게 status 변환
@@ -114,13 +112,13 @@ def create_booking(
     예약 생성 API: 중복 시간 체크 및 설문 데이터 저장
     """
     # 1. 프론트엔드에서 보낸 데이터 추출
-    # counselorId를 명시적으로 받도록 수정해야 합니다. (프론트에서 넘겨줘야 함)
     counselor_id = booking.get("counselorId") 
     booking_date = booking.get("selectedDate")
     booking_time = booking.get("selectedTime")
     survey = booking.get("survey") or {}
     amount = booking.get("amount", 20000)
-    
+    client_name = booking.get("clientName") or booking.get("client_name")
+
     # 필수 정보 검증
     if not all([counselor_id, booking_date, booking_time]):
         raise HTTPException(status_code=400, detail="상담사 정보, 날짜, 시간은 필수입니다.")
@@ -142,23 +140,36 @@ def create_booking(
     if existing_booking:
         raise HTTPException(status_code=400, detail="해당 시간대는 이미 예약이 완료되었습니다.")
 
-    # 4. 설문 데이터 보강: 더미 counselorName/centerName은 저장하지 않음
-
     # 5. 고유 주문번호(orderId) 생성
     order_id = booking.get("orderId") or f"ORDER-{uuid.uuid4().hex[:12].upper()}"
 
     # 6. DB 저장
-    new_booking = Booking(
-        client_id=current_user.id,
-        counselor_id=counselor_id, # 고정된 1 대신 실제 ID 사용
-        booking_date=booking_date_obj,
-        booking_time=booking_time,
-        survey_content=survey, # JSON 타입 컬럼에 dict 그대로 투입
-        payment_status="pending", # 초기값
-        booking_status="waiting", # 관리자/상담사 승인 대기 상태
-        amount=amount,
-        order_id=order_id
-    )
+    if client_name:
+        new_booking = Booking(
+            client_id=None,
+            client_name=client_name,
+            counselor_id=counselor_id,
+            booking_date=booking_date_obj,
+            booking_time=booking_time,
+            survey_content=survey,
+            payment_status="pending",
+            booking_status="waiting",
+            amount=amount,
+            order_id=order_id
+        )
+    else:
+        new_booking = Booking(
+            client_id=current_user.id,
+            client_name=None,
+            counselor_id=counselor_id,
+            booking_date=booking_date_obj,
+            booking_time=booking_time,
+            survey_content=survey,
+            payment_status="pending",
+            booking_status="waiting",
+            amount=amount,
+            order_id=order_id
+        )
 
 
     try:
@@ -169,7 +180,7 @@ def create_booking(
         send_booking_request_notification(
             db=db,
             counselor_id=counselor_id,
-            client_name=current_user.full_name,
+            client_name=client_name or current_user.full_name,
             booking_date=booking_date,
             booking_time=booking_time
         )

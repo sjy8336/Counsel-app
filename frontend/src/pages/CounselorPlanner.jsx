@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { confirmBooking } from '../api/bookingConfirm';
+import { rejectBooking } from '../api/bookingReject';
 import { getCounselorBookings } from '../api/bookingCounselor';
+import { createBooking } from '../api/booking';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import MobileTap from '../components/mobileTap';
@@ -25,6 +27,7 @@ import {
     ChevronDown,
     Trash2,
     CalendarDays,
+    AlertCircle,
 } from 'lucide-react';
 import '../static/CounselorPlanner.css';
 
@@ -37,28 +40,42 @@ const STATUS_MAP = {
     rejected: '승인 거절',
 };
 const CALENDAR_VISIBLE = new Set(['대기 중', '확정됨']);
-const CAN_LOG = new Set(['확정됨', '상담 완료']);
 const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const KOR_DAYS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
 const TIME_OPTIONS = Array.from({ length: 30 }, (_, i) => {
     const h = String(9 + Math.floor(i / 2)).padStart(2, '0');
     return `${h}:${i % 2 === 0 ? '00' : '30'}`;
 });
 
-const mapBooking = (b) => ({
-    id: b.id,
-    client: b.client_name || b.client || '',
-    date: b.date || b.booking_date,
-    time: b.time || b.booking_time,
-    type: '상담',
-    status: b.status || STATUS_MAP[b.booking_status] || '취소됨',
-    location: b.location || b.center_name || '',
-    topic: b.survey_content?.reason || b.survey_content?.topic || b.topic || '',
-    order_id: b.order_id,
-});
+const mapBooking = (b) => {
+    // 내담자 이름 우선순위: client_name > client > (userName은 절대 아님)
+    let client = '';
+    if (b.client_name) {
+        client = b.client_name;
+    } else if (b.client) {
+        // client가 객체(상담사 정보)로 오는 경우 방지
+        if (typeof b.client === 'string') {
+            client = b.client;
+        } else if (b.client && typeof b.client === 'object' && b.client.client_name) {
+            client = b.client.client_name;
+        }
+    }
+    return {
+        id: b.id,
+        client,
+        date: b.date || b.booking_date,
+        time: b.time || b.booking_time,
+        type: '상담',
+        status: b.status || STATUS_MAP[b.booking_status] || '취소됨',
+        location: b.location || b.center_name || '',
+        topic: b.survey_content?.reason || b.survey_content?.topic || b.topic || '',
+        order_id: b.order_id,
+    };
+};
 
 const toDateStr = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
-// ── 서브 컴포넌트 ─────────────────────────────────────────
+// ── TimePicker ───────────────────────────────────────────
 const TimePicker = ({ value, onChange, label, isActive, setIsActive }) => (
     <div className="mwc-timepicker-wrap">
         <label className="mwc-timepicker-label">{label}</label>
@@ -95,8 +112,36 @@ const TimePicker = ({ value, onChange, label, isActive, setIsActive }) => (
     </div>
 );
 
+// ── Toast ─────────────────────────────────────────────────
+const Toast = ({ msg }) => (
+    <div className="mwc-toast">
+        <Check size={14} />
+        {msg}
+    </div>
+);
+
+// ── ConfirmModal ──────────────────────────────────────────
+const ConfirmModal = ({ title, desc, onConfirm, onCancel }) => (
+    <div className="mwc-modal-overlay mwc-modal-overlay--confirm" onClick={onCancel}>
+        <div className="mwc-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="mwc-confirm-icon">
+                <AlertCircle size={28} />
+            </div>
+            <h3 className="mwc-confirm-title">{title}</h3>
+            <p className="mwc-confirm-desc">{desc}</p>
+            <div className="mwc-confirm-btns">
+                <button className="mwc-cancel-btn" onClick={onCancel}>
+                    취소
+                </button>
+                <button className="mwc-reject-btn mwc-confirm-ok-btn" onClick={onConfirm}>
+                    확인
+                </button>
+            </div>
+        </div>
+    </div>
+);
+
 // ── 메인 ─────────────────────────────────────────────────
-// userId prop을 명확히 추가
 const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = React.useState('reservation');
@@ -105,46 +150,51 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
     const [selectedReservation, setSelectedReservation] = useState(null);
     const [selectedDateDetails, setSelectedDateDetails] = useState(null);
     const [showBlockInput, setShowBlockInput] = useState(false);
-    const [showAddReservation, setShowAddReservation] = useState(false);
-    const [newClientName, setNewClientName] = useState('');
-    const [manualDate, setManualDate] = useState('');
-    const [addStart, setAddStart] = useState('09:00');
-    const [addEnd, setAddEnd] = useState('10:00');
-    const [addPicker, setAddPicker] = useState(null);
+    // 직접 일정 추가 관련 상태는 DateModal 내부로 이동
     const [blkStart, setBlkStart] = useState('09:00');
     const [blkEnd, setBlkEnd] = useState('10:00');
     const [blkPicker, setBlkPicker] = useState(null);
     const [reservations, setReservations] = useState([]);
-    const [offDays, setOffDays] = useState([]); // 예외 휴무일
-    const [schedule, setSchedule] = useState([]); // 요일별 근무시간
+    const [offDays, setOffDays] = useState([]);
+    const [schedule, setSchedule] = useState([]);
+    const [offWeekdays, setOffWeekdays] = useState([]);
     const [blockedSlots, setBlockedSlots] = useState([]);
-    const [offWeekdays, setOffWeekdays] = useState([]); // 설정된 휴무 요일
 
-    // ── 데이터 ───────────────────────────────────────────
+    // toast / confirm 상태
+    const [toast, setToast] = useState(null);
+    const [confirmModal, setConfirmModal] = useState(null); // { title, desc, onConfirm }
+
+    const showToast = (msg) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 2500);
+    };
+    const openConfirm = (title, desc, onConfirm) => setConfirmModal({ title, desc, onConfirm });
+    const closeConfirm = () => setConfirmModal(null);
+
+    // ── 데이터 ─────────────────────────────────────────────
     const fetchBookings = async () => {
         try {
             setReservations((await getCounselorBookings()).map(mapBooking));
         } catch {}
     };
+
     const fetchScheduleAndHolidays = async () => {
         try {
-            const id = userId || 1;
-            const data = await getScheduleCalendar(id);
-            setOffDays(Array.isArray(data.holidays) ? data.holidays : []);
-            setSchedule(Array.isArray(data.schedules) ? data.schedules : []);
-            setOffWeekdays(Array.isArray(data.off_weekdays) ? data.off_weekdays : []);
+            const data = await getScheduleCalendar(userId || 1);
+            setOffDays(data.holidays ?? []);
+            setSchedule(data.schedules ?? []);
+            setOffWeekdays(data.off_weekdays ?? []);
         } catch {
             setOffDays([]);
             setSchedule([]);
             setOffWeekdays([]);
         }
     };
-    // 예약불가시간 불러오기
+
     const fetchBlockedSlots = async () => {
         try {
-            const data = await getBlockedSlots(userId);
             setBlockedSlots(
-                data.map((b) => ({
+                (await getBlockedSlots(userId)).map((b) => ({
                     id: b.id,
                     date: b.date,
                     start_time: b.start_time,
@@ -156,13 +206,14 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
             setBlockedSlots([]);
         }
     };
+
     useEffect(() => {
         fetchBookings();
         fetchScheduleAndHolidays();
         fetchBlockedSlots();
     }, []);
 
-    // ── 날짜 유틸 ─────────────────────────────────────────
+    // ── 유틸 ───────────────────────────────────────────────
     const changeMonth = (delta) => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() + delta, 1));
 
     const getDaysInMonth = (d) => ({
@@ -172,40 +223,46 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
         month: d.getMonth(),
     });
 
-    // ── 상태 변경 헬퍼 ────────────────────────────────────
     const updateStatus = (id, status) => {
         setReservations((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
         if (selectedReservation?.id === id) setSelectedReservation((p) => ({ ...p, status }));
     };
 
-    // ── 핸들러 ───────────────────────────────────────────
+    // ── 핸들러 ─────────────────────────────────────────────
     const handleGoToClient = (client) =>
         navigate('/CounselorClient', {
             state: { selectedClientName: client, clientReservations: reservations.filter((r) => r.client === client) },
         });
 
-    const handleAddReservation = () => {
+    // 직접 일정 추가: DB에 예약 생성 API 호출
+    const handleAddReservation = async () => {
         if (!newClientName || !manualDate) {
             alert('상담 날짜와 내담자 성함을 모두 입력해 주세요.');
             return;
         }
-        setReservations((prev) => [
-            ...prev,
-            {
-                id: Date.now(),
-                client: newClientName,
-                date: manualDate,
-                time: `${addStart} - ${addEnd}`,
-                type: '상담',
-                status: '확정됨',
-                location: '지정되지 않음',
-                topic: '직접 추가된 일정입니다.',
-            },
-        ]);
-        setNewClientName('');
-        setShowAddReservation(false);
-        setAddStart('09:00');
-        setAddEnd('10:00');
+        try {
+            await createBooking({
+                counselorId: userId,
+                selectedDate: manualDate,
+                selectedTime: `${addStart} - ${addEnd}`,
+                survey: { reason: '직접 추가', topic: '직접 추가된 일정입니다.' },
+                client_name: newClientName, // 백엔드와 필드명 일치
+            });
+            await fetchBookings();
+            setNewClientName('');
+            setShowAddReservation(false);
+            setAddStart('09:00');
+            setAddEnd('10:00');
+            showToast('일정이 추가되었습니다.');
+        } catch (e) {
+            // 중복 예약(Unique Constraint) 에러 메시지 감지
+            const msg = e?.response?.data?.detail || e?.message || '';
+            if (msg.includes('unique_booking_slot') || msg.includes('Duplicate entry')) {
+                alert('이미 예약된 시간입니다.');
+            } else {
+                alert('일정 추가에 실패했습니다.');
+            }
+        }
     };
 
     const handleApprove = async (id) => {
@@ -218,14 +275,53 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
             await confirmBooking(res.order_id);
             await fetchBookings();
             updateStatus(id, '확정됨');
-            alert('예약이 확정되었습니다.');
+            showToast('예약이 승인되었습니다.');
         } catch {
             alert('예약 확정에 실패했습니다.');
         }
     };
 
-    const handleReject = (id) => updateStatus(id, '승인 거절');
-    const handleCancel = (id) => updateStatus(id, '승인 거절');
+    // 예약 거절(승인 대기 상태에서 거절)
+    const handleReject = async (id) => {
+        const res = reservations.find((r) => r.id === id);
+        if (!res?.order_id) {
+            alert('예약 정보에 order_id가 없습니다.');
+            return;
+        }
+        try {
+            await rejectBooking(res.order_id);
+            await fetchBookings();
+            updateStatus(id, '승인 거절');
+            showToast('예약이 거절되었습니다.');
+        } catch {
+            alert('예약 거절에 실패했습니다.');
+        }
+    };
+
+    // 승인 취소 — 확인 모달 후 실행
+    const handleCancelConfirmed = (id, clientName) => {
+        openConfirm(
+            '승인을 취소하시겠습니까?',
+            `${clientName}님의 예약 승인을 취소합니다. 이 작업은 되돌릴 수 없습니다.`,
+            async () => {
+                const resv = reservations.find((r) => r.id === id);
+                if (!resv?.order_id) {
+                    alert('예약 정보에 order_id가 없습니다.');
+                    return;
+                }
+                try {
+                    await rejectBooking(resv.order_id);
+                    await fetchBookings();
+                    updateStatus(id, '승인 거절');
+                    showToast('예약 승인이 취소되었습니다.');
+                } catch {
+                    alert('예약 승인 취소에 실패했습니다.');
+                }
+                closeConfirm();
+                setSelectedReservation(null);
+            }
+        );
+    };
 
     const handleAddBlock = async () => {
         if (!blkStart || !blkEnd || !selectedDateDetails) return;
@@ -249,10 +345,10 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
     const closeDate = () => {
         setSelectedDateDetails(null);
         setShowBlockInput(false);
-        setShowAddReservation(false);
+        // setShowAddReservation은 DateModal 내부에서만 관리
     };
 
-    // ── 예약 상세 모달 ────────────────────────────────────
+    // ── 예약 상세 모달 ──────────────────────────────────────
     const ReservationModal = ({ res }) => {
         const isPending = res.status === '대기 중';
         const isConfirmed = res.status === '확정됨';
@@ -329,7 +425,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                 <button
                                     className="mwc-reject-btn"
                                     style={{ width: '100%' }}
-                                    onClick={() => handleCancel(res.id)}
+                                    onClick={() => handleCancelConfirmed(res.id, res.client)}
                                 >
                                     승인 취소
                                 </button>
@@ -341,32 +437,54 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
         );
     };
 
-    // ── 날짜 관리 모달 ────────────────────────────────────
+    // ── 날짜 관리 모달 ──────────────────────────────────────
 
     const DateModal = () => {
-        const dayOfWeekKor = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'][
-            new Date(selectedDateDetails).getDay()
-        ];
-        const isHoliday = offDays.includes(selectedDateDetails); // 예외휴무(holiday)
-        const isWeekdayOff = offWeekdays.includes(dayOfWeekKor); // 설정휴무(요일휴무)
+        const korDay = KOR_DAYS[new Date(selectedDateDetails).getDay()];
+        const isHoliday = offDays.includes(selectedDateDetails);
+        const isWeekdayOff = offWeekdays.includes(korDay);
         const isOff = isHoliday || isWeekdayOff;
         const dayBlocks = blockedSlots.filter((b) => b.date === selectedDateDetails);
-        const dayReservations = reservations.filter(
-            (r) => r.date === selectedDateDetails && CALENDAR_VISIBLE.has(r.status)
-        );
-        const hasRes = dayReservations.length > 0;
+        const dayRes = reservations.filter((r) => r.date === selectedDateDetails && CALENDAR_VISIBLE.has(r.status));
+        const hasRes = dayRes.length > 0;
 
-        // 근무일로 변경(스케줄 추가) UI 상태
-        const [showAddSchedule, setShowAddSchedule] = useState(false);
-        const [workStart, setWorkStart] = useState('09:00');
-        const [workEnd, setWorkEnd] = useState('18:00');
-        const [workPicker, setWorkPicker] = useState(null);
+        // 직접 일정 추가 관련 상태를 DateModal 내부로 이동
+        const [showAddReservation, setShowAddReservation] = useState(false);
+        const [newClientName, setNewClientName] = useState('');
+        const [manualDate, setManualDate] = useState(selectedDateDetails);
+        const [addStart, setAddStart] = useState('09:00');
+        const [addEnd, setAddEnd] = useState('10:00');
+        const [addPicker, setAddPicker] = useState(null);
+
+        // 직접 일정 추가 핸들러도 내부에서 정의
+        const handleAddReservation = async () => {
+            if (!newClientName || !manualDate) {
+                alert('상담 날짜와 내담자 성함을 모두 입력해 주세요.');
+                return;
+            }
+            try {
+                await createBooking({
+                    counselorId: userId,
+                    selectedDate: manualDate,
+                    selectedTime: `${addStart} - ${addEnd}`,
+                    survey: { reason: '직접 추가', topic: '직접 추가된 일정입니다.' },
+                    client_name: newClientName, // 필드명 통일
+                });
+                await fetchBookings();
+                setNewClientName('');
+                setShowAddReservation(false);
+                setAddStart('09:00');
+                setAddEnd('10:00');
+                showToast('일정이 추가되었습니다.');
+            } catch (e) {
+                alert('일정 추가에 실패했습니다.');
+            }
+        };
 
         return (
             <div className="mwc-modal-overlay mwc-modal-overlay--date" onClick={closeDate}>
                 <div className="mwc-modal-box mwc-modal-box--date" onClick={(e) => e.stopPropagation()}>
                     <div className="mwc-modal-body--scroll">
-                        {/* 헤더 */}
                         <div className="mwc-date-modal-header">
                             <h3 className="mwc-date-modal-title">{selectedDateDetails} 관리</h3>
                             <button className="mwc-modal-close-btn" onClick={closeDate}>
@@ -445,7 +563,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                 </p>
                                 {hasRes ? (
                                     <div className="mwc-reservation-list">
-                                        {dayReservations.map((res) => (
+                                        {dayRes.map((res) => (
                                             <div
                                                 key={res.id}
                                                 className="mwc-reservation-item"
@@ -496,21 +614,18 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                                 </p>
                                             </div>
                                         </div>
-                                        {/* 근무일로 변경 버튼을 요일휴무 옆에 가로정렬 */}
                                         {isWeekdayOff && !showAddSchedule && (
                                             <button
-                                                className={`mwc-off-toggle-btn mwc-off-toggle-btn--active`}
+                                                className="mwc-off-toggle-btn mwc-off-toggle-btn--active"
                                                 onClick={() => setShowAddSchedule(true)}
                                             >
                                                 근무일로 변경
                                             </button>
                                         )}
-                                        {/* 휴무지정 버튼: 예외휴무/요일휴무가 아닌 경우만 노출 */}
                                         {!isHoliday && !isWeekdayOff && !hasRes && (
                                             <button
-                                                className={`mwc-off-toggle-btn mwc-off-toggle-btn--normal`}
+                                                className="mwc-off-toggle-btn mwc-off-toggle-btn--normal"
                                                 onClick={async () => {
-                                                    // 예외휴무 지정
                                                     await addHoliday(selectedDateDetails, userId);
                                                     setOffDays((prev) => [...prev, selectedDateDetails]);
                                                 }}
@@ -521,9 +636,8 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                         {isHoliday && (
                                             <button
                                                 disabled={hasRes}
-                                                className={`mwc-off-toggle-btn mwc-off-toggle-btn--active`}
+                                                className="mwc-off-toggle-btn mwc-off-toggle-btn--active"
                                                 onClick={async () => {
-                                                    // 예외휴무 해제
                                                     await removeHoliday(selectedDateDetails, userId);
                                                     setOffDays((prev) => prev.filter((d) => d !== selectedDateDetails));
                                                 }}
@@ -532,7 +646,6 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                             </button>
                                         )}
                                     </div>
-                                    {/* 근무일로 변경 패널은 버튼 아래에만 노출 */}
                                     {isWeekdayOff && showAddSchedule && (
                                         <div className="mwc-add-schedule-panel">
                                             <div className="mwc-time-row">
@@ -554,25 +667,22 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                             <div className="mwc-add-res-actions">
                                                 <button
                                                     className="mwc-submit-btn"
-                                                    onClick={() => {
-                                                        // 스케줄 추가 API 연동
+                                                    onClick={() =>
                                                         addSchedule({
                                                             user_id: userId,
-                                                            day_of_week: dayOfWeekKor,
+                                                            day_of_week: korDay,
                                                             start_time: workStart,
                                                             end_time: workEnd,
                                                         })
                                                             .then(() => {
                                                                 alert(
-                                                                    `근무일로 등록: ${dayOfWeekKor} ${workStart}~${workEnd}`
+                                                                    `근무일로 등록: ${korDay} ${workStart}~${workEnd}`
                                                                 );
                                                                 setShowAddSchedule(false);
                                                                 fetchScheduleAndHolidays();
                                                             })
-                                                            .catch((err) => {
-                                                                alert('근무일 등록에 실패했습니다.');
-                                                            });
-                                                    }}
+                                                            .catch(() => alert('근무일 등록에 실패했습니다.'))
+                                                    }
                                                 >
                                                     <Check size={16} /> 근무일로 등록
                                                 </button>
@@ -663,72 +773,11 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
         );
     };
 
-    // ── 캘린더 렌더 ──────────────────────────────────────
+    // ── 캘린더 ─────────────────────────────────────────────
     const renderCalendar = () => {
         const { firstDay, days, year, month } = getDaysInMonth(currentDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-
-        const empties = Array.from({ length: firstDay }, (_, i) => (
-            <div key={`e${i}`} className="mwc-calendar-cell-empty" />
-        ));
-
-        const dayCells = Array.from({ length: days }, (_, i) => {
-            const d = i + 1;
-            const dateStr = toDateStr(year, month, d);
-            const dayRes = reservations.filter((r) => r.date === dateStr && CALENDAR_VISIBLE.has(r.status));
-            const dayBlks = blockedSlots.filter((b) => b.date === dateStr);
-            const isOff = offDays.includes(dateStr); // 예외 휴무(날짜 기준)
-            const isToday = today.toDateString() === new Date(year, month, d).toDateString();
-            const isPast = new Date(year, month, d) < today;
-            // 요일별 스케줄 체크
-            const dayOfWeekIdx = new Date(year, month, d).getDay();
-            const dayOfWeekKor = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'][dayOfWeekIdx];
-            const hasSchedule = schedule.some((s) => s.day_of_week === dayOfWeekKor);
-            const isWeekdayOff = offWeekdays.includes(dayOfWeekKor);
-
-            // 실제 예외휴무(holiday)는 날짜 기준, 설정 휴무는 요일 기준(스케줄 없는 요일)
-            // 날짜가 예외휴무면 무조건 휴무, 아니고 요일이 설정휴무면 '설정휴무'만 표시
-            const isDisabled = isPast;
-
-            return (
-                <div
-                    key={d}
-                    className={`mwc-calendar-cell${isOff ? ' mwc-calendar-cell--off' : ''}${isWeekdayOff ? ' mwc-calendar-cell--weekdayoff' : ''}${!hasSchedule ? ' mwc-calendar-cell--noschedule' : ''}${isDisabled ? ' mwc-calendar-cell--disabled' : ''}`}
-                    style={isDisabled ? { pointerEvents: 'none', opacity: 0.4, cursor: 'not-allowed' } : {}}
-                    onClick={() => {
-                        if (isDisabled) return;
-                        setSelectedDateDetails(dateStr);
-                        setManualDate(dateStr);
-                    }}
-                >
-                    <div className="mwc-cell-top">
-                        <span className={`mwc-cell-day${isToday ? ' mwc-cell-day--today' : ''}`}>{d}</span>
-                        {/* 예외휴무(holiday)는 날짜 기준, 설정휴무는 요일 기준 */}
-                        {(isOff || isWeekdayOff) && <span className="mwc-cell-off-badge">휴무</span>}
-                    </div>
-                    <div className="mwc-cell-events">
-                        {dayRes.map((res) => (
-                            <div
-                                key={res.id}
-                                className={`mwc-cell-event ${res.status === '대기 중' ? 'mwc-cell-event--pending' : 'mwc-cell-event--confirmed'}`}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedReservation(res);
-                                }}
-                            >
-                                {res.client}
-                            </div>
-                        ))}
-                        {dayBlks.length > 0 && (
-                            <div className="mwc-cell-block">
-                                <Slash size={8} /> 불가
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
-        });
 
         return (
             <div className="mwc-calendar-grid">
@@ -737,13 +786,62 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                         {d}
                     </div>
                 ))}
-                {empties}
-                {dayCells}
+                {Array.from({ length: firstDay }, (_, i) => (
+                    <div key={`e${i}`} className="mwc-calendar-cell-empty" />
+                ))}
+                {Array.from({ length: days }, (_, i) => {
+                    const d = i + 1;
+                    const dateStr = toDateStr(year, month, d);
+                    const dayRes = reservations.filter((r) => r.date === dateStr && CALENDAR_VISIBLE.has(r.status));
+                    const dayBlks = blockedSlots.filter((b) => b.date === dateStr);
+                    const isOff = offDays.includes(dateStr);
+                    const isToday = today.toDateString() === new Date(year, month, d).toDateString();
+                    const isPast = new Date(year, month, d) < today;
+                    const korDay = KOR_DAYS[new Date(year, month, d).getDay()];
+                    const isWeekdayOff = offWeekdays.includes(korDay);
+
+                    return (
+                        <div
+                            key={d}
+                            className={`mwc-calendar-cell${isOff || isWeekdayOff ? ' mwc-calendar-cell--off' : ''}${isPast ? ' mwc-calendar-cell--disabled' : ''}`}
+                            style={isPast ? { pointerEvents: 'none', opacity: 0.4, cursor: 'not-allowed' } : {}}
+                            onClick={() => {
+                                if (isPast) return;
+                                setSelectedDateDetails(dateStr);
+                                // setManualDate는 DateModal 내부에서 관리
+                            }}
+                        >
+                            <div className="mwc-cell-top">
+                                <span className={`mwc-cell-day${isToday ? ' mwc-cell-day--today' : ''}`}>{d}</span>
+                                {(isOff || isWeekdayOff) && <span className="mwc-cell-off-badge">휴무</span>}
+                            </div>
+                            <div className="mwc-cell-events">
+                                {dayRes.map((res) => (
+                                    <div
+                                        key={res.id}
+                                        className={`mwc-cell-event ${res.status === '대기 중' ? 'mwc-cell-event--pending' : 'mwc-cell-event--confirmed'}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedReservation(res);
+                                        }}
+                                    >
+                                        {res.client}
+                                    </div>
+                                ))}
+                                {dayBlks.length > 0 && (
+                                    <div className="mwc-cell-block">
+                                        <Slash size={8} /> 불가
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         );
     };
 
-    // ── 리스트 뷰 ─────────────────────────────────────────
+    // ── 리스트 ─────────────────────────────────────────────
     const renderList = () => (
         <div className="mwc-list-view">
             <div className="mwc-list-toolbar">
@@ -810,7 +908,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                         className="mwc-list-reject-btn"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleCancel(res.id);
+                                            handleCancelConfirmed(res.id, res.client);
                                         }}
                                     >
                                         승인 취소
@@ -827,7 +925,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
         </div>
     );
 
-    // ── 렌더 ─────────────────────────────────────────────
+    // ── 렌더 ───────────────────────────────────────────────
     return (
         <div className="planner-root">
             <Header
@@ -842,6 +940,15 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
             <main className="mwc-main">
                 {selectedReservation && <ReservationModal res={selectedReservation} />}
                 {selectedDateDetails && <DateModal />}
+                {confirmModal && (
+                    <ConfirmModal
+                        title={confirmModal.title}
+                        desc={confirmModal.desc}
+                        onConfirm={confirmModal.onConfirm}
+                        onCancel={closeConfirm}
+                    />
+                )}
+                {toast && <Toast msg={toast} />}
 
                 <div className="mwc-page-header">
                     <div>
@@ -885,7 +992,6 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                     className="mwc-add-btn"
                                     onClick={() => {
                                         setSelectedDateDetails(new Date().toISOString().split('T')[0]);
-                                        setShowAddReservation(true);
                                     }}
                                 >
                                     + 일정 추가
