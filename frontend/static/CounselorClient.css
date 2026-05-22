@@ -9,3 +9,41 @@
     line-height: 1.6;
     word-break: keep-all;
 }
+
+.enhanced-date-pill {
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(90deg, #f9fafb 70%, #e3f1e3 100%);
+    border: 1.5px solid #7bb661;
+    border-radius: 22px;
+    box-shadow: 0 2px 8px 0 rgba(123, 182, 97, 0.08);
+    padding: 6px 16px 6px 10px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #3a4d2d;
+    gap: 6px;
+    min-width: 120px;
+    margin-left: 2px;
+    margin-bottom: 2px;
+    transition: box-shadow 0.2s;
+}
+
+.enhanced-date-pill svg {
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 2px #e3f1e3);
+}
+
+.cc-date-pill-text {
+    letter-spacing: 0.01em;
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #3a4d2d;
+}
+
+.cc-modal__actions.right {
+    justify-content: flex-end !important;
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}

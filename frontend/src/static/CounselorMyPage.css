@@ -17,7 +17,8 @@
 .cmp-monthpicker-wrap {
     overflow: visible !important;
 }
-/* 유틸리티 클래스 및 프로필 이미지 스타일 */
+
+/* ─── 유틸리티 클래스 ─────────────────────────────────────────────────────── */
 .cmp-profile-img-content {
     width: 100%;
     height: 100%;
@@ -60,6 +61,8 @@
 .cmp-color-888 {
     color: #888 !important;
 }
+
+/* ─── CSS 변수 ───────────────────────────────────────────────────────────────── */
 :root {
     --cmp-primary: #9bb095;
     --cmp-primary-light: #f3f6f2;
@@ -114,7 +117,7 @@
     padding: 28px 0;
     flex-shrink: 0;
     transition: transform 0.3s ease;
-    z-index: 100;
+    z-index: 200;
 }
 
 .cmp-logo {
@@ -169,6 +172,19 @@
 .cmp-nav-item:hover:not(.active) {
     background: var(--cmp-bg);
     color: var(--cmp-text);
+}
+
+/* 설정 nav-item 내부 label flex */
+.cmp-nav-item-label {
+    flex: 1;
+}
+
+/* 설정 chevron 애니메이션 */
+.cmp-nav-chevron {
+    transition: transform 0.2s;
+}
+.cmp-nav-chevron.open {
+    transform: rotate(180deg);
 }
 
 .cmp-nav-submenu {
@@ -333,6 +349,17 @@
     margin-bottom: 14px;
 }
 
+/* stat icon 색상 variants — JSX inline style 대체 */
+.cmp-stat-icon--green {
+    background: #E8F5E9;
+}
+.cmp-stat-icon--orange {
+    background: #FFF5E6;
+}
+.cmp-stat-icon--red {
+    background: #FFEBEE;
+}
+
 .cmp-stat-label {
     font-size: 12px;
     color: var(--cmp-sub);
@@ -432,9 +459,19 @@
     margin-bottom: 4px;
 }
 
+/* BackHeader title margin 제거 — JSX inline style 대체 */
+.cmp-page-title--no-margin {
+    margin: 0;
+}
+
 .cmp-page-sub {
     font-size: 13px;
     color: var(--cmp-sub);
+}
+
+/* 알림 설정 페이지 sub 텍스트 하단 여백 — JSX inline style 대체 */
+.cmp-notif-settings-sub {
+    margin-bottom: 20px;
 }
 
 .cmp-subview-header {
@@ -463,6 +500,11 @@
 .cmp-back-btn:hover {
     background: var(--cmp-bg);
     color: var(--cmp-primary);
+}
+
+/* BackHeader chevron 회전 — JSX inline style 대체 */
+.cmp-back-chevron {
+    transform: rotate(180deg);
 }
 
 .cmp-list-card {
@@ -521,6 +563,11 @@
 .cmp-item-name {
     font-size: 14px;
     font-weight: 700;
+}
+
+/* 알림 설정 항목 name 하단 여백 — JSX inline style 대체 */
+.cmp-item-name--mb2 {
+    margin-bottom: 2px;
 }
 
 .cmp-item-name.danger-text {
@@ -588,6 +635,15 @@
     flex-shrink: 0;
 }
 
+/* 모바일 알림 meta — JSX inline style 대체 */
+.cmp-notif-meta--mobile {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
 .cmp-notif-time {
     font-size: 11px;
     color: var(--cmp-sub);
@@ -601,6 +657,23 @@
     border-radius: 50%;
     background: var(--cmp-primary);
     flex-shrink: 0;
+}
+
+/* 더보기 버튼 wrapper — JSX inline style 대체 */
+.cmp-notif-more-wrap {
+    text-align: center;
+    padding: 16px 0;
+}
+
+/* 더보기 버튼 — JSX inline style 대체 */
+.cmp-btn-more {
+    font-size: 14px;
+    padding: 8px 22px;
+    border-radius: 16px;
+    background: #f5f5f5;
+    color: #666;
+    border: none;
+    cursor: pointer;
 }
 
 .cmp-notif-setting-item {
@@ -656,6 +729,12 @@
     margin-bottom: 18px;
 }
 
+/* 등록 안내 카드 가운데 정렬 — JSX inline style 대체 */
+.cmp-settings-card--center {
+    text-align: center;
+    padding: 52px 28px;
+}
+
 .cmp-card-title {
     font-size: 15px;
     font-weight: 800;
@@ -696,11 +775,33 @@
     border-bottom: 1px solid var(--cmp-border);
 }
 
+/* 전문분야 섹션 상단 여백 — JSX inline style 대체 */
+.cmp-section-specialty {
+    margin-top: 14px;
+}
+
 .cmp-sub-section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+}
+
+/* 버튼 그룹 (추가/삭제 나란히) — JSX inline style 대체 */
+.cmp-btn-group {
+    display: flex;
+    gap: 4px;
+}
+
+/* 전문분야 label margin 제거 — JSX inline style 대체 */
+.cmp-specialty-label {
+    margin: 0;
+}
+
+/* 전문분야 선택 갯수 표시 — JSX inline style 대체 */
+.cmp-specialty-count {
+    font-size: 11px;
+    color: var(--cmp-sub);
 }
 
 .cmp-row-card {
@@ -783,6 +884,59 @@
     justify-content: center;
 }
 
+/* 자기소개 textarea 상하 여백 — JSX inline style 대체 */
+.cmp-intro-wrap {
+    margin-top: 12px;
+    margin-bottom: 14px;
+}
+
+/* 프로필 저장 버튼 — JSX inline style 대체 */
+.cmp-btn-profile-save {
+    max-width: 130px;
+    display: block;
+    margin-left: auto;
+}
+
+/* 상담 시간 섹션 상단 여백 — JSX inline style 대체 */
+.cmp-schedule-section {
+    margin-top: 32px;
+}
+
+/* 시간 저장 버튼 — JSX inline style 대체 */
+.cmp-btn-time-save {
+    margin-top: 24px;
+    max-width: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-left: auto;
+}
+
+/* 시간 저장 아이콘 — JSX inline style 대체 */
+.cmp-btn-save-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    vertical-align: middle;
+}
+
+/* slot rm 아이콘 — JSX inline style 대체 */
+.cu-ep-slot-rm-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+}
+
+/* slot add 아이콘 — JSX inline style 대체 */
+.cu-ep-slot-add-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* TimePicker portal (fixed position) */
+.cmp-timepicker-portal {
+    position: fixed !important;
+}
+
 .cmp-register-icon {
     width: 72px;
     height: 72px;
@@ -806,6 +960,20 @@
     color: var(--cmp-sub);
     margin-bottom: 26px;
     line-height: 1.6;
+}
+
+/* 등록/재등록 버튼 크기 — JSX inline style 대체 */
+.cmp-btn-register {
+    padding: 13px 28px;
+    font-size: 14px;
+}
+
+/* 심사중 비활성 버튼 — JSX inline style 대체 */
+.cmp-btn-disabled {
+    background: #ccc;
+    color: #fff;
+    padding: 13px 28px;
+    font-size: 14px;
 }
 
 .cmp-textarea,
@@ -1040,6 +1208,12 @@ input[type='time']::-webkit-calendar-picker-indicator {
     white-space: nowrap;
 }
 
+/* 전문분야 추가 버튼 작은 크기 — JSX inline style 대체 */
+.cmp-btn-add--sm {
+    padding: 8px 14px;
+    font-size: 12px;
+}
+
 .cmp-delete-icon-wrap {
     display: flex;
     justify-content: center;
@@ -1100,6 +1274,11 @@ input[type='time']::-webkit-calendar-picker-indicator {
     line-height: 1.6;
 }
 
+/* 탈퇴 키워드 강조 색상 — JSX inline style 대체 */
+.cmp-delete-keyword {
+    color: var(--cmp-danger);
+}
+
 .cmp-delete-input {
     border-color: var(--cmp-border);
 }
@@ -1146,6 +1325,16 @@ input[type='time']::-webkit-calendar-picker-indicator {
     font-size: 13px;
 }
 
+/* 버튼 flex 1 — JSX inline style 대체 */
+.cmp-btn-flex {
+    flex: 1;
+}
+
+/* 탈퇴 버튼 비활성 반투명 — JSX inline style 대체 */
+.cmp-btn-dimmed {
+    opacity: 0.4;
+}
+
 .cmp-btn-icon {
     width: 32px;
     height: 32px;
@@ -1185,6 +1374,16 @@ input[type='time']::-webkit-calendar-picker-indicator {
 .cmp-btn-row {
     display: flex;
     gap: 8px;
+}
+
+/* 탈퇴 step1 버튼 row 상단 여백 — JSX inline style 대체 */
+.cmp-btn-row--mt26 {
+    margin-top: 26px;
+}
+
+/* 탈퇴 step2 버튼 row 상단 여백 — JSX inline style 대체 */
+.cmp-btn-row--mt18 {
+    margin-top: 18px;
 }
 
 .cmp-support-grid {
@@ -1308,7 +1507,7 @@ input[type='time']::-webkit-calendar-picker-indicator {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
-    z-index: 150;
+    z-index: 90;
 }
 
 .cmp-overlay.visible {
@@ -1633,7 +1832,7 @@ input[type='time']::-webkit-calendar-picker-indicator {
         transform: translateX(0);
     }
     .cmp-main {
-        padding: 76px 18px 80px;
+        padding: 76px 18px 120px;
         margin-left: 0 !important;
     }
     .cmp-header {
@@ -1703,6 +1902,8 @@ input[type='time']::-webkit-calendar-picker-indicator {
         height: 32px;
     }
 }
+
+/* ─── 알림 빈 상태 ──────────────────────────────────────────────────────────── */
 .cmp-notif-empty {
     display: flex;
     flex-direction: column;
@@ -1733,12 +1934,18 @@ input[type='time']::-webkit-calendar-picker-indicator {
     text-align: center;
     line-height: 1.6;
 }
-/* 전문분야 칩 선택 UI */
+
+/* ─── 전문분야 칩 선택 UI ────────────────────────────────────────────────────── */
 .cmp-specialty-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 10px;
+}
+
+/* 커스텀 전문분야 chip 그룹 상단 여백 — JSX inline style 대체 */
+.cmp-specialty-grid--custom {
+    margin-top: 6px;
 }
 
 .cmp-specialty-chip {

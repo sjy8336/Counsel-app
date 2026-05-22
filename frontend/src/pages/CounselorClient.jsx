@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
@@ -41,6 +41,8 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
         open: false,
         editId: null,
         content: '',
+        summary: '',
+        actionPlan: '',
         title: '',
         bookingDate: '',
         bookingId: null,
@@ -49,11 +51,21 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const [deleteModal, setDeleteModal] = useState({ open: false, logId: null });
     const [openLogId, setOpenLogId] = useState(null);
 
+    // 날짜 드롭다운 상태
+    const [dateDropdownOpen, setDateDropdownOpen] = useState(false);
+    const [availableBookings, setAvailableBookings] = useState([]);
+    const dateDropdownRef = useRef(null);
+
     const fetchClients = async () => {
         try {
             const data = await getCounselorClients();
-            setClients(data);
-            if (!selectedId && data.length > 0) setSelectedId(data[0].id);
+            // 상태 기본값: status 없으면 '진행 중' 처리
+            const normalized = data.map((c) => ({
+                ...c,
+                status: c.status || '진행 중',
+            }));
+            setClients(normalized);
+            if (!selectedId && normalized.length > 0) setSelectedId(normalized[0].id);
         } catch (e) {
             console.error('내담자 목록 불러오기 실패:', e);
             setClients([]);
@@ -71,9 +83,20 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
         }
     }, [location.state, clients]);
 
+    // 드롭다운 외부 클릭 시 닫기
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dateDropdownRef.current && !dateDropdownRef.current.contains(e.target)) {
+                setDateDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const filtered = clients.filter((c) => c.name.includes(search));
     const client = clients.find((c) => c.id === selectedId) || clients[0] || {};
-    // 직접 입력 내담자(비회원) 여부 판별: client_id가 null이었던 예약에서 생성된 경우 id가 falsy(null/undefined)
+    const clientStatus = client.status || '진행 중';
     const isManualClient = !client.id;
 
     const handleTabClick = (tabId) => {
@@ -91,49 +114,65 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     // 새 일지 작성 버튼 클릭 — 예약 날짜 자동 추출
     const handleOpenNewLog = () => {
         const clientObj = clients.find((c) => c.id === selectedId) || clients[0] || {};
-        const target = findTargetBooking(clientObj);
-        const bookingDate = target
-            ? formatBookingDate(target)
-            : clientObj.date && clientObj.time
-              ? formatBookingDate({ date: clientObj.date, time: clientObj.time })
-              : '';
-        // 예약 목록 중 일지 없는 예약만 추림
-        const availableBookings = (clientObj.bookings || []).filter(
-            (b) => !(clientObj.logs || []).some((l) => l.booking_id === b.id)
-        );
-        const firstAvailable = availableBookings[0] || clientObj.bookings?.[0];
+
+        const usedIds = (clientObj.logs || []).map((l) => l.booking_id);
+        const allBookings = clientObj.bookings || [];
+        const available = allBookings.filter((b) => !usedIds.includes(b.id));
+        setAvailableBookings(available);
+
+        const firstAvailable = available[0] || allBookings[0];
         setLogModal({
             open: true,
             editId: null,
             content: '',
+            summary: '',
+            actionPlan: '',
             title: `${(clientObj.logs?.length || 0) + 1}회차 상담 일지`,
             bookingDate: firstAvailable ? formatBookingDate(firstAvailable) : '',
             bookingId: firstAvailable ? firstAvailable.id : null,
         });
+        setDateDropdownOpen(false);
+    };
+
+    // 드롭다운에서 회차 선택
+    const handleSelectBooking = (booking, idx) => {
+        setLogModal((prev) => ({
+            ...prev,
+            bookingDate: formatBookingDate(booking),
+            bookingId: booking.id,
+            title: `${idx + 1}회차 상담 일지`,
+        }));
+        setDateDropdownOpen(false);
     };
 
     const handleSaveLog = async () => {
         const content = logModal.content.trim();
-        if (!content) return alert('내용을 입력해주세요.');
+        const summary = logModal.summary.trim();
+        const actionPlan = logModal.actionPlan.trim();
+        if (!content) return alert('상담 내용을 입력해주세요.');
+        if (!summary) return alert('상담 요약을 입력해주세요.');
+        if (!actionPlan) return alert('실천과제를 입력해주세요.');
         const clientObj = clients.find((c) => c.id === selectedId);
         if (!clientObj) return;
 
         if (logModal.editId) {
             try {
-                const updated = await putCounselingLog({ log_id: logModal.editId, content });
+                const updated = await putCounselingLog({ log_id: logModal.editId, content, summary, action_plan: actionPlan });
                 setClients((prev) =>
                     prev.map((c) =>
                         c.id === selectedId
                             ? {
                                   ...c,
                                   logs: c.logs.map((l) =>
-                                      l.id === logModal.editId ? { ...l, content: updated.content } : l
+                                      l.id === logModal.editId
+                                          ? { ...l, content: updated.content, summary: updated.summary, actionPlan: updated.action_plan }
+                                          : l
                                   ),
                               }
                             : c
                     )
                 );
-                setLogModal({ open: false, editId: null, content: '', title: '', bookingDate: '', bookingId: null });
+                setLogModal({ open: false, editId: null, content: '', summary: '', actionPlan: '', title: '', bookingDate: '', bookingId: null });
             } catch {
                 alert('상담일지 수정에 실패했습니다.');
             }
@@ -147,6 +186,8 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                 title: logModal.title || `${clientObj.logs.length + 1}회차 상담 일지`,
                 session_number: clientObj.logs.length + 1,
                 content,
+                summary,
+                action_plan: actionPlan,
                 quick_memo: '',
             });
             setClients((prev) =>
@@ -160,6 +201,8 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                       date: new Date(newLog.created_at).toLocaleDateString('ko-KR').slice(0, -1),
                                       title: newLog.title,
                                       content: newLog.content,
+                                      summary: newLog.summary,
+                                      actionPlan: newLog.action_plan,
                                       quickMemo: newLog.quick_memo,
                                   },
                                   ...c.logs,
@@ -168,7 +211,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                         : c
                 )
             );
-            setLogModal({ open: false, editId: null, content: '', title: '', bookingDate: '', bookingId: null });
+            setLogModal({ open: false, editId: null, content: '', summary: '', actionPlan: '', title: '', bookingDate: '', bookingId: null });
         } catch (e) {
             alert(
                 e?.response?.status === 409
@@ -193,8 +236,10 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
         }
     };
 
-    const closeLogModal = () =>
-        setLogModal({ open: false, editId: null, content: '', title: '', bookingDate: '', bookingId: null });
+    const closeLogModal = () => {
+        setLogModal({ open: false, editId: null, content: '', summary: '', actionPlan: '', title: '', bookingDate: '', bookingId: null });
+        setDateDropdownOpen(false);
+    };
 
     return (
         <div className="cc-wrapper">
@@ -208,19 +253,25 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
             />
 
             <div className="cc-container">
-                {/* 사이드바 */}
+                {/* ── 사이드바 ── */}
                 <aside className={`cc-sidebar ${isMobileListOpen ? 'is-open' : 'is-closed'}`}>
                     <div className="cc-sidebar__header" onClick={() => setIsMobileListOpen(!isMobileListOpen)}>
                         <h3 className="cc-sidebar__title">내담자 목록</h3>
                         <span className="cc-mobile-toggle">{isMobileListOpen ? '접기 ▲' : '목록 보기 ▼'}</span>
                     </div>
                     <div className="cc-sidebar-content">
-                        <input
-                            className="cc-search"
-                            placeholder="이름 검색..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
+                        <div className="cc-search-wrap">
+                            <svg className="cc-search-icon" width="15" height="15" viewBox="0 0 20 20" fill="none">
+                                <circle cx="9" cy="9" r="6" stroke="#94a3b8" strokeWidth="1.8"/>
+                                <path d="M13.5 13.5L17 17" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round"/>
+                            </svg>
+                            <input
+                                className="cc-search"
+                                placeholder="이름 검색"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
                         <ul className="cc-client-list">
                             {filtered.map((c) => (
                                 <li
@@ -232,62 +283,83 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                         setIsMobileListOpen(false);
                                     }}
                                 >
+                                    <div className="cc-client-avatar">
+                                        {c.name?.charAt(0) || '?'}
+                                    </div>
                                     <div className="cc-client-info">
                                         <strong>{c.name}</strong>
-                                        <span>
-                                            {c.birth} · {c.gender}
-                                        </span>
+                                        <span>{c.birth} · {c.gender}</span>
                                     </div>
-                                    <span className={`cc-status-badge ${STATUS_CLASS[c.status]}`}>{c.status}</span>
+                                    <span className={`cc-status-badge ${STATUS_CLASS[c.status || '진행 중']}`}>
+                                        {c.status || '진행 중'}
+                                    </span>
                                 </li>
                             ))}
                         </ul>
                     </div>
                 </aside>
 
-                {/* 메인 */}
+                {/* ── 메인 ── */}
                 <main className="cc-main">
+                    {/* 프로필 카드 */}
                     <div className="cc-profile-card">
-                        <div className="cc-profile-info">
-                            <span className={`cc-status-badge-lg ${STATUS_CLASS[client.status] || ''}`}>
-                                {client.status || ''}
-                            </span>
-                            <h2>
-                                {client.name || ''}{' '}
-                                <small>{(client.gender || '') + (client.birth ? ' · ' + client.birth : '')}</small>
-                            </h2>
-                            <p className="cc-client-phone">
-                                {client.phone ? `전화번호: ${client.phone}` : '전화번호 없음'}
-                            </p>
-                            {isManualClient && (
-                                <p className="cc-manual-info">
-                                    이 내담자는 상담사가 직접 입력한 일정입니다.
-                                    <br />
-                                    상담일지는 소장용으로만 저장됩니다.
+                        <div className="cc-profile-left">
+                            <div className="cc-profile-avatar">
+                                {client.name?.charAt(0) || '?'}
+                            </div>
+                            <div className="cc-profile-info">
+                                <div className="cc-profile-name-row">
+                                    <h2 className="cc-profile-name">{client.name || ''}</h2>
+                                    <span className={`cc-status-badge ${STATUS_CLASS[clientStatus]}`}>
+                                        {clientStatus}
+                                    </span>
+                                </div>
+                                <p className="cc-profile-sub">
+                                    {client.gender && <span>{client.gender}</span>}
+                                    {client.birth && <><span className="cc-dot-sep">·</span><span>{client.birth}</span></>}
+                                    {client.phone && <><span className="cc-dot-sep">·</span><span>{client.phone}</span></>}
                                 </p>
-                            )}
+                                {isManualClient && (
+                                    <p className="cc-manual-info">직접 입력된 내담자 · 일지는 소장용으로 저장됩니다</p>
+                                )}
+                            </div>
                         </div>
                         <div className="cc-profile-actions">
                             <button className="cc-btn cc-btn--outline" onClick={() => setSurveyModal(true)}>
-                                사전 설문지 확인
+                                <svg width="15" height="15" viewBox="0 0 20 20" fill="none" style={{marginRight:5,verticalAlign:'middle'}}>
+                                    <rect x="4" y="3" width="12" height="14" rx="3" stroke="currentColor" strokeWidth="1.6"/>
+                                    <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                                </svg>
+                                사전 설문지
                             </button>
                             <button className="cc-btn cc-btn--primary" onClick={handleOpenNewLog}>
-                                + 새 일지 작성
+                                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{marginRight:5,verticalAlign:'middle'}}>
+                                    <path d="M10 4v12M4 10h12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                                </svg>
+                                새 일지 작성
                             </button>
                         </div>
                     </div>
 
+                    {/* 상담 히스토리 */}
                     <section className="cc-history">
                         <div className="cc-section-header">
-                            <h3>
-                                전체 상담 히스토리 <span className="cc-count">{client.logs?.length ?? 0}건</span>
+                            <h3 className="cc-section-title">
+                                상담 히스토리
+                                <span className="cc-count-badge">{client.logs?.length ?? 0}</span>
                             </h3>
                         </div>
                         {!client.logs?.length ? (
-                            <div className="cc-empty">상담 기록이 없습니다.</div>
+                            <div className="cc-empty">
+                                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" style={{marginBottom:10,opacity:.35}}>
+                                    <rect x="4" y="3" width="16" height="18" rx="3" stroke="#8ba888" strokeWidth="1.5"/>
+                                    <path d="M8 8h8M8 12h8M8 16h5" stroke="#8ba888" strokeWidth="1.4" strokeLinecap="round"/>
+                                </svg>
+                                <p>아직 상담 기록이 없습니다.</p>
+                            </div>
                         ) : (
                             <div className="cc-log-list">
-                                {client.logs.map((log) => (
+                                {client.logs.map((log, idx) => (
                                     <div
                                         key={log.id}
                                         className={`cc-accordion-item${openLogId === log.id ? ' is-open' : ''}`}
@@ -297,34 +369,63 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                             onClick={() => setOpenLogId(openLogId === log.id ? null : log.id)}
                                         >
                                             <div className="cc-accordion-left">
-                                                <span className="cc-accordion-arrow">
-                                                    {openLogId === log.id ? '▾' : '▸'}
-                                                </span>
-                                                <span className="cc-accordion-title">{log.title}</span>
-                                                <span className="cc-log-date">{log.date}</span>
+                                                <span className="cc-session-num">{client.logs.length - idx}</span>
+                                                <div>
+                                                    <span className="cc-accordion-title">{log.title}</span>
+                                                    <span className="cc-log-date">{log.date}</span>
+                                                </div>
                                             </div>
                                             <div className="cc-log-card-actions" onClick={(e) => e.stopPropagation()}>
                                                 <button
+                                                    className="cc-action-btn cc-action-btn--edit"
                                                     onClick={() =>
                                                         setLogModal({
                                                             open: true,
                                                             editId: log.id,
-                                                            content: log.content,
+                                                            content: log.content || '',
+                                                            summary: log.summary || '',
+                                                            actionPlan: log.actionPlan || '',
                                                             title: log.title,
                                                             bookingDate: '',
+                                                            bookingId: null,
                                                         })
                                                     }
                                                 >
                                                     수정
                                                 </button>
-                                                <button onClick={() => setDeleteModal({ open: true, logId: log.id })}>
+                                                <button
+                                                    className="cc-action-btn cc-action-btn--delete"
+                                                    onClick={() => setDeleteModal({ open: true, logId: log.id })}
+                                                >
                                                     삭제
                                                 </button>
+                                                <span className={`cc-accordion-chevron${openLogId === log.id ? ' is-open' : ''}`}>
+                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                        <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    </svg>
+                                                </span>
                                             </div>
                                         </div>
                                         {openLogId === log.id && (
                                             <div className="cc-accordion-body">
-                                                <div className="cc-log-card-content">{log.content}</div>
+                                                {log.content && (
+                                                    <div className="cc-log-section">
+                                                        <span className="cc-log-section-label">전문가 소견</span>
+                                                        <p className="cc-log-card-content">{log.content}</p>
+                                                    </div>
+                                                )}
+                                                {log.summary && (
+                                                    <div className="cc-log-section">
+                                                        <span className="cc-log-section-label">상담 요약</span>
+                                                        <p className="cc-log-card-content">{log.summary}</p>
+                                                    </div>
+                                                )}
+                                                {log.actionPlan && (
+                                                    <div className="cc-log-section">
+                                                        <span className="cc-log-section-label">실천과제</span>
+                                                        <p className="cc-log-card-content">{log.actionPlan}</p>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -334,73 +435,111 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                     </section>
                 </main>
 
-                {/* 유틸리티 */}
+                {/* ── 유틸리티 ── */}
                 <aside className="cc-utility">
                     <div className="cc-util-box">
-                        <h4>주요 키워드</h4>
+                        <h4 className="cc-util-title">주요 키워드</h4>
                         <div className="cc-keywords">
-                            {(client.keywords || []).map((k, i) => (
-                                <span key={i} className="cc-keyword">
-                                    #{k}
-                                </span>
-                            ))}
+                            {(client.keywords || []).length > 0 ? (
+                                (client.keywords || []).map((k, i) => (
+                                    <span key={i} className="cc-keyword">#{k}</span>
+                                ))
+                            ) : (
+                                <span className="cc-empty-small">키워드 없음</span>
+                            )}
                         </div>
                     </div>
                     <div className="cc-util-box">
-                        <h4>Quick Memo</h4>
-                        <textarea placeholder="다음 상담 시 확인할 내용..." className="cc-memo-area" />
+                        <h4 className="cc-util-title">Quick Memo</h4>
+                        <textarea placeholder="다음 상담 시 확인할 내용을 메모하세요..." className="cc-memo-area" />
                     </div>
                 </aside>
             </div>
 
-            {/* 일지 작성/수정 모달 */}
+            {/* ── 일지 작성/수정 모달 ── */}
             {logModal.open && (
                 <div className="cc-overlay" onClick={closeLogModal}>
-                    <div className="cc-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="cc-modal cc-log-modal" onClick={(e) => e.stopPropagation()}>
+                        {/* 모달 헤더 */}
                         <div className="cc-log-modal-header">
-                            <div className="cc-log-modal-meta">
+                            <div className="cc-log-modal-top">
                                 <span className="cc-log-modal-client">{client.name} 님</span>
-                                <div style={{ marginTop: 8 }}>
-                                    <label style={{ fontWeight: 500, marginRight: 8 }}>상담 예약 선택</label>
-                                    <select
-                                        value={logModal.bookingId || ''}
-                                        onChange={(e) => {
-                                            const b = (client.bookings || []).find(
-                                                (bk) => bk.id === Number(e.target.value)
-                                            );
-                                            setLogModal((lm) => ({
-                                                ...lm,
-                                                bookingId: b?.id || null,
-                                                bookingDate: b ? formatBookingDate(b) : '',
-                                            }));
-                                        }}
-                                    >
-                                        {(client.bookings || []).map((b, i) => (
-                                            <option key={b.id} value={b.id}>
-                                                {`${i + 1}회차: ${formatBookingDate(b)}`}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                {logModal.bookingDate && (
-                                    <span className="cc-log-modal-booking-date">
-                                        <span className="cc-log-modal-booking-label">상담 진행일</span>
-                                        {logModal.bookingDate}
-                                    </span>
+                                {logModal.bookingDate && !logModal.editId && (
+                                    <div className="cc-date-dropdown-wrap" ref={dateDropdownRef}>
+                                        <button
+                                            type="button"
+                                            className={`cc-date-pill${dateDropdownOpen ? ' is-active' : ''}`}
+                                            onClick={() => setDateDropdownOpen((v) => !v)}
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{marginRight:5,flexShrink:0}}>
+                                                <rect x="3" y="5" width="14" height="12" rx="3.5" fill="#f0f7ef" stroke="#7bb661" strokeWidth="1.5"/>
+                                                <rect x="6.5" y="2.5" width="2" height="3" rx="1" fill="#7bb661"/>
+                                                <rect x="11.5" y="2.5" width="2" height="3" rx="1" fill="#7bb661"/>
+                                                <rect x="6.5" y="9.5" width="7" height="1.8" rx="0.9" fill="#b8dfb8"/>
+                                            </svg>
+                                            <span>{logModal.bookingDate}</span>
+                                            <svg
+                                                className={`cc-date-chevron${dateDropdownOpen ? ' is-open' : ''}`}
+                                                width="12" height="12" viewBox="0 0 14 14" fill="none"
+                                                style={{marginLeft:4,flexShrink:0}}
+                                            >
+                                                <path d="M3 5l4 4 4-4" stroke="#6e9170" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                        </button>
+                                        {dateDropdownOpen && availableBookings.length > 0 && (
+                                            <div className="cc-date-dropdown">
+                                                {availableBookings.map((booking, idx) => (
+                                                    <button
+                                                        key={booking.id}
+                                                        type="button"
+                                                        className={`cc-date-dropdown-item${logModal.bookingId === booking.id ? ' is-selected' : ''}`}
+                                                        onClick={() => handleSelectBooking(booking, idx)}
+                                                    >
+                                                        <span className="cc-date-dropdown-session">{idx + 1}회차</span>
+                                                        <span className="cc-date-dropdown-date">{formatBookingDate(booking)}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                             </div>
-                            <p className="cc-log-modal-title">{logModal.title}</p>
+                            <h3 className="cc-log-modal-title">{logModal.title || (logModal.editId ? '일지 수정' : '새 상담 일지')}</h3>
                         </div>
-                        <textarea
-                            className="cc-log-editor"
-                            value={logModal.content}
-                            onChange={(e) => setLogModal({ ...logModal, content: e.target.value })}
-                            placeholder="상담 내용을 입력하세요..."
-                        />
-                        <div className="cc-modal__actions center">
-                            <button className="cc-btn cc-btn--ghost" onClick={closeLogModal}>
-                                취소
-                            </button>
+
+                        {/* 입력 필드들 */}
+                        <div className="cc-log-fields">
+                            <div className="cc-log-field-group">
+                                <label className="cc-log-label">전문가 소견</label>
+                                <textarea
+                                    className="cc-log-editor"
+                                    value={logModal.content}
+                                    onChange={(e) => setLogModal({ ...logModal, content: e.target.value })}
+                                    placeholder="상담 내용을 입력하세요..."
+                                />
+                            </div>
+                            <div className="cc-log-field-group">
+                                <label className="cc-log-label">상담 요약</label>
+                                <textarea
+                                    className="cc-log-editor cc-log-editor--sm"
+                                    value={logModal.summary}
+                                    onChange={(e) => setLogModal({ ...logModal, summary: e.target.value })}
+                                    placeholder="상담 요약을 입력하세요..."
+                                />
+                            </div>
+                            <div className="cc-log-field-group">
+                                <label className="cc-log-label">다음주까지의 실천과제</label>
+                                <textarea
+                                    className="cc-log-editor cc-log-editor--sm"
+                                    value={logModal.actionPlan}
+                                    onChange={(e) => setLogModal({ ...logModal, actionPlan: e.target.value })}
+                                    placeholder="다음 상담까지의 실천과제를 입력하세요..."
+                                />
+                            </div>
+                        </div>
+
+                        <div className="cc-modal__actions cc-modal__actions--right">
+                            <button className="cc-btn cc-btn--ghost" onClick={closeLogModal}>취소</button>
                             <button className="cc-btn cc-btn--primary" onClick={handleSaveLog}>
                                 {logModal.editId ? '수정 완료' : '작성 완료'}
                             </button>
@@ -409,7 +548,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                 </div>
             )}
 
-            {/* 사전 설문지 모달 */}
+            {/* ── 사전 설문지 모달 ── */}
             {surveyModal && (
                 <div className="cc-overlay" onClick={() => setSurveyModal(false)}>
                     <div className="cc-modal cc-survey-modal" onClick={(e) => e.stopPropagation()}>
@@ -426,7 +565,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                             ].map(({ q, a }) => (
                                 <div key={q} className="cc-survey-group">
                                     <label>{q}</label>
-                                    <div className="cc-survey-ans">{a || ''}</div>
+                                    <div className="cc-survey-ans">{a || <span style={{color:'#94a3b8'}}>미입력</span>}</div>
                                 </div>
                             ))}
                         </div>
@@ -437,18 +576,20 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                 </div>
             )}
 
-            {/* 삭제 확인 모달 */}
+            {/* ── 삭제 확인 모달 ── */}
             {deleteModal.open && (
                 <div className="cc-overlay">
                     <div className="cc-modal cc-delete-modal">
                         <div className="cc-delete-header">
-                            <div className="cc-warn-circle">!</div>
-                            <h3>일지 삭제</h3>
+                            <div className="cc-warn-circle">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 8v5M12 16v.5" stroke="#ef4444" strokeWidth="2.2" strokeLinecap="round"/>
+                                </svg>
+                            </div>
+                            <h3>일지를 삭제할까요?</h3>
                         </div>
                         <p className="cc-delete-msg">
-                            정말 이 상담 일지를 삭제하시겠습니까?
-                            <br />
-                            삭제된 데이터는 다시 복구할 수 없습니다.
+                            삭제한 상담 일지는 복구할 수 없습니다.
                         </p>
                         <div className="cc-modal__actions stretch">
                             <button

@@ -279,8 +279,11 @@ export default function Header({
                             className="mobile-search-btn"
                             onClick={() => setSearchOpen((prev) => !prev)}
                             aria-label="검색"
+                            style={{
+                                minWidth: '40px', minHeight: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem',
+                            }}
                         >
-                            <Search size={22} />
+                            <Search style={{ width: '24px', height: '24px', display: 'block' }} />
                         </button>
                     )}
                     {/* ✅ 관리자 전용 버튼 - role이 admin일 때만 노출 */}
@@ -294,8 +297,15 @@ export default function Header({
                     {isLoggedIn && (
                         <div style={{ position: 'relative', display: 'inline-block' }} ref={notifRef}>
                             {/* 벨 버튼 — 읽지 않은 알림이 있으면 빨간 점 표시 */}
-                            <button className="bell-btn" onClick={handleBellClick} style={{ position: 'relative' }}>
-                                <Bell size={22} />
+                            <button
+                                className="bell-btn"
+                                onClick={handleBellClick}
+                                style={{
+                                    position: 'relative',
+                                    minWidth: '40px', minHeight: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem',
+                                }}
+                            >
+                                <Bell style={{ width: '24px', height: '24px', display: 'block' }} />
                                 {hasUnread && (
                                     <span
                                         style={{
