@@ -35,6 +35,7 @@ const AdminCounselor = () => {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectReason, setRejectReason] = useState('경력 증빙 서류가 불충분합니다. 보완 후 재등록 부탁드립니다.');
     const [searchQuery, setSearchQuery] = useState('');
+    const [roleFilter, setRoleFilter] = useState('전체');
     const [isLoading, setIsLoading] = useState(false);
 
     const defaultRejectReason = '경력 증빙 서류가 불충분합니다. 보완 후 재등록 부탁드립니다.';
@@ -224,7 +225,11 @@ const AdminCounselor = () => {
         }
     };
 
-    const filteredMembers = memberList.filter((m) => m.name.includes(searchQuery) || m.email.includes(searchQuery));
+    const filteredMembers = memberList.filter((m) => {
+        const matchSearch = m.name.includes(searchQuery) || m.email.includes(searchQuery);
+        const matchRole = roleFilter === '전체' || m.role === roleFilter;
+        return matchSearch && matchRole;
+    });
 
     const filteredCounselors = counselors.filter(
         (c) =>
@@ -648,14 +653,27 @@ const AdminCounselor = () => {
                                     <h2 className="ac-card-title">회원 데이터 조회</h2>
                                     <p className="ac-card-desc">전체 가입 회원의 현황을 확인합니다.</p>
                                 </div>
-                                <div className="ac-search-box">
-                                    <Search size={16} className="ac-search-icon" />
-                                    <input
-                                        className="ac-search-input"
-                                        placeholder="이름 또는 이메일 검색"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
+                                <div className="ac-member-controls">
+                                    <div className="ac-search-box">
+                                        <Search size={15} className="ac-search-icon" />
+                                        <input
+                                            className="ac-search-input"
+                                            placeholder="이름 또는 이메일 검색"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                    </div>
+                                    <select
+                                        className="ac-role-select"
+                                        value={roleFilter}
+                                        onChange={(e) => setRoleFilter(e.target.value)}
+                                    >
+                                        {['전체', '내담자', '상담사', '관리자'].map((r) => (
+                                            <option key={r} value={r}>
+                                                {r} {r === '전체' ? `(${memberList.length})` : `(${memberList.filter((m) => m.role === r).length})`}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
 
@@ -682,9 +700,14 @@ const AdminCounselor = () => {
                                                 </td>
                                                 <td className="ac-muted">{m.email}</td>
                                                 <td>
-                                                    <span
-                                                        className={`ac-role-badge ${m.role === '상담사' ? 'counselor' : 'client'}`}
-                                                    >
+                                                    <span className={`ac-role-label ${
+                                                        m.role === '상담사' ? 'counselor'
+                                                        : m.role === '관리자' ? 'admin'
+                                                        : 'client'
+                                                    }`}>
+                                                        {m.role === '내담자' && <UserCheck size={13} />}
+                                                        {m.role === '상담사' && <GraduationCap size={13} />}
+                                                        {m.role === '관리자' && <ShieldCheck size={13} />}
                                                         {m.role}
                                                     </span>
                                                 </td>

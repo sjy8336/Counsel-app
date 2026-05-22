@@ -259,3 +259,55 @@
   .mwl-footer__brand { grid-column: span 2; }
   .mwl-footer__bottom { grid-column: span 2; flex-direction: row; }
 }
+/* ===========================
+   MINDWELL — Mobile (max 639px)
+   =========================== */
+@media (max-width: 639px) {
+   .mwl-main {
+      padding: 1rem;
+      padding-bottom: 90px;
+      gap: 1rem;
+   }
+
+   .mwl-col-left {
+      gap: 1rem;
+   }
+
+   /* 배너 패딩 줄이기 */
+   .mwl-banner {
+      padding: 1.25rem;
+   }
+
+   .mwl-banner__emoji-wrap {
+      display: none; /* 이모지 숨겨서 높이 줄이기 */
+   }
+
+   .mwl-banner__desc {
+      margin-bottom: 1.25rem;
+   }
+
+   /* 가이드 카드: 4개 세로 → 2열로 변경 */
+   .mwl-guide-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+   }
+
+   .mwl-guide-section {
+      padding: 1rem;
+   }
+
+   /* 위젯 카드도 2열로 */
+   .mwl-bottom-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+   }
+
+   .mwl-widget-card {
+      padding: 1rem;
+   }
+
+   /* 우측 예약 현황: 모바일에서 순서를 left 위로 올리고 싶으면 */
+   .mwl-col-right {
+      gap: 0.75rem;
+   }
+   }
