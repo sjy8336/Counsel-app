@@ -5,7 +5,7 @@ import Footer from '../components/footer.jsx';
 import '../static/HealingRounge.css';
 import MobileTap from '../components/mobileTap.jsx';
 
-export default function HealingLounge({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
+export default function HealingRounge({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
     // 모바일/뒤로가기/탭 관련 코드 완전 제거
     // 차와 향 추천 데이터
     const teaAndScentContents = [

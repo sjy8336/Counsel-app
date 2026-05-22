@@ -247,7 +247,17 @@ function App() {
                     />
                 }
             />
-            <Route path="/healing" element={<HealingRounge />} />
+            <Route
+                path="/healing"
+                element={
+                    <HealingRounge
+                        userName={userName}
+                        setUserName={setUserName}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                    />
+                }
+            />
 
             {/* ✅ 관리자 라우트 - role: 'admin' 계정만 접근 가능 */}
             <Route
