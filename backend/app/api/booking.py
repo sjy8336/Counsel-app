@@ -38,8 +38,11 @@ def get_bookings_for_counselor(
     """
     from app.models.user import User
     from app.models.counselor import CounselorProfile
-    # 상담사 본인만 조회
+    print("[BOOKING] current_user.id:", current_user.id)
     bookings = db.query(Booking).filter(Booking.counselor_id == current_user.id).all()
+    print("[BOOKING] 쿼리된 예약 개수:", len(bookings))
+    for b in bookings:
+        print("[BOOKING] 예약:", b.id, b.client_id, b.client_name, b.counselor_id, b.booking_date, b.booking_time, b.booking_status)
     results = []
     for b in bookings:
         # client_name이 있으면 우선 사용, 없으면 기존 로직

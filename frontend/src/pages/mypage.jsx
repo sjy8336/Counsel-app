@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { mockNotifications } from '../components/mockNotifications';
 import { deleteAccount } from '../api/auth';
 import { getUserInfo, updateUserInfo, changePassword } from '../api/user';
@@ -155,6 +155,7 @@ import { getAllBookings } from '../api/booking';
 export default function App() {
     const navigate = useNavigate();
     const location = useLocation();
+    const contentRef = useRef(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -324,10 +325,25 @@ export default function App() {
         { id: 'profile', label: '계정 설정', icon: Settings },
     ];
 
+    // ★ activeMenu 또는 activeSubMenu 변경 시 콘텐츠 영역 스크롤 최상단으로
+    useEffect(() => {
+        if (contentRef.current) {
+            contentRef.current.scrollTop = 0;
+        }
+        // 혹시 window 자체가 스크롤되는 환경도 커버
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+    }, [activeMenu, activeSubMenu]);
+
     const handleMenuClick = (id) => {
         setActiveMenu(id);
         setActiveSubMenu(null);
         setSelectedConsultation(null);
+    };
+
+    const handleBackToDashboard = () => {
+        setActiveMenu('dashboard');
     };
 
     const toggleNotif = (key) => setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -422,7 +438,6 @@ export default function App() {
     };
 
     const renderHistoryDetail = () => {
-        // historyList는 App 함수 상단에서 선언됨
         if (selectedConsultation) {
             return (
                 <div className="consultation-detail-container">
@@ -480,7 +495,6 @@ export default function App() {
 
         return (
             <div className="fade-in">
-                {/* 모바일 뒤로가기 버튼 (상담히스토리 목록, 모바일에서만) */}
                 {isMobile && (
                     <button
                         className="mobile-back-btn"
@@ -500,7 +514,7 @@ export default function App() {
                             left: 0,
                             zIndex: 1000,
                         }}
-                        onClick={() => setActiveMenu('dashboard')}
+                        onClick={handleBackToDashboard}
                         aria-label="뒤로가기"
                     >
                         <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
@@ -550,7 +564,6 @@ export default function App() {
 
     const renderTicketsDetail = () => (
         <div className="fade-in">
-            {/* 모바일 뒤로가기 버튼 (결제내역, 모바일에서만) */}
             {isMobile && (
                 <button
                     className="mobile-back-btn"
@@ -570,7 +583,7 @@ export default function App() {
                         left: 0,
                         zIndex: 1000,
                     }}
-                    onClick={() => setActiveMenu('dashboard')}
+                    onClick={handleBackToDashboard}
                     aria-label="뒤로가기"
                 >
                     <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
@@ -636,7 +649,6 @@ export default function App() {
                                                     <td className="ph-table-td">
                                                         <p className="ph-td-date-main">{item.date}</p>
                                                         <p className="ph-td-date-sub">{item.time}</p>
-                                                        {/* ooo상담사만 표시 (예약금 문구 제거) */}
                                                         {(() => {
                                                             const match = item.title.match(/^(.*?) 상담사/);
                                                             if (match) {
@@ -1059,8 +1071,7 @@ export default function App() {
             },
         ];
         return (
-            <div className="fade-in" style={{ position: 'relative' }}>
-                {/* 모바일 뒤로가기 버튼 (문의내역) */}
+            <div className="fade-in">
                 {isMobile && (
                     <button
                         className="mobile-back-btn"
@@ -1080,7 +1091,7 @@ export default function App() {
                             left: 0,
                             zIndex: 1000,
                         }}
-                        onClick={() => setActiveMenu('dashboard')}
+                        onClick={handleBackToDashboard}
                         aria-label="뒤로가기"
                     >
                         <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
@@ -1119,8 +1130,7 @@ export default function App() {
     };
 
     const renderFavoritesList = () => (
-        <div className="fade-in" style={{ position: 'relative' }}>
-            {/* 모바일 뒤로가기 버튼 (찜내역) */}
+        <div className="fade-in">
             {isMobile && (
                 <button
                     className="mobile-back-btn"
@@ -1140,7 +1150,7 @@ export default function App() {
                         left: 0,
                         zIndex: 1000,
                     }}
-                    onClick={() => setActiveMenu('dashboard')}
+                    onClick={handleBackToDashboard}
                     aria-label="뒤로가기"
                 >
                     <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
@@ -1225,6 +1235,8 @@ export default function App() {
         if (activeMenu === 'profile' && activeSubMenu) return renderProfileDetail();
         if (activeMenu === 'support') return renderSupportCenter();
 
+        // Remove purchase banner (더 많은 위로가 필요하신가요? 및 이용권 충전하기)
+        // Only remove the dash-purchase-banner block below
         switch (activeMenu) {
             case 'history':
                 return renderHistoryDetail();
@@ -1235,10 +1247,8 @@ export default function App() {
             case 'tickets':
                 return renderTicketsDetail();
             case 'profile':
-                // 계정설정(메인)에서만(서브메뉴X) 상담히스토리와 완전히 동일한 모바일 뒤로가기 버튼 노출
                 return (
                     <div className="fade-in" style={{ position: 'relative' }}>
-                        {/* 모바일 뒤로가기 버튼이 항상 맨 위 */}
                         {isMobile && !activeSubMenu && (
                             <button
                                 className="mobile-back-btn"
@@ -1257,7 +1267,7 @@ export default function App() {
                                     left: 0,
                                     zIndex: 1000,
                                 }}
-                                onClick={() => setActiveMenu('dashboard')}
+                                onClick={handleBackToDashboard}
                                 aria-label="뒤로가기"
                             >
                                 <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
@@ -1345,7 +1355,6 @@ export default function App() {
                                     <MessagesSquare size={28} />
                                 </div>
                                 <div className="hero-text-group">
-                                    {/* 가장 가까운 예약 정보 표시 (home.jsx 참고) */}
                                     {primaryBooking ? (
                                         <>
                                             <div className="hero-badge-row">
@@ -1415,21 +1424,7 @@ export default function App() {
                                 </div>
                             ))}
                         </div>
-                        <div className="dash-purchase-banner" onClick={() => handleMenuClick('tickets')}>
-                            <div className="purchase-info">
-                                <div className="purchase-icon-box">
-                                    <Ticket size={18} />
-                                </div>
-                                <div className="purchase-text">
-                                    <p className="title">더 많은 위로가 필요하신가요?</p>
-                                    <p className="desc">이용권을 충전하고 마음 케어를 이어가세요.</p>
-                                </div>
-                            </div>
-                            <div className="purchase-action-btn">
-                                {ticketCount > 0 ? '이용권 추가 충전하기' : '이용권 충전하기'}
-                                <ChevronRight size={14} />
-                            </div>
-                        </div>
+                        {/* dash-purchase-banner (더 많은 위로가 필요하신가요? 및 이용권 충전하기) 영역 제거됨 */}
                         <section className="mobile-only-menu" style={{ paddingBottom: 72 }}>
                             <h4 className="mobile-menu-label">전체 메뉴</h4>
                             <div className="mobile-menu-group">
@@ -1467,7 +1462,6 @@ export default function App() {
 
     const renderNotifications = () => (
         <>
-            {/* 모바일 뒤로가기 버튼 (알림센터에서만, 모바일에서만 노출) */}
             {isMobile && (
                 <button
                     className="mobile-back-btn"
@@ -1475,10 +1469,10 @@ export default function App() {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 6,
-                        background: 'transparent', // 완전 투명
-                        border: 'none', // 테두리 제거
-                        outline: 'none', // 포커스 테두리 제거
-                        boxShadow: 'none', // 그림자 제거
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        boxShadow: 'none',
                         fontSize: 16,
                         padding: '1rem',
                         cursor: 'pointer',
@@ -1487,9 +1481,9 @@ export default function App() {
                         top: 0,
                         left: 0,
                         zIndex: 1000,
-                        color: '#222', // 텍스트만 보이게
+                        color: '#222',
                     }}
-                    onClick={() => setActiveMenu('dashboard')}
+                    onClick={handleBackToDashboard}
                 >
                     <ChevronRight style={{ transform: 'rotate(180deg)' }} size={20} /> 뒤로가기
                 </button>
@@ -1585,7 +1579,7 @@ export default function App() {
                 </div>
             </aside>
 
-            <main className="mypage-content-area">
+            <main className="mypage-content-area" ref={contentRef}>
                 {activeMenu === 'dashboard' && (
                     <div className="user-welcome-header">
                         <div className="user-profile-summary" onClick={() => handleMenuClick('dashboard')}>
@@ -1599,7 +1593,9 @@ export default function App() {
                                 <p className="user-status-msg">마음 근육을 키운 지 42일째 되는 날이에요. 🌿</p>
                             </div>
                         </div>
-                        <button className="user-notif-check-btn" onClick={() => setActiveMenu('notifications')}>
+                        <button className="user-notif-check-btn" onClick={() => {
+                            setActiveMenu('notifications');
+                        }}>
                             <Bell size={18} className="icon-green" />
                             알림 확인
                         </button>
@@ -1611,7 +1607,6 @@ export default function App() {
                 </div>
             </main>
 
-            {/* 모바일 사이즈일 때 하단에 모바일 탭 노출 */}
             {isMobile && <MobileTap />}
         </div>
     );

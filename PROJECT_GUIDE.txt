@@ -154,6 +154,7 @@ counseling-platform/
 FastAPI 실행할 때
 cd backend
 uvicorn app.main:app --reload
+.\.venv\Scripts\Activate
 
 가상환경키는 명령어
 # 가상환경 활성화 (zsh/macOS 기준)
