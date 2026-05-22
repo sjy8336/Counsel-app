@@ -802,6 +802,90 @@ const App = () => {
     };
 
     // ─── 렌더 함수들 ───────────────────────────────────────────────────────────
+    // ── 대시보드 통계용 상태 ──
+    const [reservations, setReservations] = useState([]);
+    const [inquiries, setInquiries] = useState([]);
+
+    // 예약 데이터 불러오기 (CounselorHome과 동일)
+    useEffect(() => {
+        const fetchReservations = async () => {
+            try {
+                const data = await getCounselorBookings();
+                // 날짜 파싱 등 홈과 동일하게 변환
+                const days = ['일', '월', '화', '수', '목', '금', '토'];
+                setReservations(
+                    (data || []).map((r) => {
+                        const dateObj = new Date(r.date);
+                        return {
+                            ...r,
+                            dateObj,
+                            dayLabel: days[dateObj.getDay()],
+                        };
+                    })
+                );
+            } catch {
+                setReservations([]);
+            }
+        };
+        fetchReservations();
+    }, []);
+
+    // 문의(메시지) 데이터 불러오기 (CounselorMessages와 유사, 실제 API 연동 필요시 수정)
+    useEffect(() => {
+        // 실제 API가 있다면 fetch로 대체
+        // setInquiries(await getCounselorInquiries());
+        // 임시: CounselorMessages.jsx의 초기 데이터 사용
+        setInquiries([
+            {
+                id: 1,
+                sender: '김하늘님',
+                title: '비대면 화상 상담도 가능한가요?',
+                content: '...',
+                date: '2024.05.21',
+                status: 'pending',
+                tag: '상담문의',
+            },
+            {
+                id: 2,
+                sender: '박민우님',
+                title: '상담 시간 변경 요청드립니다 (5/23)',
+                content: '...',
+                date: '2024.05.21',
+                status: 'pending',
+                tag: '일정변경',
+            },
+            {
+                id: 3,
+                sender: '이정희님',
+                title: '공황 증상 관련해서도 상담하시나요?',
+                content: '...',
+                date: '2024.05.20',
+                status: 'completed',
+                tag: '상담문의',
+                myReply: '답변 예시',
+            },
+        ]);
+    }, []);
+
+    // 오늘 날짜(yyyy-mm-dd)
+    const todayStr = (() => {
+        const now = new Date();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        return `${now.getFullYear()}-${mm}-${dd}`;
+    })();
+
+    // 오늘 확정된 상담 건수
+    const todaySessions = reservations.filter(
+        (r) => r.status && r.status.includes('확정') && r.dateObj && r.dateObj.toISOString().slice(0, 10) === todayStr
+    );
+
+    // 대기 중인 예약 전체
+    const pendingList = reservations.filter((r) => r.status && r.status.includes('대기'));
+
+    // 미답변 문의(읽지 않은 메시지)
+    const unreadInquiries = inquiries.filter((i) => i.status === 'pending');
+
     const renderDashboard = () => (
         <>
             <header className="cmp-header">
@@ -821,49 +905,50 @@ const App = () => {
                 </button>
             </header>
             <div className="cmp-stats-grid">
-                {[
-                    {
-                        icon: <Calendar size={15} color="#66BB6A" />,
-                        bg: '#E8F5E9',
-                        label: '오늘 예정 상담',
-                        value: '3 건',
-                        to: '/CounselorPlanner',
-                    },
-                    {
-                        icon: <Clock size={15} color="#FFB74D" />,
-                        bg: '#FFF5E6',
-                        label: '승인 대기 요청',
-                        value: '2 건',
-                        to: '/CounselorPlanner',
-                    },
-                    {
-                        icon: <MessageCircle size={15} color="#EF5350" />,
-                        bg: '#FFEBEE',
-                        label: '읽지 않은 메시지',
-                        value: '5 건',
-                        to: '/CounselorMessages',
-                    },
-                ].map(({ icon, bg, label, value, to }) => (
-                    <div key={label} className="cmp-stat-card" onClick={() => navigate(to)}>
-                        <div className="cmp-stat-icon" style={{ background: bg }}>
-                            {icon}
-                        </div>
-                        <p className="cmp-stat-label">{label}</p>
-                        <p className="cmp-stat-value">{value}</p>
-                        <span className="cmp-stat-chevron">
-                            <ChevronRight size={14} />
-                        </span>
+                <div className="cmp-stat-card" onClick={() => navigate('/CounselorPlanner')}>
+                    <div className="cmp-stat-icon" style={{ background: '#E8F5E9' }}>
+                        <Calendar size={15} color="#66BB6A" />
                     </div>
-                ))}
+                    <p className="cmp-stat-label">오늘 예정 상담</p>
+                    <p className="cmp-stat-value">{todaySessions.length} 건</p>
+                    <span className="cmp-stat-chevron">
+                        <ChevronRight size={14} />
+                    </span>
+                </div>
+                <div className="cmp-stat-card" onClick={() => navigate('/CounselorPlanner')}>
+                    <div className="cmp-stat-icon" style={{ background: '#FFF5E6' }}>
+                        <Clock size={15} color="#FFB74D" />
+                    </div>
+                    <p className="cmp-stat-label">승인 대기 요청</p>
+                    <p className="cmp-stat-value">{pendingList.length} 건</p>
+                    <span className="cmp-stat-chevron">
+                        <ChevronRight size={14} />
+                    </span>
+                </div>
+                <div className="cmp-stat-card" onClick={() => navigate('/CounselorMessages')}>
+                    <div className="cmp-stat-icon" style={{ background: '#FFEBEE' }}>
+                        <MessageCircle size={15} color="#EF5350" />
+                    </div>
+                    <p className="cmp-stat-label">읽지 않은 메시지</p>
+                    <p className="cmp-stat-value">{unreadInquiries.length} 건</p>
+                    <span className="cmp-stat-chevron">
+                        <ChevronRight size={14} />
+                    </span>
+                </div>
             </div>
+            {/* 다음 상담(예시, 실제 데이터 연동 필요) */}
             <div className="cmp-next-session" onClick={() => navigate('/CounselorClient')}>
                 <div className="cmp-next-session-icon">
                     <User size={24} color="#fff" />
                 </div>
                 <div className="cmp-next-session-body">
                     <div className="cmp-next-session-label">NEXT SESSION</div>
-                    <div className="cmp-next-session-name">오후 2:00 이민준 님</div>
-                    <div className="cmp-next-session-sub">대면 상담 • 상담 3실 • 4회차 진행 예정</div>
+                    <div className="cmp-next-session-name">
+                        {todaySessions[0] ? `${todaySessions[0].time || ''} ${todaySessions[0].name || ''} 님` : '예정 없음'}
+                    </div>
+                    <div className="cmp-next-session-sub">
+                        {todaySessions[0] ? `${todaySessions[0].type || ''} • ${todaySessions[0].room || ''} • ${todaySessions[0].session_number ? todaySessions[0].session_number + '회차 예정' : ''}` : ''}
+                    </div>
                 </div>
                 <button
                     className="cmp-next-session-btn"
