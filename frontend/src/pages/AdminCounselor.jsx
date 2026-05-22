@@ -23,7 +23,7 @@ import {
     UserCheck,
     AlertCircle,
     FileText,
-    CircleDollarSign,
+    CircleDollarSign, Menu, X,
 } from 'lucide-react';
 import '../static/AdminCounselor.css';
 
@@ -37,6 +37,7 @@ const AdminCounselor = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState('전체');
     const [isLoading, setIsLoading] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const defaultRejectReason = '경력 증빙 서류가 불충분합니다. 보완 후 재등록 부탁드립니다.';
     // 토스트 팝업 상태 및 함수 (CounselorList.jsx 방식)
@@ -257,7 +258,8 @@ const AdminCounselor = () => {
             {toast && <div className="ac-toast-popup">{toast}</div>}
             <div className="ac-layout">
                 {/* 사이드바 */}
-                <aside className="ac-sidebar">
+                {sidebarOpen && <div className="ac-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+            <aside className={`ac-sidebar ${sidebarOpen ? 'open' : ''}`}>
                     <div className="ac-sidebar-top">
                         <div className="ac-brand">
                             <ShieldCheck size={22} className="ac-brand-icon" />
@@ -304,6 +306,7 @@ const AdminCounselor = () => {
 
                 {/* 메인 콘텐츠 */}
                 <main className="ac-main">
+                <div className="ac-mobile-topbar"><button className="ac-hamburger" onClick={() => setSidebarOpen(true)}><Menu size={22}/></button><span className="ac-mobile-title">MindWell Admin</span></div>
                     {viewMode === 'list' && (
                         <div className="ac-stats-row">
                             {stats.map((s, i) => (
@@ -684,8 +687,8 @@ const AdminCounselor = () => {
                                             <th>이름</th>
                                             <th>이메일</th>
                                             <th>구분</th>
-                                            <th>가입일</th>
-                                            <th>상담 횟수</th>
+                                            <th className="ac-col-joindate">가입일</th>
+                                            <th className="ac-col-sessions">상담 횟수</th>
                                             <th>상태</th>
                                         </tr>
                                     </thead>
@@ -711,8 +714,8 @@ const AdminCounselor = () => {
                                                         {m.role}
                                                     </span>
                                                 </td>
-                                                <td className="ac-muted">{m.joinDate}</td>
-                                                <td className="ac-center">{m.sessions}회</td>
+                                                <td className="ac-muted ac-col-joindate">{m.joinDate}</td>
+                                                <td className="ac-center ac-col-sessions">{m.sessions}회</td>
                                                 <td>
                                                     <span
                                                         className={`ac-status-badge ${
