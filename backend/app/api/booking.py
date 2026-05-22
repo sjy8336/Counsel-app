@@ -51,7 +51,7 @@ def get_bookings_for_counselor(
             client_id = None
             client_birth = ""
             client_gender = ""
-            client_phone = ""
+            client_phone = b.client_phone
         else:
             client = db.query(User).filter(User.id == b.client_id).first()
             client_name = client.full_name if client else "내담자"
@@ -121,6 +121,7 @@ def create_booking(
     survey = booking.get("survey") or {}
     amount = booking.get("amount", 20000)
     client_name = booking.get("clientName") or booking.get("client_name")
+    client_phone = booking.get("clientPhone") or booking.get("client_phone")
 
     # 필수 정보 검증
     if not all([counselor_id, booking_date, booking_time]):
@@ -151,6 +152,7 @@ def create_booking(
         new_booking = Booking(
             client_id=None,
             client_name=client_name,
+            client_phone=client_phone,
             counselor_id=counselor_id,
             booking_date=booking_date_obj,
             booking_time=booking_time,

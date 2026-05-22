@@ -24,7 +24,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             print("[AUTH] user_id가 None입니다.")
             raise credentials_exception
     except JWTError as e:
-        print("[AUTH] JWTError 발생:", str(e))
         raise credentials_exception
     user = db.query(User).filter(User.id == int(user_id)).first()
     if user is None:
