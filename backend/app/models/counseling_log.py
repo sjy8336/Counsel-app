@@ -6,7 +6,7 @@ class CounselingLog(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     booking_id = Column(Integer, ForeignKey("bookings.id", ondelete="CASCADE"), nullable=False, unique=True)
-    client_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    client_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     counselor_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     
     title = Column(String(255), nullable=False)

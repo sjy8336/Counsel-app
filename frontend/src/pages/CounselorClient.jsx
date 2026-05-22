@@ -37,7 +37,14 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const [selectedId, setSelectedId] = useState(null);
     const [clients, setClients] = useState([]);
     const [isMobileListOpen, setIsMobileListOpen] = useState(false);
-    const [logModal, setLogModal] = useState({ open: false, editId: null, content: '', title: '', bookingDate: '' });
+    const [logModal, setLogModal] = useState({
+        open: false,
+        editId: null,
+        content: '',
+        title: '',
+        bookingDate: '',
+        bookingId: null,
+    });
     const [surveyModal, setSurveyModal] = useState(false);
     const [deleteModal, setDeleteModal] = useState({ open: false, logId: null });
     const [openLogId, setOpenLogId] = useState(null);
@@ -45,7 +52,6 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const fetchClients = async () => {
         try {
             const data = await getCounselorClients();
-            console.log('getCounselorClients() 내담자 목록:', data);
             setClients(data);
             if (!selectedId && data.length > 0) setSelectedId(data[0].id);
         } catch (e) {
@@ -91,12 +97,18 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
             : clientObj.date && clientObj.time
               ? formatBookingDate({ date: clientObj.date, time: clientObj.time })
               : '';
+        // 예약 목록 중 일지 없는 예약만 추림
+        const availableBookings = (clientObj.bookings || []).filter(
+            (b) => !(clientObj.logs || []).some((l) => l.booking_id === b.id)
+        );
+        const firstAvailable = availableBookings[0] || clientObj.bookings?.[0];
         setLogModal({
             open: true,
             editId: null,
             content: '',
             title: `${(clientObj.logs?.length || 0) + 1}회차 상담 일지`,
-            bookingDate,
+            bookingDate: firstAvailable ? formatBookingDate(firstAvailable) : '',
+            bookingId: firstAvailable ? firstAvailable.id : null,
         });
     };
 
@@ -121,7 +133,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                             : c
                     )
                 );
-                setLogModal({ open: false, editId: null, content: '', title: '', bookingDate: '' });
+                setLogModal({ open: false, editId: null, content: '', title: '', bookingDate: '', bookingId: null });
             } catch {
                 alert('상담일지 수정에 실패했습니다.');
             }
@@ -130,7 +142,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
 
         try {
             const newLog = await addCounselingLog({
-                booking_id: clientObj.bookingId,
+                booking_id: logModal.bookingId,
                 client_id: clientObj.id,
                 title: logModal.title || `${clientObj.logs.length + 1}회차 상담 일지`,
                 session_number: clientObj.logs.length + 1,
@@ -156,7 +168,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                         : c
                 )
             );
-            setLogModal({ open: false, editId: null, content: '', title: '', bookingDate: '' });
+            setLogModal({ open: false, editId: null, content: '', title: '', bookingDate: '', bookingId: null });
         } catch (e) {
             alert(
                 e?.response?.status === 409
@@ -181,7 +193,8 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
         }
     };
 
-    const closeLogModal = () => setLogModal({ open: false, editId: null, content: '', title: '', bookingDate: '' });
+    const closeLogModal = () =>
+        setLogModal({ open: false, editId: null, content: '', title: '', bookingDate: '', bookingId: null });
 
     return (
         <div className="cc-wrapper">
@@ -243,14 +256,15 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                 {client.name || ''}{' '}
                                 <small>{(client.gender || '') + (client.birth ? ' · ' + client.birth : '')}</small>
                             </h2>
-                            {isManualClient ? (
+                            <p className="cc-client-phone">
+                                {client.phone ? `전화번호: ${client.phone}` : '전화번호 없음'}
+                            </p>
+                            {isManualClient && (
                                 <p className="cc-manual-info">
                                     이 내담자는 상담사가 직접 입력한 일정입니다.
                                     <br />
                                     상담일지는 소장용으로만 저장됩니다.
                                 </p>
-                            ) : (
-                                <p>{client.phone || ''}</p>
                             )}
                         </div>
                         <div className="cc-profile-actions">
@@ -346,6 +360,28 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                         <div className="cc-log-modal-header">
                             <div className="cc-log-modal-meta">
                                 <span className="cc-log-modal-client">{client.name} 님</span>
+                                <div style={{ marginTop: 8 }}>
+                                    <label style={{ fontWeight: 500, marginRight: 8 }}>상담 예약 선택</label>
+                                    <select
+                                        value={logModal.bookingId || ''}
+                                        onChange={(e) => {
+                                            const b = (client.bookings || []).find(
+                                                (bk) => bk.id === Number(e.target.value)
+                                            );
+                                            setLogModal((lm) => ({
+                                                ...lm,
+                                                bookingId: b?.id || null,
+                                                bookingDate: b ? formatBookingDate(b) : '',
+                                            }));
+                                        }}
+                                    >
+                                        {(client.bookings || []).map((b, i) => (
+                                            <option key={b.id} value={b.id}>
+                                                {`${i + 1}회차: ${formatBookingDate(b)}`}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                                 {logModal.bookingDate && (
                                     <span className="cc-log-modal-booking-date">
                                         <span className="cc-log-modal-booking-label">상담 진행일</span>

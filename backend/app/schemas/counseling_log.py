@@ -5,7 +5,7 @@ from typing import Optional
 # 일지 생성/수정 시 프론트에서 보내주는 데이터
 class CounselingLogCreate(BaseModel):
     booking_id: int
-    client_id: int
+    client_id: Optional[int] = None
     title: str
     session_number: int
     content: str
@@ -15,7 +15,7 @@ class CounselingLogCreate(BaseModel):
 class CounselingLogResponse(BaseModel):
     id: int
     booking_id: int
-    client_id: int
+    client_id: Optional[int] = None
     counselor_id: int
     title: str
     session_number: int
