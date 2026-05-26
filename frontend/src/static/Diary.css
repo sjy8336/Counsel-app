@@ -210,6 +210,15 @@ html, body {
   }
 }
 
+@media (max-width: 639px) {
+  .mw-main {
+    padding-bottom: 72px !important;
+  }
+  .mw-list-grid > .mw-diary-card:last-child {
+    margin-bottom: 72px !important;
+  }
+}
+
 /* --- Page Header --- */
 .mw-page-header {
   display: flex;

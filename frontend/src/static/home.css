@@ -263,11 +263,23 @@
    MINDWELL — Mobile (max 639px)
    =========================== */
 @media (max-width: 639px) {
-   .mwl-main {
-      padding: 1rem;
-      padding-bottom: 90px;
-      gap: 1rem;
-   }
+  .mwl-upcoming-list > .mwl-appt-card:last-child {
+    margin-bottom: 56px !important;
+  }
+  .mwl-upcoming-list {
+    margin-bottom: 32px;
+  }
+  .mwl-root {
+    padding-bottom: 56px;
+  }
+  .mwl-main > *:last-child {
+    margin-bottom: 0;
+  }
+  .mwl-main {
+    padding: 1rem;
+    padding-bottom: 56px;
+    gap: 1rem;
+  }
 
    .mwl-col-left {
       gap: 1rem;
@@ -309,5 +321,6 @@
    /* 우측 예약 현황: 모바일에서 순서를 left 위로 올리고 싶으면 */
    .mwl-col-right {
       gap: 0.75rem;
+      padding-bottom: 100px;
    }
    }

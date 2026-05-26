@@ -68,7 +68,8 @@
   gap: 1rem;
 }
 
-.bell-btn {
+.bell-btn,
+.mobile-search-btn {
   position: relative;
   padding: 0.5rem;
   color: #a8a29e;
@@ -76,6 +77,19 @@
   border: none;
   cursor: pointer;
   transition: color 0.3s;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  font-size: 1.25rem;
+}
+
+.bell-btn svg,
+.mobile-search-btn svg {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  display: block;
 }
 .bell-btn:hover { color: #8BA888; }
 

@@ -1,3 +1,8 @@
+@media (max-width: 639px) {
+  .reservation-card:last-child {
+    margin-bottom: 56px !important;
+  }
+}
 :root {
   --main:    #8BA888;
   --main-dk: #6B8F68;
