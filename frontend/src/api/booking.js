@@ -1,7 +1,11 @@
 // 예약 전체 조회 (상태별 필터링은 프론트에서)
-export const getAllBookings = async () => {
+export const getAllBookings = async (options = {}) => {
     const token = localStorage.getItem('access_token');
+    const params = new URLSearchParams();
+    if (options.upcomingOnly) params.append('upcoming_only', 'true');
+    if (options.limit) params.append('limit', String(options.limit));
     const response = await axios.get(`${API_BASE_URL}/booking/list`, {
+        params,
         headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.data;

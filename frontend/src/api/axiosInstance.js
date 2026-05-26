@@ -1,3 +1,5 @@
+// 환경에 맞게 BASE URL 지정 (예시)
+export const API_BASE_URL = '/api';
 import axios from 'axios';
 
 // 공통 axios 인스턴스 생성

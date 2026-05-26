@@ -230,18 +230,19 @@ export default function Header({
         setSearchQuery('');
     };
 
-    const quickMenuItems = userRole === 'counselor'
-        ? [
-            { label: '예약 관리', path: '/CounselorPlanner' },
-            { label: '내담자 관리', path: '/CounselorClient' },
-            { label: '문의하기', path: '/CounselorMessages' },
-          ]
-        : [
-            { label: '전문가 찾기', path: '/counselors' },
-            { label: '예약 관리', path: '/reserve' },
-            { label: 'AI 일기', path: '/diary' },
-            { label: '힐링 라운지', path: '/healing' },
-          ];
+    const quickMenuItems =
+        userRole === 'counselor'
+            ? [
+                  { label: '예약 관리', path: '/CounselorPlanner' },
+                  { label: '내담자 관리', path: '/CounselorClient' },
+                  { label: '문의하기', path: '/CounselorMessages' },
+              ]
+            : [
+                  { label: '전문가 찾기', path: '/counselors' },
+                  { label: '예약 관리', path: '/reserve' },
+                  { label: 'AI 일기', path: '/diary' },
+                  { label: '힐링 라운지', path: '/healing' },
+              ];
 
     return (
         <header className="global-header">
@@ -280,7 +281,12 @@ export default function Header({
                             onClick={() => setSearchOpen((prev) => !prev)}
                             aria-label="검색"
                             style={{
-                                minWidth: '40px', minHeight: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem',
+                                minWidth: '40px',
+                                minHeight: '40px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '0.5rem',
                             }}
                         >
                             <Search style={{ width: '24px', height: '24px', display: 'block' }} />
@@ -302,7 +308,12 @@ export default function Header({
                                 onClick={handleBellClick}
                                 style={{
                                     position: 'relative',
-                                    minWidth: '40px', minHeight: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem',
+                                    minWidth: '40px',
+                                    minHeight: '40px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '0.5rem',
                                 }}
                             >
                                 <Bell style={{ width: '24px', height: '24px', display: 'block' }} />
@@ -340,8 +351,14 @@ export default function Header({
                                                     key={n.id}
                                                     className={`notif-popup-item${n.unread ? ' unread' : ''}`}
                                                     onClick={() => {
-                                                        // 알림 삭제/숨김 없이, 단순히 페이지 이동만
-                                                        navigate('/CounselorMyPage?tab=notifications');
+                                                        // 내담자면 mypage로, 상담사면 CounselorMyPage로 이동
+                                                        if (userRole === 'client') {
+                                                            navigate('/mypage', { state: { showNotifications: true } });
+                                                        } else if (userRole === 'counselor') {
+                                                            navigate('/CounselorMyPage?tab=notifications');
+                                                        } else {
+                                                            navigate('/mypage', { state: { showNotifications: true } });
+                                                        }
                                                         setNotifOpen(false);
                                                     }}
                                                     style={{ cursor: 'pointer' }}
@@ -353,10 +370,12 @@ export default function Header({
                                                         {n.type === 'notice' && <AlertCircle size={15} />}
                                                     </span>
                                                     <div className="notif-popup-content">
-                                                        <div className="notif-popup-title">{n.title}</div>
-                                                        <div className="notif-popup-desc">{n.desc}</div>
+                                                        <span className="notif-popup-title-desc">
+                                                            <div className="notif-popup-title">{n.title}</div>
+                                                            <div className="notif-popup-desc">{n.desc}</div>
+                                                        </span>
+                                                        <span className="notif-popup-time">{n.time || ''}</span>
                                                     </div>
-                                                    <span className="notif-popup-time">{n.time || ''}</span>
                                                 </div>
                                             ))
                                         )}
@@ -403,7 +422,7 @@ export default function Header({
                 </div>
             </div>
 
-                       {/* 모바일 전용 검색 패널 - searchOpen일 때만 렌더링 */}
+            {/* 모바일 전용 검색 패널 - searchOpen일 때만 렌더링 */}
             {isMobile && searchOpen && (
                 <div className="mobile-search-panel open">
                     <form onSubmit={handleSearchSubmit} className="mobile-search-form">
@@ -422,7 +441,9 @@ export default function Header({
                                     type="button"
                                     className="mobile-search-clear"
                                     onClick={() => setSearchQuery('')}
-                                >×</button>
+                                >
+                                    ×
+                                </button>
                             ) : null}
                         </div>
                     </form>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
 from typing import List
 from app.db.session import get_db
@@ -31,10 +31,17 @@ def add_counseling_log(data: CounselingLogCreate, db: Session = Depends(get_db),
 
 # 3. 일지 수정 (수정 완료 버튼)
 @router.put("/{log_id}", response_model=CounselingLogResponse)
-def modify_counseling_log(log_id: int, content: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def modify_counseling_log(
+    log_id: int,
+    content: str = Body(...),
+    summary: str = Body(...),
+    action_plan: str = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     if current_user.role != "counselor":
         raise HTTPException(status_code=403, detail="권한이 없습니다.")
-    updated = crud_log.update_log(db, log_id=log_id, content=content, counselor_id=current_user.id)
+    updated = crud_log.update_log(db, log_id=log_id, content=content, summary=summary, action_plan=action_plan, counselor_id=current_user.id)
     if not updated:
         raise HTTPException(status_code=404, detail="일지를 찾을 수 없거나 수정 권한이 없습니다.")
     return updated
@@ -58,3 +65,12 @@ def get_log_by_booking(booking_id: int, db: Session = Depends(get_db), current_u
     if not log:
         raise HTTPException(status_code=404, detail="상담일지를 찾을 수 없습니다.")
     return log
+
+# 내담자(클라이언트)용 상담일지 전체 조회 (본인만 가능)
+@router.get("/client-view/{client_id}", response_model=List[CounselingLogResponse])
+def read_client_logs_for_client(client_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != "client":
+        raise HTTPException(status_code=403, detail="내담자만 접근 가능합니다.")
+    if current_user.id != client_id:
+        raise HTTPException(status_code=403, detail="본인만 조회할 수 있습니다.")
+    return crud_log.get_client_logs_for_client(db, client_id=client_id)

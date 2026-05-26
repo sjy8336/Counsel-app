@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from app.models.inquiry import CounselorInquiry
 from app.schemas.inquiry import InquiryCreate
+from app.services.notification_service import send_inquiry_answered_notification
 
 def get_inquiries_for_counselor(db: Session, counselor_id: int):
     # join으로 내담자 이름까지 포함해서 반환
@@ -55,4 +56,14 @@ def reply_to_inquiry(db: Session, inquiry_id: int, answer_text: str, counselor_i
         db_inquiry.answered_at = datetime.now()
         db.commit()
         db.refresh(db_inquiry)
+        # 알림: 내담자에게 문의 답변 알림
+        if db_inquiry.client_id:
+            from app.models.user import User
+            counselor = db.query(User).filter(User.id == db_inquiry.counselor_id).first()
+            send_inquiry_answered_notification(
+                db,
+                client_id=db_inquiry.client_id,
+                counselor_name=counselor.full_name if counselor else '',
+                inquiry_title=db_inquiry.title
+            )
     return db_inquiry

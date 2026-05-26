@@ -1,28 +1,36 @@
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // 상담일지 삭제 API
 export const deleteCounselingLog = async (log_id) => {
     const token = localStorage.getItem('access_token');
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     return axios.delete(`${API_BASE_URL}/counseling-logs/${log_id}`, { headers });
 };
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // 상담일지 수정 API
-export const putCounselingLog = async ({ log_id, content }) => {
+export const putCounselingLog = async ({ log_id, content, summary, action_plan }) => {
     const token = localStorage.getItem('access_token');
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const res = await axios.put(`${API_BASE_URL}/counseling-logs/${log_id}`, null, {
-        params: { content },
-        headers,
-    });
+    const body = { content, summary, action_plan };
+    const res = await axios.put(`${API_BASE_URL}/counseling-logs/${log_id}`, body, { headers });
     return res.data;
 };
 // 상담일지 생성 API
-export const addCounselingLog = async ({ booking_id, client_id, title, session_number, content, quick_memo }) => {
+export const addCounselingLog = async ({
+    booking_id,
+    client_id,
+    title,
+    session_number,
+    content,
+    summary,
+    action_plan,
+    quick_memo,
+}) => {
     const token = localStorage.getItem('access_token');
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const body = { booking_id, title, session_number, content, quick_memo };
+    const body = { booking_id, title, session_number, content, summary, action_plan, quick_memo };
     if (client_id !== null && client_id !== undefined) {
         body.client_id = client_id;
     }

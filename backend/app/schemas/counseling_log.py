@@ -9,6 +9,8 @@ class CounselingLogCreate(BaseModel):
     title: str
     session_number: int
     content: str
+    summary: Optional[str] = None
+    action_plan: Optional[str] = None
     quick_memo: Optional[str] = None
 
 # 일지 조회 시 프론트로 던져줄 데이터
@@ -20,9 +22,12 @@ class CounselingLogResponse(BaseModel):
     title: str
     session_number: int
     content: str
+    summary: Optional[str] = None
+    action_plan: Optional[str] = None
     quick_memo: Optional[str] = None
     created_at: datetime
     keywords: Optional[list[str]] = []
+    counselor_name: Optional[str] = None
 
     class Config:
         from_attributes = True

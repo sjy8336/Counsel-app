@@ -1,12 +1,19 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, Body
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
+from typing import Optional
 from app.db.session import get_db
 from app.models.booking import Booking
 from app.core.deps import get_current_user
 from app.models.user import User
 from datetime import datetime
 import uuid
-from app.services.notification_service import send_booking_request_notification
+from app.services.notification_service import (
+    send_booking_request_notification,
+    send_booking_confirmed_notification,
+    send_booking_rejected_notification
+)
+from app.models.counselor import CounselorProfile
 
 router = APIRouter()
 
@@ -24,6 +31,16 @@ def reject_booking(data: dict, db: Session = Depends(get_db)):
     booking.booking_status = 'canceled'
     db.commit()
     db.refresh(booking)
+    # 알림: 내담자에게 예약 거절/취소 알림
+    if booking.client_id:
+        counselor = db.query(User).filter(User.id == booking.counselor_id).first()
+        send_booking_rejected_notification(
+            db,
+            client_id=booking.client_id,
+            counselor_name=counselor.full_name if counselor else '',
+            booking_date=str(booking.booking_date),
+            booking_time=booking.booking_time
+        )
     return {"message": "예약이 거절(취소)되었습니다.", "order_id": order_id, "booking_status": booking.booking_status}
 
 
@@ -36,53 +53,52 @@ def get_bookings_for_counselor(
     """
     (상담사 본인만) 본인이 받은 모든 예약 목록 반환 (내담자 정보 포함)
     """
-    from app.models.user import User
-    from app.models.counselor import CounselorProfile
-    print("[BOOKING] current_user.id:", current_user.id)
-    bookings = db.query(Booking).filter(Booking.counselor_id == current_user.id).all()
-    print("[BOOKING] 쿼리된 예약 개수:", len(bookings))
-    for b in bookings:
-        print("[BOOKING] 예약:", b.id, b.client_id, b.client_name, b.counselor_id, b.booking_date, b.booking_time, b.booking_status)
+    bookings = (
+        db.query(Booking, User, CounselorProfile)
+        .outerjoin(User, User.id == Booking.client_id)
+        .outerjoin(CounselorProfile, CounselorProfile.user_id == Booking.counselor_id)
+        .filter(Booking.counselor_id == current_user.id)
+        .order_by(Booking.booking_date.desc(), Booking.booking_time.desc())
+        .all()
+    )
     results = []
-    for b in bookings:
+    for booking, client, profile in bookings:
         # client_name이 있으면 우선 사용, 없으면 기존 로직
-        if b.client_name:
-            client_name = b.client_name
+        if booking.client_name:
+            client_name = booking.client_name
             client_id = None
             client_birth = ""
             client_gender = ""
-            client_phone = b.client_phone
+            client_phone = booking.client_phone
         else:
-            client = db.query(User).filter(User.id == b.client_id).first()
             client_name = client.full_name if client else "내담자"
             client_id = client.id if client else None
             client_birth = client.birth_date if client else ""
             client_gender = client.gender if client else ""
             client_phone = client.phone_number if client else ""
-        profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == b.counselor_id).first()
         center_name = profile.center_name if profile else "센터"
         # 프론트 요구에 맞게 status 변환
-        if b.booking_status == 'waiting':
+        if booking.booking_status == 'waiting':
             status = '대기 중'
-        elif b.booking_status == 'confirmed':
+        elif booking.booking_status == 'confirmed':
             status = '확정됨'
-        elif b.booking_status == 'completed':
+        elif booking.booking_status == 'completed':
             status = '상담 완료'
         else:
             status = '취소됨'
         results.append({
-            "id": b.id,
-            "order_id": b.order_id,
+            "id": booking.id,
+            "order_id": booking.order_id,
             "client_id": client_id,
             "client_name": client_name,
             "client_birth": client_birth,
             "client_gender": client_gender,
             "client_phone": client_phone,
-            "date": b.booking_date.strftime('%Y-%m-%d'),
-            "time": b.booking_time,
+            "date": booking.booking_date.strftime('%Y-%m-%d'),
+            "time": booking.booking_time,
             "status": status,
             "location": center_name,
-            "survey_content": b.survey_content,
+            "survey_content": booking.survey_content,
         })
     return results
 
@@ -102,6 +118,16 @@ def confirm_booking(data: dict, db: Session = Depends(get_db)):
     booking.booking_status = 'confirmed'
     db.commit()
     db.refresh(booking)
+    # 알림: 내담자에게 예약 확정 알림
+    if booking.client_id:
+        counselor = db.query(User).filter(User.id == booking.counselor_id).first()
+        send_booking_confirmed_notification(
+            db,
+            client_id=booking.client_id,
+            counselor_name=counselor.full_name if counselor else '',
+            booking_date=str(booking.booking_date),
+            booking_time=booking.booking_time
+        )
     return {"message": "예약이 승인(확정)되었습니다.", "order_id": order_id, "booking_status": booking.booking_status}
 
 
@@ -202,41 +228,60 @@ def create_booking(
 @router.get("/list")
 def get_all_bookings(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    upcoming_only: bool = Query(False),
+    limit: Optional[int] = Query(None, ge=1, le=50),
 ):
     """
     로그인한 사용자의 모든 예약(취소 포함) 반환
     """
-    bookings = db.query(Booking).filter(
-        Booking.client_id == current_user.id
-    ).all()
+    query = (
+        db.query(Booking, User, CounselorProfile)
+        .join(User, User.id == Booking.counselor_id)
+        .outerjoin(CounselorProfile, CounselorProfile.user_id == Booking.counselor_id)
+        .filter(Booking.client_id == current_user.id)
+    )
+
+    if upcoming_only:
+        now = datetime.now()
+        today = now.date()
+        current_time = now.strftime("%H:%M")
+        query = query.filter(
+            Booking.booking_status != 'canceled',
+            or_(
+                Booking.booking_date > today,
+                and_(Booking.booking_date == today, Booking.booking_time >= current_time),
+            ),
+        ).order_by(Booking.booking_date.asc(), Booking.booking_time.asc())
+    else:
+        query = query.order_by(Booking.booking_date.desc(), Booking.booking_time.desc())
+
+    if limit is not None:
+        query = query.limit(limit)
+
+    bookings = query.all()
     results = []
-    from app.models.user import User
-    from app.models.counselor import CounselorProfile
-    for b in bookings:
-        # DB에서 상담사 이름/센터명만 조회
-        user = db.query(User).filter(User.id == b.counselor_id).first()
+    for booking, user, profile in bookings:
         counselor_name = user.full_name if user else "상담사"
-        profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == b.counselor_id).first()
         center_name = profile.center_name if profile else "센터"
         # 상담 상태 매핑 (booking_status 기준)
-        if b.booking_status == 'waiting':
+        if booking.booking_status == 'waiting':
             status = '예약 대기'
-        elif b.booking_status == 'confirmed':
+        elif booking.booking_status == 'confirmed':
             status = '예약 확정'
-        elif b.booking_status == 'completed':
+        elif booking.booking_status == 'completed':
             status = '상담 완료'
         else:
             status = '예약 취소'
         results.append({
-            "id": b.id,
-            "order_id": b.order_id,
+            "id": booking.id,
+            "order_id": booking.order_id,
             "name": counselor_name,
-            "date": b.booking_date.strftime('%Y.%m.%d'),
-            "time": b.booking_time,
+            "date": booking.booking_date.strftime('%Y.%m.%d'),
+            "time": booking.booking_time,
             "status": status,
-            "booking_status": b.booking_status,
-            "payment_status": b.payment_status,
+            "booking_status": booking.booking_status,
+            "payment_status": booking.payment_status,
             "location": center_name
         })
     return results
