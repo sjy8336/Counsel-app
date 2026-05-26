@@ -43,11 +43,12 @@
     overflow-y: auto;
     padding: 0.5rem 0;
 }
+/* 왼쪽 패딩 줄임, 시간은 오른쪽 고정 */
 .notif-popup-item {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem 1.25rem;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem 0.75rem 0.7rem;
     border-bottom: 1px solid #f8fafc;
     background: #fff;
     cursor: pointer;
@@ -67,13 +68,22 @@
     flex: 1;
     min-width: 0;
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 0.5rem;
+    gap: 0.5rem;
+}
+/* 폰트 크기 소폭 축소 */
+.notif-popup-title-desc {
+    display: flex;
     flex-direction: column;
-    justify-content: center;
+    min-width: 0;
+    flex: 1;
 }
 .notif-popup-title {
     font-weight: 600;
-    font-size: 0.97rem;
-    margin-bottom: 2px;
+    font-size: 0.91rem;
     color: #334155;
     display: -webkit-box;
     -webkit-line-clamp: 1;
@@ -83,7 +93,7 @@
     white-space: normal;
 }
 .notif-popup-desc {
-    font-size: 0.89rem;
+    font-size: 0.82rem;
     color: #64748b;
     display: -webkit-box;
     -webkit-line-clamp: 1;
@@ -93,10 +103,12 @@
     white-space: normal;
 }
 .notif-popup-time {
-    font-size: 0.8rem;
+    font-size: 0.74rem;
     color: #a8a29e;
     margin-left: 0.5rem;
+    margin-right: 0;
     white-space: nowrap;
+    align-self: flex-start;
 }
 .notif-popup-empty {
     padding: 2.5rem 0;

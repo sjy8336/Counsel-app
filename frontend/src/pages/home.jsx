@@ -92,21 +92,9 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
             return;
         }
         setLoading(true);
-        getAllBookings()
+        getAllBookings({ upcomingOnly: true, limit: 10 })
             .then((data) => {
-                const now = new Date();
-                const futureBookings = data
-                    .filter((b) => {
-                        const date = b.date.replace(/\./g, '-');
-                        const dt = new Date(`${date}T${b.time}`);
-                        return dt > now && b.booking_status !== 'canceled';
-                    })
-                    .sort((a, b) => {
-                        const aDate = new Date(a.date.replace(/\./g, '-') + 'T' + a.time);
-                        const bDate = new Date(b.date.replace(/\./g, '-') + 'T' + b.time);
-                        return aDate - bDate;
-                    });
-                setBookings(futureBookings);
+                setBookings(data || []);
             })
             .finally(() => setLoading(false));
     }, [isLoggedIn]);

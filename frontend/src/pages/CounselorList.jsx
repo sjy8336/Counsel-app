@@ -94,6 +94,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                 const params = new URLSearchParams();
                 params.append('offset', 0);
                 params.append('limit', 20);
+                params.append('summary', 'true');
                 if (searchTerm) params.append('search', searchTerm);
                 
                 // 선택된 소분류가 존재한다면 첫 번째 인자를 기반으로 백엔드 1차 필터 패싱
@@ -185,6 +186,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                         const params = new URLSearchParams();
                         params.append('offset', pageOffset);
                         params.append('limit', 20);
+                        params.append('summary', 'true');
                         if (searchTerm) params.append('search', searchTerm);
                         if (selectedSubCategories.length > 0) params.append('category', selectedSubCategories[0]);
                         

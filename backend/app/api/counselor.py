@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Security, status
+from collections import defaultdict
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.core.deps import get_current_user
@@ -114,7 +116,7 @@ def update_profile(data: CounselorProfileCreate, db: Session = Depends(get_db), 
     return crud.update_counselor_profile(db, user_id=current_user.id, data=data)
 
 
-from typing import List
+from typing import List, Optional
 
 # 2. 전문분야 (여러 개 등록)
 @router.post("/counselor/specialty")
@@ -193,31 +195,86 @@ def check_counselor_profile_exists(db: Session = Depends(get_db), current_user=D
 # 승인된 상담사 전체 목록 조회 (status='수락')
 from fastapi import Query
 
+def _group_rows_by_user_id(rows):
+    grouped = defaultdict(list)
+    for row in rows:
+        grouped[row.user_id].append(row)
+    return grouped
+
 @router.get("/counselors/approved")
 def get_approved_counselors(
     db: Session = Depends(get_db),
     offset: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100)
+    limit: int = Query(20, ge=1, le=100),
+    search: Optional[str] = Query(None),
+    category: Optional[str] = Query(None),
+    summary: bool = Query(False),
 ):
-    # 전체 승인된 상담사 수
-    total = db.query(CounselorProfile).filter(CounselorProfile.status == '수락').count()
-    # 페이징 적용
-    profiles = (
+    base_query = (
         db.query(CounselorProfile)
+        .join(User, User.id == CounselorProfile.user_id)
         .filter(CounselorProfile.status == '수락')
+    )
+
+    if search:
+        like = f"%{search}%"
+        base_query = base_query.filter(
+            or_(
+                User.full_name.ilike(like),
+                User.username.ilike(like),
+                CounselorProfile.intro_line.ilike(like),
+                CounselorProfile.center_name.ilike(like),
+            )
+        )
+
+    if category:
+        category_ids = (
+            db.query(CounselorSpecialty.user_id)
+            .filter(CounselorSpecialty.specialty_name == category)
+            .subquery()
+        )
+        base_query = base_query.filter(CounselorProfile.user_id.in_(category_ids))
+
+    total = base_query.count()
+    profiles = (
+        base_query
         .order_by(CounselorProfile.id.desc())
         .offset(offset)
         .limit(limit)
         .all()
     )
+
+    user_ids = [profile.user_id for profile in profiles]
+    if not user_ids:
+        return {"total": total, "counselors": []}
+
+    user_map = {user.id: user for user in db.query(User).filter(User.id.in_(user_ids)).all()}
+    specialties_by_user_id = _group_rows_by_user_id(
+        db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id.in_(user_ids)).all()
+    )
+
+    certificates_by_user_id = defaultdict(list)
+    educations_by_user_id = defaultdict(list)
+    experiences_by_user_id = defaultdict(list)
+    schedules_by_user_id = defaultdict(list)
+
+    if not summary:
+        certificates_by_user_id = _group_rows_by_user_id(
+            db.query(CounselorCertificate).filter(CounselorCertificate.user_id.in_(user_ids)).all()
+        )
+        educations_by_user_id = _group_rows_by_user_id(
+            db.query(CounselorEducation).filter(CounselorEducation.user_id.in_(user_ids)).all()
+        )
+        experiences_by_user_id = _group_rows_by_user_id(
+            db.query(CounselorExperience).filter(CounselorExperience.user_id.in_(user_ids)).all()
+        )
+        schedules_by_user_id = _group_rows_by_user_id(
+            db.query(CounselorSchedule).filter(CounselorSchedule.user_id.in_(user_ids)).all()
+        )
+
     result = []
     for profile in profiles:
-        user = db.query(User).filter(User.id == profile.user_id).first()
-        specialties = db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == profile.user_id).all()
-        certificates = db.query(CounselorCertificate).filter(CounselorCertificate.user_id == profile.user_id).all()
-        educations = db.query(CounselorEducation).filter(CounselorEducation.user_id == profile.user_id).all()
-        experiences = db.query(CounselorExperience).filter(CounselorExperience.user_id == profile.user_id).all()
-        schedules = db.query(CounselorSchedule).filter(CounselorSchedule.user_id == profile.user_id).all()
+        user = user_map.get(profile.user_id)
         result.append({
             "user": {
                 "id": user.id,
@@ -229,11 +286,11 @@ def get_approved_counselors(
                 "gender": user.gender,
             } if user else None,
             "profile": profile,
-            "specialties": specialties,
-            "certificates": certificates,
-            "educations": educations,
-            "experiences": experiences,
-            "schedules": schedules,
+            "specialties": specialties_by_user_id.get(profile.user_id, []),
+            "certificates": certificates_by_user_id.get(profile.user_id, []),
+            "educations": educations_by_user_id.get(profile.user_id, []),
+            "experiences": experiences_by_user_id.get(profile.user_id, []),
+            "schedules": schedules_by_user_id.get(profile.user_id, []),
         })
     return {"total": total, "counselors": result}
 

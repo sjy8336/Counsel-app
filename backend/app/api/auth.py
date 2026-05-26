@@ -1,11 +1,12 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List
+from collections import defaultdict
 from app.db.session import get_db
 from app.models.user import User
 from app.models.favorite import Favorite
+from app.models.counselor import CounselorProfile, CounselorSpecialty
 from app.core.deps import get_current_user
 from app.schemas.user import UserCreate, LoginRequest, UserUpdate, ChangePasswordRequest, UserResponse
 from app.core.jwt import create_access_token
@@ -239,22 +240,33 @@ def toggle_favorite(counselor_id: int, db: Session = Depends(get_db), current_us
 # 찜 목록 조회
 @router.get("/favorites")
 def get_favorites(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    # print(f"[DEBUG] get_favorites 호출: user_id={current_user.id}") # 로그 제거
-    favorites = db.query(Favorite).filter(Favorite.client_id == current_user.id).all()
-    # print(f"[DEBUG] DB에서 찾은 찜 개수: {len(favorites)}") # 로그 제거
-    from app.models.counselor import CounselorProfile, CounselorSpecialty
+    favorites = (
+        db.query(Favorite, User, CounselorProfile)
+        .join(User, User.id == Favorite.counselor_id)
+        .outerjoin(CounselorProfile, CounselorProfile.user_id == Favorite.counselor_id)
+        .filter(Favorite.client_id == current_user.id)
+        .order_by(Favorite.id.desc())
+        .all()
+    )
+
+    counselor_ids = [favorite.counselor_id for favorite, _, _ in favorites]
+    specialty_rows = (
+        db.query(CounselorSpecialty.user_id, CounselorSpecialty.specialty_name)
+        .filter(CounselorSpecialty.user_id.in_(counselor_ids))
+        .all()
+        if counselor_ids
+        else []
+    )
+    specialties_by_user_id = defaultdict(list)
+    for user_id, specialty_name in specialty_rows:
+        specialties_by_user_id[user_id].append(specialty_name)
+
     result = []
-    for fav in favorites:
-        # 상담사 기본 정보
-        counselor = db.query(User).filter(User.id == fav.counselor_id).first()
-        # 상담사 프로필 정보
-        profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == fav.counselor_id).first()
-        # 상담사 전문분야(여러 개 가능)
-        specialties = db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == fav.counselor_id).all()
-        specialty_names = [s.specialty_name for s in specialties] if specialties else []
+    for favorite, counselor, profile in favorites:
+        specialty_names = specialties_by_user_id.get(favorite.counselor_id, [])
         result.append({
-            "id": fav.id,
-            "counselor_id": fav.counselor_id,
+            "id": favorite.id,
+            "counselor_id": favorite.counselor_id,
             "counselor_name": counselor.full_name if counselor else "알 수 없는 상담사",
             "category": specialty_names[0] if specialty_names else None,
             "field": ", ".join(specialty_names) if specialty_names else None,
@@ -263,5 +275,5 @@ def get_favorites(db: Session = Depends(get_db), current_user = Depends(get_curr
             "center_name": profile.center_name if profile else None,
             "profile_img_url": profile.profile_img_url if profile else None
         })
-    # print(f"[DEBUG] 최종 리턴 데이터: {result}") # base64 등 긴 데이터가 로그에 찍히지 않도록 주석 처리
+
     return {"favorites": result}

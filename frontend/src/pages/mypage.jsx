@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getMyInquiries } from '../api/inquiry';
-import { mockNotifications } from '../components/mockNotifications';
+import { getNotifications } from '../api/notification';
 import { deleteAccount } from '../api/auth';
 import { getUserInfo, updateUserInfo, changePassword } from '../api/user';
+import { getCounselorClients } from '../api/counselorClients';
+import { getClientLogs } from '../api/clientLogs';
 import { getFavorites, toggleFavorite } from '../api/favorite';
 import CounselorListPage from './CounselorList';
 import { isTokenExpired } from '../utils/jwt';
@@ -154,6 +156,10 @@ const NotificationSettings = ({ notifSettings, toggleNotif }) => (
 import { getAllBookings } from '../api/booking';
 
 export default function App() {
+    // 상담 히스토리 관련 state를 최상단에 선언 (모든 useEffect보다 위)
+    const [historyList, setHistoryList] = useState([]);
+    const [completedConsultations, setCompletedConsultations] = useState(0);
+
     const navigate = useNavigate();
     const location = useLocation();
     const contentRef = useRef(null);
@@ -175,19 +181,17 @@ export default function App() {
         const fetchNotifications = async () => {
             const token = localStorage.getItem('access_token');
             if (!token) {
-                setNotifications(mockNotifications);
+                setNotifications([]);
                 return;
             }
             try {
                 const res = await getNotifications(token);
-                const notifList = Array.isArray(res.data) ? res.data : (res.data?.notifications || []);
-                if (notifList.length === 0) {
-                    setNotifications(mockNotifications);
-                } else {
-                    setNotifications(notifList);
-                }
+                let notifList = Array.isArray(res.data) ? res.data : res.data?.notifications || [];
+                // 최신순 정렬 (created_at 기준)
+                notifList = notifList.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                setNotifications(notifList);
             } catch (e) {
-                setNotifications(mockNotifications);
+                setNotifications([]);
             }
         };
         fetchNotifications();
@@ -204,20 +208,8 @@ export default function App() {
             }
             setLoading(true);
             try {
-                const data = await getAllBookings();
-                const now = new Date();
-                const futureBookings = (data || [])
-                    .filter((b) => {
-                        const date = b.date.replace(/\./g, '-');
-                        const dt = new Date(`${date}T${b.time}`);
-                        return dt > now && b.booking_status !== 'canceled';
-                    })
-                    .sort((a, b) => {
-                        const aDate = new Date(a.date.replace(/\./g, '-') + 'T' + a.time);
-                        const bDate = new Date(b.date.replace(/\./g, '-') + 'T' + b.time);
-                        return aDate - bDate;
-                    });
-                setBookings(futureBookings);
+                const data = await getAllBookings({ upcomingOnly: true, limit: 1 });
+                setBookings(data || []);
             } catch {
                 setBookings([]);
             } finally {
@@ -242,9 +234,11 @@ export default function App() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const [activeMenu, setActiveMenu] = useState(() =>
-        location.state && location.state.showInquiry ? 'inquiry' : 'dashboard'
-    );
+    const [activeMenu, setActiveMenu] = useState(() => {
+        if (location.state && location.state.showNotifications) return 'notifications';
+        if (location.state && location.state.showInquiry) return 'inquiry';
+        return 'dashboard';
+    });
     const [activeSubMenu, setActiveSubMenu] = useState(null);
     const [ticketCount, setTicketCount] = useState(2);
     const [selectedConsultation, setSelectedConsultation] = useState(null);
@@ -272,36 +266,53 @@ export default function App() {
     const [favoritesLoading, setFavoritesLoading] = useState(true);
     const [toast, setToast] = useState(null);
 
-    const historyList = [
-        {
-            id: 1,
-            counselor: '이은지 상담사',
-            date: '2024.05.13',
-            time: '14:00',
-            type: '대면 상담',
-            status: '상담 완료',
-            topic: '대인관계 스트레스',
-            summary:
-                '주변인들의 부탁을 거절하지 못해 발생하는 번아웃과 스트레스에 대해 논의함. 자신의 욕구를 먼저 파악하는 연습이 필요함.',
-            feedback:
-                '소현님은 타인에 대한 배려가 깊지만, 그만큼 자신을 돌보는 데 소홀해져 있었습니다. 오늘은 "나의 경계선 설정하기"를 주제로 구체적인 거절의 기술을 연습해 보았습니다.',
-            nextStep: '하루에 한 번, 내키지 않는 제안에 대해 정중히 거절해 보기',
-        },
-        {
-            id: 2,
-            counselor: '박민우 상담사',
-            date: '2024.05.06',
-            time: '11:00',
-            type: '대면 상담',
-            status: '상담 완료',
-            topic: '직장 내 갈등 관리',
-            summary: '상사의 일방적인 업무 지시 방식으로 인한 무력감과 갈등 상황을 공유함.',
-            feedback:
-                '감정적인 대응보다는 업무 효율성과 연계된 소통 방식을 제안했습니다. 본인의 감정이 "무시당함"에 집중되어 있음을 인지하고 이를 객관적으로 분리하는 훈련을 진행했습니다.',
-            nextStep: '갈등 상황 발생 시 즉시 반응하지 않고 10초간 호흡하기',
-        },
-    ];
-    const completedConsultations = historyList.filter((item) => item.status === '상담 완료').length;
+    // (중복 선언 제거)
+
+    // 상담 히스토리 동적 fetch
+    useEffect(() => {
+        const fetchHistory = async () => {
+            const token = localStorage.getItem('access_token');
+            const user = localStorage.getItem('user');
+            if (!token || !user) {
+                setHistoryList([]);
+                setCompletedConsultations(0);
+                return;
+            }
+            const userObj = JSON.parse(user);
+            try {
+                let logs = [];
+                if (userObj.role === 'client') {
+                    // 내담자(클라이언트)일 때는 별도 API 사용
+                    logs = await getClientLogs(userObj.id);
+                } else {
+                    // 상담사일 때 기존 로직
+                    const clients = await getCounselorClients();
+                    const myClient = clients.find((c) => String(c.id) === String(userObj.id));
+                    logs = myClient?.logs || [];
+                }
+                // API 필드 → 화면 필드 매핑
+                const mapped = logs.map((log) => ({
+                    id: log.id,
+                    counselor:
+                        log.counselor_name || log.counselor ? `${log.counselor_name || log.counselor} 상담사` : '',
+                    date: log.created_at ? log.created_at.slice(0, 10).replace(/-/g, '.') : '',
+                    time: log.created_at ? log.created_at.slice(11, 16) : '',
+                    type: log.session_type || '상담',
+                    status: '상담 완료',
+                    topic: log.title || '',
+                    summary: log.summary || '',
+                    feedback: log.content || '',
+                    nextStep: log.action_plan || '',
+                }));
+                setHistoryList(mapped);
+                setCompletedConsultations(mapped.length);
+            } catch (e) {
+                setHistoryList([]);
+                setCompletedConsultations(0);
+            }
+        };
+        fetchHistory();
+    }, [userInfo.id]);
 
     const showToast = (msg) => {
         setToast(msg);
@@ -499,7 +510,12 @@ export default function App() {
                                     <div className="title-indicator"></div>상담 요약
                                 </h4>
                                 <div className="summary-box">
-                                    <p className="summary-text">{selectedConsultation.summary}</p>
+                                    <p
+                                        className="summary-text"
+                                        dangerouslySetInnerHTML={{
+                                            __html: (selectedConsultation.summary || '').replace(/\n/g, '<br />'),
+                                        }}
+                                    />
                                 </div>
                             </section>
                             <section className="report-section">
@@ -507,7 +523,12 @@ export default function App() {
                                     <div className="title-indicator"></div>전문가 소견
                                 </h4>
                                 <div className="feedback-wrapper">
-                                    <p className="feedback-text">{selectedConsultation.feedback}</p>
+                                    <p
+                                        className="feedback-text"
+                                        dangerouslySetInnerHTML={{
+                                            __html: (selectedConsultation.feedback || '').replace(/\n/g, '<br />'),
+                                        }}
+                                    />
                                 </div>
                             </section>
                             <section className="action-step-card">
@@ -515,7 +536,15 @@ export default function App() {
                                     <Target size={20} />
                                     다음 상담까지의 실천 과제
                                 </h4>
-                                <p className="action-step-content">"{selectedConsultation.nextStep}"</p>
+                                <p
+                                    className="action-step-content"
+                                    dangerouslySetInnerHTML={{
+                                        __html: ('"' + (selectedConsultation.nextStep || '') + '"').replace(
+                                            /\n/g,
+                                            '<br />'
+                                        ),
+                                    }}
+                                />
                             </section>
                         </div>
                         <div className="report-footer">
@@ -552,35 +581,43 @@ export default function App() {
                         </div>
                     </div>
                     <div className="history-list-container">
-                        {historyList.map((item) => (
-                            <div
-                                key={item.id}
-                                onClick={() => setSelectedConsultation(item)}
-                                className="history-item-card"
-                            >
-                                <div className="history-item-main">
-                                    <div className="history-icon-box">
-                                        <CalendarDays size={24} />
-                                    </div>
-                                    <div>
-                                        <div className="history-item-meta">
-                                            <span className="meta-date">
-                                                {item.date} {item.time}
-                                            </span>
-                                            <span className="meta-type">{item.type}</span>
-                                        </div>
-                                        <h4 className="history-item-counselor">{item.counselor}</h4>
-                                        <p className="history-item-topic">상담 주제: {item.topic}</p>
-                                    </div>
-                                </div>
-                                <div className="history-item-right">
-                                    <div className="history-link-text">
-                                        <p>상담 기록지 보기</p>
-                                    </div>
-                                    <ChevronRight size={20} className="history-arrow-icon" />
-                                </div>
+                        {historyList.length === 0 ? (
+                            <div className="history-list-empty">
+                                <CalendarDays size={32} />
+                                <p className="history-list-empty-title">상담 기록이 없습니다</p>
+                                <p className="history-list-empty-desc">상담이 완료되면 이곳에 기록이 표시됩니다.</p>
                             </div>
-                        ))}
+                        ) : (
+                            historyList.map((item) => (
+                                <div
+                                    key={item.id}
+                                    onClick={() => setSelectedConsultation(item)}
+                                    className="history-item-card"
+                                >
+                                    <div className="history-item-main">
+                                        <div className="history-icon-box">
+                                            <CalendarDays size={24} />
+                                        </div>
+                                        <div>
+                                            <div className="history-item-meta">
+                                                <span className="meta-date">
+                                                    {item.date} {item.time}
+                                                </span>
+                                                <span className="meta-type">{item.type}</span>
+                                            </div>
+                                            <h4 className="history-item-counselor">{item.counselor}</h4>
+                                            <p className="history-item-topic">상담 주제: {item.topic}</p>
+                                        </div>
+                                    </div>
+                                    <div className="history-item-right">
+                                        <div className="history-link-text">
+                                            <p>상담 기록지 보기</p>
+                                        </div>
+                                        <ChevronRight size={20} className="history-arrow-icon" />
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
@@ -670,9 +707,7 @@ export default function App() {
                                                                 );
                                                             }
                                                             return (
-                                                                <span className="ph-counselor-name">
-                                                                    {item.title}
-                                                                </span>
+                                                                <span className="ph-counselor-name">{item.title}</span>
                                                             );
                                                         })()}
                                                         <p className="ph-td-method">{item.method}</p>
@@ -904,9 +939,7 @@ export default function App() {
                         </div>
                     </div>
                     {pwFields.new1 && pwFields.new2 && pwFields.new1 !== pwFields.new2 && (
-                        <div className="password-mismatch-text">
-                            비밀번호가 일치하지 않습니다.
-                        </div>
+                        <div className="password-mismatch-text">비밀번호가 일치하지 않습니다.</div>
                     )}
                     <div className="profile-action-row">
                         <button
@@ -1180,9 +1213,7 @@ export default function App() {
                 </button>
             )}
             <div className={isMobile ? 'mp-mobile-top-offset-48' : ''}>
-                <h3 className="history-title history-title--spaced">
-                    찜 목록
-                </h3>
+                <h3 className="history-title history-title--spaced">찜 목록</h3>
                 <ul className="mypage-list mypage-list-grid">
                     {favoritesLoading ? (
                         <li className="mypage-list-empty">불러오는 중...</li>
@@ -1191,7 +1222,9 @@ export default function App() {
                     ) : (
                         favoritesList.map((item) => {
                             const counselorName =
-                                item.counselor_name || item.name || item.full_name || '알 수 없는 상담사';
+                                item.counselor_name || item.name || item.full_name
+                                    ? `${item.counselor_name || item.name || item.full_name} 상담사`
+                                    : '알 수 없는 상담사';
                             let specialtiesArr = [];
                             if (item.field) {
                                 specialtiesArr = item.field
@@ -1415,40 +1448,47 @@ export default function App() {
                             </button>
                         </div>
                         <div className="dash-history-list">
-                            {[
-                                {
-                                    counselor: '이은지 상담사',
-                                    date: '2024.05.13',
-                                    type: '대면 상담',
-                                    status: '상담 완료',
-                                },
-                                {
-                                    counselor: '박민우 상담사',
-                                    date: '2024.05.06',
-                                    type: '대면 상담',
-                                    status: '상담 완료',
-                                },
-                            ].map((item, idx) => (
-                                <div key={idx} className="dash-history-card" onClick={() => handleMenuClick('history')}>
+                            {historyList && historyList.length > 0 ? (
+                                historyList.slice(0, 2).map((item, idx) => (
+                                    <div
+                                        key={item.id}
+                                        className="dash-history-card"
+                                        onClick={() => handleMenuClick('history')}
+                                    >
+                                        <div className="history-info-group">
+                                            <div className="history-icon-box">
+                                                <MessageSquareHeart size={20} />
+                                            </div>
+                                            <div>
+                                                <div className="history-title-row">
+                                                    <p className="counselor-name">{item.counselor}</p>
+                                                    <span className="status-tag">{item.status}</span>
+                                                </div>
+                                                <p className="history-meta">
+                                                    {item.date} • {item.type}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button className="history-arrow-btn">
+                                            <ChevronRight size={18} />
+                                        </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="dash-history-card dash-history-card--empty">
                                     <div className="history-info-group">
                                         <div className="history-icon-box">
                                             <MessageSquareHeart size={20} />
                                         </div>
                                         <div>
                                             <div className="history-title-row">
-                                                <p className="counselor-name">{item.counselor}</p>
-                                                <span className="status-tag">{item.status}</span>
+                                                <p className="counselor-name">상담 기록이 없습니다</p>
                                             </div>
-                                            <p className="history-meta">
-                                                {item.date} • {item.type}
-                                            </p>
+                                            <p className="history-meta">상담 완료 후 기록이 표시됩니다.</p>
                                         </div>
                                     </div>
-                                    <button className="history-arrow-btn">
-                                        <ChevronRight size={18} />
-                                    </button>
                                 </div>
-                            ))}
+                            )}
                         </div>
                         {/* dash-purchase-banner (더 많은 위로가 필요하신가요? 및 이용권 충전하기) 영역 제거됨 */}
                         <section className="mobile-only-menu mobile-only-menu--spaced">
@@ -1494,10 +1534,7 @@ export default function App() {
         return (
             <>
                 {isMobile && (
-                    <button
-                        className="mobile-back-btn mobile-back-btn--with-label"
-                        onClick={handleBackToDashboard}
-                    >
+                    <button className="mobile-back-btn mobile-back-btn--with-label" onClick={handleBackToDashboard}>
                         <ChevronRight className="mp-rotate-180" size={20} /> 뒤로가기
                     </button>
                 )}
@@ -1518,29 +1555,55 @@ export default function App() {
                             <>
                                 <div className="cmp-notif-group-label">최근 알림</div>
                                 {visibleNotifications.map((item) => (
-                                    <div key={item.id} className={`cmp-notif-item${item.unread ? ' unread' : ''}`}>
+                                    <div key={item.id} className={`cmp-notif-item${!item.read ? ' unread' : ''}`}>
                                         <span className="cmp-item-avatar notif">
                                             {item.type === 'booking' && <Check size={15} />}
+                                            {item.type === 'booking_request' && <CalendarHeart size={15} />}
+                                            {item.type === 'booking_confirm' && <CheckCircle2 size={15} />}
+                                            {item.type === 'booking_reject' && <XCircle size={15} />}
                                             {item.type === 'msg' && <MessageSquare size={15} />}
                                             {item.type === 'notice' && <AlertCircle size={15} />}
+                                            {item.type === 'counsel_log' && <ClipboardList size={15} />}
+                                            {item.type === 'inquiry' && <Mail size={15} />}
+                                            {item.type === 'inquiry_answered' && <Mail size={15} />}
+                                            {/* type이 없거나 매칭 안될 때 기본 아이콘 */}
+                                            {![
+                                                'booking',
+                                                'booking_request',
+                                                'booking_confirm',
+                                                'booking_reject',
+                                                'msg',
+                                                'notice',
+                                                'counsel_log',
+                                                'inquiry',
+                                                'inquiry_answered',
+                                            ].includes(item.type) && <Bell size={15} />}
                                         </span>
                                         <div className="cmp-notif-content">
                                             <div className="cmp-notif-title">{item.title}</div>
                                             <div className="cmp-notif-desc">{item.desc}</div>
                                         </div>
                                         <div className="cmp-notif-meta">
-                                            <span className="cmp-notif-time">{item.time}</span>
-                                            {item.unread && <span className="cmp-notif-dot" />}
+                                            <span className="cmp-notif-time">
+                                                {new Date(item.created_at).toLocaleString()}
+                                            </span>
+                                            {!item.read && <span className="cmp-notif-dot" />}
                                         </div>
                                     </div>
                                 ))}
                                 {hasMore && !showAllNotifications && (
-                                    <button className="cmp-notif-more-btn" onClick={() => setShowAllNotifications(true)}>
+                                    <button
+                                        className="cmp-notif-more-btn"
+                                        onClick={() => setShowAllNotifications(true)}
+                                    >
                                         더보기
                                     </button>
                                 )}
                                 {showAllNotifications && hasMore && (
-                                    <button className="cmp-notif-more-btn" onClick={() => setShowAllNotifications(false)}>
+                                    <button
+                                        className="cmp-notif-more-btn"
+                                        onClick={() => setShowAllNotifications(false)}
+                                    >
                                         접기
                                     </button>
                                 )}
@@ -1575,6 +1638,13 @@ export default function App() {
                     >
                         <Settings size={20} />
                         <span>대시보드</span>
+                    </div>
+                    <div
+                        onClick={() => setActiveMenu('notifications')}
+                        className={`sidebar-nav-item ${activeMenu === 'notifications' ? 'is-active' : ''}`}
+                    >
+                        <Bell size={20} />
+                        <span>알림센터</span>
                     </div>
                     {menuItems.map((item) => (
                         <div

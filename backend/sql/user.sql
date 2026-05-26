@@ -223,6 +223,10 @@ CREATE TABLE counseling_logs (
 
 ALTER TABLE counseling_logs ADD COLUMN keywords JSON COMMENT '자동 추출된 키워드 리스트';
 
+ALTER TABLE counseling_logs
+    ADD COLUMN summary TEXT COMMENT '상담 요약 내용' AFTER content,
+    ADD COLUMN action_plan TEXT COMMENT '다음 상담까지의 실천과제' AFTER summary;
+
 SELECT * From counseling_logs;
 commit;
 
