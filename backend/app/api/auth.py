@@ -1,6 +1,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from typing import List
 from app.db.session import get_db
 from app.models.user import User
@@ -133,12 +134,26 @@ def update_user(user_update: UserUpdate, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_update.id).first()
     if not user:
         raise HTTPException(status_code=404, detail="유저를 찾을 수 없습니다.")
+
+    # 본인을 제외한 다른 계정이 같은 이메일을 사용 중인지 확인
+    duplicate_email_user = (
+        db.query(User)
+        .filter(User.email == user_update.email, User.id != user_update.id)
+        .first()
+    )
+    if duplicate_email_user:
+        raise HTTPException(status_code=400, detail="이미 사용 중인 이메일입니다.")
+
     print("[DEBUG] 수정 전:", user.id, user.full_name, user.email, user.phone_number)
     user.full_name = user_update.full_name
     user.email = user_update.email
     user.phone_number = user_update.phone_number
     print("[DEBUG] 수정 후:", user.id, user.full_name, user.email, user.phone_number)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="이미 사용 중인 이메일입니다.")
     print("[DEBUG] commit 완료")
     db.refresh(user)
     print("[DEBUG] DB에서 다시 읽은 값:", user.id, user.full_name, user.email, user.phone_number)

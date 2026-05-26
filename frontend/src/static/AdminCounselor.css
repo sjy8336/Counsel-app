@@ -233,7 +233,7 @@
     border-radius: var(--ac-radius);
     box-shadow: var(--ac-shadow);
     border: 1px solid var(--ac-border);
-    overflow: hidden;
+    overflow: visible;
 }
 
 .ac-card-header {
@@ -295,12 +295,13 @@
 }
 
 .ac-counselor-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 18px;
-    padding: 20px 32px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    padding: 20px 24px;
     border-bottom: 1px solid var(--ac-border);
     transition: background 0.15s;
+    align-items: start;
 }
 
 .ac-counselor-row:last-child {
@@ -339,11 +340,11 @@
 
 .ac-counselor-meta {
     display: flex;
-    gap: 16px;
+    flex-direction: column;
+    gap: 3px;
     font-size: 13px;
     color: var(--ac-muted);
     margin-bottom: 8px;
-    flex-wrap: wrap;
 }
 
 .ac-counselor-meta span {
@@ -374,12 +375,14 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 8px;
-    flex-shrink: 0;
+    min-width: 90px;
+    padding-top: 2px;
 }
 
 .ac-counselor-date {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--ac-muted);
+    letter-spacing: -0.2px;
 }
 
 .ac-detail-btn {
@@ -638,45 +641,93 @@
 .ac-table-wrap {
     padding: 0 8px 8px;
     overflow-x: auto;
+    border-radius: 12px;
 }
 
 .ac-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
+    table-layout: fixed;
 }
 
+/* ==================== PC 버전 ==================== */
 .ac-table th {
-    padding: 14px 20px;
+    padding: 14px 10px;
     text-align: left;
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 700;
     color: var(--ac-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
     border-bottom: 1px solid var(--ac-border);
     background: var(--ac-bg);
+    white-space: nowrap;
 }
 
 .ac-table td {
-    padding: 16px 20px;
+    padding: 13px 10px;
     border-bottom: 1px solid var(--ac-border);
     color: var(--ac-text);
     vertical-align: middle;
 }
 
-.ac-table tr:last-child td {
-    border-bottom: none;
-}
-.ac-table tr:hover td {
-    background: #fafbfc;
+/* PC 컬럼 너비 */
+.ac-table th:nth-child(1), .ac-table td:nth-child(1) { width: 22%; } /* 이름 */
+.ac-table th:nth-child(2), .ac-table td:nth-child(2) { width: 28%; } /* 이메일 */
+.ac-table th:nth-child(3), .ac-table td:nth-child(3) { width: 15%; } /* 구분 */
+.ac-table th:nth-child(4), .ac-table td:nth-child(4) { width: 13%; } /* 가입일 */
+.ac-table th:nth-child(5), .ac-table td:nth-child(5) { width: 10%; } /* 상담횟수 */
+.ac-table th:nth-child(6), .ac-table td:nth-child(6) { width: 12%; } /* 상태 */
+
+/* ==================== 모바일 전용 ==================== */
+@media (max-width: 768px) {
+    .ac-table {
+        font-size: 13.5px;
+    }
+
+    .ac-table th,
+    .ac-table td {
+        padding: 12px 8px;
+    }
+
+    /* 모바일에서 숨길 항목들 */
+    .ac-member-avatar,
+    .ac-table th:nth-child(4), .ac-table td:nth-child(4), /* 가입일 */
+    .ac-table th:nth-child(5), .ac-table td:nth-child(5), /* 상담횟수 */
+    .ac-table th:nth-child(6), .ac-table td:nth-child(6) { /* 상태 */
+        display: none;
+    }
+
+    /* 모바일 컬럼 너비 재조정 */
+    .ac-table th:nth-child(1), .ac-table td:nth-child(1) { width: 34%; } /* 이름 */
+    .ac-table th:nth-child(2), .ac-table td:nth-child(2) { width: 43%; } /* 이메일 */
+    .ac-table th:nth-child(3), .ac-table td:nth-child(3) { width: 23%; } /* 구분 */
+
+    /* 이름 셀 간결화 */
+    .ac-member-name-cell {
+        gap: 8px;
+    }
+
+    /* 이메일 말줄임 */
+    .ac-table td:nth-child(2) {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 역할 라벨 간결화 */
+    .ac-role-label {
+        font-size: 12.8px;
+        padding: 4px 9px;
+    }
 }
 
+/* 공통 스타일 */
 .ac-member-name-cell {
     display: flex;
     align-items: center;
     gap: 10px;
     font-weight: 600;
+    min-width: 0;
 }
 
 .ac-member-avatar {
@@ -693,30 +744,32 @@
     flex-shrink: 0;
 }
 
-.ac-role-badge {
+.ac-role-label {
     display: inline-flex;
     align-items: center;
-    padding: 4px 12px;
+    gap: 5px;
+    font-size: 13.5px;
+    font-weight: 700;
+    padding: 5px 11px;
+    border-radius: 9999px;
+}
+
+.ac-role-label.client  { color: #16A34A; background: #f0fdf4; }
+.ac-role-label.counselor { color: #2563EB; background: #eff6ff; }
+.ac-role-label.admin   { color: #EA580C; background: #fef3c7; }
+
+.ac-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 600;
 }
 
-.ac-role-badge.counselor {
-    background: #eff6ff;
-    color: #3b82f6;
-}
-.ac-role-badge.client {
-    background: #f0fdf4;
-    color: #16a34a;
-}
-
-.ac-muted {
-    color: var(--ac-muted);
-}
-.ac-center {
-    text-align: center;
-}
+.ac-muted { color: var(--ac-muted); }
+.ac-center { text-align: center; }
 
 /* ── 빈 상태 ── */
 .ac-empty {
@@ -922,18 +975,61 @@
 }
 
 /* 회원 필터 컨트롤 */
-.ac-member-controls { display: flex; gap: 10px; align-items: center; }
-
+/* 회원 필터 컨트롤 */
+.ac-member-controls { 
+    display: flex; 
+    gap: 12px; 
+    align-items: center; 
+    flex-wrap: wrap;
+}
 .ac-role-select {
-    padding: 9px 14px;
-    border: 1px solid var(--ac-border);
-    border-radius: 10px;
-    background: var(--ac-bg);
+    padding: 9px 16px;
+    border: 1.5px solid var(--ac-border);
+    border-radius: 12px;
+    background: var(--ac-white);
     color: var(--ac-text);
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 14.5px;
+    font-weight: 600;
     cursor: pointer;
     outline: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    min-width: 170px;
+}
+.ac-role-select:hover {
+    border-color: var(--ac-green);
+    box-shadow: 0 2px 8px rgba(139, 168, 136, 0.18);
+}
+.ac-role-select:focus {
+    border-color: var(--ac-green);
+    box-shadow: 0 0 0 3px rgba(139, 168, 136, 0.25);
+}
+/* 드롭다운 옵션 스타일링 */
+.ac-role-select option {
+    padding: 12px 16px;
+    font-size: 14.5px;
+    color: var(--ac-text);
+    background: var(--ac-white);
+}
+
+.ac-role-select option:hover {
+    background: var(--ac-green-light);
+    color: var(--ac-green-dark);
+}
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+    .ac-role-select {
+        padding: 10px 14px;
+        font-size: 14px;
+        min-width: 100%;
+        margin-top: 6px;
+    }
+
+    .ac-member-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
 }
 
 .ac-role-select:focus { border-color: var(--ac-green); }
@@ -950,3 +1046,124 @@
 .ac-role-label.client  { color: #16A34A; }
 .ac-role-label.counselor { color: #2563EB; }
 .ac-role-label.admin   { color: #EA580C; }
+/* ── 모바일 기본 숨김 ── */
+.ac-mobile-topbar { display: none; }
+.ac-sidebar-close { display: none; }
+.ac-sidebar-overlay { display: none; }
+
+@media (max-width: 768px) {
+    /* 사이드바 */
+    .ac-sidebar { transform: translateX(-100%); transition: transform 0.25s ease; z-index: 200; }
+    .ac-sidebar.open { transform: translateX(0); }
+    .ac-sidebar-overlay {
+        display: block; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.45); z-index: 199;
+    }
+    .ac-sidebar-close {
+        display: flex; align-items: center; justify-content: center;
+        background: none; border: none; color: rgba(255,255,255,0.5);
+        cursor: pointer; padding: 4px; margin-left: auto; flex-shrink: 0;
+    }
+    .ac-brand { align-items: flex-start; }
+
+    /* 메인 — 사이드바 여백 완전 제거, 폭 고정 */
+    .ac-main {
+        margin-left: 0 !important;
+        padding: 0 0 40px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+    .ac-mobile-topbar {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 20px; background: #fff;
+        border-bottom: 1px solid var(--ac-border);
+        position: sticky; top: 0; z-index: 100; margin-bottom: 16px;
+    }
+    .ac-hamburger { background: none; border: none; color: var(--ac-text); cursor: pointer; display: flex; }
+    .ac-mobile-title { font-size: 16px; font-weight: 700; color: var(--ac-text); }
+
+    /* 통계 카드 */
+    .ac-stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 16px; margin-bottom: 16px; }
+    .ac-stat-card { padding: 14px 16px; gap: 10px; }
+    .ac-stat-value { font-size: 20px; }
+    .ac-stat-icon { width: 36px; height: 36px; }
+
+    /* 콘텐츠 카드 */
+    .ac-card {
+        border-radius: 10px;
+        margin: 0 16px;
+        box-sizing: border-box;
+        width: calc(100% - 32px);
+        max-width: 100%;
+    }
+    .ac-card-header { flex-direction: column; gap: 12px; padding: 16px 16px 14px; }
+    .ac-search-box { min-width: unset; width: 100%; }
+
+    /* 상담사 목록 */
+    .ac-counselor-row { padding: 14px 16px; gap: 10px; }
+    .ac-counselor-right { min-width: 76px; }
+    .ac-detail-btn, .ac-detail-btn-ghost { font-size: 12px; padding: 7px 12px; }
+
+    /* ── 상세 페이지 ── */
+    .ac-detail-view { padding: 16px; }
+    .ac-detail-header { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding-bottom: 16px; }
+    /* 뱃지를 헤더 아래 전체 폭에 표시 */
+    .ac-detail-header > span:last-child { width: 100%; margin-left: 0 !important; }
+    .ac-detail-avatar { width: 44px; height: 44px; font-size: 18px; border-radius: 12px; flex-shrink: 0; }
+    .ac-detail-title { font-size: 17px; }
+    .ac-detail-subtitle { font-size: 12px; word-break: break-all; }
+
+    /* 정보 섹션 */
+    .ac-detail-grid { grid-template-columns: 1fr; gap: 10px; }
+    .ac-info-section { padding: 14px; }
+    /* 상세 페이지 — 카드 자체가 여백 담당 */
+    .ac-card.ac-detail-view {
+        margin: 0 16px;
+        padding: 16px;
+        box-sizing: border-box;
+        width: calc(100% - 32px);
+        overflow: hidden;
+    }
+    .ac-detail-view { padding: 0; }
+
+    /* key-value 세로 쌓기 — 잘림 방지 */
+    .ac-info-row { flex-direction: column; gap: 3px; font-size: 13px; }
+    .ac-info-key { min-width: unset; width: auto; font-size: 11.5px; }
+    .ac-info-section { padding: 14px 16px; }
+
+    /* 학력/경력 — 날짜+내용 세로, 가운데 정렬 */
+    .ac-list-item { flex-direction: column; gap: 2px; padding: 6px 0; }
+    .ac-list-date { min-width: unset; font-size: 11.5px; color: var(--ac-muted); }
+    .ac-list-main { font-size: 13px; word-break: keep-all; }
+
+    .ac-tag { font-size: 11px; padding: 3px 8px; }
+    .ac-fee-text { font-size: 13px; }
+
+    /* 승인/반려 버튼 — 풀폭, 가운데 */
+    .ac-action-row { flex-direction: column; gap: 10px; margin-top: 20px; padding: 0; }
+    .ac-btn-reject, .ac-btn-approve {
+        width: 100%; justify-content: center;
+        font-size: 14px; padding: 14px;
+    }
+
+    /* 일정 */
+    .ac-schedule-grid { overflow-x: auto; padding-bottom: 4px; gap: 6px; }
+    .ac-schedule-cell { min-width: 52px; padding: 10px 4px; }
+    .ac-schedule-day { font-size: 12px; margin-bottom: 6px; }
+    .ac-schedule-time { font-size: 10px; }
+
+    /* 액션 버튼 */
+    .ac-action-row { flex-direction: column; gap: 10px; margin-top: 20px; }
+    .ac-btn-reject, .ac-btn-approve { width: 100%; justify-content: center; font-size: 14px; }
+
+    /* 회원 테이블 */
+    .ac-table-wrap { overflow-x: auto; padding: 0; }
+    .ac-table th, .ac-table td { padding: 11px 12px; font-size: 13px; white-space: nowrap; }
+    .ac-col-joindate, .ac-col-sessions { display: none; }
+    .ac-member-controls { width: 100%; flex-direction: column; }
+    .ac-role-select { width: 100%; }
+
+    /* 모달 */
+    .ac-modal { padding: 20px 16px; margin: 0 16px; max-width: unset; }
+}
