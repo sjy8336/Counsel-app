@@ -77,7 +77,7 @@ export const getCounselorClients = async () => {
             birth: r.client_birth || '',
             gender: r.client_gender === 'female' ? '여' : '남',
             phone: r.client_phone || '',
-            status: r.booking_status === 'confirmed' ? '진행 중' : '대기 중',
+            status: '진행 중',
             keywords: r.survey_content?.keywords || [],
             survey: {
                 reason: r.survey_content?.reason || '선택 없음',

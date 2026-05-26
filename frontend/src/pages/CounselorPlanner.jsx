@@ -457,6 +457,19 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
         const [addPicker, setAddPicker] = useState(null);
         const [newClientPhone, setNewClientPhone] = useState('');
 
+        // 전화번호 자동 하이픈 포맷팅
+        const handlePhoneChange = (e) => {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            if (value.length <= 3) {
+                // 010
+            } else if (value.length <= 7) {
+                value = value.replace(/(\d{3})(\d{1,4})/, '$1-$2');
+            } else {
+                value = value.replace(/(\d{3})(\d{4})(\d{1,4})/, '$1-$2-$3');
+            }
+            setNewClientPhone(value);
+        };
+
         // 직접 일정 추가 핸들러도 내부에서 정의
         const handleAddReservation = async () => {
             if (!newClientName || !manualDate || !newClientPhone) {
@@ -527,9 +540,10 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                         <input
                                             type="text"
                                             value={newClientPhone}
-                                            onChange={(e) => setNewClientPhone(e.target.value)}
-                                            placeholder="전화번호 입력 (예: 010-1234-5678)"
+                                            onChange={handlePhoneChange}
+                                            placeholder="전화번호 입력 (예: 010-0000-0000)"
                                             className="mwc-text-input"
+                                            maxLength={13}
                                         />
                                     </div>
                                     <div className="mwc-time-row">

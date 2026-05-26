@@ -51,6 +51,9 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const [deleteModal, setDeleteModal] = useState({ open: false, logId: null });
     const [openLogId, setOpenLogId] = useState(null);
 
+    // 상담 종료 토스트 팝업 상태
+    const [endToast, setEndToast] = useState(false);
+
     // 날짜 드롭다운 상태
     const [dateDropdownOpen, setDateDropdownOpen] = useState(false);
     const [availableBookings, setAvailableBookings] = useState([]);
@@ -59,7 +62,6 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const fetchClients = async () => {
         try {
             const data = await getCounselorClients();
-            // 상태 기본값: status 없으면 '진행 중' 처리
             const normalized = data.map((c) => ({
                 ...c,
                 status: c.status || '진행 중',
@@ -98,6 +100,13 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const client = clients.find((c) => c.id === selectedId) || clients[0] || {};
     const clientStatus = client.status || '진행 중';
     const isManualClient = !client.id;
+    const isEnded = clientStatus === '종료';
+
+    // 작성완료 버튼 활성화 여부: 세 필드 모두 입력 시에만 활성화
+    const isLogFormValid =
+        logModal.content.trim() !== '' &&
+        logModal.summary.trim() !== '' &&
+        logModal.actionPlan.trim() !== '';
 
     const handleTabClick = (tabId) => {
         setActiveTab(tabId);
@@ -111,10 +120,9 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
         if (routes[tabId]) navigate(routes[tabId]);
     };
 
-    // 새 일지 작성 버튼 클릭 — 예약 날짜 자동 추출
+    // 새 일지 작성 버튼 클릭
     const handleOpenNewLog = () => {
         const clientObj = clients.find((c) => c.id === selectedId) || clients[0] || {};
-
         const usedIds = (clientObj.logs || []).map((l) => l.booking_id);
         const allBookings = clientObj.bookings || [];
         const available = allBookings.filter((b) => !usedIds.includes(b.id));
@@ -149,9 +157,8 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
         const content = logModal.content.trim();
         const summary = logModal.summary.trim();
         const actionPlan = logModal.actionPlan.trim();
-        if (!content) return alert('상담 내용을 입력해주세요.');
-        if (!summary) return alert('상담 요약을 입력해주세요.');
-        if (!actionPlan) return alert('실천과제를 입력해주세요.');
+        if (!content || !summary || !actionPlan) return;
+
         const clientObj = clients.find((c) => c.id === selectedId);
         if (!clientObj) return;
 
@@ -234,6 +241,16 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
         } catch (e) {
             alert('상담일지 삭제에 실패했습니다.');
         }
+    };
+
+    // 상담 종료 확정
+    const handleConfirmEnd = () => {
+        setClients((prev) =>
+            prev.map((c) =>
+                c.id === (selectedId ?? clients[0]?.id) ? { ...c, status: '종료' } : c
+            )
+        );
+        setEndToast(false);
     };
 
     const closeLogModal = () => {
@@ -324,6 +341,8 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                 )}
                             </div>
                         </div>
+
+                        {/* ── 버튼 세로 정렬 ── */}
                         <div className="cc-profile-actions">
                             <button className="cc-btn cc-btn--outline" onClick={() => setSurveyModal(true)}>
                                 <svg width="15" height="15" viewBox="0 0 20 20" fill="none" style={{marginRight:5,verticalAlign:'middle'}}>
@@ -332,7 +351,11 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                 </svg>
                                 사전 설문지
                             </button>
-                            <button className="cc-btn cc-btn--primary" onClick={handleOpenNewLog}>
+                            <button
+                                className="cc-btn cc-btn--primary"
+                                onClick={handleOpenNewLog}
+                                disabled={isEnded}
+                            >
                                 <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{marginRight:5,verticalAlign:'middle'}}>
                                     <path d="M10 4v12M4 10h12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                                 </svg>
@@ -348,6 +371,17 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                 상담 히스토리
                                 <span className="cc-count-badge">{client.logs?.length ?? 0}</span>
                             </h3>
+                            <button
+                                className={`cc-btn cc-btn--end${isEnded ? ' is-ended' : ''}`}
+                                onClick={() => !isEnded && setEndToast(true)}
+                                disabled={isEnded}
+                            >
+                                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{marginRight:5,verticalAlign:'middle'}}>
+                                    <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.6"/>
+                                    <path d="M7 10h6M13 10l-2.5-2.5M13 10l-2.5 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                                {isEnded ? '상담 종료됨' : '상담 종료'}
+                            </button>
                         </div>
                         {!client.logs?.length ? (
                             <div className="cc-empty">
@@ -364,21 +398,22 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                         key={log.id}
                                         className={`cc-accordion-item${openLogId === log.id ? ' is-open' : ''}`}
                                     >
-                                        <div
-                                            className="cc-accordion-header"
-                                            onClick={() => setOpenLogId(openLogId === log.id ? null : log.id)}
-                                        >
-                                            <div className="cc-accordion-left">
+                                        <div className="cc-accordion-header">
+                                            <div
+                                                className="cc-accordion-left"
+                                                onClick={() => setOpenLogId(openLogId === log.id ? null : log.id)}
+                                            >
                                                 <span className="cc-session-num">{client.logs.length - idx}</span>
                                                 <div>
                                                     <span className="cc-accordion-title">{log.title}</span>
                                                     <span className="cc-log-date">{log.date}</span>
                                                 </div>
                                             </div>
-                                            <div className="cc-log-card-actions" onClick={(e) => e.stopPropagation()}>
+                                            <div className="cc-log-card-actions">
                                                 <button
                                                     className="cc-action-btn cc-action-btn--edit"
-                                                    onClick={() =>
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         setLogModal({
                                                             open: true,
                                                             editId: log.id,
@@ -388,22 +423,29 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                                             title: log.title,
                                                             bookingDate: '',
                                                             bookingId: null,
-                                                        })
-                                                    }
+                                                        });
+                                                    }}
                                                 >
                                                     수정
                                                 </button>
                                                 <button
                                                     className="cc-action-btn cc-action-btn--delete"
-                                                    onClick={() => setDeleteModal({ open: true, logId: log.id })}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setDeleteModal({ open: true, logId: log.id });
+                                                    }}
                                                 >
                                                     삭제
                                                 </button>
-                                                <span className={`cc-accordion-chevron${openLogId === log.id ? ' is-open' : ''}`}>
+                                                <button
+                                                    className={`cc-chevron-btn${openLogId === log.id ? ' is-open' : ''}`}
+                                                    onClick={() => setOpenLogId(openLogId === log.id ? null : log.id)}
+                                                    aria-label="펼치기/접기"
+                                                >
                                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                                         <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                                                     </svg>
-                                                </span>
+                                                </button>
                                             </div>
                                         </div>
                                         {openLogId === log.id && (
@@ -460,7 +502,6 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
             {logModal.open && (
                 <div className="cc-overlay" onClick={closeLogModal}>
                     <div className="cc-modal cc-log-modal" onClick={(e) => e.stopPropagation()}>
-                        {/* 모달 헤더 */}
                         <div className="cc-log-modal-header">
                             <div className="cc-log-modal-top">
                                 <span className="cc-log-modal-client">{client.name} 님</span>
@@ -472,9 +513,9 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                             onClick={() => setDateDropdownOpen((v) => !v)}
                                         >
                                             <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{marginRight:5,flexShrink:0}}>
-                                                <rect x="3" y="5" width="14" height="12" rx="3.5" fill="#f0f7ef" stroke="#7bb661" strokeWidth="1.5"/>
-                                                <rect x="6.5" y="2.5" width="2" height="3" rx="1" fill="#7bb661"/>
-                                                <rect x="11.5" y="2.5" width="2" height="3" rx="1" fill="#7bb661"/>
+                                                <rect x="3" y="5" width="14" height="12" rx="3.5" fill="#f0f7ef" stroke="#8BA888" strokeWidth="1.5"/>
+                                                <rect x="6.5" y="2.5" width="2" height="3" rx="1" fill="#8BA888"/>
+                                                <rect x="11.5" y="2.5" width="2" height="3" rx="1" fill="#8BA888"/>
                                                 <rect x="6.5" y="9.5" width="7" height="1.8" rx="0.9" fill="#b8dfb8"/>
                                             </svg>
                                             <span>{logModal.bookingDate}</span>
@@ -507,10 +548,12 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                             <h3 className="cc-log-modal-title">{logModal.title || (logModal.editId ? '일지 수정' : '새 상담 일지')}</h3>
                         </div>
 
-                        {/* 입력 필드들 */}
                         <div className="cc-log-fields">
                             <div className="cc-log-field-group">
-                                <label className="cc-log-label">전문가 소견</label>
+                                <label className="cc-log-label">
+                                    전문가 소견
+                                    {!logModal.content.trim() && <span className="cc-required-dot">*</span>}
+                                </label>
                                 <textarea
                                     className="cc-log-editor"
                                     value={logModal.content}
@@ -519,7 +562,10 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                 />
                             </div>
                             <div className="cc-log-field-group">
-                                <label className="cc-log-label">상담 요약</label>
+                                <label className="cc-log-label">
+                                    상담 요약
+                                    {!logModal.summary.trim() && <span className="cc-required-dot">*</span>}
+                                </label>
                                 <textarea
                                     className="cc-log-editor cc-log-editor--sm"
                                     value={logModal.summary}
@@ -528,7 +574,10 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                 />
                             </div>
                             <div className="cc-log-field-group">
-                                <label className="cc-log-label">다음주까지의 실천과제</label>
+                                <label className="cc-log-label">
+                                    다음주까지의 실천과제
+                                    {!logModal.actionPlan.trim() && <span className="cc-required-dot">*</span>}
+                                </label>
                                 <textarea
                                     className="cc-log-editor cc-log-editor--sm"
                                     value={logModal.actionPlan}
@@ -540,7 +589,11 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
 
                         <div className="cc-modal__actions cc-modal__actions--right">
                             <button className="cc-btn cc-btn--ghost" onClick={closeLogModal}>취소</button>
-                            <button className="cc-btn cc-btn--primary" onClick={handleSaveLog}>
+                            <button
+                                className={`cc-btn cc-btn--primary${!isLogFormValid ? ' is-disabled' : ''}`}
+                                onClick={handleSaveLog}
+                                disabled={!isLogFormValid}
+                            >
                                 {logModal.editId ? '수정 완료' : '작성 완료'}
                             </button>
                         </div>
@@ -601,6 +654,28 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                             <button className="cc-btn cc-btn--danger" onClick={handleDeleteLog}>
                                 삭제하기
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── 상담 종료 토스트 팝업 ── */}
+            {endToast && (
+                <div className="cc-toast-overlay" onClick={() => setEndToast(false)}>
+                    <div className="cc-toast" onClick={(e) => e.stopPropagation()}>
+                        <div className="cc-toast-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="9" stroke="#f59e0b" strokeWidth="1.8"/>
+                                <path d="M12 7v6M12 15.5v.5" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round"/>
+                            </svg>
+                        </div>
+                        <div className="cc-toast-body">
+                            <p className="cc-toast-title">{client.name} 님의 상담을 종료할까요?</p>
+                            <p className="cc-toast-desc">종료 후에는 새 일지를 작성할 수 없으며,<br/>상태가 <strong>상담 종료</strong>로 변경됩니다.</p>
+                        </div>
+                        <div className="cc-toast-actions">
+                            <button className="cc-btn cc-btn--ghost" onClick={() => setEndToast(false)}>취소</button>
+                            <button className="cc-btn cc-btn--danger" onClick={handleConfirmEnd}>종료하기</button>
                         </div>
                     </div>
                 </div>

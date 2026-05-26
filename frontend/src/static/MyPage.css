@@ -1,4 +1,4 @@
-.pw-change-btn {
+﻿.pw-change-btn {
     background-color: #8ba888;
     color: #fff;
     font-weight: 600;
@@ -65,7 +65,7 @@
     padding-top: 56px;
 }
 
-/* 고객센터 연락처 블록 스타일 */
+/* 怨좉컼?쇳꽣 ?곕씫泥?釉붾줉 ?ㅽ???*/
 .support-contact-block {
     display: flex;
     flex-direction: row;
@@ -108,7 +108,7 @@
     word-break: keep-all;
 }
 
-/* 고객센터(고객지원) 스타일 */
+/* 怨좉컼?쇳꽣(怨좉컼吏?? ?ㅽ???*/
 .support-center-card {
     padding: 2.5rem 5vw;
     max-width: 1200px;
@@ -2386,7 +2386,7 @@ img {
     width: 100%;
 }
 
-/* 공통 목록 */
+/* 怨듯넻 紐⑸줉 */
 .mypage-list {
     margin: 0;
     padding: 0;
@@ -2397,12 +2397,21 @@ img {
 }
 .mypage-list-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 1fr;
+    gap: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
-@media (max-width: 800px) {
+@media (min-width: 480px) {
     .mypage-list-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+}
+@media (min-width: 900px) {
+    .mypage-list-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
     }
 }
 .mypage-list-item {
@@ -2456,10 +2465,7 @@ img {
     margin-top: 0;
 }
 
-/* ─── 찜 목록 ─── */
-.mypage-list-grid {
-    grid-template-columns: repeat(3, 1fr);
-}
+/* favorite list */
 
 .mypage-favorite-item {
     position: relative;
@@ -2475,13 +2481,16 @@ img {
     transition:
         border-color 0.18s,
         background 0.18s;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 .mypage-favorite-item:hover {
     border-color: #c6dbc4;
     background: #fafcfa;
 }
 
-/* 아바타 이니셜 */
+/* ?꾨컮? ?대땲??*/
 .mypage-favorite-avatar {
     width: 40px;
     height: 40px;
@@ -2506,7 +2515,7 @@ img {
     display: block;
 }
 
-/* 하트 — 우측 상단 고정 */
+/* ?섑듃 ???곗륫 ?곷떒 怨좎젙 */
 .mypage-favorite-heart {
     position: absolute;
     top: 14px;
@@ -2537,7 +2546,7 @@ img {
     gap: 0;
 }
 
-/* 이름 */
+/* ?대쫫 */
 .mypage-favorite-content .mypage-list-title {
     font-size: 0.975rem;
     font-weight: 800;
@@ -2546,15 +2555,12 @@ img {
     padding-right: 2rem;
 }
 
-/* 태그 행 */
+/* ?쒓렇 ??*/
 .mypage-favorite-content .mypage-list-meta {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 0.35rem;
     margin: 0 0 0.65rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     width: 100%;
     min-width: 0;
 }
@@ -2577,7 +2583,7 @@ img {
     border: 1px solid #e8edf3;
 }
 
-/* 전문 분야 3개 초과 시 +N 뱃지 */
+/* ?꾨Ц 遺꾩빞 3媛?珥덇낵 ??+N 諭껋? */
 .mypage-list-field-extra {
     display: inline-flex;
     align-items: center;
@@ -2592,15 +2598,20 @@ img {
     letter-spacing: 0.01em;
 }
 
-/* 한 줄 소개 */
+/* ??以??뚭컻 */
 .mypage-list-intro {
     font-size: 0.82rem;
     color: #64748b;
     line-height: 1.6;
     margin: 0 0 0.9rem;
+    word-break: keep-all;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
-/* 가격 + CTA 푸터 */
+/* 媛寃?+ CTA ?명꽣 */
 .mypage-list-price {
     display: flex;
     align-items: center;
@@ -2626,10 +2637,10 @@ img {
     gap: 3px;
 }
 .mypage-list-cta::after {
-    content: '→';
+    content: '??;
 }
 
-/* ── 토스트 팝업 ── */
+/* ?? ?좎뒪???앹뾽 ?? */
 .mp-toast {
     position: fixed;
     bottom: 2rem;
@@ -2670,10 +2681,10 @@ img {
 
 /* ==========================================
    PaymentHistory.css
-   MINDWELL - 결제 페이지 스타일 (반응형 포함)
+   MINDWELL - 寃곗젣 ?섏씠吏 ?ㅽ???(諛섏쓳???ы븿)
    ========================================== */
 
-/* ---------- 레이아웃 ---------- */
+/* ---------- ?덉씠?꾩썐 ---------- */
 
 .ph-root {
     display: flex;
@@ -2690,12 +2701,12 @@ img {
     color: #ffffff;
 }
 
-/* ---------- 사이드바 ---------- */
+/* ---------- ?ъ씠?쒕컮 ---------- */
 
 .ph-sidebar {
     width: 256px;
     border-right: 1px solid #FAF7F2;
-    /* 기본(모바일): 사이드바 숨김 */
+    /* 湲곕낯(紐⑤컮??: ?ъ씠?쒕컮 ?④? */
     display: none;
     flex-direction: column;
     justify-content: space-between;
@@ -2705,7 +2716,7 @@ img {
     z-index: 10;
 }
 
-/* PC(1024px 이상)에서만 사이드바 표시 */
+/* PC(1024px ?댁긽)?먯꽌留??ъ씠?쒕컮 ?쒖떆 */
 @media (min-width: 1024px) {
     .ph-sidebar {
         display: flex;
@@ -2716,7 +2727,7 @@ img {
     padding: 32px;
 }
 
-/* 로고 */
+/* 濡쒓퀬 */
 .ph-logo-wrap {
     margin-bottom: 48px;
 }
@@ -2737,7 +2748,7 @@ img {
     margin-top: 4px;
 }
 
-/* 내비게이션 */
+/* ?대퉬寃뚯씠??*/
 .ph-nav {
     display: flex;
     flex-direction: column;
@@ -2784,7 +2795,7 @@ img {
     flex-shrink: 0;
 }
 
-/* 사이드바 하단 */
+/* ?ъ씠?쒕컮 ?섎떒 */
 .ph-sidebar-bottom {
     padding: 32px;
     border-top: 1px solid #FAF7F2;
@@ -2836,28 +2847,28 @@ img {
     background-color: rgba(253, 164, 175, 0.1);
 }
 
-/* ---------- 메인 컨텐츠 ---------- */
+/* ---------- 硫붿씤 而⑦뀗痢?---------- */
 
-/* 모바일/태블릿: 사이드바 없으므로 margin-left 없음 */
+/* 紐⑤컮???쒕툝由? ?ъ씠?쒕컮 ?놁쑝誘濡?margin-left ?놁쓬 */
 .ph-main {
     flex: 1;
     margin-left: 0;
     padding: 24px 16px;
     min-width: 0;
-    /* overflow-x: hidden 제거 — 테이블 가로 스크롤 차단하는 원인 */
+    /* overflow-x: hidden ?쒓굅 ???뚯씠釉?媛濡??ㅽ겕濡?李⑤떒?섎뒗 ?먯씤 */
     overflow: hidden;
     width: 100%;
     box-sizing: border-box;
 }
 
-/* 태블릿(768px 이상): 패딩 약간 넓힘 */
+/* ?쒕툝由?768px ?댁긽): ?⑤뵫 ?쎄컙 ?볧옒 */
 @media (min-width: 768px) {
     .ph-main {
         padding: 32px 24px;
     }
 }
 
-/* PC(1024px 이상): 사이드바(256px) 만큼 margin-left 적용 */
+/* PC(1024px ?댁긽): ?ъ씠?쒕컮(256px) 留뚰겮 margin-left ?곸슜 */
 @media (min-width: 1024px) {
     .ph-main {
         margin-left: 256px;
@@ -2894,7 +2905,7 @@ img {
     font-size: 14px;
 }
 
-/* ---------- 그리드 ---------- */
+/* ---------- 洹몃━??---------- */
 
 .ph-grid {
     display: flex;
@@ -2931,7 +2942,7 @@ img {
     gap: 20px;
     width: 100%;
     min-width: 0;
-    /* overflow 클리핑 방지 — 자식 테이블 스크롤이 동작하도록 */
+    /* overflow ?대━??諛⑹? ???먯떇 ?뚯씠釉??ㅽ겕濡ㅼ씠 ?숈옉?섎룄濡?*/
     overflow: visible;
     box-sizing: border-box;
 }
@@ -2958,7 +2969,7 @@ img {
     font-weight: 600;
 }
 
-/* ---------- 최근 결제 하이라이트 카드 ---------- */
+/* ---------- 理쒓렐 寃곗젣 ?섏씠?쇱씠??移대뱶 ---------- */
 
 .ph-highlight-card {
     background-color: #FAF7F2;
@@ -3134,7 +3145,7 @@ img {
     color: #ffffff;
 }
 
-/* ---------- 전체 결제 내역 섹션 ---------- */
+/* ---------- ?꾩껜 寃곗젣 ?댁뿭 ?뱀뀡 ---------- */
 
 .ph-history-heading {
     font-size: 18px;
@@ -3154,22 +3165,22 @@ img {
     background-color: #ffffff;
     border: 1px solid #f3f4f6;
     border-radius: 24px;
-    /* overflow: hidden 제거 — 내부 가로 스크롤을 막는 원인 */
+    /* overflow: hidden ?쒓굅 ???대? 媛濡??ㅽ겕濡ㅼ쓣 留됰뒗 ?먯씤 */
     overflow: visible;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    /* 모바일에서 테이블 영역이 화면 밖으로 나가지 않도록 */
+    /* 紐⑤컮?쇱뿉???뚯씠釉??곸뿭???붾㈃ 諛뽰쑝濡??섍?吏 ?딅룄濡?*/
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
 }
 
-/* 가로 스크롤 래퍼 — 모든 화면에서 적용 */
+/* 媛濡??ㅽ겕濡??섑띁 ??紐⑤뱺 ?붾㈃?먯꽌 ?곸슜 */
 .ph-table-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: #e5e7eb transparent;
-    /* 둥근 모서리 적용 */
+    /* ?κ렐 紐⑥꽌由??곸슜 */
     border-radius: 24px;
 }
 
@@ -3189,7 +3200,7 @@ img {
 
 .ph-table {
         width: 100%;
-        min-width: 340px; /* 모바일에서 더 작게 */
+        min-width: 340px; /* 紐⑤컮?쇱뿉?????묎쾶 */
         text-align: left;
         border-collapse: collapse;
 }
@@ -3215,7 +3226,7 @@ img {
     font-size: 13px;
 }
 
-/* 결제일시 칸: 줄바꿈 허용 */
+/* 寃곗젣?쇱떆 移? 以꾨컮轅??덉슜 */
 .ph-table-th:first-child,
 .ph-table-td:first-child {
     white-space: normal;
@@ -3224,7 +3235,7 @@ img {
     max-width: 180px;
 }
 
-/* 상태 칸: 고정폭 */
+/* ?곹깭 移? 怨좎젙??*/
 .ph-table-th--center,
 .ph-td-status-wrap {
     min-width: 72px;
@@ -3376,7 +3387,7 @@ img {
     color: #FDA4AF;
 }
 
-/* ---------- 우측 사이드 패널 ---------- */
+/* ---------- ?곗륫 ?ъ씠???⑤꼸 ---------- */
 
 .ph-panel-card {
     background-color: #ffffff;
@@ -3401,7 +3412,7 @@ img {
     flex-shrink: 0;
 }
 
-/* 환불 규정 */
+/* ?섎텋 洹쒖젙 */
 .ph-refund-list {
     list-style: none;
     padding: 0;
@@ -3436,7 +3447,7 @@ img {
     background-color: #F59E0B;
 }
 
-/* 영수증 발급 */
+/* ?곸닔利?諛쒓툒 */
 .ph-receipt-desc {
     font-size: 14px;
     color: #4b5563;
@@ -3461,35 +3472,35 @@ img {
     background-color: #f3f4f6;
 }
 
-/* ---------- 모바일 바텀 탭 내비게이션: 모든 화면에서 숨김 (사이드바로 대체) ---------- */
+/* ---------- 紐⑤컮??諛뷀? ???대퉬寃뚯씠?? 紐⑤뱺 ?붾㈃?먯꽌 ?④? (?ъ씠?쒕컮濡??泥? ---------- */
 .ph-mobile-nav {
     display: none !important;
 }
 /* ================================================
-   MyPage 스크롤 최상단 이동 수정 — MyPage.css 맨 아래에 추가
+   MyPage ?ㅽ겕濡?理쒖긽???대룞 ?섏젙 ??MyPage.css 留??꾨옒??異붽?
    ================================================ */
 
-/* 페이지 전체가 스크롤되지 않도록 고정 */
+/* ?섏씠吏 ?꾩껜媛 ?ㅽ겕濡ㅻ릺吏 ?딅룄濡?怨좎젙 */
 html,
 body {
     height: 100%;
     overflow: hidden;
 }
 
-/* 루트 레이아웃도 뷰포트 높이에 고정 */
+/* 猷⑦듃 ?덉씠?꾩썐??酉고룷???믪씠??怨좎젙 */
 .mypage-layout-root {
     height: 100vh;
     overflow: hidden;
 }
 
-/* 실제 스크롤은 이 컨테이너 안에서만 발생 */
+/* ?ㅼ젣 ?ㅽ겕濡ㅼ? ??而⑦뀒?대꼫 ?덉뿉?쒕쭔 諛쒖깮 */
 .mypage-content-area {
     overflow-y: auto;
     height: 100vh;
-    /* 기존 padding 유지 */
+    /* 湲곗〈 padding ?좎? */
 }
 
-/* ── 문의내역 리디자인 ── */
+/* ?? 臾몄쓽?댁뿭 由щ뵒?먯씤 ?? */
 .inq-page-header {
     margin-bottom: 1.5rem;
 }
@@ -3686,7 +3697,7 @@ body {
     margin: 0;
 }
 
-/* ── 태블릿 (768px 이하) ── */
+/* ?? ?쒕툝由?(768px ?댄븯) ?? */
 @media (max-width: 768px) {
     .inq-page-title {
         font-size: 1.25rem;
@@ -3714,7 +3725,7 @@ body {
     }
 }
 
-/* ── 모바일 (480px 이하) ── */
+/* ?? 紐⑤컮??(480px ?댄븯) ?? */
 @media (max-width: 480px) {
     .inq-page-header {
         margin-bottom: 1.25rem;
@@ -3800,3 +3811,43 @@ body {
         font-size: 0.8125rem;
     }
 }
+@media (max-width: 479px) {
+    .mypage-content-area {
+        padding: 1rem;
+    }
+
+    .mypage-list-grid {
+        gap: 0;
+    }
+
+    .mypage-favorite-item {
+        padding: 1rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .mypage-favorite-content .mypage-list-title {
+        font-size: 0.9rem;
+    }
+
+    .mypage-list-category,
+    .mypage-list-field,
+    .mypage-list-field-extra {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.4rem;
+    }
+
+    .mypage-list-intro {
+        font-size: 0.78rem;
+    }
+
+    .price-value {
+        font-size: 0.82rem;
+    }
+
+    .mypage-list-cta {
+        font-size: 0.68rem;
+    }
+}
+

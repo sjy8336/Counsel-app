@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 export const signUp = async (userData) => {
     try {
         // 백엔드 엔드포인트 /signup 으로 데이터 전송
-        const response = await axios.post(`${API_URL}/signup`, {
+        const response = await axios.post(`${API_URL}/api/signup`, {
             full_name: userData.name,
             username: userData.id,
             email: userData.email,
@@ -51,7 +51,7 @@ export const login = async (credentials) => {
 
 export const checkIdDuplicate = async (username) => {
     try {
-        const response = await axios.get(`${API_URL}/check-id/${username}`);
+        const response = await axios.get(`${API_URL}/api/check-id/${username}`);
         return response.data; // { available: true/false } 반환
     } catch (error) {
         console.error('아이디 중복 확인 에러:', error);

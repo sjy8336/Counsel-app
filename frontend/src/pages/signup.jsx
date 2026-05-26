@@ -492,6 +492,7 @@ export default function SignupPage() {
                                         placeholder="문자+숫자 조합 6~13자"
                                         maxLength={13}
                                         required
+                                        autoComplete="new-password"
                                     />
                                     <button
                                         type="button"
@@ -518,6 +519,7 @@ export default function SignupPage() {
                                         name="confirmPassword"
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
+                                        autoComplete="new-password"
                                         className={`form-input ${isPasswordMatch === false ? 'error-input' : ''}`}
                                         placeholder="비밀번호 재입력 (최대 13자)"
                                         maxLength={13}
