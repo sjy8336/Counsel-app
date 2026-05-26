@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getRecentDiaries } from '../api/aiDiary';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
@@ -23,82 +24,35 @@ import {
 } from 'lucide-react';
 import '../static/Diary.css';
 
-// --- Mock Data ---
-const diaryData = [
-    {
-        id: 1,
-        year: 2026,
-        month: 3,
-        day: 20,
-        date: '2026. 04. 20 (월)',
-        mood: 'happy',
-        stress: 15,
-        title: '오랜만에 느껴보는 여유',
-        content:
-            '주말에 비가 와서 꼼짝 못 하다가, 오늘 드디어 날씨가 개었다. 점심시간에 잠깐 회사 근처 공원을 산책했는데, 햇살이 너무 따뜻하고 바람도 선선해서 기분이 한결 나아졌다.',
-        aiFeedback:
-            '따뜻한 햇살과 산책으로 에너지를 충전하셨군요! 작은 일상에서 긍정적인 변화를 찾아내는 먹보님의 모습이 멋집니다.',
-        tags: ['#산책', '#햇살', '#여유'],
-    },
-    {
-        id: 2,
-        year: 2026,
-        month: 3,
-        day: 18,
-        date: '2026. 04. 18 (토)',
-        mood: 'sad',
-        stress: 65,
-        title: '조금 지치는 하루',
-        content: '하루 종일 왠지 모르게 무기력하고 우울했다. 계획했던 일들도 하나도 하지 못하고 침대에만 누워 있었다.',
-        aiFeedback:
-            '무기력함이 밀려오는 날이었군요. 계획을 지키지 못했다고 자책하기보다는, 몸과 마음이 쉬어가는 시간이라고 생각해주세요.',
-        tags: ['#무기력', '#휴식필요'],
-    },
-    {
-        id: 3,
-        year: 2026,
-        month: 3,
-        day: 22,
-        date: '2026. 04. 22 (수)',
-        mood: 'anxious',
-        stress: 80,
-        title: '발표를 앞둔 긴장감',
-        content:
-            '내일 있을 프로젝트 발표 때문에 하루 종일 마음이 조마조마하다. 준비는 다 했지만 자꾸만 실수할 것 같은 기분이 든다.',
-        aiFeedback:
-            '중요한 일을 앞두고 느끼는 불안은 당연한 에너지가 될 수 있어요. 지금까지 준비한 과정을 믿고 심호흡을 크게 한 번 해보세요.',
-        tags: ['#불안', '#발표준비'],
-    },
-    {
-        id: 4,
-        year: 2026,
-        month: 3,
-        day: 25,
-        date: '2026. 04. 25 (토)',
-        mood: 'angry',
-        stress: 92,
-        title: '이해가 안 가는 상황',
-        content: '오늘 정말 화가 나는 일이 있었다. 상대방의 무례한 태도 때문에 감정 조절이 힘들었다.',
-        aiFeedback:
-            '분노는 당신의 경계가 침범당했을 때 나타나는 정당한 신호입니다. 다만, 그 화가 당신을 삼키지 않도록 차가운 물을 마시며 열을 식혀보세요.',
-        tags: ['#분노', '#감정조절'],
-    },
-    {
-        id: 5,
-        year: 2026,
-        month: 3,
-        day: 28,
-        date: '2026. 04. 28 (화)',
-        mood: 'calm',
-        stress: 10,
-        title: '잔잔한 저녁 식사',
-        content:
-            '좋아하는 음악을 들으며 요리를 하고 천천히 식사를 했다. 큰 이벤트는 없었지만 마음이 참 평온한 하루였다.',
-        aiFeedback:
-            '잔잔한 일상 속에서 평온함을 유지하는 것은 매우 건강한 상태입니다. 오늘의 이 평온함이 내일의 에너지가 되길 바랍니다.',
-        tags: ['#평온', '#홈쿠킹'],
-    },
-];
+// AI 처방/효능 박스 컴포넌트 및 아이콘 매핑
+const healingIconMap = {
+    tea: <Coffee />, // healing_icon 값이 tea일 때 등
+    coffee: <Coffee />, // 예시
+    // 필요시 추가: music: <MusicIcon />, walk: <WalkIcon /> 등
+};
+
+function AIHealingBox({ diary }) {
+    const [showDesc, setShowDesc] = useState(false);
+    if (!diary) return null;
+    const { healing_title, healing_desc, healing_icon } = diary;
+    return (
+        <div className="mw-ai-feedback-footer">
+            <div className="mw-ai-healing-row">
+                <div className="mw-ai-recommendation">
+                    <div className="mw-ai-rec-icon">{healingIconMap[healing_icon] || <Coffee />}</div>
+                    <div>
+                        <div className="mw-ai-rec-label">Recommendation</div>
+                        <div className="mw-ai-rec-value">{healing_title || '힐링 처방'}</div>
+                    </div>
+                </div>
+                <button className="mw-ai-more-btn" onClick={() => setShowDesc((v) => !v)}>
+                    {showDesc ? '닫기' : '더 보기'}
+                </button>
+            </div>
+            {showDesc && healing_desc && <div className="mw-ai-healing-desc">{healing_desc}</div>}
+        </div>
+    );
+}
 
 // --- Helper Components ---
 const MoodIcon = ({ mood, className = '' }) => {
@@ -140,26 +94,62 @@ const StressBadge = ({ level }) => {
     );
 };
 export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
+    // DB에서 불러온 일기 데이터
+    const [diaryData, setDiaryData] = useState([]);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
     const [selectedDiary, setSelectedDiary] = useState(null);
     // 모달이 열릴 때 body 스크롤 방지
-    
-        useEffect(() => {
-    if (selectedDiary) {
-        document.body.style.overflow = 'hidden';
-    } else {
-        document.body.style.overflow = 'auto'; // '' 대신 'auto'로 명시
-    }
-    return () => {
-        document.body.style.overflow = 'auto';
-    };
-}, [selectedDiary]);
+    useEffect(() => {
+        if (selectedDiary) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, [selectedDiary]);
+
+    // 일기 데이터 불러오기
+    useEffect(() => {
+        async function fetchDiaries() {
+            setLoading(true);
+            try {
+                // limit을 충분히 크게 설정해 전체 목록을 불러옴
+                const diaries = await getRecentDiaries(100);
+                setDiaryData(diaries);
+            } catch (e) {
+                setDiaryData([]);
+            }
+            setLoading(false);
+        }
+        fetchDiaries();
+    }, []);
     const handleWheel = (e) => {
         window.scrollBy(0, e.deltaY);
     };
     const [viewMode, setViewMode] = useState(location.state?.viewMode || 'calendar');
-    const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1));
+    // 최신 일기 기준으로 달력 월 자동 이동
+    const getLatestDate = () => {
+        if (diaryData.length === 0) return new Date();
+        const latest = diaryData.reduce((latest, cur) => {
+            if (!latest) return cur;
+            return new Date(cur.created_at) > new Date(latest.created_at) ? cur : latest;
+        }, null);
+        if (!latest) return new Date();
+        const d = new Date(latest.created_at);
+        return new Date(d.getFullYear(), d.getMonth(), 1);
+    };
+    const [currentDate, setCurrentDate] = useState(getLatestDate());
+
+    // diaryData가 바뀌면 최신 일기 월로 이동
+    useEffect(() => {
+        if (diaryData.length > 0) {
+            setCurrentDate(getLatestDate());
+        }
+    }, [diaryData]);
     const [activeTab, setActiveTab] = useState('diary');
 
     const year = currentDate.getFullYear();
@@ -167,6 +157,50 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
 
     const goToPrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
     const goToNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+    if (loading) {
+        return (
+            <div className="mw-diary-root">
+                <div className="mw-main">로딩 중...</div>
+            </div>
+        );
+    }
+
+    // 날짜 파싱 함수 (DB 데이터 → year/month/day)
+    function parseDate(diary) {
+        // created_at: "2026-04-20T12:34:56.000Z" 등
+        const dateObj = new Date(diary.created_at);
+        return {
+            year: dateObj.getFullYear(),
+            month: dateObj.getMonth(), // 0-indexed
+            day: dateObj.getDate(),
+            dateStr: `${dateObj.getFullYear()}. ${(dateObj.getMonth() + 1).toString().padStart(2, '0')}. ${dateObj.getDate().toString().padStart(2, '0')}`,
+        };
+    }
+
+    // calendar/list에서 사용할 diaryData 변환
+    const mappedDiaryData = diaryData.map((diary) => {
+        const { year, month, day, dateStr } = parseDate(diary);
+        return {
+            ...diary,
+            year,
+            month,
+            day,
+            date: dateStr,
+            mood: diary.selected_emotion,
+            stress: diary.stress_level,
+            title: diary.diary_text.slice(0, 20) + (diary.diary_text.length > 20 ? '...' : ''), // 제목이 없으므로 일부만
+            content: diary.diary_text,
+            aiFeedback: diary.ai_analysis,
+            tags: diary.keywords || [],
+        };
+    });
+
+    // 가장 최근 일기(최신 created_at) 찾기
+    const latestDiary = mappedDiaryData.reduce((latest, cur) => {
+        if (!latest) return cur;
+        return new Date(cur.created_at) > new Date(latest.created_at) ? cur : latest;
+    }, null);
 
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const startDayOfWeek = new Date(year, month, 1).getDay();
@@ -193,9 +227,9 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
                             <Heart fill="currentColor" />
                             MIND RECORD
                         </div>
-                        <h1 className="mw-page-title">먹보님의 마음 기록장</h1>
+                        <h1 className="mw-page-title">{userName || '사용자'}님의 마음 기록장</h1>
                         <p className="mw-page-subtitle">
-                            지금까지 <strong>12번</strong>의 마음을 기록했어요.
+                            지금까지 <strong>{diaryData.length}번</strong>의 마음을 기록했어요.
                         </p>
                     </div>
 
@@ -270,8 +304,10 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
                         <div className="mw-calendar-grid">
                             {calendarDays.map((day, idx) => {
                                 const diaryEntry = day
-                                    ? diaryData.find((d) => d.year === year && d.month === month && d.day === day)
+                                    ? mappedDiaryData.find((d) => d.year === year && d.month === month && d.day === day)
                                     : null;
+                                // 최신 일기 여부 판별
+                                const isLatest = diaryEntry && latestDiary && diaryEntry.id === latestDiary.id;
                                 const colIndex = idx % 7;
                                 return (
                                     <div
@@ -287,7 +323,9 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
                                                     {day}
                                                 </span>
                                                 {diaryEntry && (
-                                                    <div className="mw-cal-mood-icon">
+                                                    <div
+                                                        className={`mw-cal-mood-icon${isLatest ? ' mw-cal-mood-icon-latest' : ''}`}
+                                                    >
                                                         <MoodIcon mood={diaryEntry.mood} />
                                                     </div>
                                                 )}
@@ -300,7 +338,7 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
                     </div>
                 ) : (
                     <div className="mw-list-grid">
-                        {diaryData.map((diary) => (
+                        {mappedDiaryData.map((diary) => (
                             <div key={diary.id} onClick={() => setSelectedDiary(diary)} className="mw-diary-card">
                                 <div className="mw-diary-card-top">
                                     <div>
@@ -377,19 +415,7 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
                                     AI 마음 코칭
                                 </div>
                                 <p className="mw-ai-feedback-text">{selectedDiary.aiFeedback}</p>
-
-                                <div className="mw-ai-feedback-footer">
-                                    <div className="mw-ai-recommendation">
-                                        <div className="mw-ai-rec-icon">
-                                            <Coffee />
-                                        </div>
-                                        <div>
-                                            <div className="mw-ai-rec-label">Recommendation</div>
-                                            <div className="mw-ai-rec-value">따뜻한 차 한 잔</div>
-                                        </div>
-                                    </div>
-                                    <button className="mw-ai-more-btn">더 보기</button>
-                                </div>
+                                <AIHealingBox diary={selectedDiary} />
                             </div>
                         </div>
                     </div>

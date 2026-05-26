@@ -2,12 +2,9 @@
 import os
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
+from typing import Optional
 
 load_dotenv()
-
-
-
-from typing import Optional
 
 class Settings(BaseSettings):
     # 1. DB 설정 (기존 로직 유지하면서 Pydantic 방식으로 통합)
@@ -23,6 +20,9 @@ class Settings(BaseSettings):
 
     # 3. JWT 시크릿키 (.env의 SECRET_KEY와 일치해야 함)
     SECRET_KEY: str
+
+    # 4. OpenAI API 키 (.env의 OPENAI_API_KEY와 일치해야 함)
+    OPENAI_API_KEY: Optional[str] = None
 
     class Config:
         env_file = ".env"

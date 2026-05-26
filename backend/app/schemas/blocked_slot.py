@@ -15,4 +15,4 @@ class BlockedSlotCreate(BlockedSlotBase):
 class BlockedSlot(BlockedSlotBase):
     id: int
     class Config:
-        orm_mode = True
+        from_attributes = True

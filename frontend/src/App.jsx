@@ -7,7 +7,7 @@ import AdminCounselor from './pages/AdminCounselor';
 import LoginPage from './pages/Login';
 import SignUp from './pages/SignUp';
 import MyPage from './pages/mypage';
-import Diary from './pages/Diary';
+import Diary from './pages/DiaryList';
 import FindPwPage from './pages/FindPw';
 import ReservationPage from './pages/Reservation';
 import CounselorListPage from './pages/CounselorList';

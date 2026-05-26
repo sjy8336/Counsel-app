@@ -4,6 +4,7 @@ import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
 import MobileTap from '../components/mobileTap.jsx';
 import '../static/AIdiary.css';
+import { analyzeDiary, getRecentDiaries } from '../api/aiDiary';
 import {
     Bell,
     Smile,
@@ -18,9 +19,20 @@ import {
     Coffee,
     Clock,
     Menu,
+    Headphones,
+    Footprints,
 } from 'lucide-react';
+// AI 힐링 처방 아이콘 매핑
+const healingIcons = {
+    tea: Coffee,
+    music: Headphones,
+    walk: Footprints,
+    scent: Sparkles,
+    home: Heart,
+};
 
 export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
+    const [recentDiaries, setRecentDiaries] = useState([]);
     // 뒤로가기 버튼 및 모바일 관련 코드 제거
     const [diaryText, setDiaryText] = useState('');
     const [selectedEmotion, setSelectedEmotion] = useState(null);
@@ -36,9 +48,25 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
         stress: 0,
         text: '',
         emotionId: null,
+        aiAnalysis: '',
+        healingTitle: '',
+        healingDesc: '',
+        healingIcon: 'tea',
     });
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchRecent = async () => {
+            try {
+                const data = await getRecentDiaries(3);
+                setRecentDiaries(data);
+            } catch (e) {
+                setRecentDiaries([]);
+            }
+        };
+        fetchRecent();
+    }, []);
 
     const MAX_LENGTH = 500;
 
@@ -52,8 +80,7 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
 
     const selectedEmotionData = emotions.find((e) => e.id === (showResult ? reportData.emotionId : selectedEmotion));
 
-    const isSubmitDisabled =
-        isAnalyzing || !diaryText.trim() || !selectedEmotion || emotionIntensity === 0 || stressLevel === 0;
+    const isSubmitDisabled = isAnalyzing || !diaryText.trim() || !selectedEmotion || emotionIntensity === 0;
 
     const getDynamicAnalysisText = () => {
         const { stress, intensity, emotionId, text } = reportData;
@@ -92,28 +119,50 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
         if (text.length <= MAX_LENGTH) setDiaryText(text);
     };
 
-    const handleAnalyze = () => {
-        if (!diaryText.trim() || !selectedEmotion || emotionIntensity <= 0 || stressLevel <= 0) return;
-        setIsAnalyzing(true);
-        setReportData({
-            intensity: Number(emotionIntensity),
-            stress: Number(stressLevel),
-            text: diaryText,
-            emotionId: selectedEmotion,
-        });
-        setTimeout(() => {
-            setIsAnalyzing(false);
+    const handleAnalyze = async () => {
+        if (!diaryText.trim() || !selectedEmotion || emotionIntensity <= 0) return;
+
+        try {
+            setIsAnalyzing(true);
+            const data = await analyzeDiary({
+                diary_text: diaryText,
+                selected_emotion: selectedEmotion,
+                emotion_intensity: emotionIntensity,
+                stress_level: stressLevel,
+            });
+            setReportData({
+                intensity: data.emotion_intensity,
+                stress: data.stress_level,
+                text: data.diary_text,
+                emotionId: data.selected_emotion,
+                aiAnalysis: data.ai_analysis,
+                healingTitle: data.healing_title,
+                healingDesc: data.healing_desc,
+                healingIcon: data.healing_icon || 'tea',
+            });
             setShowResult(true);
-        }, 1500);
+        } catch (err) {
+            console.error('AI 분석 실패:', err);
+            alert('분석 중 오류가 발생했습니다.');
+        } finally {
+            setIsAnalyzing(false);
+        }
     };
 
-    const handleReset = () => {
+    const handleReset = async () => {
         setDiaryText('');
         setSelectedEmotion(null);
         setEmotionIntensity(0);
         setStressLevel(0);
         setShowResult(false);
         setViewDiary(false);
+        // 새 일기 작성 시 최근 일기 목록 즉시 갱신
+        try {
+            const data = await getRecentDiaries(3);
+            setRecentDiaries(data);
+        } catch (e) {
+            setRecentDiaries([]);
+        }
     };
 
     // 탭 클릭 시 라우팅 함수
@@ -139,8 +188,6 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
                 isLoggedIn={isLoggedIn}
                 setIsLoggedIn={setIsLoggedIn}
             />
-
-
 
             <main className="mw3-main">
                 {/* Left Section */}
@@ -364,7 +411,7 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
                                 </div>
 
                                 <div className="mw3-analysis-box">
-                                    <p className="mw3-analysis-text">{getDynamicAnalysisText()}</p>
+                                    <p className="mw3-analysis-text">{reportData.aiAnalysis}</p>
                                 </div>
                             </div>
 
@@ -375,11 +422,18 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
                                 </h3>
                                 <div className="mw3-healing-body">
                                     <div className="mw3-healing-icon">
-                                        <Coffee size={24} />
+                                        {(() => {
+                                            const Icon = healingIcons[reportData.healingIcon] || Coffee;
+                                            return <Icon size={24} />;
+                                        })()}
                                     </div>
                                     <div>
-                                        <h4 className="mw3-healing-name">따뜻한 캐모마일 차</h4>
-                                        <p className="mw3-healing-desc">긴장을 완화하고 마음을 차분하게 해줄 거예요.</p>
+                                        <h4 className="mw3-healing-name">
+                                            {reportData.healingTitle || 'AI 힐링 처방'}
+                                        </h4>
+                                        <p className="mw3-healing-desc">
+                                            {reportData.healingDesc || 'AI가 추천하는 힐링 요소가 여기에 표시됩니다.'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -401,31 +455,60 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
                                 </div>
 
                                 <div className="mw3-recent-list">
-                                    {/* 첫 번째 카드 (초록 배경) */}
-                                    <div className="mw3-recent-item--primary">
-                                        <div className="mw3-recent-primary-icon">
-                                            <Smile size={20} />
-                                        </div>
-                                        <span className="mw3-recent-badge">D-1</span>
-                                        <h4 className="mw3-recent-primary-title">오랜만에 친구를 만났다</h4>
-                                        <p className="mw3-recent-primary-desc">즐거운 저녁 식사 시간이었다.</p>
-                                        <div className="mw3-recent-primary-date">
-                                            <Calendar size={12} /> 5월 20일 (수)
-                                        </div>
-                                    </div>
-
-                                    {/* 두 번째 카드 (흰 배경) */}
-                                    <div className="mw3-recent-item--secondary">
-                                        <div className="mw3-recent-secondary-body">
-                                            <p className="mw3-recent-ago">2 days ago</p>
-                                            <h4 className="mw3-recent-secondary-title">업무 스트레스가 심한 날</h4>
-                                            <p className="mw3-recent-secondary-desc">회의가 너무 많아서 지쳤다.</p>
-                                            <div className="mw3-recent-secondary-date">
-                                                <Calendar size={12} /> 5월 19일 (화)
+                                    {recentDiaries.length === 0 && (
+                                        <div className="mw3-recent-item--secondary">
+                                            <div className="mw3-recent-secondary-body">
+                                                <p className="mw3-recent-ago">최근 작성된 일기가 없습니다.</p>
                                             </div>
                                         </div>
-                                        <ChevronRight size={18} className="mw3-recent-chevron" />
-                                    </div>
+                                    )}
+                                    {recentDiaries.map((diary, idx) => {
+                                        const emo = emotions.find((e) => e.id === diary.selected_emotion);
+                                        const dateObj = new Date(diary.created_at);
+                                        const dateStr = `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 (${['일', '월', '화', '수', '목', '금', '토'][dateObj.getDay()]})`;
+                                        if (idx === 0) {
+                                            return (
+                                                <div key={diary.id} className="mw3-recent-item--primary">
+                                                    <div className="mw3-recent-primary-icon">
+                                                        {emo ? <emo.icon size={20} /> : <Smile size={20} />}
+                                                    </div>
+                                                    <span className="mw3-recent-badge">D-1</span>
+                                                    <h4 className="mw3-recent-primary-title">
+                                                        {diary.healing_title ||
+                                                            diary.diary_text.slice(0, 15) +
+                                                                (diary.diary_text.length > 15 ? '...' : '')}
+                                                    </h4>
+                                                    <p className="mw3-recent-primary-desc">
+                                                        {diary.diary_text.slice(0, 30) +
+                                                            (diary.diary_text.length > 30 ? '...' : '')}
+                                                    </p>
+                                                    <div className="mw3-recent-primary-date">
+                                                        <Calendar size={12} /> {dateStr}
+                                                    </div>
+                                                </div>
+                                            );
+                                        } else {
+                                            return (
+                                                <div key={diary.id} className="mw3-recent-item--secondary">
+                                                    <div className="mw3-recent-secondary-body">
+                                                        <h4 className="mw3-recent-secondary-title">
+                                                            {diary.healing_title ||
+                                                                diary.diary_text.slice(0, 15) +
+                                                                    (diary.diary_text.length > 15 ? '...' : '')}
+                                                        </h4>
+                                                        <p className="mw3-recent-secondary-desc">
+                                                            {diary.diary_text.slice(0, 30) +
+                                                                (diary.diary_text.length > 30 ? '...' : '')}
+                                                        </p>
+                                                        <div className="mw3-recent-secondary-date">
+                                                            <Calendar size={12} /> {dateStr}
+                                                        </div>
+                                                        <ChevronRight size={18} className="mw3-recent-chevron" />
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                    })}
                                 </div>
                             </div>
                         </div>
