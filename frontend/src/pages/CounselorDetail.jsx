@@ -574,7 +574,12 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                             <button
                                 className="cld-inquiry-btn"
                                 onClick={() =>
-                                    navigate('/contact-coach', { state: { counselorName: safeCounselor.name } })
+                                    navigate('/contact-coach', {
+                                        state: {
+                                            counselorName: safeCounselor.name,
+                                            counselorId: counselor?.id || counselor?.user?.id || null,
+                                        },
+                                    })
                                 }
                             >
                                 <MessageCircle size={18} /> 상담사에게 예약 문의하기

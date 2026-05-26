@@ -1,7 +1,7 @@
 # FastAPI 실행을 위한 기본 코드
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, counselor, upload, payment, booking, notification, counseling_log, holiday, schedule, blocked_slot
+from app.api import auth, counselor, upload, payment, booking, notification, counseling_log, holiday, schedule, blocked_slot, inquiry
 
 from fastapi.staticfiles import StaticFiles
 import os
@@ -35,10 +35,15 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 def read_root():
     return {"Hello": "Jiyoung's World"}
 
-app.include_router(auth.router)
 app.include_router(booking.router)
 app.include_router(counselor.router)
 app.include_router(counseling_log.router, prefix="/api/counseling-logs")
+app.include_router(holiday.router)
+app.include_router(schedule.router)
+app.include_router(blocked_slot.router)
+
+app.include_router(inquiry.router, prefix="/api")
+
 app.include_router(holiday.router)
 app.include_router(schedule.router)
 app.include_router(blocked_slot.router)
