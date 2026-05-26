@@ -17,7 +17,8 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-SELECT * From users;
+SELECT * From users; 
+
 
 DELETE FROM users WHERE id = 2;
 INSERT INTO users (id, full_name, username, email, hashed_password, phone_number, birth_date, gender, role, is_active) 
@@ -196,7 +197,7 @@ ALTER TABLE bookings
 ADD COLUMN client_name VARCHAR(100) NULL AFTER counselor_id;
 ALTER TABLE bookings MODIFY COLUMN client_id INT NULL;
 
-SELECT * From bookings;
+SELECT * From bookings;ㄱ
 commit;
 
 DELETE FROM bookings WHERE id = 32;
@@ -244,9 +245,26 @@ CREATE TABLE counselor_inquiries (
 SELECT * From counselor_inquiries;
 commit;
 
+CREATE TABLE ai_diaries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL COMMENT '일기를 작성한 내담자 ID',
+    diary_text TEXT NOT NULL COMMENT '일기 본문',
+    selected_emotion VARCHAR(20) NOT NULL COMMENT '선택한 감정 ID (happy, sad 등)',
+    emotion_intensity INT NOT NULL COMMENT '감정 강도 (0~100)',
+    stress_level INT NOT NULL COMMENT '스트레스 지수 (0~100)',
+    ai_analysis TEXT NULL COMMENT 'AI가 생성한 맞춤형 공감 및 분석 리포트 문구',
+    healing_title VARCHAR(100) NULL COMMENT 'AI 추천 힐링 처방 이름 (예: 따뜻한 캐모마일 차)',
+    healing_desc VARCHAR(255) NULL COMMENT 'AI 추천 힐링 처방 설명',
+    keywords VARCHAR(255) NULL COMMENT '일기에서 추출된 핵심 키워드 JSON 배열 (예: ["친구", "저녁"])',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+ALTER TABLE ai_diaries ADD COLUMN healing_icon VARCHAR(20);
 
+SELECT * From ai_diaries;
+commit;
 
-
+DELETE FROM ai_diaries WHERE user_id = 1;
 
 

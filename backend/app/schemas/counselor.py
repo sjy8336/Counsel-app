@@ -22,7 +22,7 @@ class CounselorProfile(CounselorProfileBase):
     created_at: Optional[str]
     updated_at: Optional[str]
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 2. 전문분야
 class CounselorSpecialtyBase(BaseModel):
@@ -36,7 +36,7 @@ class CounselorSpecialty(CounselorSpecialtyBase):
     id: int
     user_id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 3. 자격증
 class CounselorCertificateBase(BaseModel):
@@ -51,7 +51,7 @@ class CounselorCertificate(CounselorCertificateBase):
     id: int
     user_id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 4. 학력
 class CounselorEducationBase(BaseModel):
@@ -67,7 +67,7 @@ class CounselorEducation(CounselorEducationBase):
     id: int
     user_id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 5. 경력
 class CounselorExperienceBase(BaseModel):
@@ -83,7 +83,7 @@ class CounselorExperience(CounselorExperienceBase):
     id: int
     user_id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 6. 주간 상담 일정
 class CounselorScheduleBase(BaseModel):
@@ -98,4 +98,4 @@ class CounselorSchedule(CounselorScheduleBase):
     id: int
     user_id: int
     class Config:
-        orm_mode = True
+        from_attributes = True

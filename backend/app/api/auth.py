@@ -210,7 +210,7 @@ def get_me(current_user=Depends(get_current_user)):
 
 @router.post("/favorites/{counselor_id}")
 def toggle_favorite(counselor_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    print(f"[DEBUG] toggle_favorite 진입: current_user={getattr(current_user, 'id', None)}, counselor_id={counselor_id}")
+    # print(f"[DEBUG] toggle_favorite 진입: current_user={getattr(current_user, 'id', None)}, counselor_id={counselor_id}")
     # counselor_id가 실제 존재하는 상담사(유저)인지 확인
     counselor = db.query(User).filter(User.id == counselor_id).first()
     if not counselor:
@@ -220,28 +220,28 @@ def toggle_favorite(counselor_id: int, db: Session = Depends(get_db), current_us
             Favorite.client_id == current_user.id,
             Favorite.counselor_id == counselor_id
         ).first()
-        print(f"[DEBUG] 기존 favorite: {favorite}")
+        # print(f"[DEBUG] 기존 favorite: {favorite}")
         if favorite:
             db.delete(favorite)
             db.commit()
-            print("[DEBUG] 찜 삭제 완료")
+            # print("[DEBUG] 찜 삭제 완료")
             return {"message": "찜하기 취소됨", "is_favorite": False}
         else:
             new_fav = Favorite(client_id=current_user.id, counselor_id=counselor_id)
             db.add(new_fav)
             db.commit()
-            print("[DEBUG] 찜 추가 완료")
+            # print("[DEBUG] 찜 추가 완료")
             return {"message": "찜하기 성공", "is_favorite": True}
     except Exception as e:
-        print(f"[ERROR] toggle_favorite 예외: {e}")
+        # print(f"[ERROR] toggle_favorite 예외: {e}")
         raise HTTPException(status_code=500, detail=f"찜 처리 중 오류: {e}")
 
 # 찜 목록 조회
 @router.get("/favorites")
 def get_favorites(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    print(f"[DEBUG] get_favorites 호출: user_id={current_user.id}") # 로그 추가
+    # print(f"[DEBUG] get_favorites 호출: user_id={current_user.id}") # 로그 제거
     favorites = db.query(Favorite).filter(Favorite.client_id == current_user.id).all()
-    print(f"[DEBUG] DB에서 찾은 찜 개수: {len(favorites)}") # 로그 추가
+    # print(f"[DEBUG] DB에서 찾은 찜 개수: {len(favorites)}") # 로그 제거
     from app.models.counselor import CounselorProfile, CounselorSpecialty
     result = []
     for fav in favorites:
