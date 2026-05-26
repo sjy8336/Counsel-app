@@ -38,6 +38,9 @@ const AdminCounselor = () => {
     const [roleFilter, setRoleFilter] = useState('전체');
     const [isLoading, setIsLoading] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 10;
 
     const defaultRejectReason = '경력 증빙 서류가 불충분합니다. 보완 후 재등록 부탁드립니다.';
     // 토스트 팝업 상태 및 함수 (CounselorList.jsx 방식)
@@ -231,6 +234,11 @@ const AdminCounselor = () => {
         const matchRole = roleFilter === '전체' || m.role === roleFilter;
         return matchSearch && matchRole;
     });
+    const totalPages = Math.ceil(filteredMembers.length / PAGE_SIZE);
+    const pagedMembers = filteredMembers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+    // 검색어·필터 변경 시 페이지 초기화
+    useEffect(() => { setCurrentPage(1); }, [searchQuery, roleFilter]);
 
     const filteredCounselors = counselors.filter(
         (c) =>
@@ -666,17 +674,38 @@ const AdminCounselor = () => {
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                         />
                                     </div>
-                                    <select
-                                        className="ac-role-select"
-                                        value={roleFilter}
-                                        onChange={(e) => setRoleFilter(e.target.value)}
-                                    >
-                                        {['전체', '내담자', '상담사', '관리자'].map((r) => (
-                                            <option key={r} value={r}>
-                                                {r} {r === '전체' ? `(${memberList.length})` : `(${memberList.filter((m) => m.role === r).length})`}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="ac-custom-select-wrap">
+                                        <button
+                                            className="ac-custom-select-btn"
+                                            onClick={() => setDropdownOpen((v) => !v)}
+                                            type="button"
+                                        >
+                                            <span>
+                                                {roleFilter === '전체'
+                                                    ? `전체 (${memberList.length})`
+                                                    : `${roleFilter} (${memberList.filter((m) => m.role === roleFilter).length})`}
+                                            </span>
+                                            <ChevronRight size={16} className={`ac-select-chevron${dropdownOpen ? ' open' : ''}`} />
+                                        </button>
+                                        {dropdownOpen && (
+                                            <>
+                                                <div className="ac-select-backdrop" onClick={() => setDropdownOpen(false)} />
+                                                <ul className="ac-custom-select-list">
+                                                    {['전체', '내담자', '상담사', '관리자'].map((r) => (
+                                                        <li
+                                                            key={r}
+                                                            className={`ac-custom-select-item${roleFilter === r ? ' selected' : ''}`}
+                                                            onClick={() => { setRoleFilter(r); setDropdownOpen(false); }}
+                                                        >
+                                                            {r === '전체'
+                                                                ? `전체 (${memberList.length})`
+                                                                : `${r} (${memberList.filter((m) => m.role === r).length})`}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
@@ -693,7 +722,7 @@ const AdminCounselor = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredMembers.map((m) => (
+                                        {pagedMembers.map((m) => (
                                             <tr key={m.id}>
                                                 <td>
                                                     <div className="ac-member-name-cell">
@@ -737,6 +766,35 @@ const AdminCounselor = () => {
                                     </tbody>
                                 </table>
                             </div>
+
+                            {/* ── 페이지네이션 ── */}
+                            {totalPages > 1 && (
+                                <div className="ac-pagination">
+                                    <button
+                                        className="ac-page-btn"
+                                        onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                                        disabled={currentPage === 1}
+                                    >
+                                        &lsaquo;
+                                    </button>
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                        <button
+                                            key={page}
+                                            className={`ac-page-btn${currentPage === page ? ' active' : ''}`}
+                                            onClick={() => setCurrentPage(page)}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                    <button
+                                        className="ac-page-btn"
+                                        onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        &rsaquo;
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </main>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import { toggleFavorite, getFavorites } from '../api/favorite';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, User, Heart } from 'lucide-react';
+import { Search, User, Heart, ChevronDown, Check, X } from 'lucide-react';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import MobileTap from '../components/mobileTap';
@@ -9,26 +9,74 @@ import '../static/Counselor.css';
 
 export default function CounselorListPage({ userName, setUserName, isLoggedIn, setIsLoggedIn, onFavoriteChange }) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('전체');
+    
+    // 복수 선택 및 커스텀 드롭다운 상태 관리
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [activeMainTab, setActiveMainTab] = useState('전체'); // 디폴트를 '전체' 탭으로 설정
+    const [selectedSubCategories, setSelectedSubCategories] = useState([]); // 복수 선택된 소분류 배열
+
     const [liked, setLiked] = useState({}); // { [id]: true/false }
     const [toast, setToast] = useState(null);
     const [dbCounselors, setDbCounselors] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [visibleCount, setVisibleCount] = useState(20); // 한 번에 보여줄 상담사 수
-    const [totalCount, setTotalCount] = useState(0); // 전체 상담사 수
-    const [pageOffset, setPageOffset] = useState(0); // 현재 불러온 offset
+    const [totalCount, setTotalCount] = useState(0); 
+    const [pageOffset, setPageOffset] = useState(0); 
     const loaderRef = useRef(null);
+    const dropdownRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
 
-    // 헤더 검색창에서 ?q= 파라미터로 넘어오면 searchTerm 자동 세팅
+    // 서비스 카테고리 원본 데이터 맵
+    const categoriesData = {
+        '개인심리': ['개인심리', '대인관계', '가족상담', '우울/불안', '연애/결혼', '공황/장애', '트라우마', '중독상담', '자존감향상', '성격상담'],
+        '스트레스': ['스트레스', '번아웃'],
+        '직업': ['취업상담', '진로상담', '학업/시험']
+    };
+
+    // '전체' 탭 선택 시 보여줄 모든 소분류 리스트 평탄화 배열 산출
+    const allSubCategories = useMemo(() => {
+        return Object.values(categoriesData).flat();
+    }, []);
+
+    // 현재 선택된 대분류 탭에 맞춰 우측 창에 뿌려줄 소분류 항목 배열 결정
+    const currentSubList = useMemo(() => {
+        if (activeMainTab === '전체') {
+            return allSubCategories;
+        }
+        return categoriesData[activeMainTab] || [];
+    }, [activeMainTab, allSubCategories]);
+
+    // 외부 영역 클릭 시 드롭다운 닫기
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // 소분류 체크박스 토글 함수
+    const handleSubCategoryToggle = (sub) => {
+        setSelectedSubCategories(prev => 
+            prev.includes(sub) ? prev.filter(item => item !== sub) : [...prev, sub]
+        );
+    };
+
+    // 필터 전체 해제
+    const clearAllFilters = () => {
+        setSelectedSubCategories([]);
+    };
+
+    // ?q= 검색 파라미터 연동
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const q = params.get('q');
         if (q) setSearchTerm(q);
     }, [location.search]);
 
-    // 토스트 표시 함수
+    // 토스트 알림
     const showToast = (msg) => setToast(msg);
     useEffect(() => {
         if (toast) {
@@ -37,18 +85,22 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
         }
     }, [toast]);
 
-    // 검색어/카테고리 변경 시 서버에 조건에 맞는 상담사 리스트를 offset=0부터 새로 요청
+    // API 데이터 로딩 로직 (필터 조합 연동)
     useEffect(() => {
         const fetchAll = async () => {
             setLoading(true);
             const token = localStorage.getItem('access_token');
             try {
-                // 쿼리 파라미터 구성
                 const params = new URLSearchParams();
                 params.append('offset', 0);
                 params.append('limit', 20);
                 if (searchTerm) params.append('search', searchTerm);
-                if (selectedCategory && selectedCategory !== '전체') params.append('category', selectedCategory);
+                
+                // 선택된 소분류가 존재한다면 첫 번째 인자를 기반으로 백엔드 1차 필터 패싱
+                if (selectedSubCategories.length > 0) {
+                    params.append('category', selectedSubCategories[0]);
+                }
+
                 const [counselorRes, favList] = await Promise.all([
                     fetch(`/api/counselors/approved?${params.toString()}`),
                     token ? getFavorites(token) : Promise.resolve({ favorites: [] }),
@@ -61,38 +113,30 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                     data.counselors.map((item) => ({
                         id: item.user?.id,
                         name: item.user?.full_name,
-                        category:
-                            item.specialties && item.specialties[0]?.specialty_name
-                                ? item.specialties[0].specialty_name
-                                : '',
+                        category: item.specialties && item.specialties[0]?.specialty_name ? item.specialties[0].specialty_name : '',
                         field: item.specialties ? item.specialties.map((s) => s.specialty_name).join(', ') : '',
-                        price: item.profile?.consultation_price
-                            ? `${item.profile.consultation_price.toLocaleString()}원`
-                            : '',
+                        price: item.profile?.consultation_price ? `${item.profile.consultation_price.toLocaleString()}원` : '',
                         intro: item.profile?.intro_line,
                         profile_img_url: item.profile?.profile_img_url,
                     }))
                 );
-                // 찜 상태 세팅
+                
                 const initialLikes = {};
                 if (favList && Array.isArray(favList.favorites)) {
                     favList.favorites.forEach((fav) => {
                         const cId = Number(fav.counselor_id);
-                        if (cId) {
-                            initialLikes[cId] = true;
-                        }
+                        if (cId) initialLikes[cId] = true;
                     });
                 }
                 setLiked(initialLikes);
             } catch (err) {
-                alert('상담사 목록을 불러오지 못했습니다.');
                 setDbCounselors([]);
             } finally {
                 setLoading(false);
             }
         };
         fetchAll();
-    }, [searchTerm, selectedCategory]);
+    }, [searchTerm, selectedSubCategories]);
 
     const handleLike = async (id, e) => {
         e.stopPropagation();
@@ -111,27 +155,30 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
             }
             showToast(res.is_favorite ? '찜이 추가되었습니다.' : '찜이 취소되었습니다.');
         } catch (err) {
-            // 401 에러가 난다면 콘솔에 찍어서 확인해봅시다.
-            console.error('찜 에러 상세:', err.response);
             alert('찜 처리 중 오류가 발생했습니다.');
         }
     };
 
-    // filter/sort/map 연산 useMemo로 최적화
+    // 멀티 매칭 클라이언트 사이드 필터 가공
     const filteredCounselors = useMemo(() => {
         return dbCounselors.filter((c) => {
             const matchesSearch = (c.name && c.name.includes(searchTerm)) || (c.field && c.field.includes(searchTerm));
-            const matchesCategory = selectedCategory === '전체' || c.category === selectedCategory;
+            
+            let matchesCategory = true;
+            if (selectedSubCategories.length > 0) {
+                matchesCategory = selectedSubCategories.some(sub => 
+                    c.category === sub || (c.field && c.field.includes(sub))
+                );
+            }
             return matchesSearch && matchesCategory;
         });
-    }, [dbCounselors, searchTerm, selectedCategory]);
+    }, [dbCounselors, searchTerm, selectedSubCategories]);
 
-    // 무한스크롤: 하단 도달 시 추가 데이터 페이징 요청 (검색/카테고리 조건 반영)
+    // 무한 스크롤 구현
     const handleObserver = useCallback(
         (entries) => {
             const target = entries[0];
             if (target.isIntersecting && !loading && dbCounselors.length < totalCount) {
-                // 다음 페이지 요청
                 const fetchNext = async () => {
                     setLoading(true);
                     try {
@@ -139,8 +186,8 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                         params.append('offset', pageOffset);
                         params.append('limit', 20);
                         if (searchTerm) params.append('search', searchTerm);
-                        if (selectedCategory && selectedCategory !== '전체')
-                            params.append('category', selectedCategory);
+                        if (selectedSubCategories.length > 0) params.append('category', selectedSubCategories[0]);
+                        
                         const res = await fetch(`/api/counselors/approved?${params.toString()}`);
                         if (!res.ok) throw new Error('상담사 추가 조회 실패');
                         const data = await res.json();
@@ -149,21 +196,16 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                             ...data.counselors.map((item) => ({
                                 id: item.user?.id,
                                 name: item.user?.full_name,
-                                category:
-                                    item.specialties && item.specialties[0]?.specialty_name
-                                        ? item.specialties[0].specialty_name
-                                        : '',
+                                category: item.specialties && item.specialties[0]?.specialty_name ? item.specialties[0].specialty_name : '',
                                 field: item.specialties ? item.specialties.map((s) => s.specialty_name).join(', ') : '',
-                                price: item.profile?.consultation_price
-                                    ? `${item.profile.consultation_price.toLocaleString()}원`
-                                    : '',
+                                price: item.profile?.consultation_price ? `${item.profile.consultation_price.toLocaleString()}원` : '',
                                 intro: item.profile?.intro_line,
                                 profile_img_url: item.profile?.profile_img_url,
                             })),
                         ]);
                         setPageOffset((prev) => prev + data.counselors.length);
                     } catch (err) {
-                        alert('상담사 추가 목록을 불러오지 못했습니다.');
+                        console.error(err);
                     } finally {
                         setLoading(false);
                     }
@@ -171,7 +213,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                 fetchNext();
             }
         },
-        [loading, dbCounselors.length, totalCount, pageOffset, searchTerm, selectedCategory]
+        [loading, dbCounselors.length, totalCount, pageOffset, searchTerm, selectedSubCategories]
     );
 
     useEffect(() => {
@@ -184,83 +226,40 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
         };
     }, [handleObserver, loading]);
 
-    // 검색/카테고리 변경 시 페이징 초기화 (추후 확장 가능)
-    // useEffect(() => {
-    //     setVisibleCount(20);
-    // }, [searchTerm, selectedCategory, allCounselors.length]);
-
-    // 스켈레톤 카드 컴포넌트
     const SkeletonCard = () => (
-        <div className="cld-counselor-card skeleton">
-            <div className="cld-card-top">
-                <div className="cld-profile-placeholder skeleton-img" />
-                <div className="cld-heart-btn skeleton-heart" />
-            </div>
-            <div className="cld-card-body">
-                <div className="skeleton-line skeleton-category" />
+        <div className="counlist-counselor-card skeleton">
+            <div className="counlist-card-top"><div className="counlist-profile-placeholder skeleton-img" /></div>
+            <div className="counlist-card-body">
                 <div className="skeleton-line skeleton-name" />
-                <div className="skeleton-line skeleton-field" />
                 <div className="skeleton-line skeleton-intro" />
-            </div>
-            <div className="cld-card-footer">
-                <div className="skeleton-line skeleton-price" />
-                <div className="skeleton-line skeleton-btn" />
             </div>
         </div>
     );
 
-    // 상담사 카드 컴포넌트 (React.memo 적용)
-    const CounselorCard = memo(function CounselorCard({
-        id,
-        name,
-        category,
-        field,
-        price,
-        intro,
-        profile_img_url,
-        liked,
-        onLike,
-        onClick,
-    }) {
+    const CounselorCard = memo(function CounselorCard({ id, name, category, field, price, intro, profile_img_url, liked, onLike, onClick }) {
         return (
-            <div key={id} className="cld-counselor-card" onClick={onClick}>
-                <div className="cld-card-top">
-                    <div className="cld-profile-placeholder">
+            <div className="counlist-counselor-card" onClick={onClick}>
+                <div className="counlist-card-top">
+                    <div className="counlist-profile-placeholder">
                         {profile_img_url ? (
-                            <img
-                                src={profile_img_url}
-                                alt="프로필"
-                                loading="lazy"
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover',
-                                    borderRadius: '16px',
-                                    display: 'block',
-                                }}
-                            />
+                            <img src={profile_img_url} alt="프로필" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }} />
                         ) : (
                             <User size={32} />
                         )}
                     </div>
-                    <button className={`cld-heart-btn${liked ? ' liked' : ''}`} onClick={onLike} aria-label="좋아요">
-                        <Heart
-                            size={22}
-                            fill={liked ? '#e74c3c' : 'none'}
-                            color={liked ? '#e74c3c' : '#bbb'}
-                            strokeWidth={2.2}
-                        />
+                    <button className={`counlist-heart-btn${liked ? ' liked' : ''}`} onClick={onLike}>
+                        <Heart size={22} fill={liked ? '#e74c3c' : 'none'} color={liked ? '#e74c3c' : '#bbb'} strokeWidth={2.2} />
                     </button>
                 </div>
-                <div className="cld-card-body">
-                    <span className="cld-counselor-category-label">{category}</span>
-                    <h3 className="cld-counselor-name">{name}</h3>
-                    <span className="cld-counselor-field-tags">{field}</span>
-                    <p className="cld-counselor-intro">{intro}</p>
+                <div className="counlist-card-body">
+                    <span className="counlist-counselor-category-label">{category}</span>
+                    <h3 className="counlist-counselor-name">{name}</h3>
+                    <span className="counlist-counselor-field-tags">{field}</span>
+                    <p className="counlist-counselor-intro">{intro}</p>
                 </div>
-                <div className="cld-card-footer">
-                    <span className="cld-price-info">{price} / 50분</span>
-                    <button className="cld-view-detail-btn">상세보기</button>
+                <div className="counlist-card-footer">
+                    <span className="counlist-price-info">{price} / 50분</span>
+                    <button className="counlist-view-detail-btn">상세보기</button>
                 </div>
             </div>
         );
@@ -268,58 +267,108 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
 
     return (
         <>
-            {toast && <div className="cld-mp-toast">{toast}</div>}
-            <div className="cld-full-page-wrapper">
-                <Header
-                    activeTab="search"
-                    setActiveTab={() => {}}
-                    userName={userName}
-                    setUserName={setUserName}
-                    isLoggedIn={isLoggedIn}
-                    setIsLoggedIn={setIsLoggedIn}
-                />
-                <div className="cld-counselor-list-container wide">
-                    <header className="cld-clist-search-header">
-                        <h2 className="cld-clist-search-title">전문가 찾기</h2>
-                        <div className="cld-clist-search-bar-wrapper">
-                            <Search className="cld-clist-search-icon" size={20} />
-                            <input
-                                type="text"
-                                className="cld-clist-search-input"
-                                placeholder="이름 혹은 고민 중인 분야를 입력하세요"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                        <div className="cld-category-tabs">
-                            {['전체', '개인 심리', '직장', '진로'].map((cat) => (
-                                <button
-                                    key={cat}
-                                    className={`cld-category-btn ${selectedCategory === cat ? 'active' : ''}`}
-                                    onClick={() => setSelectedCategory(cat)}
+            {toast && <div className="counlist-mp-toast">{toast}</div>}
+            <div className="counlist-full-page-wrapper">
+                <Header activeTab="search" setActiveTab={() => {}} userName={userName} setUserName={setUserName} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+                
+                <div className="counlist-counselor-list-container wide">
+                    <header className="counlist-clist-search-header">
+                        <h2 className="counlist-clist-search-title">전문가 찾기</h2>
+                        
+                        <div className="counlist-modern-filter-bar-container">
+                            <div className="counlist-clist-search-bar-wrapper">
+                                <Search className="counlist-clist-search-icon" size={18} />
+                                <input
+                                    type="text"
+                                    className="counlist-clist-search-input"
+                                    placeholder="이름/분야 검색"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+
+                            {/* 드롭다운 루트 */}
+                            <div className="counlist-custom-dropdown-root" ref={dropdownRef}>
+                                <button 
+                                    className={`counlist-dropdown-trigger-btn ${selectedSubCategories.length > 0 ? 'active' : ''}`}
+                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                                 >
-                                    {cat}
+                                    <span className="counlist-trigger-text">
+                                        {selectedSubCategories.length === 0 
+                                            ? '상담 분야 선택' 
+                                            : `분야 선택 (${selectedSubCategories.length})`}
+                                    </span>
+                                    <ChevronDown size={16} className={`counlist-arrow-icon ${isDropdownOpen ? 'rotated' : ''}`} />
                                 </button>
-                            ))}
+
+                                {/* 판넬 레이어 */}
+                                {isDropdownOpen && (
+                                    <div className="counlist-dropdown-panel-layer">
+                                        <div className="counlist-panel-split-main-tabs">
+                                            {/* '전체' 대분류 탭 선두 추가 */}
+                                            <button
+                                                type="button"
+                                                className={`counlist-panel-tab-item ${activeMainTab === '전체' ? 'active' : ''}`}
+                                                onClick={() => setActiveMainTab('전체')}
+                                            >
+                                                전체
+                                            </button>
+                                            {Object.keys(categoriesData).map((mainCat) => (
+                                                <button
+                                                    key={mainCat}
+                                                    type="button"
+                                                    className={`counlist-panel-tab-item ${activeMainTab === mainCat ? 'active' : ''}`}
+                                                    onClick={() => setActiveMainTab(mainCat)}
+                                                >
+                                                    {mainCat}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {/* 우측 소분류 리스트 ('전체'일 경우 스크롤 효율을 위해 격자 최적화) */}
+                                        <div className={`counlist-panel-sub-list-content ${activeMainTab === '전체' ? 'all-tab-grid' : ''}`}>
+                                            {currentSubList.map((subCat) => {
+                                                const isChecked = selectedSubCategories.includes(subCat);
+                                                return (
+                                                    <div 
+                                                        key={subCat} 
+                                                        className={`counlist-multi-option-item ${isChecked ? 'checked' : ''}`}
+                                                        onClick={() => handleSubCategoryToggle(subCat)}
+                                                    >
+                                                        <div className="counlist-custom-checkbox">
+                                                            {isChecked && <Check size={12} color="#ffffff" strokeWidth={3} />}
+                                                        </div>
+                                                        <span className="counlist-option-label">{subCat}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
+
+                        {/* 선택 태그 배지 대시보드 */}
+                        {selectedSubCategories.length > 0 && (
+                            <div className="counlist-selected-tags-badge-board">
+                                {selectedSubCategories.map(sub => (
+                                    <span key={sub} className="counlist-selected-badge-item">
+                                        {sub}
+                                        <X size={12} className="counlist-badge-del-icon" onClick={() => handleSubCategoryToggle(sub)} />
+                                    </span>
+                                ))}
+                                <button className="counlist-badge-reset-btn" onClick={clearAllFilters}>전체초기화</button>
+                            </div>
+                        )}
                     </header>
 
-                    <main className="cld-counselor-grid cld-pc-full">
+                    <main className="counlist-counselor-grid counlist-pc-full">
                         {loading && dbCounselors.length === 0 ? (
-                            Array.from({ length: 6 }).map((_, idx) => <SkeletonCard key={idx} />)
+                            Array.from({ length: 3 }).map((_, idx) => <SkeletonCard key={idx} />)
                         ) : filteredCounselors.length === 0 ? (
-                            <div className="cld-counselor-empty">
-                                <div className="cld-empty-icon">
-                                    <User size={32} />
-                                </div>
-                                <p className="cld-empty-title">
-                                    {searchTerm
-                                        ? `'${searchTerm}'에 해당하는 상담사가 없어요`
-                                        : selectedCategory !== '전체'
-                                        ? `'${selectedCategory}' 분야의 상담사가 없어요`
-                                        : '등록된 상담사가 없어요'}
-                                </p>
-                                <p className="cld-empty-sub">검색어나 카테고리를 바꿔서 다시 찾아보세요.</p>
+                            <div className="counlist-counselor-empty">
+                                <div className="counlist-empty-icon"><User size={32} /></div>
+                                <p className="counlist-empty-title">조건에 맞는 상담사가 없어요</p>
+                                <p className="counlist-empty-sub">다른 키워드나 필터 조합을 선택해보세요.</p>
                             </div>
                         ) : (
                             <>
@@ -335,20 +384,9 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                                         profile_img_url={counselor.profile_img_url}
                                         liked={!!liked[counselor.id]}
                                         onLike={(e) => handleLike(counselor.id, e)}
-                                        onClick={() =>
-                                            navigate(`/counselor/${counselor.id}`, {
-                                                state: {
-                                                    isLiked: !!liked[counselor.id],
-                                                    counselor: {
-                                                        ...counselor,
-                                                        ...(dbCounselors.find((c) => c.id === counselor.id) || {}),
-                                                    },
-                                                },
-                                            })
-                                        }
+                                        onClick={() => navigate(`/counselor/${counselor.id}`, { state: { isLiked: !!liked[counselor.id], counselor } })}
                                     />
                                 ))}
-                                {/* 무한스크롤 로더 */}
                                 {dbCounselors.length < totalCount && (
                                     <div ref={loaderRef} style={{ height: 40, background: 'none' }} />
                                 )}
