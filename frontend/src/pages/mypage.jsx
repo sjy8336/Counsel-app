@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getMyInquiries } from '../api/inquiry';
 import { mockNotifications } from '../components/mockNotifications';
 import { deleteAccount } from '../api/auth';
 import { getUserInfo, updateUserInfo, changePassword } from '../api/user';
@@ -497,34 +498,22 @@ export default function App() {
             <div className="fade-in">
                 {isMobile && (
                     <button
-                        className="mobile-back-btn"
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            outline: 'none',
-                            boxShadow: 'none',
-                            padding: '1rem 0.5rem 0.5rem 0.5rem',
-                            margin: '0 0 0 0.2rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            color: '#222',
-                            fontSize: 18,
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            zIndex: 1000,
-                        }}
+                        className="mobile-back-btn mobile-back-btn--compact"
                         onClick={handleBackToDashboard}
                         aria-label="뒤로가기"
                     >
-                        <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
+                        <ChevronRight className="mp-rotate-180" size={22} />
                     </button>
                 )}
-                <div style={{ paddingTop: isMobile ? 48 : 0 }}>
+                <div className={isMobile ? 'mp-mobile-top-offset-48' : ''}>
                     <div className="history-header">
                         <div>
                             <h3 className="history-title">상담 히스토리</h3>
-                            <p className="history-subtitle">{userInfo.name ? `${userInfo.name}님이 걸어온 마음의 발자취입니다.` : '상담 내역입니다.'}</p>
+                            <p className="history-subtitle">
+                                {userInfo.name
+                                    ? `${userInfo.name}님이 걸어온 마음의 발자취입니다.`
+                                    : '상담 내역입니다.'}
+                            </p>
                         </div>
                         <div className="history-total-badge-wrapper">
                             <span className="history-total-badge">총 {completedConsultations}회 상담 완료</span>
@@ -532,7 +521,11 @@ export default function App() {
                     </div>
                     <div className="history-list-container">
                         {historyList.map((item) => (
-                            <div key={item.id} onClick={() => setSelectedConsultation(item)} className="history-item-card">
+                            <div
+                                key={item.id}
+                                onClick={() => setSelectedConsultation(item)}
+                                className="history-item-card"
+                            >
                                 <div className="history-item-main">
                                     <div className="history-icon-box">
                                         <CalendarDays size={24} />
@@ -566,30 +559,14 @@ export default function App() {
         <div className="fade-in">
             {isMobile && (
                 <button
-                    className="mobile-back-btn"
-                    style={{
-                        background: 'transparent',
-                        border: 'none',
-                        outline: 'none',
-                        boxShadow: 'none',
-                        padding: '1rem 0.5rem 0.5rem 0.5rem',
-                        margin: '0 0 0 0.2rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: '#222',
-                        fontSize: 18,
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        zIndex: 1000,
-                    }}
+                    className="mobile-back-btn mobile-back-btn--compact"
                     onClick={handleBackToDashboard}
                     aria-label="뒤로가기"
                 >
-                    <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
+                    <ChevronRight className="mp-rotate-180" size={22} />
                 </button>
             )}
-            <div style={{ paddingTop: isMobile ? 48 : 0 }}>
+            <div className={isMobile ? 'mp-mobile-top-offset-48' : ''}>
                 <div className="ph-header">
                     <h2 className="ph-header-title">결제 내역</h2>
                     <p className="ph-header-desc">상담 예약금 및 추가 결제 내역을 확인할 수 있습니다.</p>
@@ -622,7 +599,9 @@ export default function App() {
                                         </div>
                                     </div>
                                     <div className="ph-highlight-actions">
-                                        <button className="ph-detail-btn" onClick={() => navigate('/reservation')}>예약 상세 보기</button>
+                                        <button className="ph-detail-btn" onClick={() => navigate('/reservation')}>
+                                            예약 상세 보기
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -653,13 +632,15 @@ export default function App() {
                                                             const match = item.title.match(/^(.*?) 상담사/);
                                                             if (match) {
                                                                 return (
-                                                                    <span style={{ color: '#222', fontWeight: 600 }}>
+                                                                    <span className="ph-counselor-name">
                                                                         {match[1]} 상담사
                                                                     </span>
                                                                 );
                                                             }
                                                             return (
-                                                                <span style={{ color: '#222', fontWeight: 600 }}>{item.title}</span>
+                                                                <span className="ph-counselor-name">
+                                                                    {item.title}
+                                                                </span>
                                                             );
                                                         })()}
                                                         <p className="ph-td-method">{item.method}</p>
@@ -687,7 +668,7 @@ export default function App() {
                         </section>
                     </div>
 
-                    <div className="ph-col-side" style={isMobile ? { paddingBottom: 88 } : {}}>
+                    <div className={`ph-col-side ${isMobile ? 'ph-col-side--mobile-spaced' : ''}`}>
                         <div className="ph-panel-card">
                             <h4 className="ph-panel-heading">
                                 <AlertCircle size={16} className="ph-panel-heading-icon" />
@@ -708,9 +689,7 @@ export default function App() {
                                 </li>
                                 <li className="ph-refund-item">
                                     <div className="ph-refund-dot ph-refund-dot--amber" />
-                                    <p>
-                                        상담 시작 24시간 이내 취소 또는 노쇼(No-Show) 시 예약금은 환불되지 않습니다.
-                                    </p>
+                                    <p>상담 시작 24시간 이내 취소 또는 노쇼(No-Show) 시 예약금은 환불되지 않습니다.</p>
                                 </li>
                             </ul>
                         </div>
@@ -813,7 +792,12 @@ export default function App() {
                         <label className="input-label">아이디</label>
                         <div className="relative-input-box">
                             <Hash className="input-icon" size={20} />
-                            <input type="text" className="custom-input bg-readonly" value={userInfo.username} readOnly />
+                            <input
+                                type="text"
+                                className="custom-input bg-readonly"
+                                value={userInfo.username}
+                                readOnly
+                            />
                         </div>
                         <p className="input-helper-text">* 아이디는 변경할 수 없습니다.</p>
                     </div>
@@ -855,7 +839,7 @@ export default function App() {
                             />
                         </div>
                     </div>
-                    <div className="security-password-grid" style={{ position: 'relative' }}>
+                    <div className="security-password-grid security-password-grid--relative">
                         <div>
                             <label className="input-label">새 비밀번호</label>
                             <div className="relative-input-box">
@@ -888,32 +872,23 @@ export default function App() {
                         </div>
                     </div>
                     {pwFields.new1 && pwFields.new2 && pwFields.new1 !== pwFields.new2 && (
-                        <div
-                            style={{
-                                color: '#e57373',
-                                fontSize: '0.95rem',
-                                marginTop: 8,
-                                marginBottom: 0,
-                                fontWeight: 600,
-                            }}
-                        >
+                        <div className="password-mismatch-text">
                             비밀번호가 일치하지 않습니다.
                         </div>
                     )}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+                    <div className="profile-action-row">
                         <button
-                            className="pw-change-btn"
+                            className={`pw-change-btn ${pwLoading ? 'is-loading' : ''}`}
                             onClick={handleChangePassword}
                             disabled={pwLoading}
-                            style={{ opacity: pwLoading ? 0.6 : 1 }}
                         >
-                            <CheckCircle2 size={16} style={{ marginRight: 4 }} />
+                            <CheckCircle2 size={16} className="pw-change-btn-icon" />
                             비밀번호 변경
                         </button>
                     </div>
                 </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 32 }}>
+            <div className="profile-save-btn-row">
                 <button className="profile-save-full-btn" onClick={handleSaveProfile}>
                     <CheckCircle2 size={20} />
                     변경사항 저장
@@ -1051,79 +1026,111 @@ export default function App() {
         );
     };
 
+    // 문의내역 state 및 fetch
+    const [inquiryList, setInquiryList] = useState([]);
+    const [inquiryLoading, setInquiryLoading] = useState(false);
+    useEffect(() => {
+        if (activeMenu === 'inquiry') {
+            setInquiryLoading(true);
+            getMyInquiries()
+                .then((data) => setInquiryList(data))
+                .catch(() => setInquiryList([]))
+                .finally(() => setInquiryLoading(false));
+        }
+    }, [activeMenu]);
+
     const renderInquiryList = () => {
-        const inquiryList = [
-            {
-                id: 1,
-                title: '상담 예약 관련 문의',
-                content: '상담 예약이 정상적으로 되었는지 확인 부탁드립니다.',
-                date: '2026.04.20',
-                status: '답변 완료',
-                answer: '안녕하세요. 상담 예약이 정상적으로 완료되었습니다. 예약 시간에 맞춰 방문해 주세요.',
-            },
-            {
-                id: 2,
-                title: '결제 환불 요청',
-                content: '결제한 이용권 환불이 가능한가요?',
-                date: '2026.04.15',
-                status: '처리 중',
-                answer: null,
-            },
-        ];
         return (
             <div className="fade-in">
                 {isMobile && (
                     <button
-                        className="mobile-back-btn"
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            outline: 'none',
-                            boxShadow: 'none',
-                            padding: '1rem 0.5rem 0.5rem 0.5rem',
-                            margin: '0 0 0 0.2rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            color: '#222',
-                            fontSize: 18,
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            zIndex: 1000,
-                        }}
+                        className="mobile-back-btn mobile-back-btn--compact"
                         onClick={handleBackToDashboard}
                         aria-label="뒤로가기"
                     >
-                        <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
+                        <ChevronRight className="mp-rotate-180" size={22} />
                     </button>
                 )}
-                <div style={{ paddingTop: isMobile ? 48 : 0 }}>
-                    <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>문의내역</h3>
-                    <ul className="mypage-list mypage-list-grid">
-                        {inquiryList.map((item) => (
-                            <li key={item.id} className="mypage-list-item">
-                                <div className="mypage-list-title">{item.title}</div>
-                                <div className="mypage-list-meta">
-                                    {item.date} <span className="mypage-list-status">{item.status}</span>
-                                </div>
-                                <div className="mypage-list-content">{item.content}</div>
-                                {item.answer && (
-                                    <button
-                                        className="inquiry-answer-btn"
+                <div className={isMobile ? 'mp-mobile-top-offset-48' : ''}>
+                    <div className="inq-page-header">
+                        <h3 className="inq-page-title">문의내역</h3>
+                        <p className="inq-page-sub">접수하신 문의와 답변을 확인하세요.</p>
+                    </div>
+
+                    {inquiryLoading ? (
+                        <div className="mypage-list-empty">불러오는 중...</div>
+                    ) : inquiryList.length === 0 ? (
+                        <div className="inq-empty-state">
+                            <div className="inq-empty-icon">
+                                <MessageSquare size={32} />
+                            </div>
+                            <p className="inq-empty-title">문의내역이 없습니다</p>
+                            <p className="inq-empty-sub">궁금한 점이 있으시면 1:1 문의를 남겨주세요.</p>
+                        </div>
+                    ) : (
+                        <div className="inq-list">
+                            {inquiryList.map((item) => (
+                                <div key={item.id} className="inq-card">
+                                    <div
+                                        className="inq-card-header"
                                         onClick={() => setOpenInquiryId(openInquiryId === item.id ? null : item.id)}
                                     >
-                                        {openInquiryId === item.id ? '답변 닫기' : '답변 보기'}
-                                    </button>
-                                )}
-                                {item.answer && openInquiryId === item.id && (
-                                    <div className="inquiry-answer-box">
-                                        <div className="inquiry-answer-label">관리자 답변</div>
-                                        <div className="inquiry-answer-content">{item.answer}</div>
+                                        <div
+                                            className={`inq-status-dot ${
+                                                item.status === 'pending' ? 'dot-pending' : 'dot-done'
+                                            }`}
+                                        />
+                                        <div className="inq-meta">
+                                            <div className="inq-top-row">
+                                                <span
+                                                    className={`inq-badge ${
+                                                        item.status === 'pending' ? 'badge-pending' : 'badge-done'
+                                                    }`}
+                                                >
+                                                    {item.status === 'pending' ? '처리 중' : '답변 완료'}
+                                                </span>
+                                                <span className="inq-date">
+                                                    {item.created_at
+                                                        ? new Date(item.created_at).toLocaleDateString()
+                                                        : ''}
+                                                </span>
+                                            </div>
+                                            <p className="inq-title">{item.title}</p>
+                                            {openInquiryId !== item.id && <p className="inq-preview">{item.content}</p>}
+                                        </div>
+                                        <ChevronRight
+                                            size={18}
+                                            className={`inq-arrow-icon ${
+                                                openInquiryId === item.id ? 'inq-arrow-open' : ''
+                                            }`}
+                                        />
                                     </div>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
+
+                                    {openInquiryId === item.id && (
+                                        <div className="inq-body">
+                                            <p className="inq-content-label">문의 내용</p>
+                                            <p className="inq-content-text">{item.content}</p>
+
+                                            {item.answer ? (
+                                                <div className="inq-answer-block">
+                                                    <div className="inq-answer-label">
+                                                        <CheckCircle2 size={13} />
+                                                        관리자 답변
+                                                    </div>
+                                                    <p className="inq-answer-text">{item.answer}</p>
+                                                </div>
+                                            ) : (
+                                                <div className="inq-pending-notice">
+                                                    <AlertCircle size={14} />
+                                                    담당자가 검토 중입니다. 영업일 기준 1~2일 내 답변드릴게요.
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -1133,31 +1140,17 @@ export default function App() {
         <div className="fade-in">
             {isMobile && (
                 <button
-                    className="mobile-back-btn"
-                    style={{
-                        background: 'transparent',
-                        border: 'none',
-                        outline: 'none',
-                        boxShadow: 'none',
-                        padding: '1rem 0.5rem 0.5rem 0.5rem',
-                        margin: '0 0 0 0.2rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: '#222',
-                        fontSize: 18,
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        zIndex: 1000,
-                    }}
+                    className="mobile-back-btn mobile-back-btn--compact"
                     onClick={handleBackToDashboard}
                     aria-label="뒤로가기"
                 >
-                    <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
+                    <ChevronRight className="mp-rotate-180" size={22} />
                 </button>
             )}
-            <div style={{ paddingTop: isMobile ? 48 : 0 }}>
-                <h3 className="history-title" style={{ marginBottom: '2.2rem' }}>찜 목록</h3>
+            <div className={isMobile ? 'mp-mobile-top-offset-48' : ''}>
+                <h3 className="history-title history-title--spaced">
+                    찜 목록
+                </h3>
                 <ul className="mypage-list mypage-list-grid">
                     {favoritesLoading ? (
                         <li className="mypage-list-empty">불러오는 중...</li>
@@ -1165,12 +1158,18 @@ export default function App() {
                         <li className="mypage-list-empty">찜내역이 없습니다.</li>
                     ) : (
                         favoritesList.map((item) => {
-                            const counselorName = item.counselor_name || item.name || item.full_name || '알 수 없는 상담사';
+                            const counselorName =
+                                item.counselor_name || item.name || item.full_name || '알 수 없는 상담사';
                             let specialtiesArr = [];
                             if (item.field) {
-                                specialtiesArr = item.field.split(',').map((f) => f.trim()).filter(Boolean);
+                                specialtiesArr = item.field
+                                    .split(',')
+                                    .map((f) => f.trim())
+                                    .filter(Boolean);
                             } else if (Array.isArray(item.specialties)) {
-                                specialtiesArr = item.specialties.map((s) => s.specialty_name || s.name || s).filter(Boolean);
+                                specialtiesArr = item.specialties
+                                    .map((s) => s.specialty_name || s.name || s)
+                                    .filter(Boolean);
                             }
                             const category = item.category || '';
                             const intro = item.intro || item.description || '';
@@ -1180,7 +1179,11 @@ export default function App() {
                             const shownSpecialties = specialtiesArr.slice(0, 3);
                             const extraCount = specialtiesArr.length - 3;
                             const profileImg =
-                                item.profile_img_url || item.profile_image || item.profileImg || item.profile_url || null;
+                                item.profile_img_url ||
+                                item.profile_image ||
+                                item.profileImg ||
+                                item.profile_url ||
+                                null;
 
                             return (
                                 <li
@@ -1210,9 +1213,13 @@ export default function App() {
                                         <div className="mypage-list-meta">
                                             {category && <span className="mypage-list-category">{category}</span>}
                                             {shownSpecialties.map((f, i) => (
-                                                <span key={i} className="mypage-list-field">{f}</span>
+                                                <span key={i} className="mypage-list-field">
+                                                    {f}
+                                                </span>
                                             ))}
-                                            {extraCount > 0 && <span className="mypage-list-field-extra">+{extraCount}</span>}
+                                            {extraCount > 0 && (
+                                                <span className="mypage-list-field-extra">+{extraCount}</span>
+                                            )}
                                         </div>
                                         {intro && <div className="mypage-list-intro">{intro}</div>}
                                         {price && (
@@ -1248,41 +1255,21 @@ export default function App() {
                 return renderTicketsDetail();
             case 'profile':
                 return (
-                    <div className="fade-in" style={{ position: 'relative' }}>
+                    <div className="fade-in fade-in--relative">
                         {isMobile && !activeSubMenu && (
                             <button
-                                className="mobile-back-btn"
-                                style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    outline: 'none',
-                                    boxShadow: 'none',
-                                    margin: '0 0 0 0.2rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    color: '#222',
-                                    fontSize: 18,
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    zIndex: 1000,
-                                }}
+                                className="mobile-back-btn mobile-back-btn--flush"
                                 onClick={handleBackToDashboard}
                                 aria-label="뒤로가기"
                             >
-                                <ChevronRight style={{ transform: 'rotate(180deg)' }} size={22} />
+                                <ChevronRight className="mp-rotate-180" size={22} />
                             </button>
                         )}
-                        <div style={{ paddingTop: isMobile && !activeSubMenu ? 48 : 0 }}>
+                        <div className={isMobile && !activeSubMenu ? 'mp-mobile-top-offset-48' : ''}>
                             <h3
-                                className="account-main-title"
-                                style={{
-                                    marginTop: isMobile ? 0 : '2.2rem',
-                                    marginLeft: isMobile ? 40 : 0,
-                                    textAlign: 'left',
-                                    minHeight: 40,
-                                    lineHeight: '40px',
-                                }}
+                                className={`account-main-title ${
+                                    isMobile ? 'account-main-title--mobile' : 'account-main-title--desktop'
+                                }`}
                             >
                                 계정 설정
                             </h3>
@@ -1345,7 +1332,8 @@ export default function App() {
                                 </div>
                                 <p className="status-label">완료한 상담</p>
                                 <p className="status-value">
-                                    {completedConsultations}<span className="unit">회</span>
+                                    {completedConsultations}
+                                    <span className="unit">회</span>
                                 </p>
                             </div>
                         </div>
@@ -1358,11 +1346,17 @@ export default function App() {
                                     {primaryBooking ? (
                                         <>
                                             <div className="hero-badge-row">
-                                                <span className="hero-d-badge">D-{getDDay(primaryBooking.date, primaryBooking.time)}</span>
+                                                <span className="hero-d-badge">
+                                                    D-{getDDay(primaryBooking.date, primaryBooking.time)}
+                                                </span>
                                                 <p className="hero-subtitle">Next Session</p>
                                             </div>
-                                            <h3 className="hero-main-title">{primaryBooking.date} {primaryBooking.time}</h3>
-                                            <p className="mypage-hero-desc">{primaryBooking.name} 상담사와 1:1 상담 예정</p>
+                                            <h3 className="hero-main-title">
+                                                {primaryBooking.date} {primaryBooking.time}
+                                            </h3>
+                                            <p className="mypage-hero-desc">
+                                                {primaryBooking.name} 상담사와 1:1 상담 예정
+                                            </p>
                                         </>
                                     ) : (
                                         <>
@@ -1425,7 +1419,7 @@ export default function App() {
                             ))}
                         </div>
                         {/* dash-purchase-banner (더 많은 위로가 필요하신가요? 및 이용권 충전하기) 영역 제거됨 */}
-                        <section className="mobile-only-menu" style={{ paddingBottom: 72 }}>
+                        <section className="mobile-only-menu mobile-only-menu--spaced">
                             <h4 className="mobile-menu-label">전체 메뉴</h4>
                             <div className="mobile-menu-group">
                                 <div onClick={() => handleMenuClick('history')} className="mobile-menu-item border-b">
@@ -1464,31 +1458,13 @@ export default function App() {
         <>
             {isMobile && (
                 <button
-                    className="mobile-back-btn"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        background: 'transparent',
-                        border: 'none',
-                        outline: 'none',
-                        boxShadow: 'none',
-                        fontSize: 16,
-                        padding: '1rem',
-                        cursor: 'pointer',
-                        margin: '16px 0 0 8px',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        zIndex: 1000,
-                        color: '#222',
-                    }}
+                    className="mobile-back-btn mobile-back-btn--with-label"
                     onClick={handleBackToDashboard}
                 >
-                    <ChevronRight style={{ transform: 'rotate(180deg)' }} size={20} /> 뒤로가기
+                    <ChevronRight className="mp-rotate-180" size={20} /> 뒤로가기
                 </button>
             )}
-            <div style={{ paddingTop: isMobile ? 56 : 0 }}>
+            <div className={isMobile ? 'mp-mobile-top-offset-56' : ''}>
                 <div className="cmp-page-header">
                     <h2 className="cmp-page-title">알림 센터</h2>
                     <p className="cmp-page-sub">상담 일정, 예약 확정 등 최근 알림을 확인하세요.</p>
@@ -1593,9 +1569,12 @@ export default function App() {
                                 <p className="user-status-msg">마음 근육을 키운 지 42일째 되는 날이에요. 🌿</p>
                             </div>
                         </div>
-                        <button className="user-notif-check-btn" onClick={() => {
-                            setActiveMenu('notifications');
-                        }}>
+                        <button
+                            className="user-notif-check-btn"
+                            onClick={() => {
+                                setActiveMenu('notifications');
+                            }}
+                        >
                             <Bell size={18} className="icon-green" />
                             알림 확인
                         </button>

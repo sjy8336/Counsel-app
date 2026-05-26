@@ -18,6 +18,52 @@
 .pw-change-btn:hover:not(:disabled) {
     background-color: #6b8469;
 }
+.pw-change-btn.is-loading {
+    opacity: 0.6;
+}
+.pw-change-btn-icon {
+    margin-right: 4px;
+}
+
+.mobile-back-btn {
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    color: #222;
+}
+.mobile-back-btn--compact {
+    padding: 1rem 0.5rem 0.5rem 0.5rem;
+    margin: 0 0 0 0.2rem;
+    font-size: 18px;
+}
+.mobile-back-btn--flush {
+    margin: 0 0 0 0.2rem;
+    font-size: 18px;
+}
+.mobile-back-btn--with-label {
+    gap: 6px;
+    font-size: 16px;
+    padding: 1rem;
+    cursor: pointer;
+    margin: 16px 0 0 8px;
+}
+
+.mp-rotate-180 {
+    transform: rotate(180deg);
+}
+.mp-mobile-top-offset-48 {
+    padding-top: 48px;
+}
+.mp-mobile-top-offset-56 {
+    padding-top: 56px;
+}
 
 /* 고객센터 연락처 블록 스타일 */
 .support-contact-block {
@@ -351,6 +397,9 @@ img {
 .fade-in {
     animation: fadeIn 0.3s ease-in;
 }
+.fade-in--relative {
+    position: relative;
+}
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -374,6 +423,9 @@ img {
     font-weight: 900;
     color: #1e293b;
     margin: 0;
+}
+.history-title--spaced {
+    margin-bottom: 2.2rem;
 }
 .history-subtitle {
     color: #94a3b8;
@@ -1184,10 +1236,25 @@ img {
     grid-template-columns: 1fr;
     gap: 2rem;
 }
+.security-password-grid--relative {
+    position: relative;
+}
 @media (min-width: 768px) {
     .security-password-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+}
+.password-mismatch-text {
+    color: #e57373;
+    font-size: 0.95rem;
+    margin-top: 8px;
+    margin-bottom: 0;
+    font-weight: 600;
+}
+.profile-action-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
 }
 .profile-save-full-btn {
     background-color: #8ba888;
@@ -1215,6 +1282,7 @@ img {
     display: flex;
     justify-content: flex-end;
     width: 100%;
+    margin-top: 32px;
 }
 
 .ns-card {
@@ -1686,6 +1754,15 @@ img {
     color: #1e293b;
     margin-bottom: 1.5rem;
     margin-top: 0;
+    text-align: left;
+    min-height: 40px;
+    line-height: 40px;
+}
+.account-main-title--mobile {
+    margin-left: 40px;
+}
+.account-main-title--desktop {
+    margin-top: 2.2rem;
 }
 .setting-items-list {
     display: flex;
@@ -2081,6 +2158,9 @@ img {
 .mobile-only-menu {
     margin-top: 1rem;
 }
+.mobile-only-menu--spaced {
+    padding-bottom: 72px;
+}
 @media (min-width: 1024px) {
     .mobile-only-menu {
         display: none !important;
@@ -2374,39 +2454,6 @@ img {
     margin-bottom: 1.2rem;
     letter-spacing: -0.01em;
     margin-top: 0;
-}
-.inquiry-answer-btn {
-    margin-top: 0.7rem;
-    background: #8ba888;
-    color: #fff;
-    font-weight: 700;
-    font-size: 0.97rem;
-    border: none;
-    border-radius: 0.7rem;
-    padding: 0.5rem 1.2rem;
-    cursor: pointer;
-    transition: background 0.15s;
-}
-.inquiry-answer-btn:hover {
-    background: #6b8469;
-}
-.inquiry-answer-box {
-    margin-top: 1rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 1rem;
-    padding: 1rem 1.2rem;
-}
-.inquiry-answer-label {
-    font-size: 0.95rem;
-    font-weight: 800;
-    color: #8ba888;
-    margin-bottom: 0.3rem;
-}
-.inquiry-answer-content {
-    font-size: 0.98rem;
-    color: #334155;
-    line-height: 1.6;
 }
 
 /* ─── 찜 목록 ─── */
@@ -2902,6 +2949,13 @@ img {
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
+}
+.ph-col-side--mobile-spaced {
+    padding-bottom: 88px;
+}
+.ph-counselor-name {
+    color: #222;
+    font-weight: 600;
 }
 
 /* ---------- 최근 결제 하이라이트 카드 ---------- */
@@ -3433,4 +3487,316 @@ body {
     overflow-y: auto;
     height: 100vh;
     /* 기존 padding 유지 */
+}
+
+/* ── 문의내역 리디자인 ── */
+.inq-page-header {
+    margin-bottom: 1.5rem;
+}
+.inq-page-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #1e293b;
+    margin: 0;
+}
+.inq-page-sub {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    margin: 4px 0 0;
+}
+
+.inq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.inq-card {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.inq-card:hover {
+    border-color: #c6dbc4;
+    box-shadow: 0 4px 12px rgba(139, 168, 136, 0.08);
+}
+
+.inq-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.inq-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+.dot-pending { background: #f59e0b; }
+.dot-done    { background: #8ba888; }
+
+.inq-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.inq-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+    flex-wrap: wrap;
+}
+
+.inq-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+.badge-pending { background: #fffbeb; color: #b45309; }
+.badge-done    { background: #e8f0e7; color: #3b5d50; }
+
+.inq-date {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.inq-title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 4px;
+    word-break: keep-all;
+    line-height: 1.4;
+}
+
+.inq-preview {
+    font-size: 0.8125rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    max-width: 100%;
+}
+
+.inq-arrow-icon {
+    color: #cbd5e1;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+    margin-top: 2px;
+}
+.inq-arrow-open {
+    transform: rotate(90deg);
+}
+
+.inq-body {
+    border-top: 1px solid #f1f5f9;
+    padding: 14px 18px;
+    background: #fafcfa;
+}
+
+.inq-content-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+}
+
+.inq-content-text {
+    font-size: 0.875rem;
+    color: #334155;
+    line-height: 1.7;
+    margin: 0;
+    word-break: keep-all;
+}
+
+.inq-answer-block {
+    margin-top: 12px;
+    background: #ffffff;
+    border: 1px solid #e8f0e7;
+    border-radius: 0.875rem;
+    padding: 12px 14px;
+}
+
+.inq-answer-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8ba888;
+    letter-spacing: 0.05em;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.inq-answer-text {
+    font-size: 0.875rem;
+    color: #334155;
+    line-height: 1.7;
+    margin: 0;
+    word-break: keep-all;
+}
+
+.inq-pending-notice {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 0.75rem;
+    background: #fafaf9;
+    border: 1px dashed #e2e8f0;
+    font-size: 0.8125rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    word-break: keep-all;
+    line-height: 1.5;
+}
+
+.inq-empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #94a3b8;
+}
+.inq-empty-icon {
+    margin-bottom: 12px;
+    color: #cbd5e1;
+    display: flex;
+    justify-content: center;
+}
+.inq-empty-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #64748b;
+    margin: 0 0 4px;
+}
+.inq-empty-sub {
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* ── 태블릿 (768px 이하) ── */
+@media (max-width: 768px) {
+    .inq-page-title {
+        font-size: 1.25rem;
+    }
+
+    .inq-card-header {
+        padding: 14px 16px;
+        gap: 10px;
+    }
+
+    .inq-title {
+        font-size: 0.9rem;
+    }
+
+    .inq-body {
+        padding: 12px 16px;
+    }
+
+    .inq-answer-block {
+        padding: 10px 12px;
+    }
+
+    .inq-empty-state {
+        padding: 3rem 1rem;
+    }
+}
+
+/* ── 모바일 (480px 이하) ── */
+@media (max-width: 480px) {
+    .inq-page-header {
+        margin-bottom: 1.25rem;
+    }
+
+    .inq-page-title {
+        font-size: 1.125rem;
+    }
+
+    .inq-page-sub {
+        font-size: 0.8125rem;
+    }
+
+    .inq-list {
+        gap: 10px;
+    }
+
+    .inq-card {
+        border-radius: 1rem;
+    }
+
+    .inq-card-header {
+        padding: 13px 14px;
+        gap: 10px;
+    }
+
+    .inq-status-dot {
+        width: 7px;
+        height: 7px;
+        margin-top: 5px;
+    }
+
+    .inq-badge {
+        font-size: 10px;
+        padding: 2px 7px;
+    }
+
+    .inq-date {
+        font-size: 11px;
+    }
+
+    .inq-title {
+        font-size: 0.875rem;
+        margin-bottom: 3px;
+    }
+
+    .inq-preview {
+        font-size: 0.75rem;
+    }
+
+    .inq-body {
+        padding: 11px 14px;
+    }
+
+    .inq-content-label {
+        font-size: 10px;
+    }
+
+    .inq-content-text,
+    .inq-answer-text {
+        font-size: 0.8125rem;
+    }
+
+    .inq-pending-notice {
+        font-size: 0.75rem;
+        padding: 9px 10px;
+    }
+
+    .inq-answer-block {
+        padding: 10px 11px;
+        border-radius: 0.75rem;
+    }
+
+    .inq-empty-state {
+        padding: 2.5rem 1rem;
+    }
+
+    .inq-empty-title {
+        font-size: 0.9375rem;
+    }
+
+    .inq-empty-sub {
+        font-size: 0.8125rem;
+    }
 }

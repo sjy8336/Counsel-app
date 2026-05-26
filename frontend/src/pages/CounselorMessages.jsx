@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import MobileTap from '../components/mobileTap';
+import { getReceivedInquiries } from '../api/inquiry';
+import axios from 'axios';
 import {
     Search,
     MessageSquare,
@@ -21,50 +23,15 @@ import {
 import '../static/CounselorMessages.css';
 
 const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
-    /* ── 1. 초기 데이터 ── */
-    const initialInquiries = [
-        {
-            id: 1,
-            sender: '김하늘님',
-            title: '비대면 화상 상담도 가능한가요?',
-            content:
-                '안녕하세요 코치님. 제가 지방에 거주하고 있어서 대면 상담은 조금 어려울 것 같은데, 혹시 구글 미트나 줌을 이용한 비대면 화상 상담도 진행하시는지 궁금해서 문의 남깁니다. 가능하다면 비용 차이가 있는지도 알려주세요!',
-            date: '2024.05.21',
-            status: 'pending',
-            tag: '상담문의',
-        },
-        {
-            id: 2,
-            sender: '박민우님',
-            title: '상담 시간 변경 요청드립니다 (5/23)',
-            content:
-                '코치님 안녕하세요. 이번 주 목요일(23일) 오후 3시 예약자 박민우입니다. 갑작스러운 회사 업무로 인해 시간을 조정해야 할 것 같은데, 혹시 당일 저녁 7시나 아니면 금요일 오전으로 변경이 가능할까요? 확인 부탁드립니다.',
-            date: '2024.05.21',
-            status: 'pending',
-            tag: '일정변경',
-        },
-        {
-            id: 3,
-            sender: '이정희님',
-            title: '공황 증상 관련해서도 상담하시나요?',
-            content:
-                '최근 지하철에서 갑자기 숨이 가빠지는 경험을 했습니다. 전문적인 치료와 병행하면서 마음 관리 상담을 받고 싶은데, 이런 증상에 대해서도 상담을 진행하시는지 궁금합니다.',
-            date: '2024.05.20',
-            status: 'completed',
-            tag: '상담문의',
-            myReply:
-                '안녕하세요 이정희님, 마음의 어려움을 겪고 계시는군요. 네, 공황 증상은 신체적인 반응과 심리적인 불안이 결합된 경우가 많아 상담을 통해 큰 도움을 받으실 수 있습니다. 병원 치료와 병행하신다면 더욱 효과적일 거예요. 편하신 시간에 예약해 주시면 자세히 이야기 나누어 보겠습니다.',
-        },
-    ];
-
     /* ── 2. 상태 관리 ── */
-    const [inquiries, setInquiries] = useState(initialInquiries);
+    const [inquiries, setInquiries] = useState([]);
     const [selectedInquiryId, setSelectedInquiryId] = useState(null);
     const [replyText, setReplyText] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [inquiriesLoading, setInquiriesLoading] = useState(false);
 
     const filterRef = useRef(null);
 
@@ -81,13 +48,53 @@ const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
     }, []);
 
     /* ── 3. 필터링 ── */
-    const filteredInquiries = inquiries.filter((inquiry) => {
+    // DB에서 온 데이터 필드 매핑 (sender, tag, date 등)
+    const mappedInquiries = inquiries.map((inquiry) => {
+        // 내담자 이름 우선순위: client_name → client.full_name → client.username → client_id → '내담자'
+        let sender =
+            inquiry.client_name ||
+            inquiry.client?.full_name ||
+            inquiry.client?.username ||
+            (inquiry.client_id ? `내담자#${inquiry.client_id}` : '') ||
+            '내담자';
+        if (inquiry.sender) sender = inquiry.sender;
+        // 답변 내용 매핑: answer(백엔드) → myReply(프론트)
+        let myReply = inquiry.myReply || inquiry.reply || inquiry.answer || '';
+        // 답변 완료 상태 자동 처리
+        let status = inquiry.status || inquiry.inquiry_status || (myReply ? 'completed' : 'pending');
+        return {
+            ...inquiry,
+            sender,
+            tag: inquiry.tag || inquiry.type || '상담문의',
+            date:
+                inquiry.date ||
+                (inquiry.created_at ? String(inquiry.created_at).slice(0, 10) : '') ||
+                inquiry.created ||
+                '',
+            status,
+            title: inquiry.title,
+            content: inquiry.content,
+            myReply,
+            id: inquiry.id,
+        };
+    });
+
+    const filteredInquiries = mappedInquiries.filter((inquiry) => {
         const matchesSearch = inquiry.sender.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'all' ? true : inquiry.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
 
-    const selectedInquiry = inquiries.find((i) => i.id === selectedInquiryId);
+    // 상담사 받은 문의 DB에서 불러오기
+    useEffect(() => {
+        setInquiriesLoading(true);
+        getReceivedInquiries()
+            .then((data) => setInquiries(data))
+            .catch(() => setInquiries([]))
+            .finally(() => setInquiriesLoading(false));
+    }, []);
+
+    const selectedInquiry = mappedInquiries.find((i) => i.id === selectedInquiryId);
 
     /* ── 4. 사이드 이펙트 ── */
     useEffect(() => {
@@ -101,14 +108,25 @@ const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
     }, []);
 
     /* ── 5. 핸들러 ── */
-    const handleSendReply = () => {
+    // 답변 전송 핸들러: PATCH API 호출로 DB에 저장
+    const handleSendReply = async () => {
         if (!replyText.trim() || !selectedInquiryId) return;
-        setInquiries((prev) =>
-            prev.map((inquiry) =>
-                inquiry.id === selectedInquiryId ? { ...inquiry, status: 'completed', myReply: replyText } : inquiry
-            )
-        );
-        setReplyText('');
+        try {
+            // 답변 저장 API 호출 (PATCH)
+            const token = localStorage.getItem('access_token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            await axios.put(
+                `${import.meta.env.VITE_API_BASE_URL}/inquiries/${selectedInquiryId}/reply`,
+                { answer: replyText },
+                { headers }
+            );
+            // 저장 후 목록 새로고침
+            const data = await getReceivedInquiries();
+            setInquiries(data);
+            setReplyText('');
+        } catch (e) {
+            alert('답변 저장에 실패했습니다.');
+        }
     };
 
     const toggleFilter = () => setIsFilterOpen(!isFilterOpen);
