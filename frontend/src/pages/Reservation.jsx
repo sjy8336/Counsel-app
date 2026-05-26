@@ -13,7 +13,6 @@ import {
     Heart,
     User,
     AlertCircle,
-    ChevronRight,
     X,
     CalendarX,
 } from 'lucide-react';
@@ -65,25 +64,21 @@ const EmptyState = ({ filter }) => (
 
 // ── 메인 ────────────────────────────────────────────────────
 export default function ReservationHistoryPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
-    // 뒤로가기 버튼 및 모바일 관련 코드 제거
     const [filter, setFilter] = useState('전체');
     const [historyData, setHistoryData] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
     const [blockedMsg, setBlockedMsg] = useState('');
 
-    // 상담사 역할이면 리다이렉트
     useEffect(() => {
         try {
             const u = JSON.parse(localStorage.getItem('user'));
             if (u?.role === 'counselor') {
-                // navigate가 정의되어 있지 않으면 오류 발생하므로, 제거 또는 주석 처리
-                // navigate('/CounselorPlanner', { replace: true });
+                // 리다이렉트가 필요할 경우 여기에 작성
             }
         } catch {}
     }, []);
 
-    // 예약 목록 불러오기 + 자동 완료 처리
     useEffect(() => {
         const fetchAndUpdate = async () => {
             let data = await getAllBookings();
@@ -116,7 +111,6 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
         (item) => filter === '전체' || getStatusText(item.booking_status) === filter
     );
 
-    // 취소 버튼 클릭
     const handleCancelClick = (id) => {
         const item = historyData.find((i) => i.id === id);
         if (!item) return;
@@ -130,7 +124,6 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
         setIsModalOpen(true);
     };
 
-    // 취소 확정
     const confirmCancel = async () => {
         const item = historyData.find((i) => i.id === selectedId);
         if (!item || isTooLateToCancel(item.date)) {
@@ -148,14 +141,6 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
         setBlockedMsg('');
     };
 
-    const NAV_ITEMS = [
-        { to: '/', Icon: Home, label: '홈' },
-        { to: '/reservation', Icon: Calendar, label: '예약 관리', active: true },
-        { to: '/ai-diary', Icon: BookOpen, label: 'AI 일기' },
-        { to: '/healing', Icon: Heart, label: '힐링 라운지' },
-        { to: '/mypage', Icon: User, label: '마이페이지' },
-    ];
-
     return (
         <div className="res-root">
             <Header
@@ -167,10 +152,7 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                 setIsLoggedIn={setIsLoggedIn}
             />
 
-
-
             <main className="res-container">
-                {/* ...existing code... */}
                 <div className="res-top">
                     <div className="res-badge">예약 관리</div>
                     <h2 className="res-title">
@@ -178,7 +160,7 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                     </h2>
                     <p className="res-sub">상담사와 함께하는 일정을 한눈에 확인하세요.</p>
                 </div>
-                {/* ...existing code... */}
+
                 <nav className="res-tabs">
                     {TABS.map((tab) => (
                         <button
@@ -190,7 +172,7 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                         </button>
                     ))}
                 </nav>
-                {/* ...existing code... */}
+
                 {filteredData.length === 0 ? (
                     <EmptyState filter={filter} />
                 ) : (
@@ -231,7 +213,6 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
                                                 취소하기
                                             </button>
                                         )}
-                                        <ChevronRight size={20} className="res-chevron" />
                                     </div>
                                 </div>
                             );

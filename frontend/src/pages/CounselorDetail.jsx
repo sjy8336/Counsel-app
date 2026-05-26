@@ -10,7 +10,7 @@ import { User, Calendar, ChevronLeft, ChevronRight, Clock, CheckCircle, MessageC
 import Header from '../components/header';
 import Footer from '../components/footer';
 import MobileTap from '../components/mobileTap';
-import '../static/Counselor.css';
+import '../static/CounselorDetail.css';
 
 export default function CounselorDetailPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
     const { id } = useParams();

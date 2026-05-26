@@ -119,8 +119,8 @@
     border: 1px solid var(--r-border);
     padding: 20px 24px;
     display: flex;
-    align-items: stretch;
-    gap: 0;
+    align-items: center;
+    gap: 16px;
     box-shadow: var(--r-shadow);
     transition: box-shadow .2s, transform .2s;
 }
@@ -130,7 +130,7 @@
     transform: translateY(-1px);
 }
 
-/* 날짜 + 상태 — 우측 구분선 */
+/* 날짜 + 상태 */
 .res-item-left {
     display: flex;
     flex-direction: column;
@@ -169,7 +169,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
 }
 
 .res-counselor {
@@ -206,7 +206,6 @@
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
-    padding-left: 16px;
 }
 
 .res-cancel-btn {
@@ -381,40 +380,108 @@
     .res-title { font-size: 24px; }
 }
 
-/* Mobile */
+/* Mobile - 모바일-퍼스트 한눈에 들어오는 뷰 최적화 */
 @media (max-width: 767px) {
-    .res-container { padding: 28px 14px 100px; }
-    .res-title { font-size: 22px; }
+    .res-container { padding: 20px 16px 100px; }
+    .res-top { margin-bottom: 24px; gap: 6px; }
+    .res-title { font-size: 20px; }
+    .res-sub { font-size: 13px; }
 
+    /* 상단 일정 필터 버튼 터치 슬라이드 스크롤화 */
+    .res-tabs {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 6px;
+        margin-bottom: 20px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .res-tabs::-webkit-scrollbar { display: none; }
+    
+    .res-tab {
+        padding: 6px 14px;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    /* 컴팩트 카드 레이아웃 */
+    .res-list { gap: 10px; }
+    
     .res-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 18px 16px;
-    }
-
-    .res-item-left {
-        flex-direction: row;
+        flex-direction: row;      /* 가로 정렬 구조로 변경하여 여백 압축 */
         align-items: center;
-        gap: 10px;
-        padding-right: 0;
-        border-bottom: 1px solid var(--r-border);
-        padding-bottom: 12px;
-        width: 100%;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-radius: 14px;
+        gap: 12px;
     }
 
-    .res-item-body { padding: 0; }
+    /* 좌측 날짜 및 확정 태그 배열 컴팩트화 */
+    .res-item-left {
+        width: auto;
+        padding-right: 0;
+        border-bottom: none;
+        padding-bottom: 0;
+        gap: 4px;
+        align-items: flex-start;
+    }
 
+    .res-date {
+        font-size: 12px;
+        color: var(--r-sub);
+    }
+
+    .res-status-tag {
+        padding: 2px 6px;
+        font-size: 10px;
+        border-radius: 4px;
+    }
+
+    /* 중앙 상담 정보 배치 */
+    .res-item-body {
+        padding: 0;
+        gap: 3px;
+    }
+
+    .res-counselor {
+        font-size: 15px;
+        margin-bottom: 0;
+    }
+
+    /* 핵심 수정: 시간이랑 장소를 세로 분할 없이 PC처럼 가로 배치 유지 */
+    .res-details {
+        display: flex;
+        flex-direction: row;      /* 가로 정렬 강제 */
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        flex-wrap: nowrap;        /* 한 줄 고정 */
+    }
+    
+    .res-details span { 
+        width: auto;              /* 너비 자동화로 인라인 유지 */
+        display: inline-flex; 
+        white-space: nowrap; 
+    }
+    
+    .res-divider { 
+        display: inline;          /* 모바일에서도 깔끔하게 가로 구분선 활성화 */
+        color: var(--r-border); 
+    }
+
+    /* 우측 버튼 배치 */
     .res-item-right {
-        padding-left: 0;
-        border-left: none;
-        border-top: 1px solid var(--r-border);
-        padding-top: 12px;
-        width: 100%;
+        padding-top: 0;
+        border-top: none;
+        width: auto;
         justify-content: flex-end;
     }
 
-    .res-tab { padding: 7px 14px; font-size: 12px; }
+    .res-cancel-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+        border-radius: 20px;
+    }
 
     /* 모바일 하단 네비 */
     .res-bottom-nav {

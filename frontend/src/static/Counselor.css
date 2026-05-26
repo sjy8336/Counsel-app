@@ -1,982 +1,426 @@
-/* 상담 분야 태그형 디자인 */
-.cld-field-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 10px;
-    margin-bottom: 12px;
-}
-.cld-field-tag {
-    display: inline-block;
-    background: #f5f6fa;
-    color: #4b5563;
-    border-radius: 16px;
-    padding: 4px 12px;
-    font-size: 13px;
-    font-weight: 400;
-    border: 1.2px solid #e2e8f0;
-    box-shadow: 0 1px 4px rgba(30, 41, 59, 0.02);
-    letter-spacing: 0.01em;
-    user-select: none;
-}
+/* ==========================================================================
+   1. 레이아웃 기본
+   ========================================================================== */
 
-/* 예약하기 버튼 옆 하트(찜) 버튼 */
-.cld-reserve-action-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-.cld-heart-btn-reserve {
-    background: #f5f6fa;
-    border: 1.5px solid #e2e8f0;
-    outline: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    border-radius: 10px;
-    transition:
-        background 0.18s,
-        border 0.18s,
-        box-shadow 0.18s;
-    height: 48px;
-    width: 48px;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(30, 41, 59, 0.04);
-}
-.cld-heart-btn-reserve svg {
-    transition:
-        fill 0.2s,
-        stroke 0.2s;
-}
-.cld-heart-btn-reserve.liked {
-    background: #fdf2f8;
-    border-color: #fda4af;
-    box-shadow: 0 4px 16px rgba(253, 164, 175, 0.13);
-}
-.cld-heart-btn-reserve.liked svg {
-    filter: drop-shadow(0 1px 2px #f8d7da);
-}
-.cld-heart-btn-reserve:active {
-    background: #fdf2f8;
-    transform: scale(1.08);
-}
-
-/* 페이지 래퍼 */
-.cld-full-page-wrapper {
+.counlist-full-page-wrapper {
     background-color: #fdfbf7;
-}
-.cld-counselor-list-container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 60px 20px;
+    width: 100%;
     min-height: 100vh;
-}
-.cld-counselor-list-container.wide {
-    max-width: 1400px;
-    padding: 60px 40px;
-}
-.cld-counselor-grid.cld-pc-full {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 40px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    position: relative;
 }
 
-/* 검색 헤더 */
-.cld-clist-search-header {
+.counlist-counselor-list-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px 120px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.counlist-clist-search-header {
     text-align: center;
-    margin-bottom: 50px;
+    margin-bottom: 32px;
+    width: 100%;
+    box-sizing: border-box;
 }
-.cld-clist-search-bar-wrapper {
+
+.counlist-clist-search-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+}
+
+/* ==========================================================================
+   2. 검색바 & 드롭다운 필터
+   ========================================================================== */
+
+.counlist-modern-filter-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 680px;
+    margin: 24px auto 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.counlist-clist-search-bar-wrapper {
     position: relative;
-    max-width: 550px;
-    margin: 24px auto;
+    flex: 1;
+    min-width: 0;
 }
-.cld-clist-search-icon {
+
+.counlist-clist-search-icon {
     position: absolute;
-    left: 20px;
+    left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: #8ba888;
-}
-.cld-clist-search-input {
-    width: 100%;
-    padding: 15px 15px 15px 50px;
-    border: 1.5px solid #faf7f2;
-    border-radius: 12px;
-    background: #ffffff;
-    color: #1e293b;
-    outline: none;
-    transition: all 0.2s;
-}
-.cld-clist-search-input:focus {
-    border-color: #8ba888;
-    box-shadow: 0 0 0 3px rgba(139, 168, 136, 0.1);
-}
-
-/* 시간 선택 버튼 */
-.cld-time-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px 8px;
-    margin-top: 8px;
-    margin-bottom: 8px;
-    justify-content: flex-start;
-    align-items: flex-start;
-    min-height: 48px;
-}
-.cld-time-btn {
-    padding: 8px 16px;
-    border-radius: 10px;
-    border: 1.5px solid #d1d5db;
-    background: #f5f6fa;
-    color: #6b7280;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.18s;
-    outline: none;
-    box-shadow: 0 2px 8px rgba(30, 41, 59, 0.04);
-}
-.cld-time-btn:hover:not(:disabled),
-.cld-time-btn:focus-visible:not(:disabled) {
-    background: #8ba888;
-    color: #fff;
-    border-color: #8ba888;
-}
-.cld-time-btn.active {
-    background: #8ba888;
-    color: #fff;
-    border-color: #8ba888;
-    box-shadow: 0 4px 16px rgba(139, 168, 136, 0.13);
-}
-.cld-time-btn:disabled {
-    background: #f1f5f9;
-    color: #cbd5e1;
-    border: 1.5px solid #e2e8f0;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-/* 카테고리 탭 */
-.cld-category-tabs {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-.cld-category-btn {
-    padding: 10px 25px;
-    background: #faf7f2;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    color: #1e293b;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.3s;
-}
-.cld-category-btn:hover {
-    background: #e5e1da;
-}
-.cld-category-btn.active {
-    background: #8ba888;
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(139, 168, 136, 0.25);
-}
-
-/* 카드 그리드 */
-.cld-counselor-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 30px;
-}
-.cld-counselor-card {
-    background: #ffffff;
-    border-radius: 24px;
-    padding: 30px;
-    border: 1px solid #faf7f2;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 15px rgba(30, 41, 59, 0.02);
-}
-.cld-counselor-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 30px rgba(30, 41, 59, 0.08);
-}
-.cld-card-top {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-.cld-profile-placeholder {
-    width: 64px;
-    height: 64px;
-    background: #faf7f2;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #8ba888;
-}
-
-.cld-type-badge {
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    height: fit-content;
-}
-.cld-type-badge[data-type='비대면'] {
-    background: #e0f2fe;
-    color: #0369a1;
-}
-.cld-type-badge[data-type='대면'] {
-    background: #fdf2f2;
-    color: #fda4af;
-}
-
-.cld-counselor-category-label {
-    font-size: 0.8rem;
-    color: #8ba888;
-    font-weight: 700;
-    margin-bottom: 6px;
-    display: block;
-}
-.cld-counselor-name {
-    font-size: 1.35rem;
-    margin: 0 0 8px;
-    color: #1e293b;
-}
-.cld-counselor-field-tags,
-.cld-counselor-intro {
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-}
-.cld-counselor-field-tags {
-    font-size: 0.85rem;
-    color: #64748b;
-    margin-bottom: 15px;
-    display: block;
-}
-.cld-counselor-intro {
-    font-size: 0.95rem;
-    color: #475569;
-    line-height: 1.6;
-    flex: 1;
-}
-
-.cld-heart-btn {
-    background: none;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 2px 2px 0 2px;
-    margin-left: 6px;
-    transition: transform 0.1s;
-    vertical-align: middle;
-    display: flex;
-}
-.cld-heart-btn svg {
-    transition:
-        fill 0.2s,
-        color 0.2s;
-}
-.cld-heart-btn.liked svg {
-    filter: drop-shadow(0 1px 2px #f8d7da);
-}
-
-.cld-card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1.5px solid #fdfbf7;
-    padding-top: 20px;
-    margin-top: 20px;
-}
-.cld-price-info {
-    font-weight: 700;
-    color: #f59e0b;
-    font-size: 1.05rem;
-}
-.cld-view-detail-btn {
-    background: none;
-    border: none;
-    color: #8ba888;
-    font-weight: 700;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-.cld-view-detail-btn:hover {
-    opacity: 0.7;
-}
-.cld-no-results {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 100px 0;
     color: #94a3b8;
-}
-
-/* 상세 페이지 2분할 레이아웃 */
-.cld-detail-split-container {
-    display: flex;
-    max-width: 1400px;
-    margin: 40px auto;
-    gap: 40px;
-    padding: 0 40px;
-    background-color: #fdfbf7;
-}
-.cld-detail-left {
-    flex: 6;
-    background: #ffffff;
-    padding: 40px;
-    border-radius: 24px;
-    border: 1px solid #faf7f2;
-    box-shadow: 0 4px 15px rgba(30, 41, 59, 0.02);
-}
-
-.cld-counselor-profile-header {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-    padding-bottom: 30px;
-    border-bottom: 1px solid #faf7f2;
-    margin-bottom: 30px;
-}
-.cld-large-profile {
-    width: 100px;
-    height: 100px;
-    background: #faf7f2;
-    border-radius: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #8ba888;
-    overflow: hidden;
-}
-.cld-large-profile-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 30px;
-    background: #faf7f2;
-    display: block;
-}
-.cld-detail-category {
-    font-size: 0.9rem;
-    color: #8ba888;
-    font-weight: 700;
-}
-.cld-detail-name {
-    font-size: 2.2rem;
-    color: #1e293b;
-    margin: 5px 0;
-}
-.cld-type-tag {
-    font-size: 0.9rem;
-    color: #64748b;
-}
-
-.cld-detail-content h3 {
-    font-size: 1.1rem;
-    color: #1e293b;
-    margin: 32px 0 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 700;
-}
-.cld-detail-content h3::before {
-    content: '';
-    display: inline-block;
-    width: 3px;
-    height: 14px;
-    background: #8ba888;
-    border-radius: 3px;
-    flex-shrink: 0;
-}
-.cld-detail-content p {
-    line-height: 1.8;
-    color: #475569;
-    font-size: 1rem;
-}
-
-/* ── 이력 목록 ── */
-.cld-history-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-.cld-history-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 9px;
-    padding: 10px 0;
-    color: #475569;
-    font-size: 0.93rem;
-    line-height: 1.65;
-    border-bottom: 1px solid #f5f2ee;
-}
-.cld-history-list li:last-child {
-    border-bottom: none;
-}
-.cld-check-icon {
-    color: #8ba888;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-/* 오른쪽 예약 영역 */
-.cld-detail-right {
-    flex: 4;
-}
-.cld-sticky-reservation-card {
-    position: sticky;
-    top: 100px;
-    background: #ffffff;
-    padding: 35px;
-    border-radius: 24px;
-    border: 1.5px solid #8ba888;
-    box-shadow: 0 10px 30px rgba(139, 168, 136, 0.1);
-}
-.cld-sticky-reservation-card > h3 {
-    margin-bottom: 14px;
-}
-.cld-price-tag-large {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #faf7f2;
-    padding: 20px;
-    border-radius: 15px;
-    margin-bottom: 30px;
-}
-.cld-price-value {
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: #f59e0b;
-}
-.cld-price-label {
-    font-size: 0.9rem;
-    color: #64748b;
-}
-.cld-reservation-step {
-    margin-bottom: 25px;
-}
-.cld-reservation-step label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 12px;
-}
-
-.cld-reserve-submit-btn {
-    width: 100%;
-    padding: 18px;
-    background: #8ba888;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.cld-reserve-submit-btn:hover {
-    background: #7a9677;
-    transform: translateY(-2px);
-}
-.cld-reserve-submit-btn:disabled {
-    background: #cbd5e1;
-    cursor: wait;
-}
-
-.cld-back-btn-clear {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin-bottom: 25px;
-    color: #475569;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.cld-back-btn-clear:hover {
-    color: #8ba888;
-    transform: translateX(-3px);
-}
-.cld-back-btn-clear svg {
-    display: block;
-}
-
-.cld-time-btn.disabled {
-    background: #f1f5f9;
-    color: #cbd5e1;
-    cursor: not-allowed;
-    border: 1px solid #e2e8f0;
-}
-.cld-inquiry-btn {
-    width: 100%;
-    margin-top: 15px;
-    padding: 14px;
-    background: #ffffff;
-    color: #8ba888;
-    border: 1.5px solid #8ba888;
-    border-radius: 12px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.cld-inquiry-btn:hover {
-    background: #faf7f2;
-    color: #7a9677;
-}
-
-/* 달력 */
-.cld-date-picker-container {
-    position: relative;
-    width: 100%;
-    font-family: 'Pretendard', sans-serif;
-}
-.cld-date-input-wrapper {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    background-color: #fdfbf7;
-    border: 1px solid #8ba888;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.cld-date-input-wrapper:hover {
-    background-color: #faf7f2;
-}
-.cld-calendar-icon {
-    color: #8ba888;
-    margin-right: 12px;
-}
-.cld-date-display-input {
-    border: none;
-    background: transparent;
-    color: #1e293b;
-    font-size: 15px;
-    outline: none;
-    cursor: pointer;
-    width: 100%;
-}
-
-.cld-calendar-popup {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    width: 100%;
-    background-color: #ffffff;
-    border-radius: 16px;
-    box-shadow:
-        0 12px 32px rgba(30, 41, 59, 0.1),
-        0 2px 8px rgba(30, 41, 59, 0.04);
-    border: 1px solid #ede9e3;
-    padding: 20px;
-    z-index: 100;
-}
-.cld-calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-.cld-current-month-text {
-    font-weight: 700;
-    color: #1e293b;
-    font-size: 16px;
-}
-.cld-nav-button {
-    background: none;
-    border: none;
-    color: #8ba888;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    padding: 4px;
-    border-radius: 50%;
-    transition: background 0.2s;
-}
-.cld-nav-button:hover {
-    background-color: #faf7f2;
-}
-
-.cld-calendar-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    margin-bottom: 10px;
-}
-.cld-weekday-label {
-    text-align: center;
-    font-size: 12px;
-    font-weight: 600;
-    color: #8ba888;
-}
-
-.cld-calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-}
-
-/* ── 날짜 셀 ── */
-.cld-calendar-day {
-    aspect-ratio: 7/5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13.5px;
-    font-weight: 400;
-    border-radius: 10px;
-    transition:
-        background 0.15s,
-        color 0.15s;
-    color: #1e293b;
-}
-.cld-calendar-day.enabled {
-    cursor: pointer;
-}
-.cld-calendar-day.enabled:hover {
-    background-color: #f0f5f0;
-    color: #7a9677;
-    font-weight: 600;
-}
-.cld-calendar-day.selected {
-    background-color: #8ba888;
-    color: #ffffff;
-    font-weight: 700;
-    box-shadow: 0 2px 8px rgba(139, 168, 136, 0.3);
-}
-.cld-calendar-day.disabled {
-    color: #d1d5db;
-    cursor: not-allowed;
     pointer-events: none;
 }
 
-.cld-calendar-footer {
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid #faf7f2;
-    font-size: 11px;
-    color: #8ba888;
+.counlist-clist-search-input {
+    width: 100%;
+    height: 48px;
+    padding: 12px 16px 12px 48px;
+    border: 1.5px solid #ede9e3;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    color: #334155;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(30,41,59,0.03);
+    transition: all 0.2s;
+    box-sizing: border-box;
 }
-.cld-legend-item {
+
+.counlist-clist-search-input:focus {
+    outline: none;
+    border-color: #8ba888;
+    box-shadow: 0 4px 12px rgba(139,168,136,0.15);
+}
+
+/* 드롭다운 */
+.counlist-custom-dropdown-root { position: relative; flex-shrink: 0; }
+
+.counlist-dropdown-trigger-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-}
-.cld-dot.accent {
-    width: 6px;
-    height: 6px;
-    background-color: #fda4af;
-    border-radius: 50%;
+    gap: 8px;
+    height: 48px;
+    min-width: 140px;
+    max-width: 170px;
+    padding: 0 16px;
+    background: #fff;
+    border: 1.5px solid #ede9e3;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-sizing: border-box;
 }
 
-/* 토스트 */
-.cld-mp-toast {
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1e293b;
-    color: #fff;
-    font-size: 0.875rem;
+.counlist-dropdown-trigger-btn:hover,
+.counlist-dropdown-trigger-btn.active {
+    border-color: #8ba888;
+    background: #f4f7f4;
+}
+
+.counlist-trigger-text {
+    font-size: 0.9rem;
     font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: 9999px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    z-index: 9999;
+    color: #334155;
     white-space: nowrap;
-    animation:
-        cld-toastIn 0.25s ease,
-        cld-toastOut 0.3s ease 2.2s forwards;
-}
-@keyframes cld-toastIn {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
-}
-@keyframes cld-toastOut {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-        transform: translateX(-50%) translateY(8px);
-    }
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.cld-counselor-empty {
-    grid-column: 1 / -1;
+.counlist-arrow-icon { color: #8ba888; transition: transform 0.2s; flex-shrink: 0; }
+.counlist-arrow-icon.rotated { transform: rotate(180deg); }
+
+/* 드롭다운 패널 */
+.counlist-dropdown-panel-layer {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 320px;
+    height: 270px;
+    background: #fff;
+    border: 1px solid #ede9e3;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(30,41,59,0.08);
+    display: flex;
+    overflow: hidden;
+    z-index: 1000;
+    animation: cldDropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes cldDropdownFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.counlist-panel-split-main-tabs {
+    width: 95px;
+    background: #fbfaf7;
+    border-right: 1px solid #f1eeea;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    padding: 100px 20px;
-    text-align: center;
+    padding: 8px 0;
+    flex-shrink: 0;
 }
 
-.cld-empty-icon {
-    width: 76px;
-    height: 76px;
-    border-radius: 24px;
-    background: #faf7f2;
+.counlist-panel-tab-item {
+    padding: 12px 14px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #64748b;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.counlist-panel-tab-item:hover { color: #8ba888; background: #f5f4f0; }
+.counlist-panel-tab-item.active { color: #8ba888; font-weight: 700; background: #fff; }
+
+.counlist-panel-sub-list-content {
+    flex: 1;
+    padding: 8px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    box-sizing: border-box;
+}
+
+.counlist-panel-sub-list-content.all-tab-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 4px;
+    align-content: start;
+}
+
+.counlist-multi-option-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #334155;
+}
+
+.counlist-multi-option-item:hover,
+.counlist-multi-option-item.checked { background: #f4f7f4; color: #8ba888; }
+.counlist-multi-option-item.checked { font-weight: 600; }
+
+.counlist-custom-checkbox {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #8ba888;
-    margin-bottom: 4px;
+    background: #fff;
+    flex-shrink: 0;
+    transition: all 0.15s;
 }
 
-.cld-empty-title {
-    font-size: 17px;
-    font-weight: 800;
-    color: #1e293b;
-    letter-spacing: -0.3px;
+.counlist-multi-option-item.checked .counlist-custom-checkbox { background: #8ba888; border-color: #8ba888; }
+.counlist-option-label { font-size: 0.85rem; }
+
+/* 선택 태그 뱃지 */
+.counlist-selected-tags-badge-board {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    max-width: 680px;
+    margin: 12px auto 0;
 }
 
-.cld-empty-sub {
-    font-size: 13px;
+.counlist-selected-badge-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #eef3ee;
+    color: #556e53;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 50px;
+}
+
+.counlist-badge-del-icon { cursor: pointer; color: #8ba888; transition: color 0.15s; }
+.counlist-badge-del-icon:hover { color: #bd1c1c; }
+
+.counlist-badge-reset-btn {
+    background: none;
+    border: none;
+    font-size: 0.78rem;
     color: #94a3b8;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 4px;
 }
+
 /* ==========================================================================
-   모바일 및 태블릿 환경 최적화 (너비 1024px 이하)
+   3. 상담사 카드 그리드
    ========================================================================== */
-@media (max-width: 1024px) {
-    /* 1. 좌우 분할 구조를 위아래(수직) 구조로 변경 */
-    .cld-detail-split-container {
-        flex-direction: column;
-        padding: 0 16px;
-        margin: 20px auto;
-        padding-bottom: 100px;
-        gap: 20px;
-    }
 
-    /* 상담사 목록 컨테이너 좌우 여백 균등 */
-    .cld-counselor-list-container {
-        padding: 30px 20px 120px;
-        box-sizing: border-box;
-    }
-
-    /* 2. 왼쪽 전문가 소개 영역 너비 최적화 */
-    .cld-detail-left {
-        flex: none;
-        width: 100%;
-        padding: 24px 20px;
-    }
-
-    /* 3. 오른쪽 예약 카드 영역 너비 최적화 및 sticky 해제 */
-    .cld-detail-right {
-        flex: none;
-        width: 100%;
-    }
-
-    .cld-sticky-reservation-card {
-        position: static; /* 모바일에서는 스크롤에 따라 움직이지 않도록 고정 해제 */
-        padding: 20px 16px; /* 내부 여백을 살짝 줄여서 세로 길이를 압축 */
-        border-radius: 24px;
-    }
-
-    /* 4. 프로필 헤더 타이틀 글자 크기 조정 */
-    .cld-detail-name {
-        font-size: 1.8rem;
-    }
-
-   /* 5. 예약 가격표 내부 정렬 및 간격 축소 */
-    .cld-price-tag-large {
-        padding: 12px 16px;
-        margin-bottom: 16px;
-    }
-    
-    .cld-price-value {
-        font-size: 1.25rem;
-    }
-    /* 6. 모바일에서 각 단계(일자/시간) 간격 조절 */
-    .cld-reservation-step {
-        margin-bottom: 16px;
-    }
-
-    /* 7. 예약 신청하기 버튼 높이 최적화 */
-    .cld-reserve-submit-btn {
-        padding: 14px;
-        font-size: 1rem;
-    }
-
-    /* 8. 찜하기 하트 버튼 높이 맞춤 */
-    .cld-heart-btn-reserve {
-        height: 48px;
-        width: 48px;
-    }
+.counlist-counselor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 32px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* 초소형 모바일 환경 최적화 (너비 480px 이하) */
-@media (max-width: 480px) {
-    .cld-counselor-profile-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-
-    .cld-large-profile {
-        width: 80px;
-        height: 80px;
-        border-radius: 20px;
-    }
-    
-    .cld-large-profile-img {
-        border-radius: 20px;
-    }
-
-    .cld-detail-name {
-        font-size: 1.5rem;
-    }
-
-    /* 달력 팝업이 화면 밖으로 나가지 않도록 너비 조절 */
-    .cld-calendar-popup {
-        width: 100%;
-        padding: 15px;
-    }
-    
-    /* 시간 선택 버튼들이 스마트폰 화면에서 자연스럽게 넘어가도록 함 */
-    .cld-time-btn {
-        padding: 8px 12px;
-        font-size: 0.9rem;
-    }
-}
-/* ── 모바일 전용 요소들: PC에서 완전 숨김 ── */
-.cld-mobile-reserve-fab,
-.cld-bottom-sheet-overlay,
-.cld-bottom-sheet {
-    display: none;
+.counlist-counselor-card {
+    background: #fff;
+    border: 1px solid #ede9e3;
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(30,41,59,0.02);
+    transition: transform 0.25s, box-shadow 0.25s;
+    box-sizing: border-box;
+    width: 100%;
 }
 
-@media (max-width: 1024px) {
-    /* 스크롤 내려가야 보이던 예약 영역은 모바일에서 숨김 */
-    .cld-detail-right {
-        display: none;
+.counlist-counselor-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(30,41,59,0.06);
+}
+
+.counlist-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.counlist-profile-placeholder {
+    width: 64px;
+    height: 64px;
+    background: #f1f5f9;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    overflow: hidden;
+}
+
+.counlist-heart-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s;
+}
+.counlist-heart-btn:hover { transform: scale(1.1); }
+
+.counlist-card-body { flex: 1; display: flex; flex-direction: column; margin-bottom: 20px; }
+
+.counlist-counselor-category-label { font-size: 0.8rem; color: #8ba888; font-weight: 700; margin-bottom: 6px; }
+.counlist-counselor-name { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+.counlist-counselor-field-tags { font-size: 0.85rem; color: #64748b; margin-bottom: 12px; line-height: 1.4; }
+
+.counlist-counselor-intro {
+    font-size: 0.9rem;
+    color: #475569;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.counlist-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid #f1eeea;
+}
+
+.counlist-price-info { font-size: 0.95rem; font-weight: 700; color: #d97706; }
+
+.counlist-view-detail-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.counlist-view-detail-btn:hover { color: #1e293b; text-decoration: underline; }
+
+/* 빈 상태 */
+.counlist-counselor-empty { grid-column: 1/-1; text-align: center; padding: 60px 20px; }
+.counlist-empty-icon { color: #cbd5e1; margin-bottom: 16px; }
+.counlist-empty-title { font-size: 1.1rem; font-weight: 700; color: #475569; margin-bottom: 6px; }
+.counlist-empty-sub { font-size: 0.9rem; color: #94a3b8; }
+
+/* 스켈레톤 */
+.skeleton-line { background: #f1f5f9; border-radius: 6px; height: 14px; margin-bottom: 8px; animation: shimmer 1.4s infinite; }
+.skeleton-img { width: 64px; height: 64px; border-radius: 16px; }
+@keyframes shimmer {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+}
+
+/* ==========================================================================
+   4. 모바일 반응형
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .counlist-counselor-list-container {
+        padding: 20px 16px 100px;
     }
 
-    /* FAB 버튼 표시 */
-    .cld-mobile-reserve-fab {
-        display: flex;
-        align-items: center;
+    /* 카드 그리드 — 1열 고정, minmax 제거로 카드 잘림 해결 */
+    .counlist-counselor-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-top: 20px;
+    }
+
+    .counlist-counselor-card { padding: 18px; }
+
+    /* 필터바 */
+    .counlist-modern-filter-bar-container {
         gap: 8px;
-        position: fixed;
-        bottom: 90px; /* MobileTap 탭바 위에 위치 */
-        right: 20px;
-        z-index: 200;
-        background: #8ba888;
-        color: #fff;
-        border: none;
-        border-radius: 50px;
-        padding: 14px 22px;
-        font-size: 1rem;
-        font-weight: 700;
-        cursor: pointer;
-        box-shadow: 0 6px 24px rgba(139, 168, 136, 0.35);
-        transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .cld-mobile-reserve-fab:active {
-        transform: scale(0.96);
-        box-shadow: 0 3px 12px rgba(139, 168, 136, 0.25);
+        margin: 16px 0;
     }
 
-    /* Bottom Sheet 오버레이 */
-    .cld-bottom-sheet-overlay {
-        display: block;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.4);
-        z-index: 300;
-        animation: cld-fadeIn 0.2s ease;
-    }
-    @keyframes cld-fadeIn {
-        from { opacity: 0; }
-        to   { opacity: 1; }
+    .counlist-dropdown-trigger-btn {
+        min-width: 110px;
+        max-width: 130px;
     }
 
-    /* Bottom Sheet 본체 */
-    .cld-bottom-sheet {
-        display: block;
-        position: fixed;
-        bottom: 0;
-        left: 0;
+    /* 드롭다운 패널 — 화면 너비에 맞춤 */
+    .counlist-dropdown-panel-layer {
+        width: calc(100vw - 32px);
         right: 0;
-        z-index: 400;
-        background: #ffffff;
-        border-radius: 24px 24px 0 0;
-        box-shadow: 0 -8px 40px rgba(30, 41, 59, 0.12);
-        transform: translateY(100%);
-        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-        min-height: 75vh;   /* 달력 열려도 잘리지 않게 */
-        max-height: 92vh;
-        overflow-y: auto;
+        left: auto;
     }
-    .cld-bottom-sheet.open {
-        transform: translateY(0);
-    }
+}
 
-    /* 핸들 바 (위로 당기는 느낌) */
-    .cld-bottom-sheet-handle-bar {
-        display: flex;
-        justify-content: center;
-        padding: 14px 0 6px;
-        cursor: pointer;
+@media (max-width: 412px) {
+    .counlist-clist-search-input {
+        height: 42px;
+        font-size: 0.85rem;
+        padding: 8px 12px 8px 38px;
     }
-    .cld-bottom-sheet-handle {
-        width: 40px;
-        height: 4px;
-        background: #d1d5db;
-        border-radius: 99px;
-    }
+    .counlist-clist-search-icon { left: 12px; }
 
-    /* Bottom Sheet 내용 패딩 */
-    .cld-bottom-sheet-inner {
-        padding: 8px 20px 100px; /* 하단은 MobileTap 높이만큼 여유 */
+    .counlist-dropdown-trigger-btn {
+        min-width: 95px;
+        max-width: 105px;
+        height: 42px;
+        padding: 0 8px;
+        gap: 4px;
     }
-    .cld-bottom-sheet-inner h3 {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: #1e293b;
-        margin: 0 0 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+    .counlist-trigger-text { font-size: 0.78rem; }
+
+    .counlist-panel-sub-list-content.all-tab-grid {
+        grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+        gap: 3px;
     }
-    .cld-bottom-sheet-inner h3::before {
-        content: '';
-        display: inline-block;
-        width: 3px;
-        height: 14px;
-        background: #8ba888;
-        border-radius: 3px;
-        flex-shrink: 0;
-    }
+    .counlist-option-label { font-size: 0.8rem; }
 }
