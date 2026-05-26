@@ -28,7 +28,7 @@ app.include_router(notification.router, prefix="/api")
 app.include_router(upload.router)
 
 # 정적 파일 서빙 (profile_images 등)
-STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+STATIC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static"))
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/")

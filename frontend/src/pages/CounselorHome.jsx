@@ -22,6 +22,15 @@ const CounselorHome = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(!!userName);
     const [reservations, setReservations] = useState([]);
     const [toast, setToast] = useState(null);
+    // 문의 상태 및 미답변 문의 계산
+    const [inquiries, setInquiries] = useState([]);
+    const unreadInquiries = inquiries.filter((i) => i.status === 'pending');
+
+    useEffect(() => {
+        // 실제 문의 데이터 fetch 함수로 교체 필요
+        // 예: getCounselorInquiries().then(setInquiries);
+        setInquiries([]); // 문의 데이터가 없으면 빈 배열
+    }, []);
 
     const getToday = () => {
         const now = new Date();
@@ -206,7 +215,7 @@ const CounselorHome = () => {
                     <div className="stat-card accent-rose clickable" onClick={() => navigate('/CounselorMessages')}>
                         <span className="stat-label">미답변 문의</span>
                         <strong>
-                            3<em>건</em>
+                            {unreadInquiries.length}<em>건</em>
                         </strong>
                         <p className="stat-note">확인이 필요해요 →</p>
                     </div>

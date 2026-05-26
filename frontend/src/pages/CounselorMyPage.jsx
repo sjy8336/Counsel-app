@@ -20,6 +20,7 @@ import '../static/CounselorMyPage.css';
 import MobileTap from '../components/mobileTap.jsx';
 import axios from 'axios';
 import {
+    registerCounselorProfile,
     getCounselorProfile,
     updateCounselorProfile,
     getSpecialty,
@@ -60,11 +61,24 @@ import {
     ChevronLeft,
     Plus,
     Save,
+    Lock,
 } from 'lucide-react';
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
 const uid = () => Date.now() + Math.random();
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+const DAY_LABEL_MAP = {
+    일: '일요일',
+    월: '월요일',
+    화: '화요일',
+    수: '수요일',
+    목: '목요일',
+    금: '금요일',
+    토: '토요일',
+};
+const DAY_LABEL_REVERSE_MAP = Object.fromEntries(
+    Object.entries(DAY_LABEL_MAP).map(([shortLabel, fullLabel]) => [fullLabel, shortLabel])
+);
 const TIME_OPTIONS = Array.from({ length: 30 }, (_, i) => {
     const total = 9 * 60 + i * 30;
     return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
@@ -484,6 +498,7 @@ const App = () => {
     const [profileStatus, setProfileStatus] = useState('');
 
     const [profile, setProfile] = useState({});
+    const [pendingProfileImgUrl, setPendingProfileImgUrl] = useState('');
     const [specialties, setSpecialties] = useState([]);
     const [careers, setCareers] = useState([]);
     const [educations, setEducations] = useState([]);
@@ -495,6 +510,15 @@ const App = () => {
     const [notifSettings, setNotifSettings] = useState(INIT_NOTIF_SETTINGS);
     const [deleteStep, setDeleteStep] = useState(1);
     const [deleteInput, setDeleteInput] = useState('');
+
+    // ── 비밀번호 변경 state ────────────────────────────────────────────────────
+    const [passwordForm, setPasswordForm] = useState({
+        currentPw: '',
+        newPw: '',
+        confirmPw: '',
+    });
+    const [pwError, setPwError] = useState('');
+    const [pwSuccess, setPwSuccess] = useState('');
 
     // ── 등록 여부 확인 ─────────────────────────────────────────────────────────
     const fetchRegistered = useCallback(async () => {
@@ -545,6 +569,7 @@ const App = () => {
                     office_address: prof.center_address || '',
                     intro: prof.intro_line || '',
                 });
+                setPendingProfileImgUrl('');
 
                 setSpecialties(
                     (specs || []).map((s) => ({
@@ -586,7 +611,11 @@ const App = () => {
                     const days = ['월', '화', '수', '목', '금', '토', '일'];
                     const grouped = days.map((day) => {
                         const slots = scheds
-                            .filter((s) => (s.day || s.day_of_week) === day || (s.day_of_week && s.day_of_week.includes(day)))
+                            .filter((s) => {
+                                const rawDay = s.day || s.day_of_week;
+                                const normalizedDay = DAY_LABEL_REVERSE_MAP[rawDay] || rawDay;
+                                return normalizedDay === day;
+                            })
                             .map((s) => ({ start: s.start_time?.slice(0,5) || '09:00', end: s.end_time?.slice(0,5) || '18:00' }));
                         return {
                             day,
@@ -708,37 +737,108 @@ const App = () => {
 
     const toggleNotifSetting = (id) => setNotifSettings((p) => p.map((s) => (s.id === id ? { ...s, on: !s.on } : s)));
 
+    const buildProfilePayload = (overrides = {}) => ({
+        profile_img_url: overrides.profile_img_url ?? pendingProfileImgUrl ?? profile.profile_img_url ?? '',
+        intro_line: overrides.intro_line ?? profile.intro ?? profile.intro_line ?? '',
+        center_name: overrides.center_name ?? profile.office_name ?? profile.center_name ?? '',
+        center_phone: overrides.center_phone ?? profile.tel ?? profile.center_phone ?? '',
+        center_address: overrides.center_address ?? profile.office_address ?? profile.center_address ?? '',
+        consultation_price: Number(
+            overrides.consultation_price ?? profile.price ?? profile.consultation_price ?? 0
+        ) || 0,
+    });
+
     // ── 저장 ───────────────────────────────────────────────────────────────────
     const handleSaveProfile = async () => {
         const token = localStorage.getItem('access_token');
         try {
-            await updateCounselorProfile(profile, token);
+            const profilePayload = buildProfilePayload();
+            if (registered) {
+                await updateCounselorProfile(profilePayload, token);
+            } else {
+                await registerCounselorProfile(profilePayload, token);
+                setRegistered(true);
+            }
             await updateSpecialty(specialties, token);
             await updateCertificate(
-                certificates.map(({ id, ...rest }) => rest),
+                certificates.map(({ id, name, issuer, date }) => ({
+                    certificate_name: name,
+                    issuer,
+                    acquisition_date: date || null,
+                })),
                 token
             );
             await updateEducation(
-                educations.map(({ id, ...rest }) => rest),
+                educations.map(({ id, school, degree, startDate, endDate }) => ({
+                    school_name: school,
+                    major: degree,
+                    start_date: startDate || null,
+                    end_date: endDate || null,
+                })),
                 token
             );
             await updateExperience(
-                careers.map(({ id, ...rest }) => rest),
+                careers.map(({ id, startDate, endDate, isCurrent, description }) => ({
+                    start_date: startDate,
+                    end_date: isCurrent ? null : endDate || null,
+                    is_current: !!isCurrent,
+                    content: description,
+                })),
                 token
             );
             const flatSlots = workDays.flatMap((d) =>
                 d.active && Array.isArray(d.slots)
                     ? d.slots.map((s) => ({
-                          day_of_week: d.day,
+                          day_of_week: DAY_LABEL_MAP[d.day] || d.day,
                           start_time: (s.start && s.start.length === 5 ? s.start : '09:00') + ':00',
                           end_time: (s.end && s.end.length === 5 ? s.end : '18:00') + ':00',
                       }))
                     : []
             );
             await updateSchedule(flatSlots, token);
+            if (pendingProfileImgUrl) {
+                setProfile((p) => ({ ...p, profile_img_url: pendingProfileImgUrl }));
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                user.profile_img_url = pendingProfileImgUrl;
+                localStorage.setItem('user', JSON.stringify(user));
+                setPendingProfileImgUrl('');
+            }
             alert('저장되었습니다.');
         } catch {
             alert('저장 중 오류가 발생했습니다.');
+        }
+    };
+
+    // ── 비밀번호 변경 핸들러 ───────────────────────────────────────────────────
+    const handleChangePassword = async () => {
+        setPwError('');
+        setPwSuccess('');
+        const { currentPw, newPw, confirmPw } = passwordForm;
+        if (!currentPw || !newPw || !confirmPw) {
+            setPwError('모든 항목을 입력해주세요.');
+            return;
+        }
+        if (newPw.length < 8) {
+            setPwError('새 비밀번호는 8자 이상이어야 합니다.');
+            return;
+        }
+        if (newPw !== confirmPw) {
+            setPwError('새 비밀번호가 일치하지 않습니다.');
+            return;
+        }
+        try {
+            const token = localStorage.getItem('access_token');
+            await axios.put(
+                '/api/auth/change-password',
+                { current_password: currentPw, new_password: newPw },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setPwSuccess('비밀번호가 성공적으로 변경되었습니다.');
+            setPasswordForm({ currentPw: '', newPw: '', confirmPw: '' });
+        } catch (e) {
+            setPwError(
+                e?.response?.data?.message || '비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.'
+            );
         }
     };
 
@@ -748,17 +848,15 @@ const App = () => {
         const formData = new FormData();
         formData.append('file', file);
         try {
-            const res = await axios.post('/api/counselor/upload-profile-image', formData, {
+            const token = localStorage.getItem('access_token');
+            const res = await axios.post('/api/upload/profile-image', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
             if (res.data?.url) {
-                setProfile((p) => ({ ...p, profile_img_url: res.data.url }));
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                user.profile_img_url = res.data.url;
-                localStorage.setItem('user', JSON.stringify(user));
+                setPendingProfileImgUrl(res.data.url);
             }
         } catch {
             alert('이미지 업로드에 실패했습니다.');
@@ -822,36 +920,7 @@ const App = () => {
     }, []);
 
     useEffect(() => {
-        setInquiries([
-            {
-                id: 1,
-                sender: '김하늘님',
-                title: '비대면 화상 상담도 가능한가요?',
-                content: '...',
-                date: '2024.05.21',
-                status: 'pending',
-                tag: '상담문의',
-            },
-            {
-                id: 2,
-                sender: '박민우님',
-                title: '상담 시간 변경 요청드립니다 (5/23)',
-                content: '...',
-                date: '2024.05.21',
-                status: 'pending',
-                tag: '일정변경',
-            },
-            {
-                id: 3,
-                sender: '이정희님',
-                title: '공황 증상 관련해서도 상담하시나요?',
-                content: '...',
-                date: '2024.05.20',
-                status: 'completed',
-                tag: '상담문의',
-                myReply: '답변 예시',
-            },
-        ]);
+        setInquiries([]);
     }, []);
 
     const todayStr = (() => {
@@ -966,33 +1035,22 @@ const App = () => {
         </>
     );
 
-    const [notifShowCount, setNotifShowCount] = useState(10);
-    const [notifDevice, setNotifDevice] = useState('pc');
+    const [notifDevice, setNotifDevice] = useState(window.innerWidth <= 768 ? 'mobile' : 'pc');
+    const [notifExpanded, setNotifExpanded] = useState(false);
     useEffect(() => {
         const handleResize = () => {
-            const w = window.innerWidth;
-            if (w <= 480) {
-                setNotifDevice('mobile');
-                setNotifShowCount(5);
-            } else if (w <= 900) {
-                setNotifDevice('tablet');
-                setNotifShowCount(7);
-            } else {
-                setNotifDevice('pc');
-                setNotifShowCount(10);
-            }
+            setNotifDevice(window.innerWidth <= 768 ? 'mobile' : 'pc');
         };
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const [notifExpanded, setNotifExpanded] = useState(false);
-
     const renderNotifications = () => {
         const group = notifications[0] || { items: [] };
         const items = group.items || [];
-        const showCount = notifExpanded ? items.length : notifShowCount;
+        const maxCount = notifDevice === 'mobile' ? 6 : 10;
+        const showCount = notifExpanded ? items.length : maxCount;
         const showMore = items.length > showCount;
         return (
             <>
@@ -1043,13 +1101,23 @@ const App = () => {
                                     )}
                                 </div>
                             ))}
-                            {showMore && (
+                            {showMore && !notifExpanded && (
                                 <div className="cmp-notif-more-wrap">
                                     <button
                                         className="cmp-btn cmp-btn-more"
                                         onClick={() => setNotifExpanded(true)}
                                     >
                                         더보기
+                                    </button>
+                                </div>
+                            )}
+                            {notifExpanded && items.length > maxCount && (
+                                <div className="cmp-notif-more-wrap">
+                                    <button
+                                        className="cmp-btn cmp-btn-more"
+                                        onClick={() => setNotifExpanded(false)}
+                                    >
+                                        접기
                                     </button>
                                 </div>
                             )}
@@ -1110,31 +1178,30 @@ const App = () => {
         if (profileStatus === '심사중')
             return (
                 <div className="cmp-settings-card cmp-settings-card--center">
-                    <div className="cmp-register-icon">⏳</div>
-                    <h3 className="cmp-register-title">프로필 등록 심사중</h3>
-                    <p className="cmp-register-sub">관리자 심사 후 승인 시 프로필이 공개됩니다.</p>
-                    <button
-                        className="cmp-btn cmp-btn-register cmp-btn-disabled"
-                        disabled
-                    >
-                        심사중
-                    </button>
+                    <div className="cmp-register-title">프로필 심사중입니다</div>
+                    <p className="cmp-register-sub">관리자의 심사가 완료될 때까지 기다려주세요.</p>
                 </div>
             );
-        if (profileStatus === '반려')
+        if (profileStatus === '반려') {
+            const rejectReason = '프로필 사진이 명확하지 않습니다. 최근 사진으로 다시 등록해 주세요.';
             return (
                 <div className="cmp-settings-card cmp-settings-card--center">
                     <div className="cmp-register-icon">❌</div>
                     <h3 className="cmp-register-title">프로필 등록이 반려되었습니다</h3>
                     <p className="cmp-register-sub">사유를 확인 후 정보를 수정해 다시 등록해 주세요.</p>
+                    {rejectReason && (
+                        <div className="cmp-reject-reason" style={{marginTop:22, marginBottom:24}}>반려 사유: {rejectReason}</div>
+                    )}
                     <button
                         className="cmp-btn cmp-btn-primary cmp-btn-register"
                         onClick={() => navigate('/counselorUpload')}
+                        style={{marginTop: 24, minWidth: 160, padding: '13px 0', fontSize: '17px'}}
                     >
                         재등록하기
                     </button>
                 </div>
             );
+        }
 
         return (
             <>
@@ -1149,8 +1216,8 @@ const App = () => {
                             className="cmp-profile-img-lg cmp-cursor-pointer cmp-pos-rel"
                             onClick={() => fileInputRef.current?.click()}
                         >
-                            {profile.profile_img_url ? (
-                                <img src={profile.profile_img_url} alt="프로필" className="cmp-profile-img-content" />
+                            {pendingProfileImgUrl || profile.profile_img_url ? (
+                                <img src={pendingProfileImgUrl || profile.profile_img_url} alt="프로필" className="cmp-profile-img-content" />
                             ) : (
                                 <span className="cmp-fs-48">🧔‍♂️</span>
                             )}
@@ -1429,6 +1496,71 @@ const App = () => {
                             onChange={(e) => setProfile((p) => ({ ...p, intro: e.target.value }))}
                         />
                     </div>
+
+                    {/* ── 비밀번호 변경 ───────────────────────────────────────── */}
+                    <div className="cmp-section-divider" style={{ marginTop: 24 }}>
+                        <div className="cmp-card-title" style={{ marginBottom: 16 }}>
+                            <Lock size={15} color="var(--cmp-primary)" /> 비밀번호 변경
+                        </div>
+                        <div className="cmp-grid-2">
+                            <div style={{ gridColumn: '1 / -1' }}>
+                                <label className="cmp-field-label">현재 비밀번호</label>
+                                <input
+                                    type="password"
+                                    className="cmp-input"
+                                    placeholder="현재 비밀번호를 입력하세요"
+                                    value={passwordForm.currentPw}
+                                    onChange={(e) =>
+                                        setPasswordForm((p) => ({ ...p, currentPw: e.target.value }))
+                                    }
+                                />
+                            </div>
+                            <div>
+                                <label className="cmp-field-label">새 비밀번호</label>
+                                <input
+                                    type="password"
+                                    className="cmp-input"
+                                    placeholder="8자 이상 입력"
+                                    value={passwordForm.newPw}
+                                    onChange={(e) =>
+                                        setPasswordForm((p) => ({ ...p, newPw: e.target.value }))
+                                    }
+                                />
+                            </div>
+                            <div>
+                                <label className="cmp-field-label">새 비밀번호 확인</label>
+                                <input
+                                    type="password"
+                                    className="cmp-input"
+                                    placeholder="비밀번호를 다시 입력하세요"
+                                    value={passwordForm.confirmPw}
+                                    onChange={(e) =>
+                                        setPasswordForm((p) => ({ ...p, confirmPw: e.target.value }))
+                                    }
+                                />
+                            </div>
+                        </div>
+                        {pwError && (
+                            <p style={{ fontSize: 12, color: 'var(--cmp-danger)', marginTop: 8 }}>
+                                {pwError}
+                            </p>
+                        )}
+                        {pwSuccess && (
+                            <p style={{ fontSize: 12, color: 'var(--cmp-primary)', marginTop: 8 }}>
+                                {pwSuccess}
+                            </p>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
+                            <button
+                                className="cmp-btn cmp-btn-primary"
+                                style={{ maxWidth: 130 }}
+                                onClick={handleChangePassword}
+                            >
+                                비밀번호 변경
+                            </button>
+                        </div>
+                    </div>
+                    {/* ── 비밀번호 변경 끝 ────────────────────────────────────── */}
 
                     <button
                         className="cmp-btn cmp-btn-primary cmp-btn-profile-save"

@@ -101,8 +101,14 @@ const App = () => {
         { id: 1, startYearMonth: '', endYearMonth: '', content: '', isCurrent: false },
     ]);
 
-    // ── 유저 정보 로드 + draft 복원 (한 번에 처리) ──────────────────────────
-    // 1. 마운트 시 userId만 세팅
+    // ── activeTab 바뀔 때마다 스크롤 최상단 ─────────────────────────────────
+    useEffect(() => {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+    }, [activeTab]);
+
+    // ── 유저 정보 로드 + draft 복원 ──────────────────────────────────────────
     useEffect(() => {
         const token = localStorage.getItem('access_token');
         if (!token) return;
@@ -112,7 +118,6 @@ const App = () => {
                 if (!user) return;
                 const uid = user.id;
                 setUserId(uid);
-                // 다른 계정의 draft 정리
                 const prevUid = localStorage.getItem('counselor_upload_prev_userid');
                 if (prevUid && prevUid !== String(uid)) {
                     localStorage.removeItem(DRAFT_KEY(prevUid));
@@ -122,7 +127,6 @@ const App = () => {
         })();
     }, []);
 
-    // 2. userId가 세팅될 때마다 draft 복원
     useEffect(() => {
         if (!userId) return;
         const draftKey = DRAFT_KEY(userId);
@@ -149,7 +153,6 @@ const App = () => {
                 setWeeklySchedule(d.weeklySchedule ?? initSchedule());
                 setProfileImage(d.profileImage ?? null);
             } catch (e) {
-                // draft 파싱 실패 시 user 정보로 초기화
                 fetchAndApplyUser(userId);
             }
         } else {
@@ -157,7 +160,6 @@ const App = () => {
         }
     }, [userId]);
 
-    // userId로 user 정보 fetch 후 기본값 세팅
     const fetchAndApplyUser = async (uid) => {
         const token = localStorage.getItem('access_token');
         if (!token) return;
@@ -179,15 +181,12 @@ const App = () => {
         setBasicPhone(user.phone_number || '');
     };
 
-    // ── 로그아웃 시 draft 전체 정리 (로그아웃/계정전환에만 반응, 새로고침엔 절대 삭제 X) ───────────
     const prevUserId = useRef(null);
     useEffect(() => {
-        // 최초 마운트 시에는 아무것도 하지 않음
         if (prevUserId.current === null) {
             prevUserId.current = userId;
             return;
         }
-        // userId가 null로 바뀌는 경우(로그아웃 등)만 draft 전체 삭제
         if (!userId && prevUserId.current) {
             Object.keys(localStorage)
                 .filter((k) => k.startsWith('counselor_upload_draft_') || k === 'counselor_upload_draft')
@@ -352,7 +351,6 @@ const App = () => {
                     ),
                 token
             );
-            // 제출 완료 후 draft 삭제
             if (userId) localStorage.removeItem(DRAFT_KEY(userId));
             setShowConfirmModal(false);
             setSubmitSuccess(true);
@@ -369,12 +367,14 @@ const App = () => {
         if ((tabId === 'expertise' || tabId === 'history') && activeTab === 'basic' && !validateBasic()) return;
         setActiveTab(tabId);
     };
+
     const handleNext = () => {
         if (activeTab === 'basic') {
             if (!validateBasic()) return;
             setActiveTab('expertise');
-        } else if (activeTab === 'expertise') setActiveTab('history');
-        else {
+        } else if (activeTab === 'expertise') {
+            setActiveTab('history');
+        } else {
             setConfirmChecked(false);
             setShowConfirmModal(true);
         }
@@ -1153,7 +1153,9 @@ const App = () => {
                         <div className="cu-ep-nav-btns">
                             {activeTab !== 'basic' && (
                                 <button
-                                    onClick={() => setActiveTab(activeTab === 'history' ? 'expertise' : 'basic')}
+                                    onClick={() =>
+                                        setActiveTab(activeTab === 'history' ? 'expertise' : 'basic')
+                                    }
                                     className="cu-ep-btn-prev"
                                 >
                                     이전

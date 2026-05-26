@@ -157,9 +157,41 @@ export default function App() {
     const navigate = useNavigate();
     const location = useLocation();
     const contentRef = useRef(null);
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    // 모바일/태블릿/폴더블 기기까지 감지
+    function isMobileDevice() {
+        const ua = navigator.userAgent.toLowerCase();
+        return (
+            window.innerWidth <= 1024 ||
+            /ipad|android(?!.*mobile)|tablet|surface|fold|sm-t|lenovo tab|windows touch|asus|zenbook/i.test(ua)
+        );
+    }
+    const [isMobile, setIsMobile] = useState(isMobileDevice());
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // 알림 데이터 상태 및 fetch
+    const [notifications, setNotifications] = useState([]);
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                setNotifications(mockNotifications);
+                return;
+            }
+            try {
+                const res = await getNotifications(token);
+                const notifList = Array.isArray(res.data) ? res.data : (res.data?.notifications || []);
+                if (notifList.length === 0) {
+                    setNotifications(mockNotifications);
+                } else {
+                    setNotifications(notifList);
+                }
+            } catch (e) {
+                setNotifications(mockNotifications);
+            }
+        };
+        fetchNotifications();
+    }, []);
 
     // 예약 데이터 불러오기 (home.jsx와 동일)
     useEffect(() => {
@@ -205,7 +237,7 @@ export default function App() {
     };
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        const handleResize = () => setIsMobile(isMobileDevice());
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -322,7 +354,7 @@ export default function App() {
         { id: 'history', label: '상담 히스토리', icon: History },
         { id: 'inquiry', label: '문의내역', icon: MessagesSquare },
         { id: 'favorites', label: '찜내역', icon: Heart },
-        { id: 'tickets', label: '이용권/결제', icon: Wallet },
+        { id: 'tickets', label: '결제 및 이용내역', icon: Wallet },
         { id: 'profile', label: '계정 설정', icon: Settings },
     ];
 
@@ -1311,7 +1343,7 @@ export default function App() {
                                 <div className="status-icon-box bg-amber">
                                     <Wallet size={18} />
                                 </div>
-                                <p className="status-label">잔여 이용권</p>
+                                <p className="status-label">결제 및 이용내역</p>
                                 <p className="status-value">
                                     {ticketCount}
                                     <span className="unit">회</span>
@@ -1454,55 +1486,71 @@ export default function App() {
         }
     };
 
-    const renderNotifications = () => (
-        <>
-            {isMobile && (
-                <button
-                    className="mobile-back-btn mobile-back-btn--with-label"
-                    onClick={handleBackToDashboard}
-                >
-                    <ChevronRight className="mp-rotate-180" size={20} /> 뒤로가기
-                </button>
-            )}
-            <div className={isMobile ? 'mp-mobile-top-offset-56' : ''}>
-                <div className="cmp-page-header">
-                    <h2 className="cmp-page-title">알림 센터</h2>
-                    <p className="cmp-page-sub">상담 일정, 예약 확정 등 최근 알림을 확인하세요.</p>
-                </div>
-                <div className="cmp-list-card">
-                    {mockNotifications.length === 0 ? (
-                        <div className="cmp-notif-empty">
-                            <div className="cmp-notif-empty-icon">
-                                <Bell size={22} />
-                            </div>
-                            <p className="cmp-notif-empty-title">새로운 알림이 없습니다</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="cmp-notif-group-label">최근 알림</div>
-                            {mockNotifications.map((item) => (
-                                <div key={item.id} className={`cmp-notif-item${item.unread ? ' unread' : ''}`}>
-                                    <span className="cmp-item-avatar notif">
-                                        {item.type === 'booking' && <Check size={15} />}
-                                        {item.type === 'msg' && <MessageSquare size={15} />}
-                                        {item.type === 'notice' && <AlertCircle size={15} />}
-                                    </span>
-                                    <div className="cmp-notif-content">
-                                        <div className="cmp-notif-title">{item.title}</div>
-                                        <div className="cmp-notif-desc">{item.desc}</div>
-                                    </div>
-                                    <div className="cmp-notif-meta">
-                                        <span className="cmp-notif-time">{item.time}</span>
-                                        {item.unread && <span className="cmp-notif-dot" />}
-                                    </div>
+    const [showAllNotifications, setShowAllNotifications] = useState(false);
+    const renderNotifications = () => {
+        const maxCount = isMobile ? 6 : 10;
+        const hasMore = notifications.length > maxCount;
+        const visibleNotifications = showAllNotifications ? notifications : notifications.slice(0, maxCount);
+        return (
+            <>
+                {isMobile && (
+                    <button
+                        className="mobile-back-btn mobile-back-btn--with-label"
+                        onClick={handleBackToDashboard}
+                    >
+                        <ChevronRight className="mp-rotate-180" size={20} /> 뒤로가기
+                    </button>
+                )}
+                <div className={isMobile ? 'mp-mobile-top-offset-56' : ''}>
+                    <div className="cmp-page-header">
+                        <h2 className="cmp-page-title">알림 센터</h2>
+                        <p className="cmp-page-sub">상담 일정, 예약 확정 등 최근 알림을 확인하세요.</p>
+                    </div>
+                    <div className="cmp-list-card">
+                        {notifications.length === 0 ? (
+                            <div className="cmp-notif-empty">
+                                <div className="cmp-notif-empty-icon">
+                                    <Bell size={22} />
                                 </div>
-                            ))}
-                        </>
-                    )}
+                                <p className="cmp-notif-empty-title">새로운 알림이 없습니다</p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="cmp-notif-group-label">최근 알림</div>
+                                {visibleNotifications.map((item) => (
+                                    <div key={item.id} className={`cmp-notif-item${item.unread ? ' unread' : ''}`}>
+                                        <span className="cmp-item-avatar notif">
+                                            {item.type === 'booking' && <Check size={15} />}
+                                            {item.type === 'msg' && <MessageSquare size={15} />}
+                                            {item.type === 'notice' && <AlertCircle size={15} />}
+                                        </span>
+                                        <div className="cmp-notif-content">
+                                            <div className="cmp-notif-title">{item.title}</div>
+                                            <div className="cmp-notif-desc">{item.desc}</div>
+                                        </div>
+                                        <div className="cmp-notif-meta">
+                                            <span className="cmp-notif-time">{item.time}</span>
+                                            {item.unread && <span className="cmp-notif-dot" />}
+                                        </div>
+                                    </div>
+                                ))}
+                                {hasMore && !showAllNotifications && (
+                                    <button className="cmp-notif-more-btn" onClick={() => setShowAllNotifications(true)}>
+                                        더보기
+                                    </button>
+                                )}
+                                {showAllNotifications && hasMore && (
+                                    <button className="cmp-notif-more-btn" onClick={() => setShowAllNotifications(false)}>
+                                        접기
+                                    </button>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
-            </div>
-        </>
-    );
+            </>
+        );
+    };
 
     return (
         <div className="mypage-layout-root">

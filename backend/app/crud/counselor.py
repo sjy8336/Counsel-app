@@ -1,3 +1,4 @@
+from datetime import time
 
 from sqlalchemy.orm import Session
 from app.models.counselor import (
@@ -92,7 +93,12 @@ def get_experiences(db: Session, user_id: int):
 
 # 6. 주간 상담 일정
 def add_schedule(db: Session, user_id: int, data: CounselorScheduleCreate):
-    sch = CounselorSchedule(user_id=user_id, **data.dict())
+    payload = data.dict()
+    for key in ("start_time", "end_time"):
+        value = payload.get(key)
+        if isinstance(value, str):
+            payload[key] = time.fromisoformat(value)
+    sch = CounselorSchedule(user_id=user_id, **payload)
     db.add(sch)
     db.commit()
     db.refresh(sch)

@@ -1,3 +1,29 @@
+.cmp-reject-box {
+    background: #fff5f5;
+    border: 1.5px solid #fecaca;
+    border-radius: 10px;
+    padding: 16px 20px 14px 20px;
+    margin: 22px auto 12px auto;
+    max-width: 370px;
+    text-align: left;
+    box-shadow: 0 2px 8px rgba(255, 99, 71, 0.04);
+    animation: cmp-fadeUp 0.3s;
+}
+.cmp-reject-title {
+    color: #e53e3e;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 7px;
+    letter-spacing: -0.2px;
+}
+.cmp-reject-reason {
+    color: #b91c1c;
+    font-weight: 500;
+    font-size: 13.5px;
+    line-height: 1.7;
+    white-space: pre-line;
+    word-break: keep-all;
+}
 /* 모든 요일(화,수,목,금)에서 시작/종료시간 팝오버가 항상 아래로 뜨도록 position과 overflow를 강제 */
 .cu-ep-slot,
 .cu-ep-slots-row,
