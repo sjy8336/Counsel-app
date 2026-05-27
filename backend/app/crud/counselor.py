@@ -1,3 +1,10 @@
+def delete_all_counselor_related_data(db: Session, user_id: int):
+    db.query(CounselorCertificate).filter(CounselorCertificate.user_id == user_id).delete()
+    db.query(CounselorEducation).filter(CounselorEducation.user_id == user_id).delete()
+    db.query(CounselorExperience).filter(CounselorExperience.user_id == user_id).delete()
+    db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == user_id).delete()
+    db.query(CounselorSchedule).filter(CounselorSchedule.user_id == user_id).delete()
+    db.commit()
 from datetime import time
 
 from sqlalchemy.orm import Session
@@ -7,6 +14,13 @@ from app.models.counselor import (
 from app.schemas.counselor import (
     CounselorProfileCreate, CounselorSpecialtyCreate, CounselorCertificateCreate, CounselorEducationCreate, CounselorExperienceCreate, CounselorScheduleCreate
 )
+
+def safe_time_fromisoformat(value):
+    # '8:00:00' -> '08:00:00' 보정
+    parts = value.split(":")
+    if parts and len(parts[0]) == 1:
+        value = f"0{value}"
+    return time.fromisoformat(value)
 
 # 1. 프로필 생성/수정/조회
 def create_counselor_profile(db: Session, user_id: int, data: CounselorProfileCreate):
@@ -41,6 +55,10 @@ def update_counselor_profile(db: Session, user_id: int, data: CounselorProfileCr
     profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == user_id).first()
     if not profile:
         return None
+    # 반려 상태에서 등록 요청이 오면 심사중으로 변경 + 기존 이력 삭제
+    if profile.status == '반려':
+        profile.status = '심사중'
+        delete_all_counselor_related_data(db, user_id)
     for k, v in data.dict(exclude_unset=True).items():
         setattr(profile, k, v)
     db.commit()
@@ -97,7 +115,7 @@ def add_schedule(db: Session, user_id: int, data: CounselorScheduleCreate):
     for key in ("start_time", "end_time"):
         value = payload.get(key)
         if isinstance(value, str):
-            payload[key] = time.fromisoformat(value)
+            payload[key] = safe_time_fromisoformat(value)
     sch = CounselorSchedule(user_id=user_id, **payload)
     db.add(sch)
     db.commit()

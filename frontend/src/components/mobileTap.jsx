@@ -20,23 +20,37 @@ import {
     MessageCircle,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { isTokenExpired } from '../utils/jwt';
 
 export default function MobileTap() {
     const [activeTab, setActiveTab] = useState('home');
     const location = useLocation();
-    const [userRole, setUserRole] = useState('');
+    const [userRole, setUserRole] = useState(() => {
+        try {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                if (user.role) return user.role;
+            }
+        } catch {}
+        return '';
+    });
     const navigate = useNavigate();
+    const token = localStorage.getItem('access_token');
+    const isAuthenticated = !!token && !isTokenExpired(token) && !!userRole;
 
+    // 로그인/페이지 이동 시 userRole을 항상 세팅
     useEffect(() => {
-        // 로그인 시 role 정보 동기화
-        const user = localStorage.getItem('user');
-        if (user) {
-            const userObj = JSON.parse(user);
-            setUserRole(userObj.role || '');
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user.role) setUserRole(user.role);
+            } catch {}
         } else {
             setUserRole('');
         }
-    }, []);
+    }, [location.pathname]);
 
     // URL 경로에 따라 activeTab 자동 설정
     useEffect(() => {
@@ -79,11 +93,11 @@ export default function MobileTap() {
 
     const handleMobileMenuClick = (item) => {
         setActiveTab(item.id);
-        // 비로그인(내담자/관리자/비회원) 보호 메뉴 처리
-        if (!userRole || userRole === 'client' || userRole === 'admin' || userRole === '') {
+        // 비로그인 보호 메뉴 처리
+        if (!isAuthenticated) {
             // 전문가 찾기, 힐링 라운지는 로그인 없이 접근 허용
             if (item.id === 'reservation' || item.id === 'diary' || item.id === 'mypage') {
-                if (window.confirm('로그인해야 이용 가능합니다.\n로그인 페이지로 이동할까요?')) {
+                if (window.confirm('로그인해야 이용 가능합니다. 로그인 페이지로 이동할까요?')) {
                     navigate('/login');
                 }
                 return;
@@ -100,7 +114,14 @@ export default function MobileTap() {
             else if (item.id === 'client') navigate('/CounselorClient');
             else if (item.id === 'inquiry') navigate('/CounselorMessages');
             else if (item.id === 'mypage') navigate('/CounselorMyPage');
+            return;
         }
+
+        if (item.id === 'home') navigate('/');
+        else if (item.id === 'reservation') navigate('/reserve');
+        else if (item.id === 'diary') navigate('/diary');
+        else if (item.id === 'lounge') navigate('/healing');
+        else if (item.id === 'mypage') navigate('/mypage');
     };
 
     return (

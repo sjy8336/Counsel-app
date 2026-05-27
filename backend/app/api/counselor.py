@@ -98,13 +98,13 @@ def get_pending_counselors(db: Session = Depends(get_db), current_user=Depends(g
 
 # 1. 프로필
 @router.post("/counselor/profile")
-def create_profile(data: CounselorProfileCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def create_or_update_profile(data: CounselorProfileCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     if current_user.role != 'counselor':
         raise HTTPException(status_code=403, detail="상담사만 프로필 등록이 가능합니다.")
-    # 이미 존재하는지 체크
-    exist = crud.get_counselor_profile(db, user_id=current_user.id)
+    exist = db.query(CounselorProfile).filter(CounselorProfile.user_id == current_user.id).first()
     if exist:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="이미 등록된 프로필이 있습니다.")
+        # 반려 상태에서 등록 요청이 오면 심사중으로 변경 + 기존 이력 삭제
+        return crud.update_counselor_profile(db, user_id=current_user.id, data=data)
     return crud.create_counselor_profile(db, user_id=current_user.id, data=data)
 
 @router.get("/counselor/profile")
@@ -174,8 +174,16 @@ def add_schedules(
     current_user=Depends(get_current_user)
 ):
     result = []
+    failures = []
     for item in data:
-        result.append(crud.add_schedule(db, user_id=current_user.id, data=item))
+        try:
+            saved = crud.add_schedule(db, user_id=current_user.id, data=item)
+            result.append({"success": True, "schedule": saved})
+        except Exception as e:
+            db.rollback()
+            failures.append({"error": str(e), "data": item.dict() if hasattr(item, 'dict') else item})
+    if failures:
+        raise HTTPException(status_code=400, detail={"message": "상담 일정 저장에 실패했습니다.", "failures": failures})
     return result
 
 # 프로필 존재 여부

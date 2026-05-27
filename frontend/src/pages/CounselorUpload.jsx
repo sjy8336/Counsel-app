@@ -339,18 +339,22 @@ const App = () => {
                 })),
                 token
             );
-            await registerSchedule(
-                Object.entries(weeklySchedule)
-                    .filter(([, val]) => val.active)
-                    .flatMap(([day, val]) =>
-                        val.slots.map((slot) => ({
-                            day_of_week: day,
-                            start_time: slot.start + ':00',
-                            end_time: slot.end + ':00',
-                        }))
-                    ),
+            const schedulePayload = Object.entries(weeklySchedule)
+                .filter(([, val]) => val.active)
+                .flatMap(([day, val]) =>
+                    val.slots.map((slot) => ({
+                        day_of_week: day,
+                        start_time: slot.start + ':00',
+                        end_time: slot.end + ':00',
+                    }))
+                );
+            const scheduleResult = await registerSchedule(
+                schedulePayload,
                 token
             );
+            if (Array.isArray(scheduleResult) && scheduleResult.some((item) => item.success === false)) {
+                throw new Error('상담 일정 저장에 실패했습니다.');
+            }
             if (userId) localStorage.removeItem(DRAFT_KEY(userId));
             setShowConfirmModal(false);
             setSubmitSuccess(true);

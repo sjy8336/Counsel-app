@@ -181,7 +181,7 @@ export default function Header({
         if (!isLoggedIn) {
             // '전문가 찾기', '힐링 라운지'는 로그인 없이 접근 허용
             if (item.id === 'reservation' || item.id === 'diary') {
-                if (window.confirm('로그인해야 이용 가능합니다.\n로그인 페이지로 이동할까요?')) {
+                if (window.confirm('로그인해야 이용 가능합니다. 로그인 페이지로 이동할까요?')) {
                     navigate('/login');
                 }
                 return;
