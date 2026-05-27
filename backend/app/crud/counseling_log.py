@@ -5,7 +5,6 @@ from app.utils.keyword_extractor import extract_keywords
 import json
 from app.services.notification_service import send_counseling_log_registered_notification
 
-
 # 내담자(클라이언트)용 상담일지 전체 조회 (상담사 조건 없이 client_id만)
 def get_client_logs_for_client(db: Session, client_id: int):
     from app.models.user import User

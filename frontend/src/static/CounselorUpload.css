@@ -1,4 +1,17 @@
-/* ===== 토스트 팝업 (CounselorList 스타일 이식) ===== */
+/* ===== 컬러 팔레트 및 폰트 변수 ===== */
+:root {
+    --cu-primary: #8BA888; /* Sage Green */
+    --cu-bg: #FDFBF7; /* Warm White */
+    --cu-bg-sub: #FAF7F2; /* Sand Beige */
+    --cu-accent1: #FDA4AF; /* Soft Rose */
+    --cu-accent2: #F59E0B; /* Amber */
+    --cu-text-main: #1E293B; /* Slate Navy */
+}
+
+* {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', 'Nanum Gothic', '나눔고딕', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    box-sizing: border-box;
+}
 .cu-toast-popup {
     position: fixed;
     bottom: 2rem;

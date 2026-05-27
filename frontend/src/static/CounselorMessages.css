@@ -5,19 +5,40 @@
    ============================================================ */
 
 /* ---------- 전역 레이아웃 ---------- */
+
 :root {
     --mobile-tab-h: 60px;
+    /* Main (Point) */
+    --main:    #8BA888;   /* Sage Green */
+    /* Background */
+    --bg:      #FDFBF7;   /* Warm White */
+    /* Sub Background */
+    --sub:     #FAF7F2;   /* Sand Beige */
+    /* Accent 1 */
+    --rose:    #FDA4AF;   /* Soft Rose */
+    /* Accent 2 */
+    --amber:   #F59E0B;   /* Amber */
+    /* Text (Main) */
+    --text:    #1E293B;   /* Slate Navy */
+    /* 기타 */
+    --main-dk: #6a8a67;   /* Sage Green Dark */
+    --main-lt: #EEF4ED;   /* Sage Green Light */
+    --rose-lt: #FFF0F2;   /* Soft Rose Light */
+    --text2:   #64748b;   /* Slate Gray */
+    --line:    #e8e4dc;   /* Sand Beige Border */
+    --white:   #FFFFFF;
+    --font:    'Pretendard', Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
 }
 
 .mwci-root {
     height: 100dvh;
     padding-bottom: var(--mobile-tab-h);
     box-sizing: border-box;
-    font-family: sans-serif;
+    font-family: var(--font);
     display: flex;
     flex-direction: column;
-    background-color: #FDFBF7;
-    color: #1E293B;
+    background-color: var(--bg);
+    color: var(--text);
     overflow: hidden;
 }
 

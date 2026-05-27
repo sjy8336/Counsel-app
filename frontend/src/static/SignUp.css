@@ -1,565 +1,972 @@
-/* SignUp.css */
-.signup-container {
+﻿:root {
+    --su3-brand:        #8ba888;
+    --su3-brand-light:  #a3bfa0;
+    --su3-brand-dark:   #738f70;
+    --su3-bg:           #fdfbf7;
+    --su3-bg-sub:       #faf7f2;
+    --su3-rose:         #fda4af;
+    --su3-amber:        #f59e0b;
+    --su3-text:         #1e293b;
+    --su3-text-soft:    #667085;
+    --su3-text-muted:   #98a2b3;
+    --su3-white:        #ffffff;
+    --su3-border:       #e2e8f0;
+    --su3-shadow-sm:    0 4px 12px rgba(139,168,136,.08);
+    --su3-shadow-md:    0 12px 28px rgba(139,168,136,.12);
+    --su3-shadow-lg:    0 24px 48px rgba(139,168,136,.16);
+    --su3-radius-sm:    12px;
+    --su3-radius-md:    18px;
+    --su3-radius-lg:    24px;
+    --su3-radius-xl:    32px;
+}
+
+.su3-shell,
+.su3-shell *,
+.su3-shell *::before,
+.su3-shell *::after {
+    box-sizing: border-box;
+}
+
+.su3-shell h1,
+.su3-shell h2,
+.su3-shell h3,
+.su3-shell h4,
+.su3-shell h5,
+.su3-shell h6,
+.su3-shell p,
+.su3-shell ul,
+.su3-shell ol,
+.su3-shell li {
+    margin: 0;
+    padding: 0;
+}
+
+/* ══════════════════════════════════════════
+   SHELL / LAYOUT
+══════════════════════════════════════════ */
+.su3-shell {
+    position: relative;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background:
+        radial-gradient(circle at top left,  rgba(139,168,136,.14), transparent 36%),
+        radial-gradient(circle at bottom right, rgba(253,164,175,.10), transparent 30%),
+        linear-gradient(135deg, var(--su3-bg) 0%, var(--su3-bg-sub) 100%);
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    color: var(--su3-text);
+    overflow-x: hidden;
+}
+
+/* background blobs */
+.su3-blob {
+    position: fixed;
+    border-radius: 999px;
+    pointer-events: none;
+    filter: blur(60px);
+    opacity: .45;
+    z-index: 0;
+}
+.su3-blob--tr {
+    width: 380px; height: 380px;
+    top: -100px; right: -100px;
+    background: rgba(139,168,136,.18);
+}
+.su3-blob--bl {
+    width: 300px; height: 300px;
+    bottom: 20px; left: -80px;
+    background: rgba(245,158,11,.12);
+}
+.su3-blob--mid {
+    width: 260px; height: 260px;
+    top: 45%; left: 33%;
+    background: rgba(253,164,175,.07);
+}
+
+/* ══════════════════════════════════════════
+   MAIN / CARD
+══════════════════════════════════════════ */
+.su3-main {
+    position: relative;
+    z-index: 1;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f8f9fa;
-    padding: 20px;
+    padding: 20px 16px 80px;
 }
 
-.signup-card {
-    display: flex;
+.su3-card {
     width: 100%;
-    max-width: 1000px;
-    min-height: 750px;
-    background: white;
-    border-radius: 24px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    max-width: 580px;
+    background: var(--su3-white);
+    border-radius: var(--su3-radius-xl);
+    box-shadow: var(--su3-shadow-lg);
+    border: 1px solid rgba(139,168,136,.1);
+    padding: 36px 36px 28px;
+    position: relative;
+    overflow: visible;
+}
+
+/* ══════════════════════════════════════════
+   STEP HEADER (카드 내부)
+══════════════════════════════════════════ */
+.su3-step-header {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--su3-border);
+}
+
+.su3-step-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.su3-step-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(139,168,136,.12);
+    border: 1.5px solid rgba(139,168,136,.25);
+    font-size: .74rem;
+    font-weight: 800;
+    color: var(--su3-brand-dark);
+    letter-spacing: .04em;
+}
+
+.su3-step-title {
+    font-size: .84rem;
+    font-weight: 700;
+    color: var(--su3-text-soft);
+}
+
+.su3-progress-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--su3-border);
     overflow: hidden;
 }
 
-/* 좌측 브랜딩 */
-.branding-area {
-    flex: 1;
-    background: linear-gradient(135deg, #bdc7b9 0%, #8ba888 100%);
-    padding: 60px 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    color: white;
+.su3-progress-bar {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--su3-brand-light), var(--su3-brand));
+    transition: width .4s cubic-bezier(.4,0,.2,1);
 }
 
-.brand-logo {
-    font-size: 2rem;
+/* ══════════════════════════════════════════
+   SECTION HEAD (스텝 내부 제목 영역)
+══════════════════════════════════════════ */
+.su3-section-head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.su3-section-title {
+    font-size: 1.35rem;
+    font-weight: 900;
+    letter-spacing: -.03em;
+    color: var(--su3-text);
+}
+
+.su3-section-desc {
+    font-size: .84rem;
+    color: var(--su3-text-soft);
+    line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════
+   STEP BODY & FIELDS
+══════════════════════════════════════════ */
+.su3-step-body { display: flex; flex-direction: column; gap: 18px; overflow: visible; }
+
+.su3-field { display: flex; flex-direction: column; gap: 6px; }
+.su3-field--calendar { position: relative; }
+
+.su3-label {
+    font-size: .78rem;
     font-weight: 800;
-    color: white;
-    margin: 0;
+    letter-spacing: .02em;
+    color: var(--su3-text-soft);
 }
+.su3-required { color: var(--su3-rose); }
 
-.brand-title {
-    font-size: 2.2rem;
-    margin: 20px 0;
-    line-height: 1.3;
-}
-
-/* 우측 폼 영역 */
-.form-area {
-    flex: 1.2;
-    padding: 50px 60px;
-    background: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.form-title {
-    font-size: 1.8rem;
-    margin-bottom: 8px;
-    font-weight: 700;
-}
-.form-subtitle {
-    color: #666;
-    margin-bottom: 30px;
-}
-
-/* 역할 선택 전체 컨테이너 */
-.role-selection-wrapper {
-    display: flex;
+/* ── role cards ── */
+.su3-role-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
-    margin-bottom: 5px;
 }
-
-/* 개별 카드 스타일 */
-.role-card {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: #f1f3f5; /* 기존 인풋 배경색과 동일 */
-    border: 2px solid transparent;
-    border-radius: 12px; /* 기존 인풋 라운드와 동일 */
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.role-card:hover {
-    background: #e9ecef;
-}
-/* 활성화(선택) 되었을 때 */
-.role-card.active {
-    background: white;
-    border-color: #8ba888; /* MINDWELL 포인트 컬러 */
-    box-shadow: 0 4px 12px rgba(139, 168, 136, 0.1);
-}
-
-/* 아이콘 스타일 */
-.role-card-icon {
-    color: #999;
-    transition: color 0.2s;
-    flex-shrink: 0;
-}
-.role-card.active .role-card-icon {
-    color: #8ba888;
-}
-
-/* 텍스트 영역 */
-.role-card-text {
+.su3-role-card {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-}
-
-.role-card-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #444;
-}
-.role-card.active .role-card-title {
-    color: #111;
-}
-
-.role-card-desc {
-    font-size: 11px;
-    color: #888;
-    margin-top: 2px;
-}
-.role-card.active .role-card-desc {
-    color: #666;
-}
-
-/* 모바일 대응: 가로로 좁아지면 세로 배치 */
-@media (max-width: 480px) {
-    .role-selection-wrapper {
-        flex-direction: column;
-    }
-}
-
-/* 입력 필드 레이아웃 */
-.input-field-group {
-    margin-bottom: 18px;
-    display: flex;
-    flex-direction: column;
-}
-
-.input-label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: #444;
-}
-
-.input-wrapper {
-    position: relative;
-    display: flex;
     align-items: center;
-}
-
-.input-icon {
-    position: absolute;
-    left: 14px;
-    color: #999;
-}
-
-.form-input {
-    width: 100%;
-    padding: 12px 14px 12px 42px;
-    background: #f1f3f5;
-    border: 2px solid transparent;
-    border-radius: 12px;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-
-.form-input:focus {
-    background: white;
-    border-color: #8ba888;
-    outline: none;
-}
-
-.error-input {
-    border-color: #ff8787 !important;
-}
-
-/* 비밀번호 눈 아이콘 버튼 */
-.password-toggle {
-    position: absolute;
-    right: 12px;
-    background: none;
-    border: none;
-    color: #999;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    padding: 4px;
-}
-
-/* 버튼 스타일 */
-.check-button {
-    padding: 0 15px;
-    background: #444;
-    color: white;
-    border-radius: 12px;
-    border: none;
-    font-size: 0.8rem;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.check-button:disabled {
-    background: #ccc;
-    cursor: default;
-}
-
-.submit-button {
-    width: 100%;
-    padding: 15px;
-    background: #8ba888;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 700;
-    display: flex;
     justify-content: center;
-    align-items: center;
     gap: 8px;
-    margin-top: 0;
-    margin-bottom: 18px; /* 하단 안내문구와의 간격 추가 */
+    padding: 18px 12px;
+    border: 1.5px solid var(--su3-border);
+    border-radius: var(--su3-radius-lg);
+    background: var(--su3-white);
     cursor: pointer;
-}
-
-/* 유효성 메시지 */
-.validation-msg {
-    font-size: 0.75rem;
-    margin-top: 4px;
-    font-weight: 500;
-}
-.msg-error {color: #fa5252;}
-.msg-success {color: #40c057;}
-
-/* 모바일 대응 */
-@media (max-width: 768px) {
-    .signup-card {
-        flex-direction: column;
-        min-height: auto;
-    }
-    .branding-area {
-        display: none;
-    }
-    .form-area {
-        padding: 30px 20px;
-    }
-}
-
-.input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.inner-check-button {
-    position: absolute;
-    right: 12px;
-    background: none;
-    border: none;
-    color: #4a90e2; /* 파란색 글씨 */
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.inner-check-button:disabled {
-    color: #ccc;
-    cursor: default;
-}
-
-/* --- 생년월일 커스텀 달력 스타일 --- */
-.custom-calendar-popup {
-    position: absolute;
-    top: calc(100% + 10px);
-    left: 0;
-    width: 100%;
-    background: #ffffff;
-    border-radius: 20px; 
-    box-shadow: 0 15px 40px rgba(139, 168, 136, 0.2); 
-    border: 1px solid #f0eee9;
-    padding: 20px;
-    z-index: 1000;
-}
-
-.cal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 18px;
-}
-
-/* 년도/월 선택 셀렉트 박스 스타일 */
-.cal-title-group {display: flex; gap: 5px;}
-
-.cal-select {
-    border: none;
-    background: #faf7f2;
-    color: #1e293b;
-    font-size: 14px;
-    font-weight: 700;
-    padding: 4px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    outline: none;
-    appearance: none; 
+    transition: border-color .18s, background .18s, transform .18s, box-shadow .18s;
     text-align: center;
 }
-.cal-select:hover {background: #f1ede4;}
-
-.cal-nav-btn {
-    background: none;
-    border: none;
-    color: #8ba888; 
-    cursor: pointer;
-    padding: 4px;
-    transition: 0.2s;
+.su3-role-card:hover {
+    border-color: rgba(139,168,136,.5);
+    background: #F6FBF7;
+    transform: translateY(-1px);
+}
+.su3-role-card--active {
+    border-color: var(--su3-brand);
+    background: var(--su3-white);
+    box-shadow: 0 8px 20px rgba(139,168,136,.14);
+}
+.su3-role-icon-wrap {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .18s;
+}
+.su3-role-card:hover .su3-role-icon-wrap { transform: scale(1.08); }
+.su3-role-icon-wrap--brand { background: rgba(139,168,136,.12); color: var(--su3-brand); }
+.su3-role-icon-wrap--amber { background: rgba(245,158,11,.12); color: var(--su3-amber); }
+.su3-role-name {
+    font-size: .88rem;
+    font-weight: 800;
+    color: var(--su3-text);
+}
+.su3-role-desc {
+    font-size: .72rem;
+    color: var(--su3-text-muted);
+    line-height: 1.4;
 }
 
-.cal-weekdays {
+/* ── input ── */
+.su3-input-row {
+    display: flex;
+    gap: 8px;
+}
+.su3-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.su3-input-wrap--grow { flex: 1; }
+.su3-input-wrap--pointer { cursor: pointer; }
+.su3-input-wrap--active .su3-input {
+    border-color: var(--su3-brand);
+}
+
+.su3-input-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--su3-text-muted);
+    pointer-events: none;
+    flex-shrink: 0;
+}
+.su3-input {
+    width: 100%;
+    height: 50px;
+    padding: 0 16px 0 42px;
+    border: 1.5px solid transparent;
+    border-radius: var(--su3-radius-md);
+    background: #F1F3F5;
+    font-size: .9rem;
+    color: var(--su3-text);
+    transition: border-color .18s;
+    outline: none;
+}
+.su3-input::placeholder { color: var(--su3-text-muted); }
+.su3-input:focus {
+    border-color: var(--su3-brand);
+}
+.su3-input--error {
+    border-color: var(--su3-rose) !important;
+}
+.su3-input--with-btn { padding-right: 86px; }
+.su3-input--pointer { cursor: pointer; }
+
+.su3-inner-btn {
+    position: absolute;
+    right: 8px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1.5px solid rgba(139,168,136,.3);
+    border-radius: var(--su3-radius-sm);
+    background: #F6FBF7;
+    color: var(--su3-text);
+    font-size: .74rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background .18s, color .18s, border-color .18s;
+    white-space: nowrap;
+}
+.su3-inner-btn:hover:not(:disabled) {
+    background: #8BA888;
+    border-color: #8BA888;
+    color: #ffffff;
+}
+.su3-inner-btn:disabled {
+    background: rgba(148,163,184,.14);
+    color: var(--su3-text-muted);
+    cursor: default;
+}
+
+.su3-pw-toggle {
+    position: absolute;
+    right: 12px;
+    display: flex; align-items: center;
+    border: none; background: none;
+    color: var(--su3-text-muted);
+    cursor: pointer;
+    padding: 0;
+}
+.su3-pw-toggle:hover { color: var(--su3-text); }
+
+/* ── hint messages ── */
+.su3-hint {
+    font-size: .76rem;
+    font-weight: 700;
+    line-height: 1.5;
+    margin-top: 2px;
+}
+.su3-hint--success { color: #5c8f5b; }
+.su3-hint--error   { color: #e57988; }
+.su3-hint--warn    { color: var(--su3-amber); }
+
+/* ── password strength ── */
+.su3-strength { margin-top: 4px; }
+.su3-strength-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: .72rem;
+    color: var(--su3-text-muted);
+    margin-bottom: 6px;
+}
+.su3-strength-label { font-weight: 800; }
+.su3-strength-label--gray  { color: #94a3b8; }
+.su3-strength-label--rose  { color: var(--su3-rose); }
+.su3-strength-label--amber { color: var(--su3-amber); }
+.su3-strength-label--brand { color: var(--su3-brand); }
+.su3-strength-bars { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+.su3-strength-bar {
+    height: 4px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    transition: background .24s;
+}
+.su3-strength-bar--rose  { background: var(--su3-rose); }
+.su3-strength-bar--amber { background: var(--su3-amber); }
+.su3-strength-bar--brand { background: var(--su3-brand); }
+
+/* ══════════════════════════════════════════
+   TWO-COLUMN (birth + gender)
+══════════════════════════════════════════ */
+.su3-two-col {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    overflow: visible;
+}
+
+/* ══════════════════════════════════════════
+   CALENDAR POPUP
+══════════════════════════════════════════ */
+.su3-cal-popup {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 300px;
+    min-width: 300px;
+    padding: 16px;
+    border-radius: var(--su3-radius-lg);
+    background: var(--su3-white);
+    box-shadow: 0 20px 40px rgba(139,168,136,.18);
+    z-index: 9000;
+    border: 1px solid var(--su3-border);
+    overflow: visible;
+    animation: su3-calPopIn .2s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+
+@keyframes su3-calPopIn {
+    from { opacity: 0; transform: translateY(-6px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.su3-cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 14px;
+    position: relative;
+}
+
+/* ── 커스텀 드롭다운 컨테이너 ── */
+.su3-cal-selects {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+    justify-content: center;
+}
+
+/* ── 커스텀 드롭다운 트리거 버튼 ── */
+.su3-cal-select-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 34px;
+    padding: 0 10px 0 12px;
+    border: 1.5px solid rgba(139,168,136,.25);
+    border-radius: 999px;
+    background: rgba(139,168,136,.07);
+    color: var(--su3-text);
+    font-size: .82rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background .18s, border-color .18s, box-shadow .18s;
+    white-space: nowrap;
+    outline: none;
+    font-family: inherit;
+}
+.su3-cal-select-btn:hover {
+    background: rgba(139,168,136,.14);
+    border-color: rgba(139,168,136,.5);
+    box-shadow: 0 2px 8px rgba(139,168,136,.12);
+}
+.su3-cal-select-btn--open {
+    background: var(--su3-brand);
+    border-color: var(--su3-brand);
+    color: var(--su3-white);
+    box-shadow: 0 4px 12px rgba(139,168,136,.28);
+}
+.su3-cal-select-btn--open .su3-cal-select-chevron {
+    color: var(--su3-white);
+    transform: rotate(180deg);
+}
+.su3-cal-select-chevron {
+    color: var(--su3-brand);
+    flex-shrink: 0;
+    transition: transform .2s ease, color .18s;
+}
+
+/* ── 커스텀 드롭다운 패널 ── */
+.su3-cal-dropdown-wrap {
+    position: relative;
+}
+
+.su3-cal-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--su3-white);
+    border: 1.5px solid rgba(139,168,136,.2);
+    border-radius: var(--su3-radius-md);
+    box-shadow: 0 12px 32px rgba(139,168,136,.2), 0 2px 8px rgba(0,0,0,.06);
+    z-index: 9100;
+    overflow: hidden;
+    animation: su3-dropIn .18s cubic-bezier(.34,1.4,.64,1) forwards;
+    min-width: 100px;
+}
+
+@keyframes su3-dropIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(.95); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* 스크롤 가능한 리스트 영역 */
+.su3-cal-dropdown-list {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139,168,136,.3) transparent;
+}
+.su3-cal-dropdown-list::-webkit-scrollbar {
+    width: 4px;
+}
+.su3-cal-dropdown-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.su3-cal-dropdown-list::-webkit-scrollbar-thumb {
+    background: rgba(139,168,136,.3);
+    border-radius: 999px;
+}
+
+/* 각 옵션 아이템 */
+.su3-cal-dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--su3-text-soft);
+    cursor: pointer;
+    transition: background .14s, color .14s, transform .14s;
+    white-space: nowrap;
+}
+.su3-cal-dropdown-item:hover {
+    background: rgba(139,168,136,.1);
+    color: var(--su3-brand-dark);
+    transform: scale(1.02);
+}
+.su3-cal-dropdown-item--selected {
+    background: var(--su3-brand);
+    color: var(--su3-white);
+    font-weight: 800;
+}
+.su3-cal-dropdown-item--selected:hover {
+    background: var(--su3-brand-dark);
+    color: var(--su3-white);
+}
+
+.su3-cal-nav {
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid rgba(139,168,136,.2);
+    border-radius: 50%;
+    background: rgba(139,168,136,.06);
+    color: var(--su3-brand);
+    cursor: pointer;
+    transition: background .18s, border-color .18s, transform .18s;
+    flex-shrink: 0;
+}
+.su3-cal-nav:hover {
+    background: rgba(139,168,136,.16);
+    border-color: rgba(139,168,136,.4);
+    transform: scale(1.06);
+}
+
+.su3-cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7,1fr);
+    margin-bottom: 6px;
+}
+.su3-cal-weekday {
+    text-align: center;
+    font-size: .7rem;
+    font-weight: 800;
+    color: var(--su3-text-muted);
+    padding: 4px 0;
+}
+.su3-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7,1fr);
+    gap: 3px;
+}
+.su3-cal-day {
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    font-size: .8rem;
+    cursor: pointer;
+    transition: background .16s, color .16s, transform .16s;
+}
+.su3-cal-day:hover:not(.su3-cal-day--empty) {
+    background: rgba(139,168,136,.12);
+    color: var(--su3-brand);
+    transform: translateY(-1px);
+}
+.su3-cal-day--selected {
+    background: var(--su3-brand);
+    color: var(--su3-white);
+    font-weight: 800;
+}
+.su3-cal-day--empty { cursor: default; }
+
+/* ── gender ── */
+.su3-gender-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.su3-gender-card {
+    display: flex; align-items: center; justify-content: center;
+    height: 50px;
+    border: 1.5px solid var(--su3-border);
+    border-radius: var(--su3-radius-md);
+    background: var(--su3-white);
+    cursor: pointer;
+    transition: border-color .18s, background .18s;
+}
+.su3-gender-card:hover { border-color: rgba(139,168,136,.5); background: #F6FBF7; }
+.su3-gender-card--active { border-color: var(--su3-brand); background: var(--su3-white); }
+.su3-gender-label {
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--su3-text-soft);
+    transition: color .18s;
+}
+.su3-gender-label--active { color: var(--su3-brand); font-weight: 800; }
+.su3-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+/* ══════════════════════════════════════════
+   AGREEMENTS — accordion style
+══════════════════════════════════════════ */
+.su3-agree-box {
+    border: 1.5px solid rgba(139,168,136,.25);
+    border-radius: var(--su3-radius-md);
+    background: #F6FBF7;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+}
+
+.su3-agree-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin-bottom: 10px;
 }
 
-.cal-weekday {
-    text-align: center;
-    font-size: 12px;
-    font-weight: 800;
-    color: #8ba888; /* 요일은 확실하게 포인트 컬러! */
-}
-
-.cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-}
-
-.cal-day {
-    aspect-ratio: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.cal-day:hover:not(.empty) {
-    background: #faf7f2;
-    color: #8ba888;
-    font-weight: 700;
-}
-
-.cal-day.selected {
-    background: #8ba888 !important;
-    color: white !important;
-    font-weight: 700;
-}
-.cal-day.empty { cursor: default; }
-.pointer-cursor {cursor: pointer;}
-
-/* --- 성별 라디오 버튼 스타일 --- */
-.gender-radio-group {
-    display: flex;
-    gap: 12px;
-}
-
-.gender-radio {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-    color: #64748b;
-    background: #f1f3f5;
-    border-radius: 12px;
-    padding: 12px;
-    border: 1.5px solid #faf7f2;
-    cursor: pointer;
-    transition: all 0.2s;
-    user-select: none;
-}
-.gender-radio:hover {background: #e9ecef;}
-
-.gender-radio.checked {
-    background: #ffffff;
-    border-color: #8ba888;
-    color: #1e293b;
-    box-shadow: 0 4px 12px rgba(139, 168, 136, 0.1);
-}
-
-.gender-radio input[type='radio'] {
-    display: none; /* 실제 라디오 버튼은 숨김 */
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* 개인정보 동의 카드 전체 컨테이너 */
-.policy-section-card {
-    background: #f6fbf7; /* 연그린 계열, 전체 톤과 어울리게 */
-    border: 1.5px solid #d2e3d0; /* 연그린 테두리 */
-    border-radius: 18px;
-    padding: 16px;
-    margin: 10px 0 30px 0;
-    transition: all 0.3s ease;
-}
-
-/* 상단 헤더 영역 */
-.policy-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    padding: 4px 0;
-}
-
-.policy-title-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #334155;
-}
-
-.policy-icon {
-    color: #8ba888; /* 포인트 컬러 세이지 그린 */
-}
-
-.policy-arrow {
-    color: #94a3b8;
-    transition: transform 0.3s ease;
-}
-
-.policy-arrow.active {
-    transform: rotate(180deg);
-}
-
-/* 상세 내용 박스 (애니메이션 포함) */
-.policy-detail-content {
-    margin-top: 14px;
-    padding: 14px;
-    background: #fafdff;
-    border-radius: 12px;
-    border: 1px solid #e3f1e7;
-    animation: fadeIn 0.2s ease-out;
-}
-
-.policy-detail-item {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-.policy-detail-item:last-child {
-    margin-bottom: 0;
-}
-
-.policy-dot {
-    width: 4px;
-    height: 4px;
-    background: #8ba888;
-    border-radius: 50%;
-    margin-top: 8px;
+.su3-agree-shield {
+    color: var(--su3-brand);
     flex-shrink: 0;
 }
 
-.policy-detail-item p {
-    margin: 0;
-    font-size: 12px;
-    line-height: 1.6;
-    color: #64748b;
-    font-weight: 400;
+.su3-agree-header-text {
+    font-size: .84rem;
+    font-weight: 800;
+    color: var(--su3-text);
 }
 
-/* 하단 체크박스 영역 (레이아웃 고정 핵심) */
-.policy-agree-footer {
-    margin-top: 16px;
+.su3-agree-footer-row {
     display: flex;
     align-items: center;
-    height: 24px; /* 높이 고정으로 버튼 흔들림 방지 */
+    justify-content: space-between;
+    margin-top: 10px;
+}
+.su3-agree-check-row--nomargin {
+    margin-bottom: 0;
 }
 
-.custom-checkbox-wrapper {
+.su3-agree-arrow-btn {
+    background: none;
+    border: 1.5px solid rgba(139,168,136,.3);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    margin-left: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background .18s, border-color .18s;
+}
+.su3-agree-arrow-btn:hover {
+    background: rgba(139,168,136,.12);
+    border-color: var(--su3-brand);
+}
+
+.su3-agree-arrow {
+    display: block;
+    color: var(--su3-text-muted);
+    transition: transform .22s ease, color .18s;
+}
+.su3-agree-arrow--open {
+    transform: rotate(180deg);
+    color: var(--su3-brand);
+}
+
+.su3-agree-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: var(--su3-radius-sm);
+    background: rgba(255,255,255,.7);
+    animation: su3-fadeSlide .22s ease-out forwards;
+}
+@keyframes su3-fadeSlide {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.su3-agree-detail-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.su3-agree-dot {
+    width: 7px;
+    height: 7px;
+    min-width: 7px;
+    min-height: 7px;
+    border-radius: 50%;
+    background: var(--su3-brand);
+    margin-top: 0;
+    flex-shrink: 0;
+}
+.su3-agree-detail-item p {
+    margin: 0;
+    font-size: .8rem;
+    line-height: 1.7;
+    color: var(--su3-text-soft);
+}
+.su3-agree-detail-item p strong {
+    color: var(--su3-text);
+    font-weight: 700;
+}
+
+.su3-agree-check-row {
     display: inline-flex;
     align-items: center;
     gap: 10px;
     cursor: pointer;
+    user-select: none;
 }
-
-.custom-checkbox-box {
-    width: 22px;
-    height: 22px;
+.su3-agree-check-box {
+    position: relative;
+    width: 22px; height: 22px;
     min-width: 22px;
-    background: white;
-    border: 2px solid #cbd5e1;
-    border-radius: 7px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    transition: all 0.2s ease;
+    border-radius: 7px;
+    background: var(--su3-white);
+    border: 1.5px solid var(--su3-border);
+    box-shadow: 0 2px 6px rgba(139,168,136,.1);
+    transition: background .18s, border-color .18s;
 }
-
-.custom-checkbox-box.checked {
-    background: #8ba888;
-    border-color: #8ba888;
+.su3-agree-check-box--checked {
+    background: var(--su3-brand);
+    border-color: var(--su3-brand);
 }
-
-.custom-checkbox-box input {
-    position: absolute;
+.su3-agree-check-icon {
+    color: var(--su3-white);
     opacity: 0;
-    width: 100%;
-    height: 100%;
+    transform: scale(.5);
+    transition: opacity .18s, transform .18s;
+}
+.su3-agree-check-icon--visible { opacity: 1; transform: scale(1); }
+.su3-agree-check-text {
+    font-size: .88rem;
+    line-height: 1.5;
+    color: var(--su3-text);
+}
+
+/* ══════════════════════════════════════════
+   NAV BUTTONS
+══════════════════════════════════════════ */
+.su3-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-top: 32px;
+    padding-top: 24px;
+    padding-bottom: 32px;
+    border-top: 1px solid var(--su3-border);
+}
+
+.su3-nav.su3-nav--center {
+    justify-content: center;
+}
+.su3-nav-prev {
+    flex: 1;
+    height: 52px;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px;
+    border: 1.5px solid var(--su3-border);
+    border-radius: var(--su3-radius-md);
+    background: var(--su3-white);
+    color: var(--su3-text-soft);
+    font-size: .88rem;
+    font-weight: 700;
     cursor: pointer;
-    z-index: 2;
+    transition: background .18s, border-color .18s;
+}
+.su3-nav-prev:hover { background: #F6FBF7; border-color: rgba(139,168,136,.4); }
+.su3-nav-next {
+    flex: 2;
+    height: 52px;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px;
+    border: 1.5px solid var(--su3-brand);
+    border-radius: var(--su3-radius-md);
+    background: var(--su3-white);
+    color: var(--su3-brand);
+    font-size: .9rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(139,168,136,.12);
+    transition: background .18s, color .18s, box-shadow .18s, transform .18s;
+}
+.su3-nav-next:hover {
+    background: var(--su3-brand);
+    color: var(--su3-white);
+    box-shadow: 0 10px 24px rgba(139,168,136,.22);
+    transform: translateY(-1px);
 }
 
-/* 체크 아이콘 Absolute 배치로 흔들림 방지 */
-.custom-check-icon {
-    color: white;
+.su3-hidden-submit {
     position: absolute;
+    width: 0; height: 0;
+    overflow: hidden;
     opacity: 0;
-    transform: scale(0.5);
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.custom-check-icon.visible {
-    opacity: 1;
-    transform: scale(1);
+/* ══════════════════════════════════════════
+   LOGIN PROMPT
+══════════════════════════════════════════ */
+.su3-login-prompt {
+    margin-top: 0;
+    padding-bottom: 4px;
+    text-align: center;
+    font-size: .84rem;
+    color: var(--su3-text-soft);
+}
+.su3-login-link {
+    background: none; border: none;
+    color: var(--su3-brand);
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    margin-left: 4px;
+    padding: 0;
 }
 
-.custom-checkbox-text {
-    font-size: 13px;
-    font-weight: 500;
-    color: #1e293b;
+/* ══════════════════════════════════════════
+   SUCCESS SCREEN
+══════════════════════════════════════════ */
+.su3-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 18px;
+    padding: 8px 0 4px;
+}
+.su3-success-icon-wrap {
+    position: relative;
+    width: 80px; height: 80px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: rgba(139,168,136,.1);
+    color: var(--su3-brand);
+}
+.su3-success-ping {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: rgba(139,168,136,.1);
+    animation: su3-ping 1.8s ease-in-out infinite;
+}
+@keyframes su3-ping {
+    0%   { transform: scale(1); opacity: .7; }
+    70%  { transform: scale(1.5); opacity: 0; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+.su3-success-title {
+    font-size: 1.8rem;
+    font-weight: 900;
+    letter-spacing: -.04em;
+    color: var(--su3-text);
+}
+.su3-success-desc {
+    font-size: .88rem;
+    line-height: 1.75;
+    color: var(--su3-text-soft);
+    max-width: 340px;
+}
+.su3-success-name { font-weight: 800; color: var(--su3-brand); }
+.su3-success-role { font-weight: 700; color: var(--su3-text); }
+
+.su3-success-info-card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--su3-white);
+    border: 1.5px solid var(--su3-border);
+    border-radius: var(--su3-radius-md);
+    padding: 18px;
+    box-shadow: var(--su3-shadow-sm);
+    display: flex; flex-direction: column; gap: 10px;
+    text-align: left;
+}
+.su3-success-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: .8rem;
+}
+.su3-success-row--border { padding-top: 10px; border-top: 1px solid var(--su3-border); }
+.su3-success-key { color: var(--su3-text-muted); }
+.su3-success-val { font-weight: 700; color: var(--su3-text); }
+.su3-success-val--brand { color: var(--su3-brand); }
+.su3-success-val--amber { color: var(--su3-amber); }
+
+.su3-start-btn {
+    width: 100%;
+    max-width: 380px;
+    height: 52px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1.5px solid var(--su3-brand);
+    border-radius: var(--su3-radius-md);
+    background: var(--su3-white);
+    color: var(--su3-brand);
+    font-size: .92rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: var(--su3-shadow-sm);
+    transition: background .18s, color .18s, transform .18s;
+}
+.su3-start-btn:hover {
+    background: var(--su3-brand);
+    color: var(--su3-white);
+    transform: translateY(-1px);
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-5px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+.su3-toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-radius: var(--su3-radius-lg);
+    background: var(--su3-text);
+    color: var(--su3-white);
+    font-size: .84rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 16px 32px rgba(30,41,59,.18);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .28s ease, transform .28s ease;
+    z-index: 9999;
+}
+.su3-toast--visible { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.su3-toast-icon { display: flex; align-items: center; }
+.su3-toast--success { border: 1px solid rgba(139,168,136,.3); }
+.su3-toast--error   { border: 1px solid rgba(253,164,175,.3); }
+.su3-toast--warn    { border: 1px solid rgba(245,158,11,.3); }
+.su3-toast--info    { border: 1px solid rgba(255,255,255,.1); }
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+    .su3-card { padding: 24px 18px 20px; border-radius: var(--su3-radius-lg); }
+    .su3-two-col { grid-template-columns: 1fr; }
+    .su3-role-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .su3-cal-popup { min-width: 0; }
+}
+
+@media (max-width: 400px) {
+    .su3-role-grid { grid-template-columns: 1fr; }
+    .su3-section-title { font-size: 1.2rem; }
 }
