@@ -50,7 +50,8 @@ export default function MobileTap() {
         } else {
             if (path === '/' || path.startsWith('/home')) setActiveTab('home');
             else if (path.startsWith('/reserve') || path.startsWith('/reservation')) setActiveTab('reservation');
-            else if (path.startsWith('/diary') || path.startsWith('/AIdiary') || path.startsWith('/ai-diary')) setActiveTab('diary');
+            else if (path.startsWith('/diary') || path.startsWith('/AIdiary') || path.startsWith('/ai-diary'))
+                setActiveTab('diary');
             else if (path.startsWith('/healing')) setActiveTab('lounge');
             else if (path.startsWith('/mypage')) setActiveTab('mypage');
         }
@@ -78,18 +79,27 @@ export default function MobileTap() {
 
     const handleMobileMenuClick = (item) => {
         setActiveTab(item.id);
+        // 비로그인(내담자/관리자/비회원) 보호 메뉴 처리
+        if (!userRole || userRole === 'client' || userRole === 'admin' || userRole === '') {
+            // 전문가 찾기, 힐링 라운지는 로그인 없이 접근 허용
+            if (item.id === 'reservation' || item.id === 'diary' || item.id === 'mypage') {
+                if (window.confirm('로그인해야 이용 가능합니다.\n로그인 페이지로 이동할까요?')) {
+                    navigate('/login');
+                }
+                return;
+            }
+            if (item.id === 'home') navigate('/');
+            else if (item.id === 'lounge') navigate('/healing');
+            else if (item.id === 'search') navigate('/counselors');
+            return;
+        }
+        // 상담사 메뉴
         if (userRole === 'counselor') {
             if (item.id === 'home') navigate('/CounselorHome');
             else if (item.id === 'reservation') navigate('/CounselorPlanner');
             else if (item.id === 'client') navigate('/CounselorClient');
             else if (item.id === 'inquiry') navigate('/CounselorMessages');
             else if (item.id === 'mypage') navigate('/CounselorMyPage');
-        } else {
-            if (item.id === 'home') navigate('/');
-            else if (item.id === 'reservation') navigate('/reserve');
-            else if (item.id === 'diary') navigate('/diary');
-            else if (item.id === 'lounge') navigate('/healing');
-            else if (item.id === 'mypage') navigate('/mypage');
         }
     };
 

@@ -4,18 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import MobileTap from '../components/mobileTap.jsx';
-import {
-    Calendar,
-    Clock,
-    MapPin,
-    Home,
-    BookOpen,
-    Heart,
-    User,
-    AlertCircle,
-    X,
-    CalendarX,
-} from 'lucide-react';
+import { Calendar, Clock, MapPin, Home, BookOpen, Heart, User, AlertCircle, X, CalendarX } from 'lucide-react';
+import { isTokenExpired } from '../utils/jwt';
 import '../static/Reservation.css';
 
 // ── 상수 ────────────────────────────────────────────────────
@@ -64,6 +54,7 @@ const EmptyState = ({ filter }) => (
 
 // ── 메인 ────────────────────────────────────────────────────
 export default function ReservationHistoryPage({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
+    const navigate = useNavigate();
     const [filter, setFilter] = useState('전체');
     const [historyData, setHistoryData] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -71,41 +62,70 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
     const [blockedMsg, setBlockedMsg] = useState('');
 
     useEffect(() => {
+        // access_token 없거나 만료면 로그인 페이지로 이동하고 이전 데이터도 비움
+        const token = localStorage.getItem('access_token');
+        if (!token || isTokenExpired(token)) {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('login_time');
+            setHistoryData([]);
+            navigate('/login');
+            return;
+        }
         try {
             const u = JSON.parse(localStorage.getItem('user'));
             if (u?.role === 'counselor') {
                 // 리다이렉트가 필요할 경우 여기에 작성
             }
         } catch {}
-    }, []);
+    }, [navigate]);
 
     useEffect(() => {
+        // access_token 없거나 만료면 예약 내역 fetch 자체를 막고 이전 데이터 제거
+        const token = localStorage.getItem('access_token');
+        if (!token || isTokenExpired(token)) {
+            setHistoryData([]);
+            return;
+        }
         const fetchAndUpdate = async () => {
-            let data = await getAllBookings();
-            const now = new Date();
-            let changed = false;
+            try {
+                let data = await getAllBookings();
+                const now = new Date();
+                let changed = false;
 
-            for (const item of data) {
-                if (item.booking_status !== 'confirmed') continue;
-                const base = item.date.replace(/\./g, '-');
-                let endTime = item.time;
-                if (item.time.includes('~')) {
-                    endTime = item.time.split('~')[1].trim();
-                } else if (/^\d{2}:\d{2}$/.test(item.time)) {
-                    const end = new Date(`${base}T${item.time}:00`);
-                    end.setMinutes(end.getMinutes() + 59);
-                    endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
+                for (const item of data) {
+                    if (item.booking_status !== 'confirmed') continue;
+                    const base = item.date.replace(/\./g, '-');
+                    let endTime = item.time;
+                    if (item.time.includes('~')) {
+                        endTime = item.time.split('~')[1].trim();
+                    } else if (/^\d{2}:\d{2}$/.test(item.time)) {
+                        const end = new Date(`${base}T${item.time}:00`);
+                        end.setMinutes(end.getMinutes() + 59);
+                        endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(
+                            2,
+                            '0'
+                        )}`;
+                    }
+                    if (new Date(`${base}T${endTime}:00`) < now) {
+                        await completeBooking(item.order_id);
+                        changed = true;
+                    }
                 }
-                if (new Date(`${base}T${endTime}:00`) < now) {
-                    await completeBooking(item.order_id);
-                    changed = true;
+
+                setHistoryData(changed ? await getAllBookings() : data);
+            } catch (error) {
+                setHistoryData([]);
+                if (error?.response?.status === 401) {
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('login_time');
+                    navigate('/login');
                 }
             }
-
-            setHistoryData(changed ? await getAllBookings() : data);
         };
         fetchAndUpdate();
-    }, []);
+    }, [navigate]);
 
     const filteredData = historyData.filter(
         (item) => filter === '전체' || getStatusText(item.booking_status) === filter

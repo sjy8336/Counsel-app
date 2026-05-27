@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
+import Header from '../components/header';
+import Footer from '../components/footer';
+import MobileTap from '../components/mobileTap';
 import { useNavigate } from 'react-router-dom';
-import { Lock, ChevronRight, BookHeart, Eye, EyeOff, User } from 'lucide-react';
+import { Lock, ChevronRight, Eye, EyeOff, User } from 'lucide-react';
 import { login } from '../api/auth';
 import '../static/Login.css';
 
 export default function LoginPage({ setUserName, setIsLoggedIn }) {
+    // 헤더/모바일탭 activeTab 상태 관리
+    const [activeTab, setActiveTab] = useState('home');
     // 변수명 충돌 방지를 위해 id 대신 loginId 사용
     const [loginId, setLoginId] = useState('');
     const [password, setPassword] = useState('');
@@ -73,131 +78,102 @@ export default function LoginPage({ setUserName, setIsLoggedIn }) {
     };
 
     return (
-        <div className="login-container">
-            <div className="login-card">
-                {/* 좌측: 브랜딩 영역 */}
-                <div className="branding-section">
-                    <div className="branding-glass-overlay"></div>
-                    <div className="branding-top">
-                        <button onClick={() => navigate('/')} className="brand-logo-btn">
-                            <h1 className="brand-logo">MINDWELL</h1>
-                            <span className="brand-slogan">당신의 마음을 돌보는 따뜻한 공간</span>
-                        </button>
-                    </div>
-
-                    <div className="branding-middle">
-                        <div className="brand-message-box">
-                            <BookHeart size={36} className="brand-icon" />
-                            <h2 className="brand-main-title">
-                                오늘도 <br />
-                                수고 많았어요.
-                            </h2>
-                            <p className="brand-sub-desc">
-                                MINDWELL은 당신의 감정을 안전하게 기록하고, 가장 잘 맞는 상담사를 연결해 드립니다.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="branding-bottom">
-                        <span className="brand-footer-text">© 2026 MINDWELL. All rights reserved.</span>
-                    </div>
-                </div>
-
-                {/* 우측: 로그인 폼 영역 */}
-                <div className="form-section">
-                    <div className="form-inner-container">
-                        <h3 className="form-header-title">다시 오셨군요!</h3>
-                        <p className="form-header-sub">당신의 이야기를 들려주세요.</p>
-
-                        <form onSubmit={handleSubmit}>
-                            <div className="input-group-container">
-                                <label className="input-label">ID</label>
-                                <div className="input-group">
-                                    <User size={16} className="input-icon" />
-                                    <input
-                                        type="text"
-                                        value={loginId}
-                                        onChange={(e) => setLoginId(e.target.value)}
-                                        className="input-field"
-                                        placeholder="아이디를 입력해 주세요"
-                                        autoComplete="username"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="input-group-container">
-                                <label className="input-label">Password</label>
-                                <div className="input-group">
-                                    <Lock size={16} className="input-icon" />
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="input-field"
-                                        placeholder="비밀번호를 입력해 주세요"
-                                        autoComplete="current-password"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="password-toggle"
-                                    >
-                                        {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <button type="submit" className="submit-btn">
-                                <span>로그인하기</span>
-                                <ChevronRight size={18} />
-                            </button>
-                        </form>
-
-                        <div className="auth-links-container">
-                            <button className="auth-link" onClick={() => navigate('/signup')}>
-                                회원가입
-                            </button>
-                            <span className="auth-divider">|</span>
-                            <button className="auth-link" onClick={() => navigate('/find-password')}>
-                                비밀번호 찾기
-                            </button>
-                        </div>
-
-                        {/* 소셜 로그인 구분선 */}
-                        <div className="divider-container social-divider center-divider">
-                            <span className="divider-text">소셜 로그인</span>
-                        </div>
-
-                        {/* 소셜 버튼 컨테이너 */}
-                        <div className="social-icon-wrapper">
-                            {['Google', 'Kakao', 'Naver'].map((p) => (
-                                <button
-                                    key={p}
-                                    type="button"
-                                    className={`social-icon-item ${p.toLowerCase()}-bg`}
-                                    style={{ border: 'none', cursor: 'pointer' }}
-                                >
-                                    {p === 'Naver' ? (
-                                        <span className="naver-text">N</span>
-                                    ) : (
-                                        <img
-                                            src={
-                                                p === 'Google'
-                                                    ? 'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png'
-                                                    : 'https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg'
-                                            }
-                                            alt={p}
-                                            className="social-img-icon"
+        <>
+            <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+            <div className="login-container">
+                {/* 단일 카드 (브랜딩 섹션 제거, 폼만 유지) */}
+                <div className="login-card">
+                    <div className="form-section">
+                        <div className="form-inner-container">
+                            <h3 className="form-header-title">다시 오셨군요!</h3>
+                            <p className="form-header-sub">당신의 이야기를 들려주세요.</p>
+                            <form onSubmit={handleSubmit}>
+                                <div className="input-group-container">
+                                    <label className="input-label">아이디</label>
+                                    <div className="input-group">
+                                        <User size={16} className="input-icon" />
+                                        <input
+                                            type="text"
+                                            value={loginId}
+                                            onChange={(e) => setLoginId(e.target.value)}
+                                            className="input-field"
+                                            placeholder="아이디를 입력해 주세요"
+                                            autoComplete="username"
+                                            required
                                         />
-                                    )}
+                                    </div>
+                                </div>
+                                <div className="input-group-container">
+                                    <label className="input-label">비밀번호</label>
+                                    <div className="input-group">
+                                        <Lock size={16} className="input-icon" />
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="input-field"
+                                            placeholder="비밀번호를 입력해 주세요"
+                                            autoComplete="current-password"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="password-toggle"
+                                        >
+                                            {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="submit" className="submit-btn">
+                                    <span>로그인하기</span>
+                                    <ChevronRight size={18} />
                                 </button>
-                            ))}
+                            </form>
+                            <div className="auth-links-container">
+                                <button className="auth-link" onClick={() => navigate('/signup')}>
+                                    회원가입
+                                </button>
+                                <span className="auth-divider">|</span>
+                                <button className="auth-link" onClick={() => navigate('/find-password')}>
+                                    비밀번호 찾기
+                                </button>
+                            </div>
+                            {/* 소셜 로그인 구분선 - 양옆 라인 스타일 */}
+                            <div className="divider-container">
+                                <span className="divider-text">간편 로그인</span>
+                            </div>
+                            {/* 소셜 버튼 - 원형 */}
+                            <div className="social-icon-wrapper">
+                                {['Google', 'Kakao', 'Naver'].map((p) => (
+                                    <button
+                                        key={p}
+                                        type="button"
+                                        className={`social-icon-item ${p.toLowerCase()}-bg`}
+                                        aria-label={`${p}로 로그인`}
+                                    >
+                                        {p === 'Naver' ? (
+                                            <span className="naver-text">N</span>
+                                        ) : (
+                                            <img
+                                                src={
+                                                    p === 'Google'
+                                                        ? 'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png'
+                                                        : 'https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg'
+                                                }
+                                                alt={p}
+                                                className="social-img-icon"
+                                            />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+            <MobileTap activeTab={activeTab} setActiveTab={setActiveTab} />
+            <Footer />
+        </>
     );
 }
