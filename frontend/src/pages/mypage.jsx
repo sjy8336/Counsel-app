@@ -393,7 +393,9 @@ export default function App() {
     const toggleNotif = (key) => setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }));
 
     const handleLogout = () => {
+        localStorage.removeItem('access_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('login_time');
         navigate('/');
     };
 

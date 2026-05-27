@@ -179,10 +179,22 @@ export default function Header({
     const handleMenuClick = (item) => {
         setActiveTab(item.id);
         if (!isLoggedIn) {
-            if (item.id === 'search') navigate('/counselors');
-            else if (item.id === 'reservation') navigate('/reserve');
-            else if (item.id === 'diary') navigate('/diary');
-            else if (item.id === 'lounge') navigate('/healing');
+            // '전문가 찾기', '힐링 라운지'는 로그인 없이 접근 허용
+            if (item.id === 'reservation' || item.id === 'diary') {
+                if (window.confirm('로그인해야 이용 가능합니다. 로그인 페이지로 이동할까요?')) {
+                    navigate('/login');
+                }
+                return;
+            }
+            if (item.id === 'search') {
+                navigate('/counselors');
+                return;
+            }
+            if (item.id === 'lounge') {
+                navigate('/healing');
+                return;
+            }
+            return;
         } else if (userRole === 'counselor') {
             if (item.id === 'reservation') navigate('/CounselorPlanner');
             else if (item.id === 'client') navigate('/CounselorClient');

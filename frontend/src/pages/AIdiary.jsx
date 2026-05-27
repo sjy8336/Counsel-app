@@ -196,7 +196,15 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
                         <div className="mw3-diary-header">
                             <span className="mw3-diary-badge">DIARY</span>
                             <h2 className="mw3-diary-title">오늘의 마음을 기록해보세요</h2>
-                            <p className="mw3-diary-date">2026년 4월 21일의 기록</p>
+                            <p className="mw3-diary-date">
+                                {(() => {
+                                    const today = new Date();
+                                    const year = today.getFullYear();
+                                    const month = today.getMonth() + 1;
+                                    const date = today.getDate();
+                                    return `${year}년 ${month}월 ${date}일의 기록`;
+                                })()}
+                            </p>
                         </div>
 
                         {!showResult ? (
