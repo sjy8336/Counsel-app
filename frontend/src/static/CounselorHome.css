@@ -3,16 +3,24 @@
     margin-bottom: 56px !important;
   }
 }
+
 :root {
+  /* Main (Point) */
   --main:    #8BA888;   /* Sage Green */
+  /* Background */
+  --bg:      #FDFBF7;   /* Warm White */
+  /* Sub Background */
+  --sub:     #FAF7F2;   /* Sand Beige */
+  /* Accent 1 */
+  --rose:    #FDA4AF;   /* Soft Rose */
+  /* Accent 2 */
+  --amber:   #F59E0B;   /* Amber */
+  /* Text (Main) */
+  --text:    #1E293B;   /* Slate Navy */
+  /* 기타 */
   --main-dk: #6a8a67;   /* Sage Green Dark */
   --main-lt: #EEF4ED;   /* Sage Green Light */
-  --bg:      #FDFBF7;   /* Warm White */
-  --sub:     #FAF7F2;   /* Sand Beige */
-  --rose:    #FDA4AF;   /* Soft Rose */
   --rose-lt: #FFF0F2;   /* Soft Rose Light */
-  --amber:   #F59E0B;   /* Amber */
-  --text:    #1E293B;   /* Slate Navy */
   --text2:   #64748b;   /* Slate Gray */
   --line:    #e8e4dc;   /* Sand Beige Border */
   --white:   #FFFFFF;
@@ -21,7 +29,7 @@
 .counselor-main {
   background: var(--bg);
   min-height: 100vh;
-  font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  font-family: 'Pretendard', Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
   color: var(--text);
 }
 

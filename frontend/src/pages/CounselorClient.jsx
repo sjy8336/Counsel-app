@@ -9,7 +9,6 @@ import { getCounselorClients, addCounselingLog, putCounselingLog, deleteCounseli
 
 const STATUS_CLASS = { '진행 중': 'status-ing', '대기 중': 'status-wait', 종료: 'status-end' };
 
-// 확정 예약 중 일지 없는 가장 가까운 예약 찾기
 const findTargetBooking = (clientObj) => {
     if (!Array.isArray(clientObj?.bookings) || clientObj.bookings.length === 0) return null;
     const usedIds = (clientObj.logs || []).map((l) => l.booking_id);
@@ -50,11 +49,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const [surveyModal, setSurveyModal] = useState(false);
     const [deleteModal, setDeleteModal] = useState({ open: false, logId: null });
     const [openLogId, setOpenLogId] = useState(null);
-
-    // 상담 종료 토스트 팝업 상태
     const [endToast, setEndToast] = useState(false);
-
-    // 날짜 드롭다운 상태
     const [dateDropdownOpen, setDateDropdownOpen] = useState(false);
     const [availableBookings, setAvailableBookings] = useState([]);
     const dateDropdownRef = useRef(null);
@@ -85,7 +80,6 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
         }
     }, [location.state, clients]);
 
-    // 드롭다운 외부 클릭 시 닫기
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (dateDropdownRef.current && !dateDropdownRef.current.contains(e.target)) {
@@ -102,7 +96,6 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const isManualClient = !client.id;
     const isEnded = clientStatus === '종료';
 
-    // 작성완료 버튼 활성화 여부: 세 필드 모두 입력 시에만 활성화
     const isLogFormValid =
         logModal.content.trim() !== '' &&
         logModal.summary.trim() !== '' &&
@@ -120,7 +113,6 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
         if (routes[tabId]) navigate(routes[tabId]);
     };
 
-    // 새 일지 작성 버튼 클릭
     const handleOpenNewLog = () => {
         const clientObj = clients.find((c) => c.id === selectedId) || clients[0] || {};
         const usedIds = (clientObj.logs || []).map((l) => l.booking_id);
@@ -142,7 +134,6 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
         setDateDropdownOpen(false);
     };
 
-    // 드롭다운에서 회차 선택
     const handleSelectBooking = (booking, idx) => {
         setLogModal((prev) => ({
             ...prev,
@@ -243,7 +234,6 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
         }
     };
 
-    // 상담 종료 확정
     const handleConfirmEnd = () => {
         setClients((prev) =>
             prev.map((c) =>
@@ -270,7 +260,8 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
             />
 
             <div className="cc-container">
-                {/* ── 사이드바 ── */}
+                {/* ── 사이드바 (내담자 목록) ── */}
+                {/* ✅ 인라인 style의 sticky 관련 코드 제거 → CSS에서 height 100% + overflow-y auto 로 처리 */}
                 <aside className={`cc-sidebar ${isMobileListOpen ? 'is-open' : 'is-closed'}`}>
                     <div className="cc-sidebar__header" onClick={() => setIsMobileListOpen(!isMobileListOpen)}>
                         <h3 className="cc-sidebar__title">내담자 목록</h3>
@@ -316,7 +307,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                     </div>
                 </aside>
 
-                {/* ── 메인 ── */}
+                {/* ── 메인 (스크롤되는 영역) ── */}
                 <main className="cc-main">
                     {/* 프로필 카드 */}
                     <div className="cc-profile-card">
@@ -342,7 +333,6 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                             </div>
                         </div>
 
-                        {/* ── 버튼 세로 정렬 ── */}
                         <div className="cc-profile-actions">
                             <button className="cc-btn cc-btn--outline" onClick={() => setSurveyModal(true)}>
                                 <svg width="15" height="15" viewBox="0 0 20 20" fill="none" style={{marginRight:5,verticalAlign:'middle'}}>
@@ -477,7 +467,8 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                     </section>
                 </main>
 
-                {/* ── 유틸리티 ── */}
+                {/* ── 유틸리티 (주요 키워드 + Quick Memo) ── */}
+                {/* ✅ 인라인 style의 sticky 관련 코드 제거 → CSS에서 height 100% + overflow-y auto 로 처리 */}
                 <aside className="cc-utility">
                     <div className="cc-util-box">
                         <h4 className="cc-util-title">주요 키워드</h4>
