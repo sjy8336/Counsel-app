@@ -116,7 +116,7 @@ counseling-platform/
     ├── .env                                        # 환경변수 파일. DB 접속 정보, 비밀 키 등 보안 정보 관리.
     ├── requirements.txt                            # 설치된 파이썬 패키지 명단
     ├── .gitignore                                  # 백엔드 폴더에서 깃에 올리면 안 되는 목록.
-    └── .venv                                       # Python 가상환경 폴더.
+    └── .venv                                       # Python 가상환경 폴더
 
 
 
