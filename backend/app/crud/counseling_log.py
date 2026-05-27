@@ -1,3 +1,11 @@
+from sqlalchemy.orm import Session
+from app.models.counseling_log import CounselingLog
+from app.schemas.counseling_log import CounselingLogCreate
+from app.utils.keyword_extractor import extract_keywords
+import json
+from app.services.notification_service import send_counseling_log_registered_notification
+
+
 # 내담자(클라이언트)용 상담일지 전체 조회 (상담사 조건 없이 client_id만)
 def get_client_logs_for_client(db: Session, client_id: int):
     from app.models.user import User
@@ -9,12 +17,6 @@ def get_client_logs_for_client(db: Session, client_id: int):
     for log in logs:
         log.counselor_name = log.counselor.full_name if log.counselor else None
     return logs
-from sqlalchemy.orm import Session
-from app.models.counseling_log import CounselingLog
-from app.schemas.counseling_log import CounselingLogCreate
-from app.utils.keyword_extractor import extract_keywords
-import json
-from app.services.notification_service import send_counseling_log_registered_notification
 
 # 예약ID로 상담일지 단건 조회 (직접입력 내담자용)
 def get_log_by_booking(db: Session, booking_id: int, counselor_id: int):
