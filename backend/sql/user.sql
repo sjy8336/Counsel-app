@@ -90,6 +90,10 @@ CREATE TABLE `counselor_profiles` (
 
 SELECT * From counselor_profiles;
 
+DELETE FROM counselor_profiles WHERE user_id = 16;
+
+commit;
+
 
 -- 2. 전문 상담분야 테이블 (중복 선택 대응용)
 
@@ -104,6 +108,8 @@ CREATE TABLE `counselor_specialties` (
 ) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 SELECT * From counselor_specialties;
+
+DELETE FROM counselor_specialties WHERE user_id = 16;
 
 
 -- 3. 경력 사항 테이블 (다중 입력 대응)
@@ -122,6 +128,8 @@ CREATE TABLE `counselor_experiences` (
 
 SELECT * From counselor_experiences;
 
+DELETE FROM counselor_experiences WHERE user_id = 16;
+
 
 -- 4. 학력 사항 테이블 (다중 입력 대응)
 
@@ -135,6 +143,10 @@ CREATE TABLE counselor_educations (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SELECT * From counselor_educations;
+
+DELETE FROM counselor_educations WHERE user_id = 16;
+
+commit;
 
 
 -- 5. 상담 일정 설정 테이블 (달력/예약 연동용)
@@ -151,7 +163,7 @@ CREATE TABLE `counselor_schedules` (
 ) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 SELECT * From counselor_schedules;
-DELETE FROM counselor_schedules WHERE user_id = 2;
+DELETE FROM counselor_schedules WHERE user_id = 16;
 
 -- 기존 holiday 테이블 삭제
 
@@ -197,7 +209,7 @@ ALTER TABLE bookings
 ADD COLUMN client_name VARCHAR(100) NULL AFTER counselor_id;
 ALTER TABLE bookings MODIFY COLUMN client_id INT NULL;
 
-SELECT * From bookings;ㄱ
+SELECT * From bookings;
 commit;
 
 DELETE FROM bookings WHERE id = 32;

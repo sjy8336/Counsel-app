@@ -14,7 +14,7 @@ import CounselorListPage from './pages/CounselorList';
 import CounselorDetailPage from './pages/CounselorDetail';
 import CounselorMyPage from './pages/CounselorMyPage';
 import CounselorUpload from './pages/CounselorUpload';
-import Schedule from './pages/Schedule';
+// import Schedule from './pages/Schedule';
 import CounselorPlanner from './pages/CounselorPlanner';
 import CounselorHome from './pages/CounselorHome';
 import CounselorClient from './pages/CounselorClient';
@@ -74,6 +74,12 @@ function App() {
         const isAuthPage = ['/login', '/signup', '/find-password'].includes(location.pathname);
         if (isAuthPage) return;
         if (location.pathname === '/') return;
+
+        const isPublicPage =
+            location.pathname === '/counselors' ||
+            location.pathname === '/healing' ||
+            location.pathname.startsWith('/counselor/');
+        if (isPublicPage) return;
 
         const token = localStorage.getItem('access_token');
 
@@ -181,7 +187,6 @@ function App() {
                     />
                 }
             />
-            <Route path="/schedule" element={<Schedule />} />
             <Route
                 path="/CounselorPlanner"
                 element={(() => {

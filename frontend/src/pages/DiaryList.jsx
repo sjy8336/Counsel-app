@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// ★ 추가: deleteDiary import
 import { getRecentDiaries } from '../api/aiDiary';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/header.jsx';
@@ -21,14 +22,14 @@ import {
     ChevronRight,
     PenLine,
     Activity,
+    Trash2, // ★ 추가: 삭제 아이콘
 } from 'lucide-react';
 import '../static/Diary.css';
 
 // AI 처방/효능 박스 컴포넌트 및 아이콘 매핑
 const healingIconMap = {
-    tea: <Coffee />, // healing_icon 값이 tea일 때 등
-    coffee: <Coffee />, // 예시
-    // 필요시 추가: music: <MusicIcon />, walk: <WalkIcon /> 등
+    tea: <Coffee />,
+    coffee: <Coffee />,
 };
 
 function AIHealingBox({ diary }) {
@@ -93,14 +94,16 @@ const StressBadge = ({ level }) => {
         </span>
     );
 };
+
 export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }) {
-    // DB에서 불러온 일기 데이터
     const [diaryData, setDiaryData] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
     const [selectedDiary, setSelectedDiary] = useState(null);
-    // 모달이 열릴 때 body 스크롤 방지
+    // ★ 추가: 삭제 확인 상태
+    const [deleteConfirm, setDeleteConfirm] = useState(false);
+
     useEffect(() => {
         if (selectedDiary) {
             document.body.style.overflow = 'hidden';
@@ -112,12 +115,10 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
         };
     }, [selectedDiary]);
 
-    // 일기 데이터 불러오기
     useEffect(() => {
         async function fetchDiaries() {
             setLoading(true);
             try {
-                // limit을 충분히 크게 설정해 전체 목록을 불러옴
                 const diaries = await getRecentDiaries(100);
                 setDiaryData(diaries);
             } catch (e) {
@@ -127,11 +128,30 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
         }
         fetchDiaries();
     }, []);
+
+    // ★ 추가: 일기 삭제 핸들러 (1회 클릭 → 확인 메시지, 2회 클릭 → 실제 삭제)
+    const handleDeleteDiary = async (diaryId) => {
+        if (!deleteConfirm) {
+            setDeleteConfirm(true);
+            return;
+        }
+        try {
+            await deleteDiary(diaryId);
+            setDiaryData((prev) => prev.filter((d) => d.id !== diaryId));
+            setSelectedDiary(null);
+            setDeleteConfirm(false);
+        } catch (e) {
+            alert('삭제 중 오류가 발생했습니다.');
+            setDeleteConfirm(false);
+        }
+    };
+
     const handleWheel = (e) => {
         window.scrollBy(0, e.deltaY);
     };
+
     const [viewMode, setViewMode] = useState(location.state?.viewMode || 'calendar');
-    // 최신 일기 기준으로 달력 월 자동 이동
+
     const getLatestDate = () => {
         if (diaryData.length === 0) return new Date();
         const latest = diaryData.reduce((latest, cur) => {
@@ -142,14 +162,15 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
         const d = new Date(latest.created_at);
         return new Date(d.getFullYear(), d.getMonth(), 1);
     };
+
     const [currentDate, setCurrentDate] = useState(getLatestDate());
 
-    // diaryData가 바뀌면 최신 일기 월로 이동
     useEffect(() => {
         if (diaryData.length > 0) {
             setCurrentDate(getLatestDate());
         }
     }, [diaryData]);
+
     const [activeTab, setActiveTab] = useState('diary');
 
     const year = currentDate.getFullYear();
@@ -166,19 +187,16 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
         );
     }
 
-    // 날짜 파싱 함수 (DB 데이터 → year/month/day)
     function parseDate(diary) {
-        // created_at: "2026-04-20T12:34:56.000Z" 등
         const dateObj = new Date(diary.created_at);
         return {
             year: dateObj.getFullYear(),
-            month: dateObj.getMonth(), // 0-indexed
+            month: dateObj.getMonth(),
             day: dateObj.getDate(),
             dateStr: `${dateObj.getFullYear()}. ${(dateObj.getMonth() + 1).toString().padStart(2, '0')}. ${dateObj.getDate().toString().padStart(2, '0')}`,
         };
     }
 
-    // calendar/list에서 사용할 diaryData 변환
     const mappedDiaryData = diaryData.map((diary) => {
         const { year, month, day, dateStr } = parseDate(diary);
         return {
@@ -189,14 +207,13 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
             date: dateStr,
             mood: diary.selected_emotion,
             stress: diary.stress_level,
-            title: diary.diary_text.slice(0, 20) + (diary.diary_text.length > 20 ? '...' : ''), // 제목이 없으므로 일부만
+            title: diary.diary_text.slice(0, 20) + (diary.diary_text.length > 20 ? '...' : ''),
             content: diary.diary_text,
             aiFeedback: diary.ai_analysis,
             tags: diary.keywords || [],
         };
     });
 
-    // 가장 최근 일기(최신 created_at) 찾기
     const latestDiary = mappedDiaryData.reduce((latest, cur) => {
         if (!latest) return cur;
         return new Date(cur.created_at) > new Date(latest.created_at) ? cur : latest;
@@ -220,7 +237,6 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
                 setIsLoggedIn={setIsLoggedIn}
             />
             <main className="mw-main">
-                {/* Page Header Area */}
                 <div className="mw-page-header">
                     <div className="mw-page-header-left">
                         <div className="mw-badge-mind">
@@ -258,7 +274,6 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
                     </div>
                 </div>
 
-                {/* Content Section */}
                 {viewMode === 'calendar' ? (
                     <div className="mw-calendar-card">
                         <div className="mw-calendar-header">
@@ -306,7 +321,6 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
                                 const diaryEntry = day
                                     ? mappedDiaryData.find((d) => d.year === year && d.month === month && d.day === day)
                                     : null;
-                                // 최신 일기 여부 판별
                                 const isLatest = diaryEntry && latestDiary && diaryEntry.id === latestDiary.id;
                                 const colIndex = idx % 7;
                                 return (
@@ -377,7 +391,7 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
             {/* Diary Detail Modal */}
             {selectedDiary && (
                 <div className="mw-modal-overlay">
-                    <div className="mw-modal-backdrop" onClick={() => setSelectedDiary(null)}></div>
+                    <div className="mw-modal-backdrop" onClick={() => { setSelectedDiary(null); setDeleteConfirm(false); }}></div>
 
                     <div className="mw-modal-panel">
                         <div className="mw-modal-header">
@@ -386,9 +400,23 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
                                 <MoodBadge mood={selectedDiary.mood} />
                                 <StressBadge level={selectedDiary.stress} />
                             </div>
-                            <button onClick={() => setSelectedDiary(null)} className="mw-modal-close-btn">
-                                <X />
-                            </button>
+                            {/* ★ 추가: 우측 버튼 그룹 (삭제 + 닫기) */}
+                            <div className="mw-modal-header-right">
+                                <button
+                                    onClick={() => handleDeleteDiary(selectedDiary.id)}
+                                    className={`mw-modal-delete-btn ${deleteConfirm ? 'mw-modal-delete-btn-confirm' : ''}`}
+                                    title="일기 삭제"
+                                >
+                                    <Trash2 />
+                                    <span>{deleteConfirm ? '정말 삭제할까요?' : '삭제'}</span>
+                                </button>
+                                <button
+                                    onClick={() => { setSelectedDiary(null); setDeleteConfirm(false); }}
+                                    className="mw-modal-close-btn"
+                                >
+                                    <X />
+                                </button>
+                            </div>
                         </div>
 
                         <div className="mw-modal-body mw-no-scrollbar">
@@ -401,13 +429,7 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
 
                             <div className="mw-modal-content-box">{selectedDiary.content}</div>
 
-                            <div className="mw-modal-tags">
-                                {selectedDiary.tags.map((tag) => (
-                                    <span key={tag} className="mw-modal-tag">
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
+                            {/* ★ 제거: 태그 블록 (.mw-modal-tags) 완전히 삭제 */}
 
                             <div className="mw-ai-feedback-box">
                                 <div className="mw-ai-feedback-badge">

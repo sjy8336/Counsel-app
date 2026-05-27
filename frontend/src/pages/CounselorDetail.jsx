@@ -171,6 +171,36 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     }, []);
 
     const handleReservation = async () => {
+        const user = localStorage.getItem('user');
+        const token = localStorage.getItem('access_token');
+        if (!isLoggedIn || !user || !token || isTokenExpired(token)) {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('login_time');
+            alert('로그인 후 이용 가능합니다.');
+            navigate('/login', {
+                state: {
+                    redirectTo: location.pathname,
+                },
+            });
+            return;
+        }
+
+        try {
+            JSON.parse(user);
+        } catch {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('login_time');
+            alert('로그인 후 이용 가능합니다.');
+            navigate('/login', {
+                state: {
+                    redirectTo: location.pathname,
+                },
+            });
+            return;
+        }
+
         if (!selectedDate || !selectedTime) {
             alert('상담 일자와 시간을 모두 선택해주세요.');
             return;
@@ -195,6 +225,18 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                 });
             }
         } catch (e) {
+            if (e?.response?.status === 401) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('login_time');
+                alert('로그인 후 이용 가능합니다.');
+                navigate('/login', {
+                    state: {
+                        redirectTo: location.pathname,
+                    },
+                });
+                return;
+            }
             alert('예약 이력 확인에 실패했습니다. 다시 시도해 주세요.');
         }
     };
@@ -202,15 +244,11 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     const handleLike = async () => {
         const user = localStorage.getItem('user');
         const token = localStorage.getItem('access_token');
-        if (!user || !token) {
-            alert('로그인 후 이용 가능한 기능입니다.');
-            navigate('/login');
-            return;
-        }
-        if (isTokenExpired(token)) {
-            alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
+        if (!user || !token || isTokenExpired(token)) {
             localStorage.removeItem('access_token');
             localStorage.removeItem('user');
+            localStorage.removeItem('login_time');
+            alert('로그인 후 이용 가능한 기능입니다.');
             navigate('/login');
             return;
         }
@@ -223,6 +261,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                 alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('user');
+                localStorage.removeItem('login_time');
                 navigate('/login');
             } else {
                 alert('찜 처리 중 오류가 발생했습니다.');

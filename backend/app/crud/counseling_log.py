@@ -1,4 +1,3 @@
-
 from sqlalchemy.orm import Session
 from app.models.counseling_log import CounselingLog
 from app.schemas.counseling_log import CounselingLogCreate

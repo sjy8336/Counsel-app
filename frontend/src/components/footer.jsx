@@ -19,7 +19,7 @@ export default function Footer() {
                         <ul className="footer-list">
                             <li>전문가 매칭</li>
                             <li>AI 감정 일기</li>
-                            <li>심리 검사</li>
+                            
                         </ul>
                     </div>
                     <div className="footer-link-col">
