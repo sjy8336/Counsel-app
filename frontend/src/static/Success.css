@@ -1,4 +1,6 @@
 /* 버튼 사이 여백 추가 및 예약관리 버튼 스타일 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
 .success-action-buttons {
     display: flex;
     flex-direction: row;
@@ -10,13 +12,15 @@
 .btn-reservation {
     margin-left: 0;
 }
+
 /* src/static/Success.css */
 .success-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 90vh;
-    background-color: #f9fbf9;
+    background-color: #FDFBF7;
+    font-family: 'Pretendard', -apple-system, sans-serif;
 }
 
 .success-content-card {
@@ -26,13 +30,13 @@
     padding: 40px;
     border-radius: 28px;
     text-align: center;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 12px 40px rgba(139, 168, 136, 0.08);
 }
 
 .success-icon-circle {
     width: 75px;
     height: 75px;
-    background-color: #2e4b3f; /* 마인드웰 메인 그린 */
+    background-color: #8BA888; /* Sage Green */
     color: white;
     font-size: 36px;
     line-height: 75px;
@@ -42,7 +46,7 @@
 
 .success-main-text {
     font-size: 24px;
-    color: #1a1a1a;
+    color: #1E293B;
     font-weight: 700;
     margin-bottom: 12px;
 }
@@ -55,7 +59,7 @@
 }
 
 .success-info-section {
-    background-color: #f8fbf9;
+    background-color: #FAF7F2; /* Sand Beige */
     padding: 20px 24px;
     border-radius: 18px;
     margin-bottom: 35px;
@@ -70,33 +74,34 @@
 
 .info-row span {
     font-size: 14px;
-    color: #88a096;
+    color: #8BA888; /* Sage Green — 라벨 */
 }
 
 .info-value {
     font-size: 16px;
-    color: #2e4b3f;
+    color: #1E293B; /* Slate Navy */
     font-weight: 600;
 }
 
 .info-value-small {
     font-size: 13px;
-    color: #333;
+    color: #1E293B;
 }
 
 .btn-home {
     width: 100%;
     padding: 16px;
-    background-color: #2e4b3f;
+    background-color: #8BA888; /* Sage Green */
     color: white;
     border: none;
     border-radius: 14px;
     font-size: 16px;
     font-weight: 600;
+    font-family: 'Pretendard', -apple-system, sans-serif;
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
 .btn-home:hover {
-    background-color: #243d33;
+    background-color: #6b8a68;
 }

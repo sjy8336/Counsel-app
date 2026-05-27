@@ -1,8 +1,28 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+:root {
+    --main: #8BA888; /* Sage Green */
+    --bg: #FDFBF7; /* Warm White */
+    --sub-bg: #FAF7F2; /* Sand Beige */
+    --accent-1: #FDA4AF; /* Soft Rose */
+    --accent-2: #F59E0B; /* Amber */
+    --text-main: #1E293B; /* Slate Navy */
+}
+
+html, body, * {
+    font-family: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif !important;
+}
+
+body {
+    background: var(--bg) !important;
+    color: var(--text-main);
+}
+
 .hr-section-title-text {
-    font-size: 1.5em;
-    font-weight: 00;
-    letter-spacing: -1px;
-    line-height: 1.1;
+        font-size: 1.5em;
+        font-weight: 00;
+        letter-spacing: -1px;
+        line-height: 1.1;
 }
 .hr-section-title {
     font-size: 2.4rem;
@@ -802,13 +822,13 @@ background-color: rgba(253, 164, 175, 0.1);
 
 .hr-tea-desc {
     font-size: 11px;
-    color: #6b7280;
-    line-height: 1.5;
-    font-weight: 300;
-    background-color: rgba(249, 250, 251, 0.5);
+    color: #4b5563;              /* 더 진한 텍스트 */
+    line-height: 1.6;
+    font-weight: 500;            /* 300 → 500 */
+    background-color: #FAF7F2;   /* Sand Beige 배경 */
     padding: 0.75rem;
     border-radius: 0.75rem;
-    border: 1px solid #f9fafb;
+    border: 1px solid #ede9e0;   /* 살짝 진한 테두리 */
     white-space: nowrap;
     overflow: visible;
 }
@@ -819,9 +839,9 @@ background-color: rgba(253, 164, 175, 0.1);
         border-radius: 1rem;
         white-space: nowrap;
         overflow: visible;
+        font-weight: 500;
     }
 }
-
 /* ── 섹션 헤더 공통 (책 / 큐레이션) ── */
 .hr-section-header {
     display: flex;

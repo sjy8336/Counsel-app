@@ -1,21 +1,21 @@
 /* Reservation.css — MINDWELL 디자인 시스템 계승 */
-@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
 :root {
-    --r-primary:       #9bb095;
-    --r-primary-dark:  #7a9474;
-    --r-primary-light: #f3f6f2;
+    --r-primary:       #8BA888;
+    --r-primary-dark:  #6b8a68;
+    --r-primary-light: #FAF7F2;
     --r-primary-mid:   #e4ede2;
-    --r-bg:            #f8f9fa;
+    --r-bg:            #FDFBF7;
     --r-card:          #ffffff;
-    --r-text:          #222222;
+    --r-text:          #1E293B;
     --r-sub:           #888888;
     --r-border:        #eeeeee;
-    --r-rose:          #fda4af;
+    --r-rose:          #FDA4AF;
     --r-rose-dark:     #e05a70;
-    --r-amber:         #f59e0b;
-    --r-shadow:        0 2px 12px rgba(155,176,149,.08);
-    --r-shadow-md:     0 6px 28px rgba(155,176,149,.12);
+    --r-amber:         #F59E0B;
+    --r-shadow:        0 2px 12px rgba(139,168,136,.08);
+    --r-shadow-md:     0 6px 28px rgba(139,168,136,.12);
     --r-radius:        18px;
     --r-radius-sm:     10px;
 }
@@ -24,7 +24,7 @@
 
 /* ── 루트 ───────────────────────────────────────────────── */
 .res-root {
-    background: #fdfbf7;
+    background: #FDFBF7;
     min-height: 100vh;
     padding-bottom: 60px;
     font-family: 'Pretendard', -apple-system, sans-serif;
@@ -107,7 +107,7 @@
     background: var(--r-primary);
     color: #fff;
     border-color: var(--r-primary);
-    box-shadow: 0 3px 12px rgba(155,176,149,.28);
+    box-shadow: 0 3px 12px rgba(139,168,136,.28);
 }
 
 /* ── 리스트 ──────────────────────────────────────────────── */
@@ -210,7 +210,7 @@
 
 .res-cancel-btn {
     padding: 7px 14px;
-    border-radius: 30px;
+    border-radius: var(--r-radius-sm);
     border: 1.5px solid var(--r-rose);
     background: none;
     color: var(--r-rose-dark);
@@ -350,7 +350,7 @@
 .res-modal-btn {
     flex: 1;
     padding: 12px;
-    border-radius: 30px;
+    border-radius: var(--r-radius-sm);
     border: none;
     font-size: 14px;
     font-weight: 700;
@@ -366,7 +366,12 @@
 .res-modal-btn.back { background: var(--r-bg); color: var(--r-sub); border: 1.5px solid var(--r-border); }
 .res-modal-btn.back:hover { background: var(--r-border); }
 
-.res-modal-btn.single { background: var(--r-primary); color: #fff; max-width: 180px; }
+.res-modal-btn.single {
+    background: var(--r-primary);
+    color: #fff;
+    width: 100%;
+    max-width: none;
+}
 .res-modal-btn.single:hover { background: var(--r-primary-dark); }
 
 /* ── 모바일 하단 네비 (기본 숨김) ───────────────────────── */
@@ -380,14 +385,13 @@
     .res-title { font-size: 24px; }
 }
 
-/* Mobile - 모바일-퍼스트 한눈에 들어오는 뷰 최적화 */
+/* Mobile */
 @media (max-width: 767px) {
     .res-container { padding: 20px 16px 100px; }
     .res-top { margin-bottom: 24px; gap: 6px; }
     .res-title { font-size: 20px; }
     .res-sub { font-size: 13px; }
 
-    /* 상단 일정 필터 버튼 터치 슬라이드 스크롤화 */
     .res-tabs {
         justify-content: flex-start;
         flex-wrap: nowrap;
@@ -404,11 +408,10 @@
         flex-shrink: 0;
     }
 
-    /* 컴팩트 카드 레이아웃 */
     .res-list { gap: 10px; }
     
     .res-item {
-        flex-direction: row;      /* 가로 정렬 구조로 변경하여 여백 압축 */
+        flex-direction: row;
         align-items: center;
         justify-content: space-between;
         padding: 14px 16px;
@@ -416,7 +419,6 @@
         gap: 12px;
     }
 
-    /* 좌측 날짜 및 확정 태그 배열 컴팩트화 */
     .res-item-left {
         width: auto;
         padding-right: 0;
@@ -437,7 +439,6 @@
         border-radius: 4px;
     }
 
-    /* 중앙 상담 정보 배치 */
     .res-item-body {
         padding: 0;
         gap: 3px;
@@ -448,28 +449,26 @@
         margin-bottom: 0;
     }
 
-    /* 핵심 수정: 시간이랑 장소를 세로 분할 없이 PC처럼 가로 배치 유지 */
     .res-details {
         display: flex;
-        flex-direction: row;      /* 가로 정렬 강제 */
+        flex-direction: row;
         align-items: center;
         gap: 6px;
         font-size: 11px;
-        flex-wrap: nowrap;        /* 한 줄 고정 */
+        flex-wrap: nowrap;
     }
     
     .res-details span { 
-        width: auto;              /* 너비 자동화로 인라인 유지 */
+        width: auto;
         display: inline-flex; 
         white-space: nowrap; 
     }
     
     .res-divider { 
-        display: inline;          /* 모바일에서도 깔끔하게 가로 구분선 활성화 */
+        display: inline;
         color: var(--r-border); 
     }
 
-    /* 우측 버튼 배치 */
     .res-item-right {
         padding-top: 0;
         border-top: none;
@@ -483,7 +482,6 @@
         border-radius: 20px;
     }
 
-    /* 모바일 하단 네비 */
     .res-bottom-nav {
         display: flex;
         position: fixed;

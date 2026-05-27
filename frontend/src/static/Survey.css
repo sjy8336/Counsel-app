@@ -2,19 +2,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --sv-primary: #9bb095;
-    --sv-primary-dark: #7a9474;
-    --sv-primary-light: #f3f6f2;
+    --sv-primary: #8BA888;
+    --sv-primary-dark: #6b8a68;
+    --sv-primary-light: #FAF7F2;
     --sv-primary-mid: #e4ede2;
-    --sv-bg: #f8f9fa;
+    --sv-bg: #FDFBF7;
     --sv-card: #ffffff;
-    --sv-text: #222222;
+    --sv-text: #1E293B;
     --sv-sub: #888888;
     --sv-border: #eeeeee;
-    --sv-danger: #e57373;
-    --sv-danger-light: #ffebee;
-    --sv-shadow: 0 4px 24px rgba(155, 176, 149, 0.1);
-    --sv-shadow-md: 0 8px 36px rgba(155, 176, 149, 0.14);
+    --sv-danger: #FDA4AF;
+    --sv-danger-light: #fff0f2;
+    --sv-shadow: 0 4px 24px rgba(139, 168, 136, 0.1);
+    --sv-shadow-md: 0 8px 36px rgba(139, 168, 136, 0.14);
     --sv-radius: 14px;
     --sv-radius-sm: 10px;
 }
@@ -180,7 +180,7 @@
     border-color: var(--sv-primary);
     background: var(--sv-primary-light);
     color: var(--sv-primary-dark);
-    box-shadow: 0 0 0 5px rgba(155, 176, 149, 0.15);
+    box-shadow: 0 0 0 5px rgba(139, 168, 136, 0.15);
 }
 
 .sv-node.done .sv-circle {
@@ -322,13 +322,13 @@
 .sv-radio-card.selected {
     border-color: var(--sv-primary);
     background: var(--sv-primary-light);
-    box-shadow: 0 0 0 3px rgba(155, 176, 149, 0.12);
+    box-shadow: 0 0 0 3px rgba(139, 168, 136, 0.12);
 }
 
 .sv-radio-card.danger.selected {
     border-color: var(--sv-danger);
     background: var(--sv-danger-light);
-    box-shadow: 0 0 0 3px rgba(229, 115, 115, 0.1);
+    box-shadow: 0 0 0 3px rgba(253, 164, 175, 0.14);
 }
 
 .sv-radio-card input[type='radio'] {
@@ -596,7 +596,7 @@
 .sv-submit:hover {
     background: var(--sv-primary-dark);
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(155, 176, 149, 0.28);
+    box-shadow: 0 6px 20px rgba(139, 168, 136, 0.28);
 }
 
 .sv-error {

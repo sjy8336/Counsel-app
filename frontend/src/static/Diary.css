@@ -1,10 +1,31 @@
+
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+:root {
+    --main: #8BA888; /* Sage Green */
+    --bg: #FDFBF7; /* Warm White */
+    --sub-bg: #FAF7F2; /* Sand Beige */
+    --accent-1: #FDA4AF; /* Soft Rose */
+    --accent-2: #F59E0B; /* Amber */
+    --text-main: #1E293B; /* Slate Navy */
+}
+
+html, body, * {
+    font-family: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif !important;
+}
+
+body {
+    background: var(--bg) !important;
+    color: var(--text-main);
+}
+
 .mw-ai-healing-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-    justify-content: flex-start;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+        justify-content: flex-start;
 }
 
 .mw-ai-more-btn {
@@ -1237,4 +1258,61 @@ body {
 }
 .mw-icon-calm {
     color: #8ba888;
+}
+/* =============================================
+   ★ 추가: 모달 헤더 우측 버튼 그룹
+   ============================================= */
+.mw-modal-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* ★ 추가: 삭제 버튼 */
+.mw-modal-delete-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    border: 1.5px solid #fecdd3;
+    background: none;
+    color: #fda4af;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.mw-modal-delete-btn svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+}
+
+.mw-modal-delete-btn:hover {
+    background: #fff0f2;
+    border-color: #fda4af;
+    color: #e05a70;
+}
+
+.mw-modal-delete-btn-confirm {
+    background: #fda4af;
+    border-color: #fda4af;
+    color: white;
+    animation: mw-shake 0.3s ease;
+}
+
+.mw-modal-delete-btn-confirm:hover {
+    background: #e05a70;
+    border-color: #e05a70;
+    color: white;
+}
+
+@keyframes mw-shake {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(-3px); }
+    75%       { transform: translateX(3px); }
 }
