@@ -62,13 +62,24 @@ const mapBooking = (b) => {
     } else if (b.client) {
         client = typeof b.client === 'string' ? b.client : b.client?.client_name || '';
     }
+    // 날짜와 시간이 모두 있을 때, 이미 지난 상담이면 상태를 '상담 완료'로 표시
+    const dateStr = b.date || b.booking_date;
+    const timeStr = b.time || b.booking_time;
+    let status = b.status || STATUS_MAP[b.booking_status] || '취소됨';
+    if (dateStr && timeStr && status === '확정됨') {
+        const now = new Date();
+        const target = new Date(dateStr + 'T' + timeStr);
+        if (target < now) {
+            status = '상담 완료';
+        }
+    }
     return {
         id: b.id,
         client,
-        date: b.date || b.booking_date,
-        time: b.time || b.booking_time,
+        date: dateStr,
+        time: timeStr,
         type: '상담',
-        status: b.status || STATUS_MAP[b.booking_status] || '취소됨',
+        status,
         location: b.location || b.center_name || '',
         topic: b.survey_content?.reason || b.survey_content?.topic || b.topic || '',
         order_id: b.order_id,
