@@ -873,39 +873,8 @@ const App = () => {
             const res = await axios.post('/api/upload/profile-image', formData, {
                 headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
             });
-            if (res.data?.url) {
-                setPendingProfileImgUrl(res.data.url);
-                const userStr = localStorage.getItem('user');
-                let userId = null;
-                if (userStr) {
-                    try {
-                        userId = JSON.parse(userStr).id;
-                    } catch {}
-                }
-                if (userId) {
-                    const userApi = await import('../api/user');
-                    let user = JSON.parse(localStorage.getItem('user') || '{}');
-                    if (!user.full_name || !user.email || !user.phone_number) {
-                        try {
-                            const r = await userApi.getMyInfo(token);
-                            user = { ...user, ...r };
-                            localStorage.setItem('user', JSON.stringify(user));
-                        } catch {
-                            alert('유저 정보를 불러올 수 없습니다.');
-                            return;
-                        }
-                    }
-                    await userApi.updateUserInfo({
-                        id: userId,
-                        full_name: user.full_name,
-                        email: user.email,
-                        phone_number: user.phone_number,
-                        profile_img_url: res.data.url,
-                    });
-                    user.profile_img_url = res.data.url;
-                    localStorage.setItem('user', JSON.stringify(user));
-                    window.dispatchEvent(new Event('profileImgChanged'));
-                }
+            if (res.data?.profile_img_url) {
+                setPendingProfileImgUrl(res.data.profile_img_url); // 미리보기만 변경, DB에는 저장하지 않음
             }
         } catch {
             alert('이미지 업로드에 실패했습니다.');

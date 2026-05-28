@@ -19,8 +19,7 @@ async def upload_profile_image(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    # 기존 이미지 삭제
-    delete_old_profile_image(db, current_user.id)
+    # 기존 이미지 삭제 및 DB 저장은 여기서 하지 않음
     filename = file.filename
     import time
     name, ext = os.path.splitext(filename)
@@ -29,8 +28,5 @@ async def upload_profile_image(
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     url = f"/static/profile_images/{save_name}"
-    # DB에 저장
-    current_user.profile_img_url = url
-    db.commit()
-    db.refresh(current_user)
+    # DB에는 저장하지 않고 URL만 반환
     return {"profile_img_url": url}
