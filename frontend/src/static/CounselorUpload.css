@@ -887,7 +887,6 @@
     .cu-ep-cert-item {
         flex-direction: row;
         align-items: flex-end;
-        justify-content: space-between;
     }
 }
 .cu-ep-cert-item:hover {
