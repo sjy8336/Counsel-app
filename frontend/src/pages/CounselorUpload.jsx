@@ -796,18 +796,8 @@ const App = () => {
                             >
                                 {item}
                             </button>
-                        ),
-                        {
-                            center_name: basicCenter,
-                            center_phone: basicCenterPhone,
-                            center_address: basicAddress,
-                            consultation_price: Number(basicPrice.replace(/,/g, '')) || 0,
-                            intro_line: basicIntro,
-                            profile_img_url: profileImage, // 파일 경로만 저장
-                        },
-                        token
+                        )
                     )}
-                    ;
                 </div>
             </section>
             <section>
@@ -901,6 +891,8 @@ const App = () => {
     // ── 탭 렌더: 학력/경력 ───────────────────────────────────────────────────
     const renderHistory = () => (
         <div className="cu-ep-history cu-ep-animate">
+
+            {/* ── 자격증 ── */}
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
@@ -939,14 +931,17 @@ const App = () => {
                                     onChange={(e) => updateCertificate(cert.id, 'issuer', e.target.value)}
                                 />
                             </div>
-                            <button onClick={() => removeCertificate(cert.id)} className="cu-ep-rm-btn">
-                                <Trash2 style={{ width: '1rem', height: '1rem' }} />
-                            </button>
+                            <div className="cu-ep-edu-rm-row">
+                                <button onClick={() => removeCertificate(cert.id)} className="cu-ep-rm-btn">
+                                    <Trash2 style={{ width: '1rem', height: '1rem' }} />
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
             </section>
 
+            {/* ── 학력 사항 ── */}
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
@@ -959,28 +954,25 @@ const App = () => {
                 <div className="cu-ep-edu-items">
                     {educations.map((edu) => (
                         <div key={edu.id} className="cu-ep-edu-item">
-                            <div
-                                style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: '1fr 1fr',
-                                    gap: '1rem',
-                                    alignItems: 'start',
-                                }}
-                            >
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <div className="cu-ep-edu-label">입학일</div>
+                            {/* 날짜 행 */}
+                            <div className="cu-ep-edu-dates-row">
+                                <div className="cu-ep-edu-date-col">
+                                    <label className="cu-ep-item-label">입학일</label>
                                     <YearMonthPicker
                                         value={edu.startYearMonth}
                                         onChange={(v) => updateEducation(edu.id, 'startYearMonth', v)}
                                     />
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <div className="cu-ep-edu-label">졸업일</div>
+                                <div className="cu-ep-edu-date-col">
+                                    <label className="cu-ep-item-label">졸업일</label>
                                     <YearMonthPicker
                                         value={edu.endYearMonth}
                                         onChange={(v) => updateEducation(edu.id, 'endYearMonth', v)}
                                     />
                                 </div>
+                            </div>
+                            {/* 학교 / 전공 행 */}
+                            <div className="cu-ep-edu-fields-row">
                                 <div className="cu-ep-item-field">
                                     <label className="cu-ep-item-label">학교명</label>
                                     <input
@@ -1002,12 +994,11 @@ const App = () => {
                                     />
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '.75rem' }}>
+                            {/* 삭제 버튼 */}
+                            <div className="cu-ep-edu-rm-row">
                                 <button
                                     onClick={() => removeEducation(edu.id)}
                                     className="cu-ep-rm-btn"
-                                    disabled={educations.length === 1}
-                                    style={{ opacity: educations.length === 1 ? 0.3 : 1 }}
                                 >
                                     <Trash2 style={{ width: '1rem', height: '1rem' }} />
                                 </button>
@@ -1017,6 +1008,7 @@ const App = () => {
                 </div>
             </section>
 
+            {/* ── 경력 사항 ── */}
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
@@ -1028,76 +1020,65 @@ const App = () => {
                 </div>
                 <div className="cu-ep-items">
                     {experiences.map((exp) => (
-                        <div
-                            key={exp.id}
-                            className="cu-ep-exp-item"
-                            style={{
-                                position: 'relative',
-                                display: 'grid',
-                                gridTemplateColumns: '1fr 1fr',
-                                gap: '1rem',
-                                alignItems: 'start',
-                                padding: '1rem',
-                            }}
-                        >
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label className="cu-ep-item-label">시작일</label>
-                                <YearMonthPicker
-                                    value={exp.startYearMonth}
-                                    onChange={(v) => updateExperience(exp.id, 'startYearMonth', v)}
-                                />
+                        <div key={exp.id} className="cu-ep-exp-item">
+                            {/* 날짜 행 */}
+                            <div className="cu-ep-exp-dates-row">
+                                <div className="cu-ep-edu-date-col">
+                                    <label className="cu-ep-item-label">시작일</label>
+                                    <YearMonthPicker
+                                        value={exp.startYearMonth}
+                                        onChange={(v) => updateExperience(exp.id, 'startYearMonth', v)}
+                                    />
+                                </div>
+                                <div className="cu-ep-edu-date-col">
+                                    <label className="cu-ep-item-label">종료일</label>
+                                    {exp.isCurrent ? (
+                                        <input
+                                            type="text"
+                                            value="현재 진행중"
+                                            readOnly
+                                            className="cu-ep-item-input cu-ep-input-current"
+                                        />
+                                    ) : (
+                                        <YearMonthPicker
+                                            value={exp.endYearMonth}
+                                            onChange={(v) => updateExperience(exp.id, 'endYearMonth', v)}
+                                        />
+                                    )}
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label className="cu-ep-item-label">종료일</label>
-                                {exp.isCurrent ? (
+                            {/* 내용 + 현재진행중 체크 행 */}
+                            <div className="cu-ep-exp-content-row">
+                                <div className="cu-ep-item-field cu-ep-exp-content-field">
+                                    <label className="cu-ep-item-label">활동 내용</label>
                                     <input
                                         type="text"
-                                        value="현재 진행중"
-                                        readOnly
+                                        placeholder="소속 및 직책 등을 입력하세요"
                                         className="cu-ep-item-input"
-                                        style={{
-                                            background: '#f3f4f6',
-                                            color: '#8BA888',
-                                            border: 'none',
-                                            textAlign: 'center',
-                                        }}
+                                        value={exp.content}
+                                        onChange={(e) => updateExperience(exp.id, 'content', e.target.value)}
                                     />
-                                ) : (
-                                    <YearMonthPicker
-                                        value={exp.endYearMonth}
-                                        onChange={(v) => updateExperience(exp.id, 'endYearMonth', v)}
+                                </div>
+                                <label className="cu-ep-current-check">
+                                    <input
+                                        type="checkbox"
+                                        id={`current-${exp.id}`}
+                                        checked={exp.isCurrent}
+                                        onChange={(e) => updateExperience(exp.id, 'isCurrent', e.target.checked)}
+                                        className="cu-ep-current-checkbox"
                                     />
-                                )}
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label className="cu-ep-item-label">활동 내용</label>
-                                <input
-                                    type="text"
-                                    placeholder="소속 및 직책 등을 입력하세요"
-                                    className="cu-ep-item-input"
-                                    value={exp.content}
-                                    onChange={(e) => updateExperience(exp.id, 'content', e.target.value)}
-                                />
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1.2rem' }}>
-                                <input
-                                    type="checkbox"
-                                    id={`current-${exp.id}`}
-                                    checked={exp.isCurrent}
-                                    onChange={(e) => updateExperience(exp.id, 'isCurrent', e.target.checked)}
-                                    style={{ marginRight: '.5rem' }}
-                                />
-                                <label htmlFor={`current-${exp.id}`} style={{ fontSize: '.95rem', color: '#666' }}>
-                                    현재 진행중
+                                    <span className="cu-ep-current-label">현재 진행중</span>
                                 </label>
                             </div>
-                            <button
-                                onClick={() => removeExperience(exp.id)}
-                                className="cu-ep-rm-btn"
-                                style={{ position: 'absolute', bottom: '.5rem', right: '.5rem' }}
-                            >
-                                <Trash2 style={{ width: '1rem', height: '1rem' }} />
-                            </button>
+                            {/* 삭제 버튼 */}
+                            <div className="cu-ep-edu-rm-row">
+                                <button
+                                    onClick={() => removeExperience(exp.id)}
+                                    className="cu-ep-rm-btn"
+                                >
+                                    <Trash2 style={{ width: '1rem', height: '1rem' }} />
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
