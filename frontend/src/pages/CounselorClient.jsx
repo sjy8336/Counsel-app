@@ -97,9 +97,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const isEnded = clientStatus === '종료';
 
     const isLogFormValid =
-        logModal.content.trim() !== '' &&
-        logModal.summary.trim() !== '' &&
-        logModal.actionPlan.trim() !== '';
+        logModal.content.trim() !== '' && logModal.summary.trim() !== '' && logModal.actionPlan.trim() !== '';
 
     const handleTabClick = (tabId) => {
         setActiveTab(tabId);
@@ -155,7 +153,12 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
 
         if (logModal.editId) {
             try {
-                const updated = await putCounselingLog({ log_id: logModal.editId, content, summary, action_plan: actionPlan });
+                const updated = await putCounselingLog({
+                    log_id: logModal.editId,
+                    content,
+                    summary,
+                    action_plan: actionPlan,
+                });
                 setClients((prev) =>
                     prev.map((c) =>
                         c.id === selectedId
@@ -163,14 +166,28 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                   ...c,
                                   logs: c.logs.map((l) =>
                                       l.id === logModal.editId
-                                          ? { ...l, content: updated.content, summary: updated.summary, actionPlan: updated.action_plan }
+                                          ? {
+                                                ...l,
+                                                content: updated.content,
+                                                summary: updated.summary,
+                                                actionPlan: updated.action_plan,
+                                            }
                                           : l
                                   ),
                               }
                             : c
                     )
                 );
-                setLogModal({ open: false, editId: null, content: '', summary: '', actionPlan: '', title: '', bookingDate: '', bookingId: null });
+                setLogModal({
+                    open: false,
+                    editId: null,
+                    content: '',
+                    summary: '',
+                    actionPlan: '',
+                    title: '',
+                    bookingDate: '',
+                    bookingId: null,
+                });
             } catch {
                 alert('상담일지 수정에 실패했습니다.');
             }
@@ -209,7 +226,16 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                         : c
                 )
             );
-            setLogModal({ open: false, editId: null, content: '', summary: '', actionPlan: '', title: '', bookingDate: '', bookingId: null });
+            setLogModal({
+                open: false,
+                editId: null,
+                content: '',
+                summary: '',
+                actionPlan: '',
+                title: '',
+                bookingDate: '',
+                bookingId: null,
+            });
         } catch (e) {
             alert(
                 e?.response?.status === 409
@@ -235,16 +261,21 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     };
 
     const handleConfirmEnd = () => {
-        setClients((prev) =>
-            prev.map((c) =>
-                c.id === (selectedId ?? clients[0]?.id) ? { ...c, status: '종료' } : c
-            )
-        );
+        setClients((prev) => prev.map((c) => (c.id === (selectedId ?? clients[0]?.id) ? { ...c, status: '종료' } : c)));
         setEndToast(false);
     };
 
     const closeLogModal = () => {
-        setLogModal({ open: false, editId: null, content: '', summary: '', actionPlan: '', title: '', bookingDate: '', bookingId: null });
+        setLogModal({
+            open: false,
+            editId: null,
+            content: '',
+            summary: '',
+            actionPlan: '',
+            title: '',
+            bookingDate: '',
+            bookingId: null,
+        });
         setDateDropdownOpen(false);
     };
 
@@ -270,8 +301,8 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                     <div className="cc-sidebar-content">
                         <div className="cc-search-wrap">
                             <svg className="cc-search-icon" width="15" height="15" viewBox="0 0 20 20" fill="none">
-                                <circle cx="9" cy="9" r="6" stroke="#94a3b8" strokeWidth="1.8"/>
-                                <path d="M13.5 13.5L17 17" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round"/>
+                                <circle cx="9" cy="9" r="6" stroke="#94a3b8" strokeWidth="1.8" />
+                                <path d="M13.5 13.5L17 17" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" />
                             </svg>
                             <input
                                 className="cc-search"
@@ -292,11 +323,26 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                     }}
                                 >
                                     <div className="cc-client-avatar">
-                                        {c.name?.charAt(0) || '?'}
+                                        {c.profile_img_url && c.profile_img_url.trim() ? (
+                                            <img
+                                                src={c.profile_img_url}
+                                                alt={c.name ? `${c.name} 프로필 이미지` : '프로필 이미지'}
+                                                className="cc-avatar-img"
+                                                loading="lazy"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.style.display = 'none';
+                                                }}
+                                            />
+                                        ) : (
+                                            c.name?.charAt(0) || '?'
+                                        )}
                                     </div>
                                     <div className="cc-client-info">
                                         <strong>{c.name}</strong>
-                                        <span>{c.birth} · {c.gender}</span>
+                                        <span>
+                                            {c.birth} · {c.gender}
+                                        </span>
                                     </div>
                                     <span className={`cc-status-badge ${STATUS_CLASS[c.status || '진행 중']}`}>
                                         {c.status || '진행 중'}
@@ -313,7 +359,20 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                     <div className="cc-profile-card">
                         <div className="cc-profile-left">
                             <div className="cc-profile-avatar">
-                                {client.name?.charAt(0) || '?'}
+                                {client.profile_img_url && client.profile_img_url.trim() ? (
+                                    <img
+                                        src={client.profile_img_url}
+                                        alt={client.name ? `${client.name} 프로필 이미지` : '프로필 이미지'}
+                                        className="cc-avatar-img"
+                                        loading="lazy"
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.style.display = 'none';
+                                        }}
+                                    />
+                                ) : (
+                                    client.name?.charAt(0) || '?'
+                                )}
                             </div>
                             <div className="cc-profile-info">
                                 <div className="cc-profile-name-row">
@@ -324,8 +383,18 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                 </div>
                                 <p className="cc-profile-sub">
                                     {client.gender && <span>{client.gender}</span>}
-                                    {client.birth && <><span className="cc-dot-sep">·</span><span>{client.birth}</span></>}
-                                    {client.phone && <><span className="cc-dot-sep">·</span><span>{client.phone}</span></>}
+                                    {client.birth && (
+                                        <>
+                                            <span className="cc-dot-sep">·</span>
+                                            <span>{client.birth}</span>
+                                        </>
+                                    )}
+                                    {client.phone && (
+                                        <>
+                                            <span className="cc-dot-sep">·</span>
+                                            <span>{client.phone}</span>
+                                        </>
+                                    )}
                                 </p>
                                 {isManualClient && (
                                     <p className="cc-manual-info">직접 입력된 내담자 · 일지는 소장용으로 저장됩니다</p>
@@ -335,19 +404,40 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
 
                         <div className="cc-profile-actions">
                             <button className="cc-btn cc-btn--outline" onClick={() => setSurveyModal(true)}>
-                                <svg width="15" height="15" viewBox="0 0 20 20" fill="none" style={{marginRight:5,verticalAlign:'middle'}}>
-                                    <rect x="4" y="3" width="12" height="14" rx="3" stroke="currentColor" strokeWidth="1.6"/>
-                                    <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                                <svg
+                                    width="15"
+                                    height="15"
+                                    viewBox="0 0 20 20"
+                                    fill="none"
+                                    style={{ marginRight: 5, verticalAlign: 'middle' }}
+                                >
+                                    <rect
+                                        x="4"
+                                        y="3"
+                                        width="12"
+                                        height="14"
+                                        rx="3"
+                                        stroke="currentColor"
+                                        strokeWidth="1.6"
+                                    />
+                                    <path
+                                        d="M7 7h6M7 10h6M7 13h4"
+                                        stroke="currentColor"
+                                        strokeWidth="1.4"
+                                        strokeLinecap="round"
+                                    />
                                 </svg>
                                 사전 설문지
                             </button>
-                            <button
-                                className="cc-btn cc-btn--primary"
-                                onClick={handleOpenNewLog}
-                                disabled={isEnded}
-                            >
-                                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{marginRight:5,verticalAlign:'middle'}}>
-                                    <path d="M10 4v12M4 10h12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                            <button className="cc-btn cc-btn--primary" onClick={handleOpenNewLog} disabled={isEnded}>
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 20 20"
+                                    fill="none"
+                                    style={{ marginRight: 5, verticalAlign: 'middle' }}
+                                >
+                                    <path d="M10 4v12M4 10h12" stroke="white" strokeWidth="2" strokeLinecap="round" />
                                 </svg>
                                 새 일지 작성
                             </button>
@@ -366,18 +456,49 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                 onClick={() => !isEnded && setEndToast(true)}
                                 disabled={isEnded}
                             >
-                                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{marginRight:5,verticalAlign:'middle'}}>
-                                    <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.6"/>
-                                    <path d="M7 10h6M13 10l-2.5-2.5M13 10l-2.5 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 20 20"
+                                    fill="none"
+                                    style={{ marginRight: 5, verticalAlign: 'middle' }}
+                                >
+                                    <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.6" />
+                                    <path
+                                        d="M7 10h6M13 10l-2.5-2.5M13 10l-2.5 2.5"
+                                        stroke="currentColor"
+                                        strokeWidth="1.4"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
                                 </svg>
                                 {isEnded ? '상담 종료됨' : '상담 종료'}
                             </button>
                         </div>
                         {!client.logs?.length ? (
                             <div className="cc-empty">
-                                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" style={{marginBottom:10,opacity:.35}}>
-                                    <rect x="4" y="3" width="16" height="18" rx="3" stroke="#8ba888" strokeWidth="1.5"/>
-                                    <path d="M8 8h8M8 12h8M8 16h5" stroke="#8ba888" strokeWidth="1.4" strokeLinecap="round"/>
+                                <svg
+                                    width="36"
+                                    height="36"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    style={{ marginBottom: 10, opacity: 0.35 }}
+                                >
+                                    <rect
+                                        x="4"
+                                        y="3"
+                                        width="16"
+                                        height="18"
+                                        rx="3"
+                                        stroke="#8ba888"
+                                        strokeWidth="1.5"
+                                    />
+                                    <path
+                                        d="M8 8h8M8 12h8M8 16h5"
+                                        stroke="#8ba888"
+                                        strokeWidth="1.4"
+                                        strokeLinecap="round"
+                                    />
                                 </svg>
                                 <p>아직 상담 기록이 없습니다.</p>
                             </div>
@@ -433,7 +554,13 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                                     aria-label="펼치기/접기"
                                                 >
                                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                        <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                                                        <path
+                                                            d="M4 6l4 4 4-4"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1.6"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                        />
                                                     </svg>
                                                 </button>
                                             </div>
@@ -475,7 +602,9 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                         <div className="cc-keywords">
                             {(client.keywords || []).length > 0 ? (
                                 (client.keywords || []).map((k, i) => (
-                                    <span key={i} className="cc-keyword">#{k}</span>
+                                    <span key={i} className="cc-keyword">
+                                        #{k}
+                                    </span>
                                 ))
                             ) : (
                                 <span className="cc-empty-small">키워드 없음</span>
@@ -503,19 +632,43 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                             className={`cc-date-pill${dateDropdownOpen ? ' is-active' : ''}`}
                                             onClick={() => setDateDropdownOpen((v) => !v)}
                                         >
-                                            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{marginRight:5,flexShrink:0}}>
-                                                <rect x="3" y="5" width="14" height="12" rx="3.5" fill="#f0f7ef" stroke="#8BA888" strokeWidth="1.5"/>
-                                                <rect x="6.5" y="2.5" width="2" height="3" rx="1" fill="#8BA888"/>
-                                                <rect x="11.5" y="2.5" width="2" height="3" rx="1" fill="#8BA888"/>
-                                                <rect x="6.5" y="9.5" width="7" height="1.8" rx="0.9" fill="#b8dfb8"/>
+                                            <svg
+                                                width="14"
+                                                height="14"
+                                                viewBox="0 0 20 20"
+                                                fill="none"
+                                                style={{ marginRight: 5, flexShrink: 0 }}
+                                            >
+                                                <rect
+                                                    x="3"
+                                                    y="5"
+                                                    width="14"
+                                                    height="12"
+                                                    rx="3.5"
+                                                    fill="#f0f7ef"
+                                                    stroke="#8BA888"
+                                                    strokeWidth="1.5"
+                                                />
+                                                <rect x="6.5" y="2.5" width="2" height="3" rx="1" fill="#8BA888" />
+                                                <rect x="11.5" y="2.5" width="2" height="3" rx="1" fill="#8BA888" />
+                                                <rect x="6.5" y="9.5" width="7" height="1.8" rx="0.9" fill="#b8dfb8" />
                                             </svg>
                                             <span>{logModal.bookingDate}</span>
                                             <svg
                                                 className={`cc-date-chevron${dateDropdownOpen ? ' is-open' : ''}`}
-                                                width="12" height="12" viewBox="0 0 14 14" fill="none"
-                                                style={{marginLeft:4,flexShrink:0}}
+                                                width="12"
+                                                height="12"
+                                                viewBox="0 0 14 14"
+                                                fill="none"
+                                                style={{ marginLeft: 4, flexShrink: 0 }}
                                             >
-                                                <path d="M3 5l4 4 4-4" stroke="#6e9170" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                                                <path
+                                                    d="M3 5l4 4 4-4"
+                                                    stroke="#6e9170"
+                                                    strokeWidth="1.6"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
                                             </svg>
                                         </button>
                                         {dateDropdownOpen && availableBookings.length > 0 && (
@@ -528,7 +681,9 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                                         onClick={() => handleSelectBooking(booking, idx)}
                                                     >
                                                         <span className="cc-date-dropdown-session">{idx + 1}회차</span>
-                                                        <span className="cc-date-dropdown-date">{formatBookingDate(booking)}</span>
+                                                        <span className="cc-date-dropdown-date">
+                                                            {formatBookingDate(booking)}
+                                                        </span>
                                                     </button>
                                                 ))}
                                             </div>
@@ -536,7 +691,9 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                     </div>
                                 )}
                             </div>
-                            <h3 className="cc-log-modal-title">{logModal.title || (logModal.editId ? '일지 수정' : '새 상담 일지')}</h3>
+                            <h3 className="cc-log-modal-title">
+                                {logModal.title || (logModal.editId ? '일지 수정' : '새 상담 일지')}
+                            </h3>
                         </div>
 
                         <div className="cc-log-fields">
@@ -579,7 +736,9 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                         </div>
 
                         <div className="cc-modal__actions cc-modal__actions--right">
-                            <button className="cc-btn cc-btn--ghost" onClick={closeLogModal}>취소</button>
+                            <button className="cc-btn cc-btn--ghost" onClick={closeLogModal}>
+                                취소
+                            </button>
                             <button
                                 className={`cc-btn cc-btn--primary${!isLogFormValid ? ' is-disabled' : ''}`}
                                 onClick={handleSaveLog}
@@ -609,7 +768,9 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                             ].map(({ q, a }) => (
                                 <div key={q} className="cc-survey-group">
                                     <label>{q}</label>
-                                    <div className="cc-survey-ans">{a || <span style={{color:'#94a3b8'}}>미입력</span>}</div>
+                                    <div className="cc-survey-ans">
+                                        {a || <span style={{ color: '#94a3b8' }}>미입력</span>}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -627,14 +788,17 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                         <div className="cc-delete-header">
                             <div className="cc-warn-circle">
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                                    <path d="M12 8v5M12 16v.5" stroke="#ef4444" strokeWidth="2.2" strokeLinecap="round"/>
+                                    <path
+                                        d="M12 8v5M12 16v.5"
+                                        stroke="#ef4444"
+                                        strokeWidth="2.2"
+                                        strokeLinecap="round"
+                                    />
                                 </svg>
                             </div>
                             <h3>일지를 삭제할까요?</h3>
                         </div>
-                        <p className="cc-delete-msg">
-                            삭제한 상담 일지는 복구할 수 없습니다.
-                        </p>
+                        <p className="cc-delete-msg">삭제한 상담 일지는 복구할 수 없습니다.</p>
                         <div className="cc-modal__actions stretch">
                             <button
                                 className="cc-btn cc-btn--ghost"
@@ -656,17 +820,25 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                     <div className="cc-toast" onClick={(e) => e.stopPropagation()}>
                         <div className="cc-toast-icon">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <circle cx="12" cy="12" r="9" stroke="#f59e0b" strokeWidth="1.8"/>
-                                <path d="M12 7v6M12 15.5v.5" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round"/>
+                                <circle cx="12" cy="12" r="9" stroke="#f59e0b" strokeWidth="1.8" />
+                                <path d="M12 7v6M12 15.5v.5" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
                             </svg>
                         </div>
                         <div className="cc-toast-body">
                             <p className="cc-toast-title">{client.name} 님의 상담을 종료할까요?</p>
-                            <p className="cc-toast-desc">종료 후에는 새 일지를 작성할 수 없으며,<br/>상태가 <strong>상담 종료</strong>로 변경됩니다.</p>
+                            <p className="cc-toast-desc">
+                                종료 후에는 새 일지를 작성할 수 없으며,
+                                <br />
+                                상태가 <strong>상담 종료</strong>로 변경됩니다.
+                            </p>
                         </div>
                         <div className="cc-toast-actions">
-                            <button className="cc-btn cc-btn--ghost" onClick={() => setEndToast(false)}>취소</button>
-                            <button className="cc-btn cc-btn--danger" onClick={handleConfirmEnd}>종료하기</button>
+                            <button className="cc-btn cc-btn--ghost" onClick={() => setEndToast(false)}>
+                                취소
+                            </button>
+                            <button className="cc-btn cc-btn--danger" onClick={handleConfirmEnd}>
+                                종료하기
+                            </button>
                         </div>
                     </div>
                 </div>

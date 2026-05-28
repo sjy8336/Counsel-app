@@ -9,7 +9,7 @@ import '../static/Counselor.css';
 
 export default function CounselorListPage({ userName, setUserName, isLoggedIn, setIsLoggedIn, onFavoriteChange }) {
     const [searchTerm, setSearchTerm] = useState('');
-    
+
     // 복수 선택 및 커스텀 드롭다운 상태 관리
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [activeMainTab, setActiveMainTab] = useState('전체'); // 디폴트를 '전체' 탭으로 설정
@@ -19,8 +19,8 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
     const [toast, setToast] = useState(null);
     const [dbCounselors, setDbCounselors] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [totalCount, setTotalCount] = useState(0); 
-    const [pageOffset, setPageOffset] = useState(0); 
+    const [totalCount, setTotalCount] = useState(0);
+    const [pageOffset, setPageOffset] = useState(0);
     const loaderRef = useRef(null);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
@@ -28,9 +28,20 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
 
     // 서비스 카테고리 원본 데이터 맵
     const categoriesData = {
-        '개인심리': ['개인심리', '대인관계', '가족상담', '우울/불안', '연애/결혼', '공황/장애', '트라우마', '중독상담', '자존감향상', '성격상담'],
-        '스트레스': ['스트레스', '번아웃'],
-        '직업': ['취업상담', '진로상담', '학업/시험']
+        개인심리: [
+            '개인심리',
+            '대인관계',
+            '가족상담',
+            '우울/불안',
+            '연애/결혼',
+            '공황/장애',
+            '트라우마',
+            '중독상담',
+            '자존감향상',
+            '성격상담',
+        ],
+        스트레스: ['스트레스', '번아웃'],
+        직업: ['취업상담', '진로상담', '학업/시험'],
     };
 
     // '전체' 탭 선택 시 보여줄 모든 소분류 리스트 평탄화 배열 산출
@@ -59,9 +70,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
 
     // 소분류 체크박스 토글 함수
     const handleSubCategoryToggle = (sub) => {
-        setSelectedSubCategories(prev => 
-            prev.includes(sub) ? prev.filter(item => item !== sub) : [...prev, sub]
-        );
+        setSelectedSubCategories((prev) => (prev.includes(sub) ? prev.filter((item) => item !== sub) : [...prev, sub]));
     };
 
     // 필터 전체 해제
@@ -96,7 +105,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                 params.append('limit', 20);
                 params.append('summary', 'true');
                 if (searchTerm) params.append('search', searchTerm);
-                
+
                 // 선택된 소분류가 존재한다면 첫 번째 인자를 기반으로 백엔드 1차 필터 패싱
                 if (selectedSubCategories.length > 0) {
                     params.append('category', selectedSubCategories[0]);
@@ -114,14 +123,19 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                     data.counselors.map((item) => ({
                         id: item.user?.id,
                         name: item.user?.full_name,
-                        category: item.specialties && item.specialties[0]?.specialty_name ? item.specialties[0].specialty_name : '',
+                        category:
+                            item.specialties && item.specialties[0]?.specialty_name
+                                ? item.specialties[0].specialty_name
+                                : '',
                         field: item.specialties ? item.specialties.map((s) => s.specialty_name).join(', ') : '',
-                        price: item.profile?.consultation_price ? `${item.profile.consultation_price.toLocaleString()}원` : '',
+                        price: item.profile?.consultation_price
+                            ? `${item.profile.consultation_price.toLocaleString()}원`
+                            : '',
                         intro: item.profile?.intro_line,
                         profile_img_url: item.profile?.profile_img_url,
                     }))
                 );
-                
+
                 const initialLikes = {};
                 if (favList && Array.isArray(favList.favorites)) {
                     favList.favorites.forEach((fav) => {
@@ -164,11 +178,11 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
     const filteredCounselors = useMemo(() => {
         return dbCounselors.filter((c) => {
             const matchesSearch = (c.name && c.name.includes(searchTerm)) || (c.field && c.field.includes(searchTerm));
-            
+
             let matchesCategory = true;
             if (selectedSubCategories.length > 0) {
-                matchesCategory = selectedSubCategories.some(sub => 
-                    c.category === sub || (c.field && c.field.includes(sub))
+                matchesCategory = selectedSubCategories.some(
+                    (sub) => c.category === sub || (c.field && c.field.includes(sub))
                 );
             }
             return matchesSearch && matchesCategory;
@@ -189,7 +203,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                         params.append('summary', 'true');
                         if (searchTerm) params.append('search', searchTerm);
                         if (selectedSubCategories.length > 0) params.append('category', selectedSubCategories[0]);
-                        
+
                         const res = await fetch(`/api/counselors/approved?${params.toString()}`);
                         if (!res.ok) throw new Error('상담사 추가 조회 실패');
                         const data = await res.json();
@@ -198,9 +212,14 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                             ...data.counselors.map((item) => ({
                                 id: item.user?.id,
                                 name: item.user?.full_name,
-                                category: item.specialties && item.specialties[0]?.specialty_name ? item.specialties[0].specialty_name : '',
+                                category:
+                                    item.specialties && item.specialties[0]?.specialty_name
+                                        ? item.specialties[0].specialty_name
+                                        : '',
                                 field: item.specialties ? item.specialties.map((s) => s.specialty_name).join(', ') : '',
-                                price: item.profile?.consultation_price ? `${item.profile.consultation_price.toLocaleString()}원` : '',
+                                price: item.profile?.consultation_price
+                                    ? `${item.profile.consultation_price.toLocaleString()}원`
+                                    : '',
                                 intro: item.profile?.intro_line,
                                 profile_img_url: item.profile?.profile_img_url,
                             })),
@@ -230,7 +249,9 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
 
     const SkeletonCard = () => (
         <div className="counlist-counselor-card skeleton">
-            <div className="counlist-card-top"><div className="counlist-profile-placeholder skeleton-img" /></div>
+            <div className="counlist-card-top">
+                <div className="counlist-profile-placeholder skeleton-img" />
+            </div>
             <div className="counlist-card-body">
                 <div className="skeleton-line skeleton-name" />
                 <div className="skeleton-line skeleton-intro" />
@@ -238,19 +259,44 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
         </div>
     );
 
-    const CounselorCard = memo(function CounselorCard({ id, name, category, field, price, intro, profile_img_url, liked, onLike, onClick }) {
+    const CounselorCard = memo(function CounselorCard({
+        id,
+        name,
+        category,
+        field,
+        price,
+        intro,
+        profile_img_url,
+        liked,
+        onLike,
+        onClick,
+    }) {
         return (
             <div className="counlist-counselor-card" onClick={onClick}>
                 <div className="counlist-card-top">
                     <div className="counlist-profile-placeholder">
-                        {profile_img_url ? (
-                            <img src={profile_img_url} alt="프로필" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }} />
+                        {profile_img_url && profile_img_url.trim() !== '' ? (
+                            <img
+                                src={profile_img_url}
+                                alt="프로필"
+                                loading="lazy"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }}
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${name || 'default'}`;
+                                }}
+                            />
                         ) : (
                             <User size={32} />
                         )}
                     </div>
                     <button className={`counlist-heart-btn${liked ? ' liked' : ''}`} onClick={onLike}>
-                        <Heart size={22} fill={liked ? '#e74c3c' : 'none'} color={liked ? '#e74c3c' : '#bbb'} strokeWidth={2.2} />
+                        <Heart
+                            size={22}
+                            fill={liked ? '#e74c3c' : 'none'}
+                            color={liked ? '#e74c3c' : '#bbb'}
+                            strokeWidth={2.2}
+                        />
                     </button>
                 </div>
                 <div className="counlist-card-body">
@@ -271,12 +317,19 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
         <>
             {toast && <div className="counlist-mp-toast">{toast}</div>}
             <div className="counlist-full-page-wrapper">
-                <Header activeTab="search" setActiveTab={() => {}} userName={userName} setUserName={setUserName} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-                
+                <Header
+                    activeTab="search"
+                    setActiveTab={() => {}}
+                    userName={userName}
+                    setUserName={setUserName}
+                    isLoggedIn={isLoggedIn}
+                    setIsLoggedIn={setIsLoggedIn}
+                />
+
                 <div className="counlist-counselor-list-container wide">
                     <header className="counlist-clist-search-header">
                         <h2 className="counlist-clist-search-title">전문가 찾기</h2>
-                        
+
                         <div className="counlist-modern-filter-bar-container">
                             <div className="counlist-clist-search-bar-wrapper">
                                 <Search className="counlist-clist-search-icon" size={18} />
@@ -291,16 +344,19 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
 
                             {/* 드롭다운 루트 */}
                             <div className="counlist-custom-dropdown-root" ref={dropdownRef}>
-                                <button 
+                                <button
                                     className={`counlist-dropdown-trigger-btn ${selectedSubCategories.length > 0 ? 'active' : ''}`}
                                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                                 >
                                     <span className="counlist-trigger-text">
-                                        {selectedSubCategories.length === 0 
-                                            ? '상담 분야 선택' 
+                                        {selectedSubCategories.length === 0
+                                            ? '상담 분야 선택'
                                             : `분야 선택 (${selectedSubCategories.length})`}
                                     </span>
-                                    <ChevronDown size={16} className={`counlist-arrow-icon ${isDropdownOpen ? 'rotated' : ''}`} />
+                                    <ChevronDown
+                                        size={16}
+                                        className={`counlist-arrow-icon ${isDropdownOpen ? 'rotated' : ''}`}
+                                    />
                                 </button>
 
                                 {/* 판넬 레이어 */}
@@ -327,17 +383,21 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                                             ))}
                                         </div>
                                         {/* 우측 소분류 리스트 ('전체'일 경우 스크롤 효율을 위해 격자 최적화) */}
-                                        <div className={`counlist-panel-sub-list-content ${activeMainTab === '전체' ? 'all-tab-grid' : ''}`}>
+                                        <div
+                                            className={`counlist-panel-sub-list-content ${activeMainTab === '전체' ? 'all-tab-grid' : ''}`}
+                                        >
                                             {currentSubList.map((subCat) => {
                                                 const isChecked = selectedSubCategories.includes(subCat);
                                                 return (
-                                                    <div 
-                                                        key={subCat} 
+                                                    <div
+                                                        key={subCat}
                                                         className={`counlist-multi-option-item ${isChecked ? 'checked' : ''}`}
                                                         onClick={() => handleSubCategoryToggle(subCat)}
                                                     >
                                                         <div className="counlist-custom-checkbox">
-                                                            {isChecked && <Check size={12} color="#ffffff" strokeWidth={3} />}
+                                                            {isChecked && (
+                                                                <Check size={12} color="#ffffff" strokeWidth={3} />
+                                                            )}
                                                         </div>
                                                         <span className="counlist-option-label">{subCat}</span>
                                                     </div>
@@ -352,13 +412,19 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                         {/* 선택 태그 배지 대시보드 */}
                         {selectedSubCategories.length > 0 && (
                             <div className="counlist-selected-tags-badge-board">
-                                {selectedSubCategories.map(sub => (
+                                {selectedSubCategories.map((sub) => (
                                     <span key={sub} className="counlist-selected-badge-item">
                                         {sub}
-                                        <X size={12} className="counlist-badge-del-icon" onClick={() => handleSubCategoryToggle(sub)} />
+                                        <X
+                                            size={12}
+                                            className="counlist-badge-del-icon"
+                                            onClick={() => handleSubCategoryToggle(sub)}
+                                        />
                                     </span>
                                 ))}
-                                <button className="counlist-badge-reset-btn" onClick={clearAllFilters}>전체초기화</button>
+                                <button className="counlist-badge-reset-btn" onClick={clearAllFilters}>
+                                    전체초기화
+                                </button>
                             </div>
                         )}
                     </header>
@@ -368,7 +434,9 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                             Array.from({ length: 3 }).map((_, idx) => <SkeletonCard key={idx} />)
                         ) : filteredCounselors.length === 0 ? (
                             <div className="counlist-counselor-empty">
-                                <div className="counlist-empty-icon"><User size={32} /></div>
+                                <div className="counlist-empty-icon">
+                                    <User size={32} />
+                                </div>
                                 <p className="counlist-empty-title">조건에 맞는 상담사가 없어요</p>
                                 <p className="counlist-empty-sub">다른 키워드나 필터 조합을 선택해보세요.</p>
                             </div>
@@ -386,7 +454,11 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                                         profile_img_url={counselor.profile_img_url}
                                         liked={!!liked[counselor.id]}
                                         onLike={(e) => handleLike(counselor.id, e)}
-                                        onClick={() => navigate(`/counselor/${counselor.id}`, { state: { isLiked: !!liked[counselor.id], counselor } })}
+                                        onClick={() =>
+                                            navigate(`/counselor/${counselor.id}`, {
+                                                state: { isLiked: !!liked[counselor.id], counselor },
+                                            })
+                                        }
                                     />
                                 ))}
                                 {dbCounselors.length < totalCount && (

@@ -335,6 +335,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .res-info { flex: 1; }

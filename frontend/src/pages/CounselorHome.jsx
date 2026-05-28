@@ -58,6 +58,8 @@ const CounselorHome = () => {
             const dateObj = new Date(r.date);
             const dday = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
             const days = ['일', '월', '화', '수', '목', '금', '토'];
+            // 예약 객체에서 프로필 이미지 우선순위: r.profile_img_url → r.client_profile_img_url → ''
+            const profile_img_url = r.profile_img_url || r.client_profile_img_url || '';
             return {
                 id: r.id,
                 order_id: r.order_id,
@@ -67,6 +69,7 @@ const CounselorHome = () => {
                 dateObj,
                 dday,
                 status: r.status,
+                profile_img_url,
             };
         });
     };
@@ -215,7 +218,8 @@ const CounselorHome = () => {
                     <div className="stat-card accent-rose clickable" onClick={() => navigate('/CounselorMessages')}>
                         <span className="stat-label">미답변 문의</span>
                         <strong>
-                            {unreadInquiries.length}<em>건</em>
+                            {unreadInquiries.length}
+                            <em>건</em>
                         </strong>
                         <p className="stat-note">확인이 필요해요 →</p>
                     </div>
@@ -353,7 +357,21 @@ const CounselorHome = () => {
                             >
                                 <span className="next-badge">NEXT</span>
                                 <div className="res-top">
-                                    <div className="res-avatar">{nextConfirmed.name[0]}</div>
+                                    <div className="res-avatar">
+                                        {nextConfirmed.profile_img_url ? (
+                                            <img
+                                                src={nextConfirmed.profile_img_url}
+                                                alt="프로필"
+                                                className="res-avatar-img"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    e.target.parentNode.textContent = nextConfirmed.name[0];
+                                                }}
+                                            />
+                                        ) : (
+                                            nextConfirmed.name[0]
+                                        )}
+                                    </div>
                                     <div className="res-info">
                                         <strong>{nextConfirmed.name} 내담자</strong>
                                         <span>{nextConfirmed.type}</span>
@@ -373,7 +391,21 @@ const CounselorHome = () => {
                                 style={{ cursor: 'pointer' }}
                             >
                                 <div className="res-top">
-                                    <div className="res-avatar">{r.name[0]}</div>
+                                    <div className="res-avatar">
+                                        {r.profile_img_url ? (
+                                            <img
+                                                src={r.profile_img_url}
+                                                alt="프로필"
+                                                className="res-avatar-img"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    e.target.parentNode.textContent = r.name[0];
+                                                }}
+                                            />
+                                        ) : (
+                                            r.name[0]
+                                        )}
+                                    </div>
                                     <div className="res-info">
                                         <strong>{r.name} 내담자</strong>
                                         <span>{r.type}</span>

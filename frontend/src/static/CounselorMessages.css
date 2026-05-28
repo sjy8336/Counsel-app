@@ -1,11 +1,3 @@
-/* ============================================================
-   CounselorInbox.css
-   MINDWELL 상담사 문의 답변 페이지 전용 스타일
-   접두사: mwci- (MindWell Counselor Inbox)
-   ============================================================ */
-
-/* ---------- 전역 레이아웃 ---------- */
-
 :root {
     --mobile-tab-h: 60px;
     /* Main (Point) */
@@ -683,6 +675,7 @@
     border: 1px solid rgba(139, 168, 136, 0.1);
     font-size: 1.125rem;
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 .mwci-sender-name-row {

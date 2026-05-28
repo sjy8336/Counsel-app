@@ -11,6 +11,7 @@ class CounselorProfileBase(BaseModel):
     center_address: str
     consultation_price: Optional[int] = 0
     status: Optional[str] = '심사중'  # '심사중', '수락', '반려'
+    reject_reason: Optional[str] = None  # 반려 사유
 
 class CounselorProfileCreate(CounselorProfileBase):
     pass
@@ -19,6 +20,7 @@ class CounselorProfile(CounselorProfileBase):
     id: int
     user_id: int
     status: str
+    reject_reason: Optional[str] = None
     created_at: Optional[str]
     updated_at: Optional[str]
     class Config:

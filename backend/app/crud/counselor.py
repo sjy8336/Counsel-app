@@ -24,8 +24,16 @@ def safe_time_fromisoformat(value):
 
 # 1. 프로필 생성/수정/조회
 def create_counselor_profile(db: Session, user_id: int, data: CounselorProfileCreate):
-    profile = CounselorProfile(user_id=user_id, **data.dict(exclude={"status"}), status='심사중')
+    # profile_img_url은 users 테이블에만 저장, 모델에 전달하지 않음
+    data_dict = data.dict(exclude={"status", "profile_img_url"})
+    profile = CounselorProfile(user_id=user_id, **data_dict, status='심사중')
     db.add(profile)
+    # users 테이블에 profile_img_url 저장
+    if data.profile_img_url is not None:
+        from app.models.user import User
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            user.profile_img_url = data.profile_img_url
     db.commit()
     db.refresh(profile)
     return profile
@@ -34,7 +42,7 @@ def get_counselor_profile(db: Session, user_id: int):
     profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == user_id).first()
     if not profile:
         return None
-    # User 테이블에서 username, email, full_name, phone_number 가져오기
+    # User 테이블에서 username, email, full_name, phone_number, profile_img_url 가져오기
     from app.models.user import User
     user = db.query(User).filter(User.id == user_id).first()
     profile_dict = profile.__dict__.copy()
@@ -43,11 +51,13 @@ def get_counselor_profile(db: Session, user_id: int):
         profile_dict['user_email'] = user.email
         profile_dict['user_name'] = user.full_name
         profile_dict['user_phone'] = user.phone_number
+        profile_dict['profile_img_url'] = user.profile_img_url
     else:
         profile_dict['username'] = None
         profile_dict['user_email'] = None
         profile_dict['user_name'] = None
         profile_dict['user_phone'] = None
+        profile_dict['profile_img_url'] = None
     profile_dict.pop('_sa_instance_state', None)
     return profile_dict
 
@@ -60,7 +70,14 @@ def update_counselor_profile(db: Session, user_id: int, data: CounselorProfileCr
         profile.status = '심사중'
         delete_all_counselor_related_data(db, user_id)
     for k, v in data.dict(exclude_unset=True).items():
-        setattr(profile, k, v)
+        # profile_img_url은 users 테이블에만 저장
+        if k == 'profile_img_url':
+            from app.models.user import User
+            user = db.query(User).filter(User.id == user_id).first()
+            if user:
+                user.profile_img_url = v
+        else:
+            setattr(profile, k, v)
     db.commit()
     db.refresh(profile)
     return profile

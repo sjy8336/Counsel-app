@@ -348,10 +348,7 @@ const App = () => {
                         end_time: slot.end + ':00',
                     }))
                 );
-            const scheduleResult = await registerSchedule(
-                schedulePayload,
-                token
-            );
+            const scheduleResult = await registerSchedule(schedulePayload, token);
             if (Array.isArray(scheduleResult) && scheduleResult.some((item) => item.success === false)) {
                 throw new Error('상담 일정 저장에 실패했습니다.');
             }
@@ -598,12 +595,29 @@ const App = () => {
                 <input
                     type="file"
                     ref={fileInputRef}
-                    onChange={(e) => {
+                    onChange={async (e) => {
                         const file = e.target.files[0];
                         if (file) {
-                            const r = new FileReader();
-                            r.onloadend = () => setProfileImage(r.result);
-                            r.readAsDataURL(file);
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            try {
+                                const token = localStorage.getItem('access_token');
+                                const res = await fetch('/api/upload/profile-image', {
+                                    method: 'POST',
+                                    headers: {
+                                        Authorization: `Bearer ${token}`,
+                                    },
+                                    body: formData,
+                                });
+                                const data = await res.json();
+                                if (data.profile_img_url) {
+                                    setProfileImage(data.profile_img_url);
+                                } else {
+                                    alert('이미지 업로드에 실패했습니다.');
+                                }
+                            } catch (err) {
+                                alert('이미지 업로드에 실패했습니다.');
+                            }
                         }
                     }}
                     accept="image/*"
@@ -769,26 +783,31 @@ const App = () => {
                     전문 상담분야 <span className="cu-ep-section-hint">(중복 선택 가능)</span>
                 </h3>
                 <div className="cu-ep-chips">
-                    {EXPERTISE_LIST.map((item) => (
-                        <button
-                            key={item}
-                            onClick={() =>
-                                setExpertType((p) => (p.includes(item) ? p.filter((t) => t !== item) : [...p, item]))
-                            }
-                            className={`cu-ep-chip${expertType.includes(item) ? ' cu-ep-chip-on' : ''}`}
-                        >
-                            {item}
-                        </button>
-                    ))}
-                </div>
-                <div className="cu-ep-field">
-                    <label className="cu-ep-custom-label">기타 전문분야 직접 입력</label>
-                    <textarea
-                        value={customExpertise}
-                        onChange={(e) => setCustomExpertise(e.target.value)}
-                        placeholder="제시된 항목 외의 구체적인 상담 전문 분야가 있다면 입력해주세요."
-                        className="cu-ep-textarea"
-                    />
+                    {EXPERTISE_LIST.map(
+                        (item) => (
+                            <button
+                                key={item}
+                                onClick={() =>
+                                    setExpertType((p) =>
+                                        p.includes(item) ? p.filter((t) => t !== item) : [...p, item]
+                                    )
+                                }
+                                className={`cu-ep-chip${expertType.includes(item) ? ' cu-ep-chip-on' : ''}`}
+                            >
+                                {item}
+                            </button>
+                        ),
+                        {
+                            center_name: basicCenter,
+                            center_phone: basicCenterPhone,
+                            center_address: basicAddress,
+                            consultation_price: Number(basicPrice.replace(/,/g, '')) || 0,
+                            intro_line: basicIntro,
+                            profile_img_url: profileImage, // 파일 경로만 저장
+                        },
+                        token
+                    )}
+                    ;
                 </div>
             </section>
             <section>
@@ -1157,9 +1176,7 @@ const App = () => {
                         <div className="cu-ep-nav-btns">
                             {activeTab !== 'basic' && (
                                 <button
-                                    onClick={() =>
-                                        setActiveTab(activeTab === 'history' ? 'expertise' : 'basic')
-                                    }
+                                    onClick={() => setActiveTab(activeTab === 'history' ? 'expertise' : 'basic')}
                                     className="cu-ep-btn-prev"
                                 >
                                     이전

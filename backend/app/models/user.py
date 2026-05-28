@@ -16,6 +16,8 @@ class User(Base):
     gender = Column(Enum('male', 'female'), nullable=False)
     role = Column(Enum('client', 'counselor', 'admin'), server_default='client')
 
+
+    profile_img_url = Column(String(255), nullable=True)  # 내담자 프로필 사진
     is_active = Column(Boolean, server_default=text('1'), nullable=False)
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))

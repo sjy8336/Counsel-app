@@ -2,20 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck, CalendarPlus } from 'lucide-react';
 import { getNotifications } from '../api/notification';
-import { getMyInfo } from '../api/user.js';
 import { getCounselorProfile } from '../api/counselor.js';
 import '../static/Common.css';
 import '../static/NotifPopup.css';
 
-/* *
- * Header 컴포넌트
- * @param {string} activeTab - 현재 활성화된 탭 ID
- * @param {function} setActiveTab - 탭 변경 함수
- * @param {Array} pcGnbItems - PC 네비게이션 메뉴 리스트 (방어 코드를 위해 기본값 [] 설정)
- */
 function formatTime(dateStr) {
     if (!dateStr) return '';
-    // 서버에서 UTC로 내려올 경우 KST(+9시간) 보정
     const date = new Date(dateStr);
     const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
     const diff = Math.floor((Date.now() - kstDate.getTime()) / 1000);
@@ -24,6 +16,7 @@ function formatTime(dateStr) {
     if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
     return `${Math.floor(diff / 86400)}일 전`;
 }
+
 export default function Header({
     activeTab,
     setActiveTab,
@@ -32,17 +25,17 @@ export default function Header({
     isLoggedIn = false,
     setIsLoggedIn,
 }) {
-    // localStorage에서 바로 읽어서 초기값 세팅
+    const navigate = useNavigate();
+    const location = useLocation(); // ← 한 번만 선언
+
     const getInitialRole = () => {
         try {
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                if (user.role) return user.role;
-            }
+            const u = JSON.parse(localStorage.getItem('user'));
+            if (u?.role) return u.role;
         } catch {}
         return '';
     };
+
     const [userRole, setUserRole] = useState(getInitialRole());
     const [profileImgUrl, setProfileImgUrl] = useState('');
     const [notifOpen, setNotifOpen] = useState(false);
@@ -52,16 +45,61 @@ export default function Header({
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
     const notifRef = useRef(null);
     const searchInputRef = useRef(null);
-    const location = useLocation();
 
+    // 리사이즈
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 1024);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        const h = () => setIsMobile(window.innerWidth < 1024);
+        window.addEventListener('resize', h);
+        return () => window.removeEventListener('resize', h);
     }, []);
 
-    // 로그인 시점 또는 알림창 열릴 때 알림 불러오기
+    // profileImgChanged 이벤트 + 로그인/페이지 이동 시 localStorage 동기화
     useEffect(() => {
+        const sync = () => {
+            const u = JSON.parse(localStorage.getItem('user') || '{}');
+            setProfileImgUrl(u.profile_img_url || '');
+        };
+        sync();
+        window.addEventListener('profileImgChanged', sync);
+        return () => window.removeEventListener('profileImgChanged', sync);
+    }, [isLoggedIn, location.pathname]);
+
+    // userRole 동기화
+    useEffect(() => {
+        try {
+            const u = JSON.parse(localStorage.getItem('user') || '{}');
+            if (u.role) setUserRole(u.role);
+        } catch {}
+    }, [isLoggedIn, location.pathname]);
+
+    // 상담사 프로필 이미지 fetch (counselors 테이블 우선)
+    useEffect(() => {
+        const fetchUserProfileImg = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.role === 'counselor') {
+                    // users 테이블의 profile_img_url만 사용
+                    // getCounselorProfile이 users.profile_img_url을 반환한다고 가정
+                    const prof = await getCounselorProfile(token);
+                    if (prof?.profile_img_url) {
+                        setProfileImgUrl(prof.profile_img_url);
+                        user.profile_img_url = prof.profile_img_url;
+                        localStorage.setItem('user', JSON.stringify(user));
+                    }
+                    setUserRole('counselor');
+                }
+            } catch {
+                /* ignore */
+            }
+        };
+        fetchUserProfileImg();
+    }, [location.pathname]);
+
+    // 알림 fetch (로그인 시)
+    useEffect(() => {
+        if (!isLoggedIn) return;
         const fetchNotifications = async () => {
             const token = localStorage.getItem('access_token');
             if (!token) {
@@ -70,34 +108,18 @@ export default function Header({
             }
             try {
                 const res = await getNotifications(token);
-                // 최신순 정렬
                 const mapped = (res.data || [])
-                    .map((n) => ({
-                        ...n,
-                        unread: !n.read,
-                        time: formatTime(n.created_at),
-                    }))
+                    .map((n) => ({ ...n, unread: !n.read, time: formatTime(n.created_at) }))
                     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                 setNotifications(mapped);
-            } catch (e) {
+            } catch {
                 setNotifications([]);
             }
         };
-        if (isLoggedIn) fetchNotifications();
+        fetchNotifications();
     }, [isLoggedIn]);
 
-    // 로그인/페이지 이동 시 userRole을 항상 세팅
-    useEffect(() => {
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-            try {
-                const user = JSON.parse(userStr);
-                if (user.role) setUserRole(user.role);
-            } catch {}
-        }
-    }, [isLoggedIn, location.pathname]);
-
-    // 알림창 열릴 때마다 새로고침 (알림 삭제 X, 최신순 5개만 보여줌)
+    // 알림창 열릴 때마다 새로고침
     useEffect(() => {
         if (!notifOpen) return;
         const fetchNotifications = async () => {
@@ -106,52 +128,30 @@ export default function Header({
             try {
                 const res = await getNotifications(token);
                 const mapped = (res.data || [])
-                    .map((n) => ({
-                        ...n,
-                        unread: !n.read,
-                        time: formatTime(n.created_at),
-                    }))
+                    .map((n) => ({ ...n, unread: !n.read, time: formatTime(n.created_at) }))
                     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                 setNotifications(mapped);
             } catch {}
         };
         fetchNotifications();
     }, [notifOpen]);
-    // 로그인/페이지 이동 시 userRole을 항상 세팅
-    useEffect(() => {
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-            try {
-                const user = JSON.parse(userStr);
-                if (user.role) setUserRole(user.role);
-            } catch {}
-        }
-    }, [isLoggedIn, location.pathname]);
 
-    // 상담사라면 DB에서 최신 프로필 이미지 fetch
+    // 알림창 외부 클릭 닫기
     useEffect(() => {
-        const fetchCounselorProfileImg = async () => {
-            const token = localStorage.getItem('access_token');
-            if (!token) return;
-            try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                if (user.role === 'counselor') {
-                    const prof = await getCounselorProfile(token);
-                    if (prof && prof.profile_img_url) {
-                        setProfileImgUrl(prof.profile_img_url);
-                        user.profile_img_url = prof.profile_img_url;
-                        localStorage.setItem('user', JSON.stringify(user));
-                    }
-                    setUserRole('counselor'); // 명시적으로 counselor로 설정
-                }
-            } catch {
-                // ignore
-            }
+        if (!notifOpen) return;
+        const h = (e) => {
+            if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
         };
-        fetchCounselorProfileImg();
-    }, [location.pathname]);
+        document.addEventListener('mousedown', h);
+        return () => document.removeEventListener('mousedown', h);
+    }, [notifOpen]);
 
-    const navigate = useNavigate();
+    // 검색창 자동 포커스
+    useEffect(() => {
+        if (searchOpen && searchInputRef.current) setTimeout(() => searchInputRef.current?.focus(), 100);
+    }, [searchOpen]);
+
+    const hasUnread = notifications.some((n) => n.unread);
 
     let pcGnbItems = [];
     if (!isLoggedIn) {
@@ -179,11 +179,8 @@ export default function Header({
     const handleMenuClick = (item) => {
         setActiveTab(item.id);
         if (!isLoggedIn) {
-            // '전문가 찾기', '힐링 라운지'는 로그인 없이 접근 허용
             if (item.id === 'reservation' || item.id === 'diary') {
-                if (window.confirm('로그인해야 이용 가능합니다. 로그인 페이지로 이동할까요?')) {
-                    navigate('/login');
-                }
+                if (window.confirm('로그인해야 이용 가능합니다. 로그인 페이지로 이동할까요?')) navigate('/login');
                 return;
             }
             if (item.id === 'search') {
@@ -195,7 +192,8 @@ export default function Header({
                 return;
             }
             return;
-        } else if (userRole === 'counselor') {
+        }
+        if (userRole === 'counselor') {
             if (item.id === 'reservation') navigate('/CounselorPlanner');
             else if (item.id === 'client') navigate('/CounselorClient');
             else if (item.id === 'inquiry') navigate('/CounselorMessages');
@@ -207,54 +205,12 @@ export default function Header({
         }
     };
 
-    const handleBellClick = () => {
-        setNotifOpen((prev) => !prev);
-    };
-
-    useEffect(() => {
-        if (!notifOpen) return;
-        const handleClick = (e) => {
-            if (notifRef.current && !notifRef.current.contains(e.target)) {
-                setNotifOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
-    }, [notifOpen]);
-
-    const hasUnread = notifications.some((n) => n.unread);
-
-    // 검색창 열릴 때 자동 포커스
-    useEffect(() => {
-        if (searchOpen && searchInputRef.current) {
-            setTimeout(() => searchInputRef.current?.focus(), 100);
-        }
-    }, [searchOpen]);
-
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(`/counselors?q=${encodeURIComponent(searchQuery.trim())}`);
-        } else {
-            navigate('/counselors');
-        }
+        navigate(searchQuery.trim() ? `/counselors?q=${encodeURIComponent(searchQuery.trim())}` : '/counselors');
         setSearchOpen(false);
         setSearchQuery('');
     };
-
-    const quickMenuItems =
-        userRole === 'counselor'
-            ? [
-                  { label: '예약 관리', path: '/CounselorPlanner' },
-                  { label: '내담자 관리', path: '/CounselorClient' },
-                  { label: '문의하기', path: '/CounselorMessages' },
-              ]
-            : [
-                  { label: '전문가 찾기', path: '/counselors' },
-                  { label: '예약 관리', path: '/reserve' },
-                  { label: 'AI 일기', path: '/diary' },
-                  { label: '힐링 라운지', path: '/healing' },
-              ];
 
     return (
         <header className="global-header">
@@ -263,11 +219,7 @@ export default function Header({
                     className="logo"
                     onClick={() => {
                         setActiveTab('home');
-                        if (isLoggedIn && userRole === 'counselor') {
-                            navigate('/CounselorHome');
-                        } else {
-                            navigate('/');
-                        }
+                        navigate(isLoggedIn && userRole === 'counselor' ? '/CounselorHome' : '/');
                     }}
                 >
                     MINDWELL
@@ -286,11 +238,10 @@ export default function Header({
                 </nav>
 
                 <div className="user-actions">
-                    {/* 모바일 전용 검색 버튼 */}
                     {isMobile && (
                         <button
                             className="mobile-search-btn"
-                            onClick={() => setSearchOpen((prev) => !prev)}
+                            onClick={() => setSearchOpen((p) => !p)}
                             aria-label="검색"
                             style={{
                                 minWidth: '40px',
@@ -304,7 +255,7 @@ export default function Header({
                             <Search style={{ width: '24px', height: '24px', display: 'block' }} />
                         </button>
                     )}
-                    {/* ✅ 관리자 전용 버튼 - role이 admin일 때만 노출 */}
+
                     {isLoggedIn && userRole === 'admin' && (
                         <button className="admin-page-btn" onClick={() => navigate('/admin')} title="관리자 페이지">
                             <ShieldCheck size={16} />
@@ -314,10 +265,9 @@ export default function Header({
 
                     {isLoggedIn && (
                         <div style={{ position: 'relative', display: 'inline-block' }} ref={notifRef}>
-                            {/* 벨 버튼 — 읽지 않은 알림이 있으면 빨간 점 표시 */}
                             <button
                                 className="bell-btn"
-                                onClick={handleBellClick}
+                                onClick={() => setNotifOpen((p) => !p)}
                                 style={{
                                     position: 'relative',
                                     minWidth: '40px',
@@ -362,18 +312,16 @@ export default function Header({
                                                 <div
                                                     key={n.id}
                                                     className={`notif-popup-item${n.unread ? ' unread' : ''}`}
+                                                    style={{ cursor: 'pointer' }}
                                                     onClick={() => {
-                                                        // 내담자면 mypage로, 상담사면 CounselorMyPage로 이동
-                                                        if (userRole === 'client') {
-                                                            navigate('/mypage', { state: { showNotifications: true } });
-                                                        } else if (userRole === 'counselor') {
-                                                            navigate('/CounselorMyPage?tab=notifications');
-                                                        } else {
-                                                            navigate('/mypage', { state: { showNotifications: true } });
-                                                        }
+                                                        navigate(
+                                                            userRole === 'counselor'
+                                                                ? '/CounselorMyPage?tab=notifications'
+                                                                : '/mypage',
+                                                            { state: { showNotifications: true } }
+                                                        );
                                                         setNotifOpen(false);
                                                     }}
-                                                    style={{ cursor: 'pointer' }}
                                                 >
                                                     <span className="notif-popup-icon">
                                                         {n.type === 'booking' && <Check size={15} />}
@@ -400,28 +348,23 @@ export default function Header({
                     {isLoggedIn ? (
                         <div
                             className="user-profile"
-                            onClick={() => {
-                                if (userRole === 'counselor') {
-                                    navigate('/CounselorMyPage');
-                                } else if (userRole === 'client') {
-                                    navigate('/mypage');
-                                } else if (userRole === 'admin') {
-                                    navigate('/mypage');
-                                } else {
-                                    navigate('/mypage');
-                                }
-                            }}
                             style={{ cursor: 'pointer' }}
+                            onClick={() => navigate(userRole === 'counselor' ? '/CounselorMyPage' : '/mypage')}
                         >
                             <div className="user-avatar">
-                                {profileImgUrl ? (
-                                    <img src={profileImgUrl} alt="프로필" className="cmp-profile-img-content" />
-                                ) : userName && userName.trim() ? (
-                                    <img
-                                        src={`https://api.dicebear.com/7.x/notionists/svg?seed=${userName}`}
-                                        alt="User"
-                                    />
-                                ) : null}
+                                <img
+                                    src={
+                                        profileImgUrl?.trim()
+                                            ? profileImgUrl
+                                            : `https://api.dicebear.com/7.x/notionists/svg?seed=${userName || 'default'}`
+                                    }
+                                    alt="프로필"
+                                    className="cmp-profile-img-content"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${userName || 'default'}`;
+                                    }}
+                                />
                             </div>
                             <span className="user-name">{userName} 님</span>
                         </div>
@@ -434,7 +377,6 @@ export default function Header({
                 </div>
             </div>
 
-            {/* 모바일 전용 검색 패널 - searchOpen일 때만 렌더링 */}
             {isMobile && searchOpen && (
                 <div className="mobile-search-panel open">
                     <form onSubmit={handleSearchSubmit} className="mobile-search-form">
@@ -448,7 +390,7 @@ export default function Header({
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
-                            {searchQuery ? (
+                            {searchQuery && (
                                 <button
                                     type="button"
                                     className="mobile-search-clear"
@@ -456,7 +398,7 @@ export default function Header({
                                 >
                                     ×
                                 </button>
-                            ) : null}
+                            )}
                         </div>
                     </form>
                 </div>

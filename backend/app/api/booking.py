@@ -70,12 +70,14 @@ def get_bookings_for_counselor(
             client_birth = ""
             client_gender = ""
             client_phone = booking.client_phone
+            client_profile_img_url = None
         else:
             client_name = client.full_name if client else "내담자"
             client_id = client.id if client else None
             client_birth = client.birth_date if client else ""
             client_gender = client.gender if client else ""
             client_phone = client.phone_number if client else ""
+            client_profile_img_url = client.profile_img_url if client else None
         center_name = profile.center_name if profile else "센터"
         # 프론트 요구에 맞게 status 변환
         if booking.booking_status == 'waiting':
@@ -94,6 +96,7 @@ def get_bookings_for_counselor(
             "client_birth": client_birth,
             "client_gender": client_gender,
             "client_phone": client_phone,
+            "client_profile_img_url": client_profile_img_url,
             "date": booking.booking_date.strftime('%Y-%m-%d'),
             "time": booking.booking_time,
             "status": status,

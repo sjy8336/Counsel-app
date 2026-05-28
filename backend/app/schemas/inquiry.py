@@ -22,6 +22,7 @@ class InquiryResponse(BaseModel):
     answer: Optional[str] = None
     created_at: datetime
     client_name: Optional[str] = None  # 내담자 이름 추가
+    profile_img_url: Optional[str] = None  # 내담자 프로필 이미지 URL
 
     class Config:
         from_attributes = True

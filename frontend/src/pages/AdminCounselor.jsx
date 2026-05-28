@@ -23,7 +23,9 @@ import {
     UserCheck,
     AlertCircle,
     FileText,
-    CircleDollarSign, Menu, X,
+    CircleDollarSign,
+    Menu,
+    X,
 } from 'lucide-react';
 import '../static/AdminCounselor.css';
 
@@ -91,7 +93,7 @@ const AdminCounselor = () => {
                                   : '반려',
                         introduction: item.profile?.intro_line,
                         fee: item.profile?.consultation_price,
-                        profile_img_url: item.profile?.profile_img_url,
+                        profile_img_url: item.user?.profile_img_url,
                         educations: item.educations || [],
                         experiences: item.experiences || [],
                         certificates: item.certificates || [],
@@ -140,6 +142,7 @@ const AdminCounselor = () => {
                         id: user.id,
                         name: user.full_name || user.username || user.email,
                         email: user.email,
+                        profile_img_url: user.profile_img_url, // 프로필 이미지 필드 추가
                         // DB의 role 값 그대로 사용 (예: 'admin', 'client', 'counselor')
                         role:
                             user.role === 'admin'
@@ -238,7 +241,9 @@ const AdminCounselor = () => {
     const pagedMembers = filteredMembers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     // 검색어·필터 변경 시 페이지 초기화
-    useEffect(() => { setCurrentPage(1); }, [searchQuery, roleFilter]);
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, roleFilter]);
 
     const filteredCounselors = counselors.filter(
         (c) =>
@@ -267,7 +272,7 @@ const AdminCounselor = () => {
             <div className="ac-layout">
                 {/* 사이드바 */}
                 {sidebarOpen && <div className="ac-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
-            <aside className={`ac-sidebar ${sidebarOpen ? 'open' : ''}`}>
+                <aside className={`ac-sidebar ${sidebarOpen ? 'open' : ''}`}>
                     <div className="ac-sidebar-top">
                         <div className="ac-brand">
                             <ShieldCheck size={22} className="ac-brand-icon" />
@@ -314,7 +319,12 @@ const AdminCounselor = () => {
 
                 {/* 메인 콘텐츠 */}
                 <main className="ac-main">
-                <div className="ac-mobile-topbar"><button className="ac-hamburger" onClick={() => setSidebarOpen(true)}><Menu size={22}/></button><span className="ac-mobile-title">MindWell Admin</span></div>
+                    <div className="ac-mobile-topbar">
+                        <button className="ac-hamburger" onClick={() => setSidebarOpen(true)}>
+                            <Menu size={22} />
+                        </button>
+                        <span className="ac-mobile-title">MindWell Admin</span>
+                    </div>
                     {viewMode === 'list' && (
                         <div className="ac-stats-row">
                             {stats.map((s, i) => (
@@ -365,9 +375,13 @@ const AdminCounselor = () => {
                                     filteredCounselors.map((c) => (
                                         <div className="ac-counselor-row" key={c.id}>
                                             <div className="ac-counselor-avatar">
-                                                {c.profile_img_url ? (
+                                                {c.profile_img_url && typeof c.profile_img_url === 'string' ? (
                                                     <img
-                                                        src={c.profile_img_url}
+                                                        src={
+                                                            c.profile_img_url.startsWith('/static/')
+                                                                ? `${window.location.origin}${c.profile_img_url}`
+                                                                : c.profile_img_url
+                                                        }
                                                         alt="프로필"
                                                         style={{
                                                             width: '100%',
@@ -375,9 +389,14 @@ const AdminCounselor = () => {
                                                             objectFit: 'cover',
                                                             borderRadius: '14px',
                                                         }}
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.style.display = 'none';
+                                                            e.target.parentNode.textContent = c.name?.charAt(0) || '';
+                                                        }}
                                                     />
                                                 ) : (
-                                                    c.name.charAt(0)
+                                                    c.name?.charAt(0)
                                                 )}
                                             </div>
                                             <div className="ac-counselor-info">
@@ -439,7 +458,11 @@ const AdminCounselor = () => {
                                 <div className="ac-detail-avatar">
                                     {selectedCounselor.profile_img_url ? (
                                         <img
-                                            src={selectedCounselor.profile_img_url}
+                                            src={
+                                                selectedCounselor.profile_img_url.startsWith('/static/')
+                                                    ? `${window.location.origin}${selectedCounselor.profile_img_url}`
+                                                    : selectedCounselor.profile_img_url
+                                            }
                                             alt="프로필"
                                             style={{
                                                 width: '100%',
@@ -685,17 +708,26 @@ const AdminCounselor = () => {
                                                     ? `전체 (${memberList.length})`
                                                     : `${roleFilter} (${memberList.filter((m) => m.role === roleFilter).length})`}
                                             </span>
-                                            <ChevronRight size={16} className={`ac-select-chevron${dropdownOpen ? ' open' : ''}`} />
+                                            <ChevronRight
+                                                size={16}
+                                                className={`ac-select-chevron${dropdownOpen ? ' open' : ''}`}
+                                            />
                                         </button>
                                         {dropdownOpen && (
                                             <>
-                                                <div className="ac-select-backdrop" onClick={() => setDropdownOpen(false)} />
+                                                <div
+                                                    className="ac-select-backdrop"
+                                                    onClick={() => setDropdownOpen(false)}
+                                                />
                                                 <ul className="ac-custom-select-list">
                                                     {['전체', '내담자', '상담사', '관리자'].map((r) => (
                                                         <li
                                                             key={r}
                                                             className={`ac-custom-select-item${roleFilter === r ? ' selected' : ''}`}
-                                                            onClick={() => { setRoleFilter(r); setDropdownOpen(false); }}
+                                                            onClick={() => {
+                                                                setRoleFilter(r);
+                                                                setDropdownOpen(false);
+                                                            }}
                                                         >
                                                             {r === '전체'
                                                                 ? `전체 (${memberList.length})`
@@ -726,17 +758,46 @@ const AdminCounselor = () => {
                                             <tr key={m.id}>
                                                 <td>
                                                     <div className="ac-member-name-cell">
-                                                        <div className="ac-member-avatar">{m.name.charAt(0)}</div>
+                                                        {m.profile_img_url ? (
+                                                            <div className="ac-member-avatar">
+                                                                <img
+                                                                    src={
+                                                                        m.profile_img_url.startsWith('/static/')
+                                                                            ? `${window.location.origin}${m.profile_img_url}`
+                                                                            : m.profile_img_url
+                                                                    }
+                                                                    alt="프로필"
+                                                                    style={{
+                                                                        width: '100%',
+                                                                        height: '100%',
+                                                                        objectFit: 'cover',
+                                                                        borderRadius: '14px',
+                                                                    }}
+                                                                    onError={(e) => {
+                                                                        e.target.onerror = null;
+                                                                        e.target.style.display = 'none';
+                                                                        e.target.parentNode.textContent =
+                                                                            m.name?.charAt(0) || '';
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="ac-member-avatar">{m.name.charAt(0)}</div>
+                                                        )}
                                                         {m.name}
                                                     </div>
                                                 </td>
                                                 <td className="ac-muted">{m.email}</td>
                                                 <td>
-                                                    <span className={`ac-role-label ${
-                                                        m.role === '상담사' ? 'counselor'
-                                                        : m.role === '관리자' ? 'admin'
-                                                        : 'client'
-                                                    }`}>
+                                                    <span
+                                                        className={`ac-role-label ${
+                                                            m.role === '상담사'
+                                                                ? 'counselor'
+                                                                : m.role === '관리자'
+                                                                  ? 'admin'
+                                                                  : 'client'
+                                                        }`}
+                                                    >
                                                         {m.role === '내담자' && <UserCheck size={13} />}
                                                         {m.role === '상담사' && <GraduationCap size={13} />}
                                                         {m.role === '관리자' && <ShieldCheck size={13} />}

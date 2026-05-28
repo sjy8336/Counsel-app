@@ -24,12 +24,19 @@ def get_all_users(db: Session = Depends(get_db), current_user=Depends(get_curren
     users = db.query(User).all()
     # birth_date가 date 타입이면 str로 변환
     user_dicts = []
+    from app.models.counselor import CounselorProfile
     for u in users:
         d = u.__dict__.copy()
         if hasattr(u, 'birth_date') and u.birth_date is not None:
             d['birth_date'] = str(u.birth_date)
+        # is_active가 누락되는 경우를 방지
+        d['is_active'] = bool(getattr(u, 'is_active', True))
+        # 프로필 이미지 URL 추가 (상담사만)
+        # profile_img_url은 users 테이블 기준으로 통일
+        d['profile_img_url'] = u.profile_img_url if hasattr(u, 'profile_img_url') else None
         user_dicts.append(d)
-    return user_dicts
+    from app.schemas.user import UserResponse
+    return [UserResponse(**d) for d in user_dicts]
 
 # 계정 영구 삭제용 pydantic 모델
 class DeleteAccountRequest(BaseModel):
@@ -145,11 +152,13 @@ def update_user(user_update: UserUpdate, db: Session = Depends(get_db)):
     if duplicate_email_user:
         raise HTTPException(status_code=400, detail="이미 사용 중인 이메일입니다.")
 
-    print("[DEBUG] 수정 전:", user.id, user.full_name, user.email, user.phone_number)
+    print("[DEBUG] 수정 전:", user.id, user.full_name, user.email, user.phone_number, user.profile_img_url)
     user.full_name = user_update.full_name
     user.email = user_update.email
     user.phone_number = user_update.phone_number
-    print("[DEBUG] 수정 후:", user.id, user.full_name, user.email, user.phone_number)
+    if user_update.profile_img_url is not None:
+        user.profile_img_url = user_update.profile_img_url
+    print("[DEBUG] 수정 후:", user.id, user.full_name, user.email, user.phone_number, user.profile_img_url)
     try:
         db.commit()
     except IntegrityError:
@@ -273,7 +282,7 @@ def get_favorites(db: Session = Depends(get_db), current_user = Depends(get_curr
             "intro": profile.intro_line if profile else None,
             "consultation_price": profile.consultation_price if profile else None,
             "center_name": profile.center_name if profile else None,
-            "profile_img_url": profile.profile_img_url if profile else None
+            "profile_img_url": counselor.user.profile_img_url if counselor and hasattr(counselor, 'user') and hasattr(counselor.user, 'profile_img_url') else None
         })
 
     return {"favorites": result}
