@@ -3,6 +3,17 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck, CalendarPlus } from 'lucide-react';
 import { getNotifications } from '../api/notification';
 import { getCounselorProfile } from '../api/counselor.js';
+import { getUserInfo } from '../api/user';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const avatarSrc = (name, url) => {
+    if (url?.trim()) {
+        if (url.startsWith('/static/')) {
+            return API_URL + url;
+        }
+        return url;
+    }
+    return `https://api.dicebear.com/7.x/notionists/svg?seed=${name || 'default'}`;
+};
 import '../static/Common.css';
 import '../static/NotifPopup.css';
 
@@ -72,7 +83,7 @@ export default function Header({
         } catch {}
     }, [isLoggedIn, location.pathname]);
 
-    // 상담사 프로필 이미지 fetch (counselors 테이블 우선)
+    // 프로필 이미지 fetch (상담사/내담자 모두 DB에서 최신값 동기화)
     useEffect(() => {
         const fetchUserProfileImg = async () => {
             const token = localStorage.getItem('access_token');
@@ -80,15 +91,23 @@ export default function Header({
             try {
                 const user = JSON.parse(localStorage.getItem('user') || '{}');
                 if (user.role === 'counselor') {
-                    // users 테이블의 profile_img_url만 사용
-                    // getCounselorProfile이 users.profile_img_url을 반환한다고 가정
+                    // 상담사: getCounselorProfile 사용
                     const prof = await getCounselorProfile(token);
-                    if (prof?.profile_img_url) {
-                        setProfileImgUrl(prof.profile_img_url);
-                        user.profile_img_url = prof.profile_img_url;
+                    if (prof?.profile_img_url !== undefined) {
+                        setProfileImgUrl(prof.profile_img_url || '');
+                        user.profile_img_url = prof.profile_img_url || '';
                         localStorage.setItem('user', JSON.stringify(user));
                     }
                     setUserRole('counselor');
+                } else if (user.role === 'client' && user.id) {
+                    // 내담자: getUserInfo 사용
+                    const userData = await getUserInfo(user.id);
+                    if (userData?.profile_img_url !== undefined) {
+                        setProfileImgUrl(userData.profile_img_url || '');
+                        user.profile_img_url = userData.profile_img_url || '';
+                        localStorage.setItem('user', JSON.stringify(user));
+                    }
+                    setUserRole('client');
                 }
             } catch {
                 /* ignore */
@@ -353,11 +372,7 @@ export default function Header({
                         >
                             <div className="user-avatar">
                                 <img
-                                    src={
-                                        profileImgUrl?.trim()
-                                            ? profileImgUrl
-                                            : `https://api.dicebear.com/7.x/notionists/svg?seed=${userName || 'default'}`
-                                    }
+                                    src={avatarSrc(userName, profileImgUrl)}
                                     alt="프로필"
                                     className="cmp-profile-img-content"
                                     onError={(e) => {
