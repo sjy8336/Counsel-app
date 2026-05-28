@@ -1,13 +1,5 @@
-def delete_all_counselor_related_data(db: Session, user_id: int):
-    db.query(CounselorCertificate).filter(CounselorCertificate.user_id == user_id).delete()
-    db.query(CounselorEducation).filter(CounselorEducation.user_id == user_id).delete()
-    db.query(CounselorExperience).filter(CounselorExperience.user_id == user_id).delete()
-    db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == user_id).delete()
-    db.query(CounselorSchedule).filter(CounselorSchedule.user_id == user_id).delete()
-    db.commit()
-from datetime import time
-
 from sqlalchemy.orm import Session
+from datetime import time
 from app.models.counselor import (
     CounselorProfile, CounselorSpecialty, CounselorCertificate, CounselorEducation, CounselorExperience, CounselorSchedule
 )
@@ -141,3 +133,11 @@ def add_schedule(db: Session, user_id: int, data: CounselorScheduleCreate):
 
 def get_schedules(db: Session, user_id: int):
     return db.query(CounselorSchedule).filter(CounselorSchedule.user_id == user_id).all()
+
+def delete_all_counselor_related_data(db: Session, user_id: int):
+    db.query(CounselorCertificate).filter(CounselorCertificate.user_id == user_id).delete()
+    db.query(CounselorEducation).filter(CounselorEducation.user_id == user_id).delete()
+    db.query(CounselorExperience).filter(CounselorExperience.user_id == user_id).delete()
+    db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == user_id).delete()
+    db.query(CounselorSchedule).filter(CounselorSchedule.user_id == user_id).delete()
+    db.commit()
