@@ -1,7 +1,11 @@
+
 from fastapi import APIRouter, File, UploadFile, Depends
 from fastapi.responses import JSONResponse
 import shutil
 import os
+from sqlalchemy.orm import Session
+from app.core.deps import get_current_user, get_db
+from app.utils.profile_img_cleanup import delete_old_profile_image
 
 router = APIRouter(prefix="/api")
 
@@ -10,14 +14,23 @@ UPLOAD_DIR = os.path.abspath(UPLOAD_DIR)
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/upload/profile-image")
-async def upload_profile_image(file: UploadFile = File(...)):
+async def upload_profile_image(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    # 기존 이미지 삭제
+    delete_old_profile_image(db, current_user.id)
     filename = file.filename
-    # 파일명 중복 방지: 타임스탬프 추가
     import time
     name, ext = os.path.splitext(filename)
-    save_name = f"{name}_{int(time.time())}{ext}"
+    save_name = f"user_{current_user.id}_{int(time.time())}{ext}"
     file_location = os.path.join(UPLOAD_DIR, save_name)
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     url = f"/static/profile_images/{save_name}"
-    return {"url": url}
+    # DB에 저장
+    current_user.profile_img_url = url
+    db.commit()
+    db.refresh(current_user)
+    return {"profile_img_url": url}

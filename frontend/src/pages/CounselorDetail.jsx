@@ -101,12 +101,9 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                       .map((s) => (s.start_time && s.end_time ? `${s.start_time}~${s.end_time}` : s.time || s))
                       .filter(Boolean)
                 : counselor?.availableTimes || ['10:00', '14:00', '16:00'],
+        // DB에 저장된 users.profile_img_url만 사용, 없으면 ''
         profileImg:
-            counselor?.profile_img_url ||
-            counselor?.profileImg ||
-            counselor?.user?.profile_img_url ||
-            counselor?.profile?.profile_img_url ||
-            '',
+            counselor?.user?.profile_img_url || counselor?.profile?.profile_img_url || counselor?.profile_img_url || '',
         schedules: counselor?.schedules || [],
     };
     // 상담 가능한 요일 인덱스 추출 (0=일, 1=월, ...)

@@ -10,8 +10,10 @@ def get_inquiries_for_counselor(db: Session, counselor_id: int):
     result = []
     for inquiry in inquiries:
         client_name = None
+        profile_img_url = None
         if hasattr(inquiry, "client") and inquiry.client:
             client_name = inquiry.client.full_name
+            profile_img_url = inquiry.client.profile_img_url
         # answer 필드가 answer 또는 myReply로 매핑될 수 있음
         result.append({
             "id": inquiry.id,
@@ -24,6 +26,7 @@ def get_inquiries_for_counselor(db: Session, counselor_id: int):
             "answer": inquiry.answer,
             "created_at": inquiry.created_at,
             "client_name": client_name,
+            "profile_img_url": profile_img_url,
         })
     return result
 

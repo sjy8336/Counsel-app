@@ -6,13 +6,13 @@ class CounselorProfile(Base):
     __tablename__ = 'counselor_profiles'
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), unique=True, nullable=False, comment='users 테이블의 id 참조')
-    profile_img_url = Column(Text, comment='프로필 이미지 (Base64 또는 URL)')
     intro_line = Column(String(100), comment='한줄 소개 (최대 40자)')
     center_name = Column(String(100), nullable=False, comment='상담소명')
     center_phone = Column(String(20), comment='상담소 전화번호')
     center_address = Column(String(255), nullable=False, comment='상담소 주소')
     consultation_price = Column(Integer, default=0, comment='상담 가격 (1회 기준)')
     status = Column(Enum('심사중', '수락', '반려', name='profile_status'), nullable=False, default='심사중', comment='프로필 심사 상태')
+    reject_reason = Column(Text, nullable=True, comment='반려 사유')
     from sqlalchemy import text
     created_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))

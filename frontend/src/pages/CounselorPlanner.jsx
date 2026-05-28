@@ -47,16 +47,20 @@ const TIME_OPTIONS = Array.from({ length: 30 }, (_, i) => {
     return `${h}:${i % 2 === 0 ? '00' : '30'}`;
 });
 
+// ── 유틸 ─────────────────────────────────────────────────
+const timeToMinutes = (t) => {
+    const [h, m] = t.split(':');
+    return parseInt(h, 10) * 60 + parseInt(m, 10);
+};
+
+const toDateStr = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
 const mapBooking = (b) => {
     let client = '';
     if (b.client_name) {
         client = b.client_name;
     } else if (b.client) {
-        if (typeof b.client === 'string') {
-            client = b.client;
-        } else if (b.client && typeof b.client === 'object' && b.client.client_name) {
-            client = b.client.client_name;
-        }
+        client = typeof b.client === 'string' ? b.client : b.client?.client_name || '';
     }
     return {
         id: b.id,
@@ -68,10 +72,9 @@ const mapBooking = (b) => {
         location: b.location || b.center_name || '',
         topic: b.survey_content?.reason || b.survey_content?.topic || b.topic || '',
         order_id: b.order_id,
+        client_profile_img_url: b.client_profile_img_url || '',
     };
 };
-
-const toDateStr = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
 // ── TimePicker ───────────────────────────────────────────
 const TimePicker = ({ value, onChange, label, isActive, setIsActive, options }) => (
@@ -109,17 +112,11 @@ const TimePicker = ({ value, onChange, label, isActive, setIsActive, options }) 
         )}
     </div>
 );
-    // 시간 비교 유틸
-    const timeToMinutes = (t) => {
-        const [h, m] = t.split(':');
-        return parseInt(h, 10) * 60 + parseInt(m, 10);
-    };
 
 // ── Toast ─────────────────────────────────────────────────
 const Toast = ({ msg }) => (
     <div className="mwc-toast">
-        <Check size={14} />
-        {msg}
+        <Check size={14} /> {msg}
     </div>
 );
 
@@ -144,9 +141,7 @@ const ConfirmModal = ({ title, desc, onConfirm, onCancel }) => (
     </div>
 );
 
-// ── DateModal (외부 컴포넌트로 분리 — 깜빡임/흰화면 방지 핵심) ──────
-// 내부에서 선언하면 부모 state 변경 시마다 언마운트→리마운트되어 깜빡힘.
-// 외부로 분리하고 props로 필요한 값을 전달한다.
+// ── DateModal ─────────────────────────────────────────────
 const DateModal = ({
     selectedDateDetails,
     offDays,
@@ -171,7 +166,6 @@ const DateModal = ({
     const dayRes = reservations.filter((r) => r.date === selectedDateDetails && CALENDAR_VISIBLE.has(r.status));
     const hasRes = dayRes.length > 0;
 
-    // 직접 일정 추가
     const [showAddReservation, setShowAddReservation] = useState(false);
     const [newClientName, setNewClientName] = useState('');
     const [newClientPhone, setNewClientPhone] = useState('');
@@ -180,28 +174,21 @@ const DateModal = ({
     const [addEnd, setAddEnd] = useState('10:00');
     const [addPicker, setAddPicker] = useState(null);
 
-    // 근무일 변경 패널
     const [showAddSchedule, setShowAddSchedule] = useState(false);
     const [workStart, setWorkStart] = useState('09:00');
     const [workEnd, setWorkEnd] = useState('18:00');
     const [workPicker, setWorkPicker] = useState(null);
 
-    // 예약 불가 시간
     const [showBlockInput, setShowBlockInput] = useState(false);
     const [blkStart, setBlkStart] = useState('09:00');
     const [blkEnd, setBlkEnd] = useState('10:00');
     const [blkPicker, setBlkPicker] = useState(null);
 
     const handlePhoneChange = (e) => {
-        let value = e.target.value.replace(/[^0-9]/g, '');
-        if (value.length <= 3) {
-            // 그대로
-        } else if (value.length <= 7) {
-            value = value.replace(/(\d{3})(\d{1,4})/, '$1-$2');
-        } else {
-            value = value.replace(/(\d{3})(\d{4})(\d{1,4})/, '$1-$2-$3');
-        }
-        setNewClientPhone(value);
+        let v = e.target.value.replace(/[^0-9]/g, '');
+        if (v.length > 7) v = v.replace(/(\d{3})(\d{4})(\d{1,4})/, '$1-$2-$3');
+        else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,4})/, '$1-$2');
+        setNewClientPhone(v);
     };
 
     const handleAddReservation = async () => {
@@ -293,7 +280,7 @@ const DateModal = ({
                                         type="text"
                                         value={newClientPhone}
                                         onChange={handlePhoneChange}
-                                        placeholder="전화번호 입력 (예: 010-0000-0000)"
+                                        placeholder="010-0000-0000"
                                         className="mwc-text-input"
                                         maxLength={13}
                                     />
@@ -353,17 +340,15 @@ const DateModal = ({
                                                 <span className="mwc-reservation-item-name">{res.client}님</span>
                                                 <span className="mwc-reservation-item-time">{res.time}</span>
                                             </div>
-                                            <div className="mwc-reservation-item-btns">
-                                                <button
-                                                    className="mwc-item-delete-btn"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onReject(res.id);
-                                                    }}
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
-                                            </div>
+                                            <button
+                                                className="mwc-item-delete-btn"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onReject(res.id);
+                                                }}
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
                                         </div>
                                     ))}
                                 </div>
@@ -407,7 +392,7 @@ const DateModal = ({
                                             className="mwc-off-toggle-btn mwc-off-toggle-btn--normal"
                                             onClick={async () => {
                                                 await addHoliday(selectedDateDetails, userId);
-                                                setOffDays((prev) => [...prev, selectedDateDetails]);
+                                                setOffDays((p) => [...p, selectedDateDetails]);
                                             }}
                                         >
                                             휴무 지정
@@ -419,15 +404,13 @@ const DateModal = ({
                                             className="mwc-off-toggle-btn mwc-off-toggle-btn--active"
                                             onClick={async () => {
                                                 await removeHoliday(selectedDateDetails, userId);
-                                                setOffDays((prev) => prev.filter((d) => d !== selectedDateDetails));
+                                                setOffDays((p) => p.filter((d) => d !== selectedDateDetails));
                                             }}
                                         >
                                             휴무 취소
                                         </button>
                                     )}
                                 </div>
-
-                                {/* 근무일로 변경 패널 — workStart/workEnd/workPicker state 추가로 흰화면 해결 */}
                                 {isWeekdayOff && showAddSchedule && (
                                     <div className="mwc-add-schedule-panel">
                                         <div className="mwc-time-row">
@@ -457,7 +440,9 @@ const DateModal = ({
                                                         end_time: workEnd,
                                                     })
                                                         .then(() => {
-                                                            showToast(`근무일로 등록: ${korDay} ${workStart}~${workEnd}`);
+                                                            showToast(
+                                                                `근무일로 등록: ${korDay} ${workStart}~${workEnd}`
+                                                            );
                                                             setShowAddSchedule(false);
                                                             fetchScheduleAndHolidays();
                                                         })
@@ -495,9 +480,7 @@ const DateModal = ({
                                                 onClick={async () => {
                                                     try {
                                                         await deleteBlockedSlot(block.id);
-                                                        setBlockedSlots((prev) =>
-                                                            prev.filter((b) => b.id !== block.id)
-                                                        );
+                                                        setBlockedSlots((p) => p.filter((b) => b.id !== block.id));
                                                     } catch {
                                                         alert('삭제 실패');
                                                     }
@@ -525,7 +508,9 @@ const DateModal = ({
                                             onChange={setBlkEnd}
                                             isActive={blkPicker === 'end'}
                                             setIsActive={(v) => setBlkPicker(v ? 'end' : null)}
-                                            options={TIME_OPTIONS.filter((t) => timeToMinutes(t) > timeToMinutes(blkStart))}
+                                            options={TIME_OPTIONS.filter(
+                                                (t) => timeToMinutes(t) > timeToMinutes(blkStart)
+                                            )}
                                         />
                                     </div>
                                     <div className="mwc-block-actions">
@@ -564,10 +549,8 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
     const [selectedDateDetails, setSelectedDateDetails] = useState(null);
     const [reservations, setReservations] = useState([]);
     const [offDays, setOffDays] = useState([]);
-    const [schedule, setSchedule] = useState([]);
     const [offWeekdays, setOffWeekdays] = useState([]);
     const [blockedSlots, setBlockedSlots] = useState([]);
-
     const [toast, setToast] = useState(null);
     const [confirmModal, setConfirmModal] = useState(null);
 
@@ -589,11 +572,9 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
         try {
             const data = await getScheduleCalendar(userId || 1);
             setOffDays(data.holidays ?? []);
-            setSchedule(data.schedules ?? []);
             setOffWeekdays(data.off_weekdays ?? []);
         } catch {
             setOffDays([]);
-            setSchedule([]);
             setOffWeekdays([]);
         }
     };
@@ -697,8 +678,6 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
         );
     };
 
-    const closeDate = () => setSelectedDateDetails(null);
-
     // ── 예약 상세 모달 ──────────────────────────────────────
     const ReservationModal = ({ res }) => {
         const isPending = res.status === '대기 중';
@@ -713,7 +692,25 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                         <div className="mwc-res-header">
                             <div className="mwc-res-header-left">
                                 <div className="mwc-res-avatar">
-                                    <User className="text-[#8BA888]" size={24} />
+                                    {res.client_profile_img_url && res.client_profile_img_url.trim() ? (
+                                        <img
+                                            src={res.client_profile_img_url}
+                                            alt={res.client + ' 프로필'}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                borderRadius: 'inherit',
+                                                objectFit: 'cover',
+                                                background: '#f4f4f4',
+                                            }}
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.style.display = 'none';
+                                            }}
+                                        />
+                                    ) : (
+                                        <User className="text-[#8BA888]" size={24} />
+                                    )}
                                 </div>
                                 <div>
                                     <h3 className="mwc-res-name">{res.client}님</h3>
@@ -724,7 +721,6 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                 <X size={20} className="text-[#94A3B8]" />
                             </button>
                         </div>
-
                         <div className="mwc-res-details">
                             <div className="mwc-res-detail-row">
                                 <div className="mwc-res-detail-icon">
@@ -751,7 +747,6 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                 <span className={`mwc-res-status-badge${statusBadge}`}>{res.status}</span>
                             </div>
                         </div>
-
                         <div className="mwc-res-actions">
                             {isPending && (
                                 <div className="mwc-res-action-grid">
@@ -821,8 +816,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                             className={`mwc-calendar-cell${isOff || isWeekdayOff ? ' mwc-calendar-cell--off' : ''}${isPast ? ' mwc-calendar-cell--disabled' : ''}`}
                             style={isPast ? { pointerEvents: 'none', opacity: 0.4, cursor: 'not-allowed' } : {}}
                             onClick={() => {
-                                if (isPast) return;
-                                setSelectedDateDetails(dateStr);
+                                if (!isPast) setSelectedDateDetails(dateStr);
                             }}
                         >
                             <div className="mwc-cell-top">
@@ -873,11 +867,30 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                         : isPending
                           ? 'mwc-status-badge--pending'
                           : 'mwc-status-badge--canceled';
+                    const hasProfileImg = res.client_profile_img_url && res.client_profile_img_url.trim();
                     return (
                         <div key={res.id} className="mwc-list-card" onClick={() => setSelectedReservation(res)}>
                             <div className="mwc-list-card-left">
                                 <div className="mwc-list-avatar">
-                                    <User size={22} className="text-[#8BA888]" />
+                                    {hasProfileImg ? (
+                                        <img
+                                            src={res.client_profile_img_url}
+                                            alt={res.client + ' 프로필'}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                borderRadius: 'inherit',
+                                                objectFit: 'cover',
+                                                background: '#f4f4f4',
+                                            }}
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.style.display = 'none';
+                                            }}
+                                        />
+                                    ) : (
+                                        <User size={22} className="text-[#8BA888]" />
+                                    )}
                                 </div>
                                 <div>
                                     <div className="mwc-list-name-row">
@@ -953,8 +966,6 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
 
             <main className="mwc-main">
                 {selectedReservation && <ReservationModal res={selectedReservation} />}
-
-                {/* DateModal을 외부 컴포넌트로 분리하여 props로 전달 */}
                 {selectedDateDetails && (
                     <DateModal
                         selectedDateDetails={selectedDateDetails}
@@ -965,7 +976,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                         userId={userId}
                         setOffDays={setOffDays}
                         setBlockedSlots={setBlockedSlots}
-                        onClose={closeDate}
+                        onClose={() => setSelectedDateDetails(null)}
                         onSelectReservation={setSelectedReservation}
                         onReject={handleReject}
                         onAddReservationDone={fetchBookings}
@@ -973,7 +984,6 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                         showToast={showToast}
                     />
                 )}
-
                 {confirmModal && (
                     <ConfirmModal
                         title={confirmModal.title}
@@ -1024,9 +1034,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                 </div>
                                 <button
                                     className="mwc-add-btn"
-                                    onClick={() => {
-                                        setSelectedDateDetails(new Date().toISOString().split('T')[0]);
-                                    }}
+                                    onClick={() => setSelectedDateDetails(new Date().toISOString().split('T')[0])}
                                 >
                                     + 일정 추가
                                 </button>

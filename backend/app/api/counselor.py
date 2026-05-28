@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi import APIRouter, Depends, HTTPException, Security, status, Body
 from collections import defaultdict
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -14,7 +14,6 @@ from app.models.counselor import CounselorProfile, CounselorSpecialty, Counselor
 router = APIRouter()
 
 # 관리자: 상담사 승인
-from fastapi import Body
 @router.patch("/admin/counselors/{user_id}/approve")
 def approve_counselor(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     if current_user.role != 'admin':
@@ -40,7 +39,7 @@ def approve_counselor(user_id: int, db: Session = Depends(get_db), current_user=
 
 # 관리자: 상담사 반려
 @router.patch("/admin/counselors/{user_id}/reject")
-def reject_counselor(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def reject_counselor(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user), reason: str = Body(None, embed=True)):
     if current_user.role != 'admin':
         raise HTTPException(status_code=403, detail="관리자만 반려할 수 있습니다.")
     profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == user_id).first()
@@ -49,6 +48,7 @@ def reject_counselor(user_id: int, db: Session = Depends(get_db), current_user=D
     if profile.status == '반려':
         raise HTTPException(status_code=409, detail="이미 반려된 상담사입니다.")
     profile.status = '반려'
+    profile.reject_reason = reason
     db.commit()
     # 알림 생성
     user = db.query(User).filter(User.id == user_id).first()
@@ -57,7 +57,7 @@ def reject_counselor(user_id: int, db: Session = Depends(get_db), current_user=D
             user_id=user_id,
             type="counselor_rejected",
             title="상담사 등록이 반려되었습니다.",
-            desc="관리자에 의해 상담사 등록이 반려되었습니다."
+            desc=reason or "관리자에 의해 상담사 등록이 반려되었습니다."
         )
         create_notification(db, notif)
     return {"message": "상담사 반려 및 알림 전송 완료"}
@@ -86,6 +86,7 @@ def get_pending_counselors(db: Session = Depends(get_db), current_user=Depends(g
                 "phone_number": user.phone_number,
                 "birth_date": user.birth_date,
                 "gender": user.gender,
+                "profile_img_url": user.profile_img_url,  # 프로필 이미지 경로 추가
             } if user else None,
             "profile": profile,
             "specialties": specialties,
@@ -283,6 +284,9 @@ def get_approved_counselors(
     result = []
     for profile in profiles:
         user = user_map.get(profile.user_id)
+        # profile dict에 users.profile_img_url을 포함시켜 반환
+        profile_dict = profile.__dict__.copy()
+        profile_dict["profile_img_url"] = user.profile_img_url if user else None
         result.append({
             "user": {
                 "id": user.id,
@@ -293,7 +297,7 @@ def get_approved_counselors(
                 "birth_date": user.birth_date,
                 "gender": user.gender,
             } if user else None,
-            "profile": profile,
+            "profile": profile_dict,
             "specialties": specialties_by_user_id.get(profile.user_id, []),
             "certificates": certificates_by_user_id.get(profile.user_id, []),
             "educations": educations_by_user_id.get(profile.user_id, []),
@@ -313,6 +317,10 @@ def get_counselor_detail(user_id: int, db: Session = Depends(get_db)):
     educations = db.query(CounselorEducation).filter(CounselorEducation.user_id == user_id).all()
     experiences = db.query(CounselorExperience).filter(CounselorExperience.user_id == user_id).all()
     schedules = db.query(CounselorSchedule).filter(CounselorSchedule.user_id == user_id).all()
+    # profile dict에 users.profile_img_url을 명시적으로 포함
+    profile_dict = profile.__dict__.copy() if profile else None
+    if profile_dict is not None and user is not None:
+        profile_dict["profile_img_url"] = user.profile_img_url
     return {
         "user": {
             "id": user.id,
@@ -323,7 +331,7 @@ def get_counselor_detail(user_id: int, db: Session = Depends(get_db)):
             "birth_date": user.birth_date,
             "gender": user.gender,
         } if user else None,
-        "profile": profile,
+        "profile": profile_dict,
         "specialties": specialties,
         "certificates": certificates,
         "educations": educations,

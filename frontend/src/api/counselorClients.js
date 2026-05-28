@@ -86,6 +86,7 @@ export const getCounselorClients = async () => {
             gender: r.client_gender === 'female' ? '여' : '남',
             phone: r.client_phone || '',
             status: '진행 중',
+            profile_img_url: r.client_profile_img_url || '', // users 테이블에서 내려오는 필드 사용
             keywords: r.survey_content?.keywords || [],
             survey: {
                 reason: r.survey_content?.reason || '선택 없음',

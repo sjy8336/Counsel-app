@@ -62,6 +62,8 @@ const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
         let myReply = inquiry.myReply || inquiry.reply || inquiry.answer || '';
         // 답변 완료 상태 자동 처리
         let status = inquiry.status || inquiry.inquiry_status || (myReply ? 'completed' : 'pending');
+        // 프로필 이미지 우선순위: inquiry.profile_img_url → inquiry.client?.profile_img_url → ''
+        let profile_img_url = inquiry.profile_img_url || inquiry.client?.profile_img_url || '';
         return {
             ...inquiry,
             sender,
@@ -76,6 +78,7 @@ const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
             content: inquiry.content,
             myReply,
             id: inquiry.id,
+            profile_img_url,
         };
     });
 
@@ -295,7 +298,25 @@ const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                                 <div>
                                     <div className="mwci-sender-row">
                                         <div className="mwci-sender-info">
-                                            <div className="mwci-sender-avatar">{selectedInquiry.sender[0]}</div>
+                                            <div className="mwci-sender-avatar">
+                                                <img
+                                                    src={selectedInquiry.profile_img_url || '/transparent.png'}
+                                                    alt="프로필"
+                                                    className="mwci-sender-avatar-img"
+                                                    style={!selectedInquiry.profile_img_url ? { display: 'none' } : {}}
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        const overlay = e.target.nextSibling;
+                                                        if (overlay) overlay.style.display = 'flex';
+                                                    }}
+                                                />
+                                                <span
+                                                    className="mwci-sender-avatar-fallback"
+                                                    style={selectedInquiry.profile_img_url ? { display: 'none' } : {}}
+                                                >
+                                                    {selectedInquiry.sender[0]}
+                                                </span>
+                                            </div>
                                             <div>
                                                 <div className="mwci-sender-name-row">
                                                     <h4 className="mwci-sender-name">{selectedInquiry.sender}</h4>
@@ -331,7 +352,6 @@ const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                                         </div>
 
                                         <div className="mwci-reply-bubble-row">
-                                            <div className="mwci-reply-coach-avatar">코</div>
                                             <div className="mwci-reply-bubble">
                                                 <p className="mwci-reply-bubble-text">{selectedInquiry.myReply}</p>
                                                 <div className="mwci-reply-bubble-tail"></div>

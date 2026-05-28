@@ -1,41 +1,7 @@
-// 요일별 시간대 추가/삭제
-    const addTimeSlot = (dayIdx) => {
-        setWorkDays((prev) =>
-            prev.map((d, i) =>
-                i === dayIdx
-                    ? {
-                          ...d,
-                          slots: Array.isArray(d.slots)
-                              ? [...d.slots, { start: '09:00', end: '18:00' }]
-                              : [{ start: '09:00', end: '18:00' }],
-                      }
-                    : d
-            )
-        );
-    };
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import '../static/CounselorMyPage.css';
-import MobileTap from '../components/mobileTap.jsx';
 import axios from 'axios';
-import {
-    registerCounselorProfile,
-    getCounselorProfile,
-    updateCounselorProfile,
-    getSpecialty,
-    updateSpecialty,
-    getCertificates,
-    updateCertificate,
-    getEducations,
-    updateEducation,
-    getExperiences,
-    updateExperience,
-    getSchedules,
-    updateSchedule,
-} from '../api/counselor.js';
-import { getCounselorBookings } from '../api/bookingCounselor.js';
-import { getNotifications, markNotificationRead } from '../api/notification.js';
 import {
     LayoutDashboard,
     Bell,
@@ -64,6 +30,27 @@ import {
     Lock,
 } from 'lucide-react';
 
+import MobileTap from '../components/mobileTap.jsx';
+import {
+    registerCounselorProfile,
+    getCounselorProfile,
+    updateCounselorProfile,
+    getSpecialty,
+    updateSpecialty,
+    getCertificates,
+    updateCertificate,
+    getEducations,
+    updateEducation,
+    getExperiences,
+    updateExperience,
+    getSchedules,
+    updateSchedule,
+} from '../api/counselor.js';
+import { getCounselorBookings } from '../api/bookingCounselor.js';
+import { getNotifications, markNotificationRead } from '../api/notification.js';
+import { getMyInfo } from '../api/user.js';
+import '../static/CounselorMyPage.css';
+
 // ─── 상수 ────────────────────────────────────────────────────────────────────
 const uid = () => Date.now() + Math.random();
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -76,12 +63,10 @@ const DAY_LABEL_MAP = {
     금: '금요일',
     토: '토요일',
 };
-const DAY_LABEL_REVERSE_MAP = Object.fromEntries(
-    Object.entries(DAY_LABEL_MAP).map(([shortLabel, fullLabel]) => [fullLabel, shortLabel])
-);
+const DAY_LABEL_REVERSE_MAP = Object.fromEntries(Object.entries(DAY_LABEL_MAP).map(([k, v]) => [v, k]));
 const TIME_OPTIONS = Array.from({ length: 30 }, (_, i) => {
-    const total = 9 * 60 + i * 30;
-    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+    const t = 9 * 60 + i * 30;
+    return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
 });
 const END_TIME_OPTIONS = TIME_OPTIONS;
 const SPECIALTY_OPTIONS = [
@@ -121,7 +106,7 @@ const SETTINGS_MENU = [
     },
 ];
 
-// ─── 유틸 함수 ───────────────────────────────────────────────────────────────
+// ─── 유틸 ────────────────────────────────────────────────────────────────────
 const formatMonth = (v) => {
     if (!v) return '';
     const [y, m] = v.split('-');
@@ -136,15 +121,14 @@ const isTodayDate = (y, m, d) => {
     const t = new Date();
     return t.getFullYear() === y && t.getMonth() === m && t.getDate() === d;
 };
-
 const useOutsideClose = (open, ref, onClose) => {
     useEffect(() => {
         if (!open) return;
-        const handler = (e) => {
+        const h = (e) => {
             if (ref.current && !ref.current.contains(e.target)) onClose();
         };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
+        document.addEventListener('mousedown', h);
+        return () => document.removeEventListener('mousedown', h);
     }, [open, onClose, ref]);
 };
 
@@ -154,25 +138,20 @@ const Toggle = ({ on, onChange }) => (
         <span className="cmp-toggle-thumb" />
     </button>
 );
-
 const PageHeader = ({ title, sub }) => (
     <div className="cmp-page-header">
         <h2 className="cmp-page-title">{title}</h2>
         {sub && <p className="cmp-page-sub">{sub}</p>}
     </div>
 );
-
 const BackHeader = ({ title, onBack }) => (
     <div className="cmp-subview-header">
         <button className="cmp-back-btn" onClick={onBack}>
             <ChevronRight size={15} className="cmp-back-chevron" /> 설정
         </button>
-        <h2 className="cmp-page-title cmp-page-title--no-margin">
-            {title}
-        </h2>
+        <h2 className="cmp-page-title cmp-page-title--no-margin">{title}</h2>
     </div>
 );
-
 const NotifIcon = ({ type }) => {
     const map = {
         schedule: <Calendar size={15} />,
@@ -189,7 +168,6 @@ const MonthPicker = ({ value, onChange, icon = true, placeholder = '', className
     const [viewYear, setViewYear] = useState(() => (value ? Number(value.split('-')[0]) : new Date().getFullYear()));
     const ref = useRef(null);
     useOutsideClose(open, ref, () => setOpen(false));
-
     return (
         <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
             <button
@@ -262,7 +240,6 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
     const [viewMonth, setViewMonth] = useState(init.getMonth());
     const ref = useRef(null);
     useOutsideClose(open, ref, () => setOpen(false));
-
     useEffect(() => {
         if (!value) return;
         const d = new Date(value);
@@ -271,7 +248,6 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
             setViewMonth(d.getMonth());
         }
     }, [value]);
-
     const firstDay = new Date(viewYear, viewMonth, 1).getDay();
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
     const goMonth = (delta) => {
@@ -279,7 +255,6 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
         setViewYear(d.getFullYear());
         setViewMonth(d.getMonth());
     };
-
     return (
         <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
             <button
@@ -348,17 +323,16 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
 // ─── TimePicker ───────────────────────────────────────────────────────────────
 const TimePicker = ({ value, onChange, minTime = '', disabled = false, className = '' }) => {
     const [open, setOpen] = useState(false);
+    const [pos, setPos] = useState({ left: 0, top: 0, width: 0 });
     const ref = useRef(null);
-    const [popoverPos, setPopoverPos] = useState({ left: 0, top: 0, width: 0 });
     useOutsideClose(open, ref, () => setOpen(false));
     useEffect(() => {
         if (open && ref.current) {
-            const rect = ref.current.getBoundingClientRect();
-            setPopoverPos({ left: rect.left, top: rect.bottom, width: rect.width });
+            const r = ref.current.getBoundingClientRect();
+            setPos({ left: r.left, top: r.bottom, width: r.width });
         }
     }, [open]);
     const times = TIME_OPTIONS.filter((t) => !minTime || t >= minTime);
-
     return (
         <div className={`cmp-monthpicker-wrap ${className}`.trim()} ref={ref}>
             <button
@@ -375,34 +349,35 @@ const TimePicker = ({ value, onChange, minTime = '', disabled = false, className
                 <span>{value || '시간 선택'}</span>
                 <ChevronDown size={14} className={`cmp-picker-input-chevron${open ? ' open' : ''}`} />
             </button>
-            {open && createPortal(
-                <div
-                    className="cmp-picker-popover cmp-timepicker-modal cmp-timepicker-portal"
-                    style={{ left: popoverPos.left, top: popoverPos.top, width: popoverPos.width }}
-                >
-                    <div className="cmp-picker-popover-head">
-                        <div>
-                            <div className="cmp-picker-popover-eyebrow">Time</div>
-                            <div className="cmp-picker-popover-title">{value || '시간 선택'}</div>
+            {open &&
+                createPortal(
+                    <div
+                        className="cmp-picker-popover cmp-timepicker-modal cmp-timepicker-portal"
+                        style={{ left: pos.left, top: pos.top, width: pos.width }}
+                    >
+                        <div className="cmp-picker-popover-head">
+                            <div>
+                                <div className="cmp-picker-popover-eyebrow">Time</div>
+                                <div className="cmp-picker-popover-title">{value || '시간 선택'}</div>
+                            </div>
+                        </div>
+                        <div className="cmp-timepicker-list">
+                            {times.map((t) => (
+                                <button
+                                    key={t}
+                                    type="button"
+                                    className={`cmp-timepicker-option${value === t ? ' selected' : ''}`}
+                                    onClick={() => {
+                                        onChange(t);
+                                        setOpen(false);
+                                    }}
+                                >
+                                    {t}
+                                </button>
+                            ))}
                         </div>
                     </div>
-                    <div className="cmp-timepicker-list">
-                        {times.map((t) => (
-                            <button
-                                key={t}
-                                type="button"
-                                className={`cmp-timepicker-option${value === t ? ' selected' : ''}`}
-                                onClick={() => {
-                                    onChange(t);
-                                    setOpen(false);
-                                }}
-                            >
-                                {t}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
+                )}
         </div>
     );
 };
@@ -411,22 +386,16 @@ const TimePicker = ({ value, onChange, minTime = '', disabled = false, className
 const SpecialtySelector = ({ specialties, onChange }) => {
     const [customText, setCustomText] = useState('');
     const selectedNames = specialties.map((s) => s.specialty_name);
-
-    const toggle = (name) => {
-        if (selectedNames.includes(name)) {
-            onChange(specialties.filter((s) => s.specialty_name !== name));
-        } else {
-            onChange([...specialties, { specialty_name: name, custom_description: '' }]);
-        }
-    };
-
+    const toggle = (name) =>
+        selectedNames.includes(name)
+            ? onChange(specialties.filter((s) => s.specialty_name !== name))
+            : onChange([...specialties, { specialty_name: name, custom_description: '' }]);
     const addCustom = () => {
-        const trimmed = customText.trim();
-        if (!trimmed || selectedNames.includes(trimmed)) return;
-        onChange([...specialties, { specialty_name: trimmed, custom_description: trimmed }]);
+        const t = customText.trim();
+        if (!t || selectedNames.includes(t)) return;
+        onChange([...specialties, { specialty_name: t, custom_description: t }]);
         setCustomText('');
     };
-
     return (
         <div>
             <div className="cmp-specialty-grid">
@@ -483,12 +452,13 @@ const SpecialtySelector = ({ specialties, onChange }) => {
     );
 };
 
-// ─── 메인 App ─────────────────────────────────────────────────────────────────
+// ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 const App = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const fileInputRef = useRef(null);
 
+    // ── 상태 ──────────────────────────────────────────────────────────────────
     const [activeMenu, setActiveMenu] = useState(searchParams.get('tab') || 'dashboard');
     const [settingsView, setSettingsView] = useState(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
@@ -496,7 +466,6 @@ const App = () => {
     const [registered, setRegistered] = useState(false);
     const [loadingRegistered, setLoadingRegistered] = useState(true);
     const [profileStatus, setProfileStatus] = useState('');
-
     const [profile, setProfile] = useState({});
     const [pendingProfileImgUrl, setPendingProfileImgUrl] = useState('');
     const [specialties, setSpecialties] = useState([]);
@@ -510,17 +479,75 @@ const App = () => {
     const [notifSettings, setNotifSettings] = useState(INIT_NOTIF_SETTINGS);
     const [deleteStep, setDeleteStep] = useState(1);
     const [deleteInput, setDeleteInput] = useState('');
-
-    // ── 비밀번호 변경 state ────────────────────────────────────────────────────
-    const [passwordForm, setPasswordForm] = useState({
-        currentPw: '',
-        newPw: '',
-        confirmPw: '',
-    });
+    const [reservations, setReservations] = useState([]);
+    const [inquiries, setInquiries] = useState([]);
+    const [notifDevice, setNotifDevice] = useState(window.innerWidth <= 768 ? 'mobile' : 'pc');
+    const [notifExpanded, setNotifExpanded] = useState(false);
+    const [passwordForm, setPasswordForm] = useState({ currentPw: '', newPw: '', confirmPw: '' });
     const [pwError, setPwError] = useState('');
     const [pwSuccess, setPwSuccess] = useState('');
 
-    // ── 등록 여부 확인 ─────────────────────────────────────────────────────────
+    // ── 유틸 ──────────────────────────────────────────────────────────────────
+    const getCounselorName = () => {
+        try {
+            const u = JSON.parse(localStorage.getItem('user'));
+            return u?.full_name || u?.name || u?.username || '';
+        } catch {
+            return '';
+        }
+    };
+    const go = (menu) => {
+        setActiveMenu(menu);
+        setSettingsView(null);
+        setSidebarOpen(false);
+        if (menu !== 'settings') setSettingsOpen(false);
+    };
+    const goSettings = (view) => {
+        setActiveMenu('settings');
+        setSettingsView(view);
+        setSidebarOpen(false);
+    };
+    const handleLogout = () => {
+        ['access_token', 'user'].forEach((k) => {
+            localStorage.removeItem(k);
+            sessionStorage.removeItem(k);
+        });
+        navigate('/login');
+    };
+
+    // ── 이펙트 ────────────────────────────────────────────────────────────────
+    useEffect(() => {
+        const h = () => setNotifDevice(window.innerWidth <= 768 ? 'mobile' : 'pc');
+        window.addEventListener('resize', h);
+        return () => window.removeEventListener('resize', h);
+    }, []);
+
+    // users 테이블 이미지 초기 로드 + profileImgChanged 동기화
+    useEffect(() => {
+        const loadUserImg = async () => {
+            try {
+                const token = localStorage.getItem('access_token');
+                if (!token) return;
+                const userInfo = await getMyInfo(token);
+                const imgUrl = userInfo?.profile_img_url || '';
+                const stored = JSON.parse(localStorage.getItem('user') || '{}');
+                stored.profile_img_url = imgUrl;
+                localStorage.setItem('user', JSON.stringify(stored));
+                setProfile((prev) => ({ ...prev, _userImgUrl: imgUrl }));
+            } catch {
+                /* ignore */
+            }
+        };
+        loadUserImg();
+
+        const sync = () => {
+            const u = JSON.parse(localStorage.getItem('user') || '{}');
+            setProfile((prev) => ({ ...prev, _userImgUrl: u.profile_img_url || '' }));
+        };
+        window.addEventListener('profileImgChanged', sync);
+        return () => window.removeEventListener('profileImgChanged', sync);
+    }, []);
+
     const fetchRegistered = useCallback(async () => {
         setLoadingRegistered(true);
         try {
@@ -530,6 +557,8 @@ const App = () => {
             if (prof?.status) {
                 setRegistered(true);
                 setProfileStatus(prof.status);
+                // profile_img_url을 반드시 반영
+                setProfile((prev) => ({ ...prev, ...prof, profile_img_url: prof.profile_img_url || '' }));
             } else {
                 setRegistered(false);
                 setProfileStatus('');
@@ -546,7 +575,6 @@ const App = () => {
         fetchRegistered();
     }, [fetchRegistered]);
 
-    // ── 데이터 불러오기 ─────────────────────────────────────────────────────────
     useEffect(() => {
         const fetchAll = async () => {
             const token = localStorage.getItem('access_token');
@@ -560,24 +588,27 @@ const App = () => {
                     getExperiences(token),
                     getSchedules(token),
                 ]);
-
-                setProfile({
+                // counselors 테이블 이미지 우선, 없으면 users 테이블 이미지(getMyInfo) fallback
+                const userImgFallback = JSON.parse(localStorage.getItem('user') || '{}').profile_img_url || '';
+                setProfile((prev) => ({
+                    ...prev,
                     ...prof,
-                    tel: prof.center_phone || '',
-                    price: prof.consultation_price || '',
-                    office_name: prof.center_name || '',
-                    office_address: prof.center_address || '',
-                    intro: prof.intro_line || '',
-                });
+                    tel: prof && prof.center_phone ? prof.center_phone : '',
+                    price: prof && prof.consultation_price ? prof.consultation_price : '',
+                    office_name: prof && prof.center_name ? prof.center_name : '',
+                    office_address: prof && prof.center_address ? prof.center_address : '',
+                    intro: prof && prof.intro_line ? prof.intro_line : '',
+                    // counselors 이미지가 없으면 users 이미지 사용
+                    profile_img_url:
+                        prof && prof.profile_img_url ? prof.profile_img_url : prev._userImgUrl || userImgFallback,
+                }));
                 setPendingProfileImgUrl('');
-
                 setSpecialties(
                     (specs || []).map((s) => ({
                         specialty_name: s.specialty_name || '',
                         custom_description: s.custom_description || '',
                     }))
                 );
-
                 setCertificates(
                     (certs || []).map((c, i) => ({
                         id: c.id || i + 1,
@@ -586,7 +617,6 @@ const App = () => {
                         date: c.acquisition_date || '',
                     }))
                 );
-
                 setEducations(
                     (edus || []).map((e, i) => ({
                         id: e.id || i + 1,
@@ -596,7 +626,6 @@ const App = () => {
                         endDate: e.end_date || '',
                     }))
                 );
-
                 setCareers(
                     (exps || []).map((e, i) => ({
                         id: e.id || i + 1,
@@ -606,30 +635,35 @@ const App = () => {
                         description: e.content || '',
                     }))
                 );
-
                 if (Array.isArray(scheds) && scheds.length > 0) {
                     const days = ['월', '화', '수', '목', '금', '토', '일'];
-                    const grouped = days.map((day) => {
-                        const slots = scheds
-                            .filter((s) => {
-                                const rawDay = s.day || s.day_of_week;
-                                const normalizedDay = DAY_LABEL_REVERSE_MAP[rawDay] || rawDay;
-                                return normalizedDay === day;
-                            })
-                            .map((s) => ({ start: s.start_time?.slice(0,5) || '09:00', end: s.end_time?.slice(0,5) || '18:00' }));
-                        return {
-                            day,
-                            active: slots.length > 0,
-                            slots: slots.length > 0 ? slots : [{ start: '09:00', end: '18:00' }],
-                        };
-                    });
-                    setWorkDays(grouped);
+                    setWorkDays(
+                        days.map((day) => {
+                            const slots = scheds
+                                .filter(
+                                    (s) =>
+                                        (DAY_LABEL_REVERSE_MAP[s.day || s.day_of_week] || s.day || s.day_of_week) ===
+                                        day
+                                )
+                                .map((s) => ({
+                                    start: s.start_time?.slice(0, 5) || '09:00',
+                                    end: s.end_time?.slice(0, 5) || '18:00',
+                                }));
+                            return {
+                                day,
+                                active: slots.length > 0,
+                                slots: slots.length > 0 ? slots : [{ start: '09:00', end: '18:00' }],
+                            };
+                        })
+                    );
                 } else {
-                    setWorkDays(DAY_LABELS.map((day) => ({
-                        day,
-                        active: !['토', '일'].includes(day),
-                        slots: [{ start: '09:00', end: '18:00' }],
-                    })));
+                    setWorkDays(
+                        DAY_LABELS.map((day) => ({
+                            day,
+                            active: !['토', '일'].includes(day),
+                            slots: [{ start: '09:00', end: '18:00' }],
+                        }))
+                    );
                 }
             } catch {
                 /* ignore */
@@ -638,30 +672,28 @@ const App = () => {
         fetchAll();
     }, [registered]);
 
-    // ── 알림 불러오기 ──────────────────────────────────────────────────────────
     useEffect(() => {
         const fetchNotifs = async () => {
             const token = localStorage.getItem('access_token');
             if (!token) return;
             try {
                 const res = await getNotifications(token);
-                const notifs = res.data || [];
                 setNotifications([
                     {
                         id: 1,
                         group: '최근 알림',
-                        items: notifs.map((n) => ({
+                        items: (res.data || []).map((n) => ({
                             id: n.id,
                             type: n.type,
                             title: n.title,
                             desc: n.desc,
+                            unread: !n.read,
                             time: new Date(n.created_at).toLocaleString('ko-KR', {
                                 hour: '2-digit',
                                 minute: '2-digit',
                                 month: 'short',
                                 day: 'numeric',
                             }),
-                            unread: !n.read,
                         })),
                     },
                 ]);
@@ -671,6 +703,24 @@ const App = () => {
         };
         fetchNotifs();
     }, [activeMenu]);
+
+    useEffect(() => {
+        const fetch = async () => {
+            try {
+                const data = await getCounselorBookings();
+                const days = ['일', '월', '화', '수', '목', '금', '토'];
+                setReservations(
+                    (data || []).map((r) => {
+                        const d = new Date(r.date);
+                        return { ...r, dateObj: d, dayLabel: days[d.getDay()] };
+                    })
+                );
+            } catch {
+                setReservations([]);
+            }
+        };
+        fetch();
+    }, []);
 
     // ── CRUD 핸들러 ────────────────────────────────────────────────────────────
     const addCareer = () =>
@@ -693,75 +743,57 @@ const App = () => {
         setCertificates((p) => p.map((c) => (c.id === id ? { ...c, [key]: val } : c)));
 
     const toggleWorkDay = (i) => setWorkDays((p) => p.map((d, idx) => (idx === i ? { ...d, active: !d.active } : d)));
-    const updateWorkTime = (i, key, val) =>
+    const addTimeSlot = (i) =>
         setWorkDays((p) =>
-            p.map((d, idx) => {
-                if (idx !== i) return d;
-                const next = { ...d, [key]: val };
-                if (key === 'startTime' && next.endTime < val) next.endTime = val;
-                return next;
-            })
+            p.map((d, idx) => (idx === i ? { ...d, slots: [...(d.slots || []), { start: '09:00', end: '18:00' }] } : d))
         );
-
     const addHoliday = () => {
         if (newHoliday && !holidays.includes(newHoliday)) {
             setHolidays((p) => [...p, newHoliday]);
             setNewHoliday('');
         }
     };
+    const toggleNotifSetting = (id) => setNotifSettings((p) => p.map((s) => (s.id === id ? { ...s, on: !s.on } : s)));
 
     const handleNotifClick = async (groupId, itemId) => {
         const token = localStorage.getItem('access_token');
         try {
             const group = notifications.find((g) => g.id === groupId);
-            const notifItem = group?.items?.find((item) => item.id === itemId);
+            const item = group?.items?.find((i) => i.id === itemId);
             await markNotificationRead(itemId, token);
             setNotifications((p) =>
                 p.map((g) =>
                     g.id !== groupId
                         ? g
-                        : {
-                              ...g,
-                              items: g.items.map((item) => (item.id === itemId ? { ...item, unread: false } : item)),
-                          }
+                        : { ...g, items: g.items.map((i) => (i.id === itemId ? { ...i, unread: false } : i)) }
                 )
             );
-            const reservationTypes = ['booking', 'booking_request', '예약신청', '예약확정', '상담예약'];
-            if (notifItem && reservationTypes.includes(notifItem.type)) {
+            if (item && ['booking', 'booking_request', '예약신청', '예약확정', '상담예약'].includes(item.type))
                 navigate('/CounselorPlanner');
-            }
         } catch {
             /* ignore */
         }
     };
 
-    const toggleNotifSetting = (id) => setNotifSettings((p) => p.map((s) => (s.id === id ? { ...s, on: !s.on } : s)));
-
-    const buildProfilePayload = (overrides = {}) => ({
-        profile_img_url: overrides.profile_img_url ?? pendingProfileImgUrl ?? profile.profile_img_url ?? '',
-        intro_line: overrides.intro_line ?? profile.intro ?? profile.intro_line ?? '',
-        center_name: overrides.center_name ?? profile.office_name ?? profile.center_name ?? '',
-        center_phone: overrides.center_phone ?? profile.tel ?? profile.center_phone ?? '',
-        center_address: overrides.center_address ?? profile.office_address ?? profile.center_address ?? '',
-        consultation_price: Number(
-            overrides.consultation_price ?? profile.price ?? profile.consultation_price ?? 0
-        ) || 0,
+    const buildProfilePayload = (ov = {}) => ({
+        profile_img_url: ov.profile_img_url ?? pendingProfileImgUrl ?? profile.profile_img_url ?? '',
+        intro_line: ov.intro_line ?? profile.intro ?? profile.intro_line ?? '',
+        center_name: ov.center_name ?? profile.office_name ?? profile.center_name ?? '',
+        center_phone: ov.center_phone ?? profile.tel ?? profile.center_phone ?? '',
+        center_address: ov.center_address ?? profile.office_address ?? profile.center_address ?? '',
+        consultation_price: Number(ov.consultation_price ?? profile.price ?? profile.consultation_price ?? 0) || 0,
     });
 
-    // ── 저장 ───────────────────────────────────────────────────────────────────
     const handleSaveProfile = async () => {
         const token = localStorage.getItem('access_token');
         try {
-            const profilePayload = buildProfilePayload();
-            if (registered) {
-                await updateCounselorProfile(profilePayload, token);
-            } else {
-                await registerCounselorProfile(profilePayload, token);
-                setRegistered(true);
-            }
+            const payload = buildProfilePayload();
+            registered
+                ? await updateCounselorProfile(payload, token)
+                : (await registerCounselorProfile(payload, token), setRegistered(true));
             await updateSpecialty(specialties, token);
             await updateCertificate(
-                certificates.map(({ id, name, issuer, date }) => ({
+                certificates.map(({ name, issuer, date }) => ({
                     certificate_name: name,
                     issuer,
                     acquisition_date: date || null,
@@ -769,7 +801,7 @@ const App = () => {
                 token
             );
             await updateEducation(
-                educations.map(({ id, school, degree, startDate, endDate }) => ({
+                educations.map(({ school, degree, startDate, endDate }) => ({
                     school_name: school,
                     major: degree,
                     start_date: startDate || null,
@@ -778,7 +810,7 @@ const App = () => {
                 token
             );
             await updateExperience(
-                careers.map(({ id, startDate, endDate, isCurrent, description }) => ({
+                careers.map(({ startDate, endDate, isCurrent, description }) => ({
                     start_date: startDate,
                     end_date: isCurrent ? null : endDate || null,
                     is_current: !!isCurrent,
@@ -790,17 +822,18 @@ const App = () => {
                 d.active && Array.isArray(d.slots)
                     ? d.slots.map((s) => ({
                           day_of_week: DAY_LABEL_MAP[d.day] || d.day,
-                          start_time: (s.start && s.start.length === 5 ? s.start : '09:00') + ':00',
-                          end_time: (s.end && s.end.length === 5 ? s.end : '18:00') + ':00',
+                          start_time: (s.start || '09:00') + ':00',
+                          end_time: (s.end || '18:00') + ':00',
                       }))
                     : []
             );
             await updateSchedule(flatSlots, token);
             if (pendingProfileImgUrl) {
                 setProfile((p) => ({ ...p, profile_img_url: pendingProfileImgUrl }));
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                user.profile_img_url = pendingProfileImgUrl;
-                localStorage.setItem('user', JSON.stringify(user));
+                const u = JSON.parse(localStorage.getItem('user') || '{}');
+                u.profile_img_url = pendingProfileImgUrl;
+                localStorage.setItem('user', JSON.stringify(u));
+                window.dispatchEvent(new Event('profileImgChanged'));
                 setPendingProfileImgUrl('');
             }
             alert('저장되었습니다.');
@@ -809,23 +842,13 @@ const App = () => {
         }
     };
 
-    // ── 비밀번호 변경 핸들러 ───────────────────────────────────────────────────
     const handleChangePassword = async () => {
         setPwError('');
         setPwSuccess('');
         const { currentPw, newPw, confirmPw } = passwordForm;
-        if (!currentPw || !newPw || !confirmPw) {
-            setPwError('모든 항목을 입력해주세요.');
-            return;
-        }
-        if (newPw.length < 8) {
-            setPwError('새 비밀번호는 8자 이상이어야 합니다.');
-            return;
-        }
-        if (newPw !== confirmPw) {
-            setPwError('새 비밀번호가 일치하지 않습니다.');
-            return;
-        }
+        if (!currentPw || !newPw || !confirmPw) return setPwError('모든 항목을 입력해주세요.');
+        if (newPw.length < 8) return setPwError('새 비밀번호는 8자 이상이어야 합니다.');
+        if (newPw !== confirmPw) return setPwError('새 비밀번호가 일치하지 않습니다.');
         try {
             const token = localStorage.getItem('access_token');
             await axios.put(
@@ -836,9 +859,7 @@ const App = () => {
             setPwSuccess('비밀번호가 성공적으로 변경되었습니다.');
             setPasswordForm({ currentPw: '', newPw: '', confirmPw: '' });
         } catch (e) {
-            setPwError(
-                e?.response?.data?.message || '비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.'
-            );
+            setPwError(e?.response?.data?.message || '비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.');
         }
     };
 
@@ -850,118 +871,78 @@ const App = () => {
         try {
             const token = localStorage.getItem('access_token');
             const res = await axios.post('/api/upload/profile-image', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
             });
             if (res.data?.url) {
                 setPendingProfileImgUrl(res.data.url);
+                const userStr = localStorage.getItem('user');
+                let userId = null;
+                if (userStr) {
+                    try {
+                        userId = JSON.parse(userStr).id;
+                    } catch {}
+                }
+                if (userId) {
+                    const userApi = await import('../api/user');
+                    let user = JSON.parse(localStorage.getItem('user') || '{}');
+                    if (!user.full_name || !user.email || !user.phone_number) {
+                        try {
+                            const r = await userApi.getMyInfo(token);
+                            user = { ...user, ...r };
+                            localStorage.setItem('user', JSON.stringify(user));
+                        } catch {
+                            alert('유저 정보를 불러올 수 없습니다.');
+                            return;
+                        }
+                    }
+                    await userApi.updateUserInfo({
+                        id: userId,
+                        full_name: user.full_name,
+                        email: user.email,
+                        phone_number: user.phone_number,
+                        profile_img_url: res.data.url,
+                    });
+                    user.profile_img_url = res.data.url;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    window.dispatchEvent(new Event('profileImgChanged'));
+                }
             }
         } catch {
             alert('이미지 업로드에 실패했습니다.');
         }
     };
 
-    // ── 네비게이션 ─────────────────────────────────────────────────────────────
-    const go = (menu) => {
-        setActiveMenu(menu);
-        setSettingsView(null);
-        setSidebarOpen(false);
-        if (menu !== 'settings') setSettingsOpen(false);
-    };
-    const goSettings = (view) => {
-        setActiveMenu('settings');
-        setSettingsView(view);
-        setSidebarOpen(false);
-    };
-    const handleLogout = () => {
-        ['access_token', 'user'].forEach((k) => {
-            localStorage.removeItem(k);
-            sessionStorage.removeItem(k);
-        });
-        navigate('/login');
-    };
-    const getCounselorName = () => {
-        try {
-            const u = JSON.parse(localStorage.getItem('user'));
-            return u?.full_name || u?.name || u?.username || '';
-        } catch {
-            return '';
-        }
-    };
-
-    // ─── 렌더 함수들 ───────────────────────────────────────────────────────────
-    const [reservations, setReservations] = useState([]);
-    const [inquiries, setInquiries] = useState([]);
-
-    useEffect(() => {
-        const fetchReservations = async () => {
-            try {
-                const data = await getCounselorBookings();
-                const days = ['일', '월', '화', '수', '목', '금', '토'];
-                const mapped = (data || []).map((r, idx) => {
-                    console.log(`[예약 원본 ${idx}]`, r);
-                    const dateObj = new Date(r.date);
-                    return {
-                        ...r,
-                        dateObj,
-                        dayLabel: days[dateObj.getDay()],
-                    };
-                });
-                console.log('[마이페이지] 예약 변환:', mapped);
-                setReservations(mapped);
-            } catch (e) {
-                setReservations([]);
-                console.error('[마이페이지] 예약 데이터 불러오기 오류:', e);
-            }
-        };
-        fetchReservations();
-    }, []);
-
-    useEffect(() => {
-        setInquiries([]);
-    }, []);
-
+    // ── 파생 값 ───────────────────────────────────────────────────────────────
     const todayStr = (() => {
-        const now = new Date();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        return `${now.getFullYear()}-${mm}-${dd}`;
+        const n = new Date();
+        return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
     })();
-
     const todaySessions = reservations.filter(
-        (r) => r.status && r.status.includes('확정') && r.dateObj && r.dateObj.toISOString().slice(0, 10) === todayStr
+        (r) => r.status?.includes('확정') && r.dateObj?.toISOString().slice(0, 10) === todayStr
     );
-
-    const pendingList = reservations.filter((r) => r.status && r.status.includes('대기'));
-
+    const pendingList = reservations.filter((r) => r.status?.includes('대기'));
+    const unreadInquiries = inquiries.filter((i) => i.status === 'pending');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const nextConfirmed =
         reservations
-            .filter((r) => r.status && r.status.includes('확정') && r.dateObj >= today)
+            .filter((r) => r.status?.includes('확정') && r.dateObj >= today)
             .sort((a, b) => a.dateObj - b.dateObj)[0] || null;
 
-    useEffect(() => {
-        console.log('[마이페이지] nextConfirmed:', nextConfirmed);
-        if (nextConfirmed) {
-            Object.keys(nextConfirmed).forEach(k => {
-                console.log(`[nextConfirmed.${k}]`, nextConfirmed[k]);
-            });
-        }
-    }, [reservations]);
-
-    const unreadInquiries = inquiries.filter((i) => i.status === 'pending');
-
+    // ── 렌더: 대시보드 ─────────────────────────────────────────────────────────
     const renderDashboard = () => (
         <>
             <header className="cmp-header">
                 <div className="cmp-profile-section">
                     <div className="cmp-profile-img">
-                        {profile.profile_img_url
-                            ? <img src={profile.profile_img_url} alt="프로필" className="cmp-profile-img-content" />
-                            : "🧔‍♂️"}
+                        <img
+                            src={
+                                profile.profile_img_url ||
+                                `https://api.dicebear.com/7.x/notionists/svg?seed=${getCounselorName()}`
+                            }
+                            alt="프로필"
+                            className="cmp-profile-img-content"
+                        />
                     </div>
                     <div>
                         <h2 className="cmp-welcome">안녕하세요, {getCounselorName()} 상담사님!</h2>
@@ -973,36 +954,38 @@ const App = () => {
                 </button>
             </header>
             <div className="cmp-stats-grid">
-                <div className="cmp-stat-card" onClick={() => navigate('/CounselorPlanner')}>
-                    <div className="cmp-stat-icon cmp-stat-icon--green">
-                        <Calendar size={15} color="#66BB6A" />
+                {[
+                    {
+                        icon: <Calendar size={15} color="#66BB6A" />,
+                        cls: 'green',
+                        label: '오늘 예정 상담',
+                        value: todaySessions.length,
+                        path: '/CounselorPlanner',
+                    },
+                    {
+                        icon: <Clock size={15} color="#FFB74D" />,
+                        cls: 'orange',
+                        label: '승인 대기 요청',
+                        value: pendingList.length,
+                        path: '/CounselorPlanner',
+                    },
+                    {
+                        icon: <MessageCircle size={15} color="#EF5350" />,
+                        cls: 'red',
+                        label: '읽지 않은 메시지',
+                        value: unreadInquiries.length,
+                        path: '/CounselorMessages',
+                    },
+                ].map(({ icon, cls, label, value, path }) => (
+                    <div key={label} className="cmp-stat-card" onClick={() => navigate(path)}>
+                        <div className={`cmp-stat-icon cmp-stat-icon--${cls}`}>{icon}</div>
+                        <p className="cmp-stat-label">{label}</p>
+                        <p className="cmp-stat-value">{value} 건</p>
+                        <span className="cmp-stat-chevron">
+                            <ChevronRight size={14} />
+                        </span>
                     </div>
-                    <p className="cmp-stat-label">오늘 예정 상담</p>
-                    <p className="cmp-stat-value">{todaySessions.length} 건</p>
-                    <span className="cmp-stat-chevron">
-                        <ChevronRight size={14} />
-                    </span>
-                </div>
-                <div className="cmp-stat-card" onClick={() => navigate('/CounselorPlanner')}>
-                    <div className="cmp-stat-icon cmp-stat-icon--orange">
-                        <Clock size={15} color="#FFB74D" />
-                    </div>
-                    <p className="cmp-stat-label">승인 대기 요청</p>
-                    <p className="cmp-stat-value">{pendingList.length} 건</p>
-                    <span className="cmp-stat-chevron">
-                        <ChevronRight size={14} />
-                    </span>
-                </div>
-                <div className="cmp-stat-card" onClick={() => navigate('/CounselorMessages')}>
-                    <div className="cmp-stat-icon cmp-stat-icon--red">
-                        <MessageCircle size={15} color="#EF5350" />
-                    </div>
-                    <p className="cmp-stat-label">읽지 않은 메시지</p>
-                    <p className="cmp-stat-value">{unreadInquiries.length} 건</p>
-                    <span className="cmp-stat-chevron">
-                        <ChevronRight size={14} />
-                    </span>
-                </div>
+                ))}
             </div>
             <div className="cmp-next-session" onClick={() => nextConfirmed && navigate('/CounselorPlanner')}>
                 <div className="cmp-next-session-icon">
@@ -1035,23 +1018,12 @@ const App = () => {
         </>
     );
 
-    const [notifDevice, setNotifDevice] = useState(window.innerWidth <= 768 ? 'mobile' : 'pc');
-    const [notifExpanded, setNotifExpanded] = useState(false);
-    useEffect(() => {
-        const handleResize = () => {
-            setNotifDevice(window.innerWidth <= 768 ? 'mobile' : 'pc');
-        };
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
+    // ── 렌더: 알림 ────────────────────────────────────────────────────────────
     const renderNotifications = () => {
         const group = notifications[0] || { items: [] };
         const items = group.items || [];
         const maxCount = notifDevice === 'mobile' ? 6 : 10;
         const showCount = notifExpanded ? items.length : maxCount;
-        const showMore = items.length > showCount;
         return (
             <>
                 <PageHeader title="알림 센터" sub="상담 일정, 예약 확정 등 최근 알림을 확인하세요." />
@@ -1063,7 +1035,9 @@ const App = () => {
                             </div>
                             <p className="cmp-notif-empty-title">새로운 알림이 없습니다</p>
                             <p className="cmp-notif-empty-sub">
-                                상담 일정, 예약 확정 등 새로운 알림이<br />생기면 여기에 표시됩니다.
+                                상담 일정, 예약 확정 등 새로운 알림이
+                                <br />
+                                생기면 여기에 표시됩니다.
                             </p>
                         </div>
                     ) : (
@@ -1073,24 +1047,18 @@ const App = () => {
                                 <div
                                     key={item.id}
                                     className={`cmp-notif-item${item.unread ? ' unread' : ''}`}
+                                    style={{ cursor: 'pointer' }}
                                     onClick={() => handleNotifClick(group.id, item.id)}
                                 >
                                     <NotifIcon type={item.type} />
                                     <div className="cmp-notif-content">
-                                        {notifDevice === 'mobile' ? (
-                                            <>
-                                                <div className="cmp-notif-title">{item.title}</div>
-                                                <div className="cmp-notif-desc">{item.desc}</div>
-                                                <div className="cmp-notif-meta cmp-notif-meta--mobile">
-                                                    <span className="cmp-notif-time">{item.time}</span>
-                                                    {item.unread && <span className="cmp-notif-dot" />}
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="cmp-notif-title">{item.title}</div>
-                                                <div className="cmp-notif-desc">{item.desc}</div>
-                                            </>
+                                        <div className="cmp-notif-title">{item.title}</div>
+                                        <div className="cmp-notif-desc">{item.desc}</div>
+                                        {notifDevice === 'mobile' && (
+                                            <div className="cmp-notif-meta cmp-notif-meta--mobile">
+                                                <span className="cmp-notif-time">{item.time}</span>
+                                                {item.unread && <span className="cmp-notif-dot" />}
+                                            </div>
                                         )}
                                     </div>
                                     {notifDevice !== 'mobile' && (
@@ -1101,22 +1069,16 @@ const App = () => {
                                     )}
                                 </div>
                             ))}
-                            {showMore && !notifExpanded && (
+                            {items.length > showCount && !notifExpanded && (
                                 <div className="cmp-notif-more-wrap">
-                                    <button
-                                        className="cmp-btn cmp-btn-more"
-                                        onClick={() => setNotifExpanded(true)}
-                                    >
+                                    <button className="cmp-btn cmp-btn-more" onClick={() => setNotifExpanded(true)}>
                                         더보기
                                     </button>
                                 </div>
                             )}
                             {notifExpanded && items.length > maxCount && (
                                 <div className="cmp-notif-more-wrap">
-                                    <button
-                                        className="cmp-btn cmp-btn-more"
-                                        onClick={() => setNotifExpanded(false)}
-                                    >
+                                    <button className="cmp-btn cmp-btn-more" onClick={() => setNotifExpanded(false)}>
                                         접기
                                     </button>
                                 </div>
@@ -1128,6 +1090,7 @@ const App = () => {
         );
     };
 
+    // ── 렌더: 설정 목록 ───────────────────────────────────────────────────────
     const renderSettingsList = () => (
         <>
             <PageHeader title="설정" sub="계정 및 서비스 환경을 설정합니다." />
@@ -1150,6 +1113,7 @@ const App = () => {
         </>
     );
 
+    // ── 렌더: 프로필 ──────────────────────────────────────────────────────────
     const renderProfile = () => {
         if (loadingRegistered)
             return (
@@ -1182,45 +1146,48 @@ const App = () => {
                     <p className="cmp-register-sub">관리자의 심사가 완료될 때까지 기다려주세요.</p>
                 </div>
             );
-        if (profileStatus === '반려') {
-            const rejectReason = '프로필 사진이 명확하지 않습니다. 최근 사진으로 다시 등록해 주세요.';
+        if (profileStatus === '반려')
             return (
                 <div className="cmp-settings-card cmp-settings-card--center">
                     <div className="cmp-register-icon">❌</div>
                     <h3 className="cmp-register-title">프로필 등록이 반려되었습니다</h3>
                     <p className="cmp-register-sub">사유를 확인 후 정보를 수정해 다시 등록해 주세요.</p>
-                    {rejectReason && (
-                        <div className="cmp-reject-reason" style={{marginTop:22, marginBottom:24}}>반려 사유: {rejectReason}</div>
+                    {profile?.reject_reason && (
+                        <div className="cmp-reject-reason" style={{ marginTop: 22, marginBottom: 24 }}>
+                            반려 사유: {profile.reject_reason}
+                        </div>
                     )}
                     <button
                         className="cmp-btn cmp-btn-primary cmp-btn-register"
                         onClick={() => navigate('/counselorUpload')}
-                        style={{marginTop: 24, minWidth: 160, padding: '13px 0', fontSize: '17px'}}
+                        style={{ marginTop: 24, minWidth: 160, padding: '13px 0', fontSize: '17px' }}
                     >
                         재등록하기
                     </button>
                 </div>
             );
-        }
-
         return (
             <>
                 <div className="cmp-settings-card">
                     <div className="cmp-card-title">
                         <User size={15} color="var(--cmp-primary)" /> 기본 정보
                     </div>
-
-                    {/* 프로필 이미지 */}
                     <div className="cmp-profile-upload">
                         <div
                             className="cmp-profile-img-lg cmp-cursor-pointer cmp-pos-rel"
                             onClick={() => fileInputRef.current?.click()}
                         >
-                            {pendingProfileImgUrl || profile.profile_img_url ? (
-                                <img src={pendingProfileImgUrl || profile.profile_img_url} alt="프로필" className="cmp-profile-img-content" />
-                            ) : (
-                                <span className="cmp-fs-48">🧔‍♂️</span>
-                            )}
+                            <img
+                                src={
+                                    pendingProfileImgUrl ||
+                                    profile.profile_img_url ||
+                                    JSON.parse(localStorage.getItem('user') || '{}').profile_img_url ||
+                                    '' ||
+                                    `https://api.dicebear.com/7.x/notionists/svg?seed=${getCounselorName()}`
+                                }
+                                alt="프로필"
+                                className="cmp-profile-img-content"
+                            />
                             <button className="cmp-profile-edit-btn" type="button">
                                 <Settings size={11} />
                             </button>
@@ -1237,8 +1204,6 @@ const App = () => {
                             <p className="cmp-fs-12 cmp-fw-600">사진을 클릭하여 업로드</p>
                         </div>
                     </div>
-
-                    {/* 기본 필드 */}
                     <div className="cmp-grid-2">
                         {[
                             { label: '아이디', key: 'username', readOnly: true },
@@ -1278,30 +1243,27 @@ const App = () => {
                             />
                         </div>
                     </div>
-
-                    {/* 전문분야 칩 선택 */}
                     <div className="cmp-section-divider cmp-section-specialty">
                         <div className="cmp-sub-section-header">
-                            <span className="cmp-field-label cmp-specialty-label">
-                                전문 상담 분야
-                            </span>
+                            <span className="cmp-field-label cmp-specialty-label">전문 상담 분야</span>
                             <span className="cmp-specialty-count">{specialties.length}개 선택됨</span>
                         </div>
                         <SpecialtySelector specialties={specialties} onChange={setSpecialties} />
                     </div>
-
                     {/* 경력 */}
                     <div className="cmp-section-divider">
                         <div className="cmp-sub-section-header">
-                            <span className="cmp-field-label cmp-specialty-label">
-                                경력 사항
-                            </span>
+                            <span className="cmp-field-label cmp-specialty-label">경력 사항</span>
                             <div className="cmp-btn-group">
                                 <button className="cmp-btn-outline-sm" onClick={addCareer}>
                                     + 추가
                                 </button>
                                 {careers.length > 0 && (
-                                    <button className="cmp-btn-icon" onClick={() => careers.length > 1 && removeCareer(careers.at(-1).id)} disabled={careers.length === 1}>
+                                    <button
+                                        className="cmp-btn-icon"
+                                        onClick={() => careers.length > 1 && removeCareer(careers.at(-1).id)}
+                                        disabled={careers.length === 1}
+                                    >
                                         <X size={12} />
                                     </button>
                                 )}
@@ -1350,13 +1312,10 @@ const App = () => {
                             </div>
                         ))}
                     </div>
-
                     {/* 자격증 */}
                     <div className="cmp-section-divider">
                         <div className="cmp-sub-section-header">
-                            <span className="cmp-field-label cmp-specialty-label">
-                                자격증
-                            </span>
+                            <span className="cmp-field-label cmp-specialty-label">자격증</span>
                             <div className="cmp-btn-group">
                                 <button className="cmp-btn-outline-sm" onClick={addCertificate}>
                                     + 추가
@@ -1364,7 +1323,9 @@ const App = () => {
                                 {certificates.length > 0 && (
                                     <button
                                         className="cmp-btn-icon"
-                                        onClick={() => certificates.length > 1 && removeCertificate(certificates.at(-1).id)}
+                                        onClick={() =>
+                                            certificates.length > 1 && removeCertificate(certificates.at(-1).id)
+                                        }
                                         disabled={certificates.length === 1}
                                     >
                                         <X size={14} />
@@ -1405,13 +1366,10 @@ const App = () => {
                             </div>
                         ))}
                     </div>
-
                     {/* 학력 */}
                     <div className="cmp-section-divider">
                         <div className="cmp-sub-section-header">
-                            <span className="cmp-field-label cmp-specialty-label">
-                                학력 사항
-                            </span>
+                            <span className="cmp-field-label cmp-specialty-label">학력 사항</span>
                             <div className="cmp-btn-group">
                                 <button className="cmp-btn-outline-sm" onClick={addEducation}>
                                     + 추가
@@ -1468,8 +1426,6 @@ const App = () => {
                             </div>
                         ))}
                     </div>
-
-                    {/* 상담소 & 자기소개 */}
                     <div className="cmp-grid-2">
                         <div>
                             <label className="cmp-field-label">상담소명</label>
@@ -1496,8 +1452,7 @@ const App = () => {
                             onChange={(e) => setProfile((p) => ({ ...p, intro: e.target.value }))}
                         />
                     </div>
-
-                    {/* ── 비밀번호 변경 ───────────────────────────────────────── */}
+                    {/* 비밀번호 변경 */}
                     <div className="cmp-section-divider" style={{ marginTop: 24 }}>
                         <div className="cmp-card-title" style={{ marginBottom: 16 }}>
                             <Lock size={15} color="var(--cmp-primary)" /> 비밀번호 변경
@@ -1510,9 +1465,7 @@ const App = () => {
                                     className="cmp-input"
                                     placeholder="현재 비밀번호를 입력하세요"
                                     value={passwordForm.currentPw}
-                                    onChange={(e) =>
-                                        setPasswordForm((p) => ({ ...p, currentPw: e.target.value }))
-                                    }
+                                    onChange={(e) => setPasswordForm((p) => ({ ...p, currentPw: e.target.value }))}
                                 />
                             </div>
                             <div>
@@ -1522,9 +1475,7 @@ const App = () => {
                                     className="cmp-input"
                                     placeholder="8자 이상 입력"
                                     value={passwordForm.newPw}
-                                    onChange={(e) =>
-                                        setPasswordForm((p) => ({ ...p, newPw: e.target.value }))
-                                    }
+                                    onChange={(e) => setPasswordForm((p) => ({ ...p, newPw: e.target.value }))}
                                 />
                             </div>
                             <div>
@@ -1534,21 +1485,13 @@ const App = () => {
                                     className="cmp-input"
                                     placeholder="비밀번호를 다시 입력하세요"
                                     value={passwordForm.confirmPw}
-                                    onChange={(e) =>
-                                        setPasswordForm((p) => ({ ...p, confirmPw: e.target.value }))
-                                    }
+                                    onChange={(e) => setPasswordForm((p) => ({ ...p, confirmPw: e.target.value }))}
                                 />
                             </div>
                         </div>
-                        {pwError && (
-                            <p style={{ fontSize: 12, color: 'var(--cmp-danger)', marginTop: 8 }}>
-                                {pwError}
-                            </p>
-                        )}
+                        {pwError && <p style={{ fontSize: 12, color: 'var(--cmp-danger)', marginTop: 8 }}>{pwError}</p>}
                         {pwSuccess && (
-                            <p style={{ fontSize: 12, color: 'var(--cmp-primary)', marginTop: 8 }}>
-                                {pwSuccess}
-                            </p>
+                            <p style={{ fontSize: 12, color: 'var(--cmp-primary)', marginTop: 8 }}>{pwSuccess}</p>
                         )}
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
                             <button
@@ -1560,16 +1503,10 @@ const App = () => {
                             </button>
                         </div>
                     </div>
-                    {/* ── 비밀번호 변경 끝 ────────────────────────────────────── */}
-
-                    <button
-                        className="cmp-btn cmp-btn-primary cmp-btn-profile-save"
-                        onClick={handleSaveProfile}
-                    >
+                    <button className="cmp-btn cmp-btn-primary cmp-btn-profile-save" onClick={handleSaveProfile}>
                         프로필 저장
                     </button>
                 </div>
-
                 {/* 상담 시간 설정 */}
                 <div className="cu-ep-expertise cu-ep-animate cmp-schedule-section">
                     <section>
@@ -1577,96 +1514,131 @@ const App = () => {
                             <Clock size={15} color="#8BA888" /> 상담 시간 설정
                         </h3>
                         <div className="cu-ep-schedule-list">
-                            {workDays.map((day, i) => {
-                                const d = day;
-                                return (
-                                    <div key={d.day} className={`cu-ep-schedule-row${d.active ? ' cu-ep-day-on' : ''}`}>
-                                        <div className="cu-ep-day-toggle">
-                                            <button
-                                                onClick={() => toggleWorkDay(i)}
-                                                className={`cu-ep-toggle-btn${d.active ? ' cu-ep-toggle-on' : ''}`}
-                                            >
-                                                <Check size={16} />
-                                            </button>
-                                            <span className={`cu-ep-day-label${d.active ? ' cu-ep-day-label-on' : ''}`}>{d.day}</span>
-                                        </div>
-                                        <div className="cu-ep-slots">
-                                            {d.active ? (
-                                                <div className="cu-ep-slots-row">
-                                                    {Array.isArray(d.slots) && d.slots.map((slot, idx) => (
-                                                        <div key={idx} className="cu-ep-slot">
-                                                            <div className="cu-ep-time-select">
-                                                                <select
-                                                                    value={slot.start}
-                                                                    onChange={e => {
-                                                                        setWorkDays(prev => prev.map((wd, wi) => wi === i ? {
-                                                                            ...wd,
-                                                                            slots: wd.slots.map((s, si) => si === idx ? { ...s, start: e.target.value } : s)
-                                                                        } : wd));
-                                                                    }}
-                                                                >
-                                                                    {TIME_OPTIONS.map(t => (
-                                                                        <option key={t} value={t}>{t}</option>
-                                                                    ))}
-                                                                </select>
-                                                                <ChevronDown className="cu-ep-dp-chevron" />
-                                                            </div>
-                                                            <span className="cu-ep-time-sep">~</span>
-                                                            <div className="cu-ep-time-select">
-                                                                <select
-                                                                    value={slot.end}
-                                                                    onChange={e => {
-                                                                        setWorkDays(prev => prev.map((wd, wi) => wi === i ? {
-                                                                            ...wd,
-                                                                            slots: wd.slots.map((s, si) => si === idx ? { ...s, end: e.target.value } : s)
-                                                                        } : wd));
-                                                                    }}
-                                                                >
-                                                                    {END_TIME_OPTIONS.filter(t => {
-                                                                        if (!slot.start) return t >= '18:00';
-                                                                        return t > slot.start && t >= '18:00';
-                                                                    }).map(t => (
-                                                                        <option key={t} value={t}>{t}</option>
-                                                                    ))}
-                                                                </select>
-                                                                <ChevronDown className="cu-ep-dp-chevron" />
-                                                            </div>
-                                                            {d.slots.length > 1 && (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setWorkDays(prev => prev.map((wd, wi) => wi === i ? {
-                                                                            ...wd,
-                                                                            slots: wd.slots.filter((_, si) => si !== idx)
-                                                                        } : wd));
-                                                                    }}
-                                                                    className="cu-ep-slot-rm"
-                                                                >
-                                                                    <X className="cu-ep-slot-rm-icon" />
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                    <button
-                                                        onClick={() => addTimeSlot(i)}
-                                                        className="cu-ep-slot-add"
-                                                        title="시간 추가"
-                                                        disabled={!d.active}
-                                                    >
-                                                        <Plus className="cu-ep-slot-add-icon" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="cu-ep-day-off-msg">휴무일입니다.</div>
-                                            )}
-                                        </div>
+                            {workDays.map((d, i) => (
+                                <div key={d.day} className={`cu-ep-schedule-row${d.active ? ' cu-ep-day-on' : ''}`}>
+                                    <div className="cu-ep-day-toggle">
+                                        <button
+                                            onClick={() => toggleWorkDay(i)}
+                                            className={`cu-ep-toggle-btn${d.active ? ' cu-ep-toggle-on' : ''}`}
+                                        >
+                                            <Check size={16} />
+                                        </button>
+                                        <span className={`cu-ep-day-label${d.active ? ' cu-ep-day-label-on' : ''}`}>
+                                            {d.day}
+                                        </span>
                                     </div>
-                                );
-                            })}
+                                    <div className="cu-ep-slots">
+                                        {d.active ? (
+                                            <div className="cu-ep-slots-row">
+                                                {(d.slots || []).map((slot, idx) => (
+                                                    <div key={idx} className="cu-ep-slot">
+                                                        <div className="cu-ep-time-select">
+                                                            <select
+                                                                value={slot.start}
+                                                                onChange={(e) =>
+                                                                    setWorkDays((p) =>
+                                                                        p.map((wd, wi) =>
+                                                                            wi === i
+                                                                                ? {
+                                                                                      ...wd,
+                                                                                      slots: wd.slots.map((s, si) =>
+                                                                                          si === idx
+                                                                                              ? {
+                                                                                                    ...s,
+                                                                                                    start: e.target
+                                                                                                        .value,
+                                                                                                }
+                                                                                              : s
+                                                                                      ),
+                                                                                  }
+                                                                                : wd
+                                                                        )
+                                                                    )
+                                                                }
+                                                            >
+                                                                {TIME_OPTIONS.map((t) => (
+                                                                    <option key={t} value={t}>
+                                                                        {t}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                            <ChevronDown className="cu-ep-dp-chevron" />
+                                                        </div>
+                                                        <span className="cu-ep-time-sep">~</span>
+                                                        <div className="cu-ep-time-select">
+                                                            <select
+                                                                value={slot.end}
+                                                                onChange={(e) =>
+                                                                    setWorkDays((p) =>
+                                                                        p.map((wd, wi) =>
+                                                                            wi === i
+                                                                                ? {
+                                                                                      ...wd,
+                                                                                      slots: wd.slots.map((s, si) =>
+                                                                                          si === idx
+                                                                                              ? {
+                                                                                                    ...s,
+                                                                                                    end: e.target.value,
+                                                                                                }
+                                                                                              : s
+                                                                                      ),
+                                                                                  }
+                                                                                : wd
+                                                                        )
+                                                                    )
+                                                                }
+                                                            >
+                                                                {END_TIME_OPTIONS.filter(
+                                                                    (t) =>
+                                                                        !slot.start || (t > slot.start && t >= '18:00')
+                                                                ).map((t) => (
+                                                                    <option key={t} value={t}>
+                                                                        {t}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                            <ChevronDown className="cu-ep-dp-chevron" />
+                                                        </div>
+                                                        {d.slots.length > 1 && (
+                                                            <button
+                                                                onClick={() =>
+                                                                    setWorkDays((p) =>
+                                                                        p.map((wd, wi) =>
+                                                                            wi === i
+                                                                                ? {
+                                                                                      ...wd,
+                                                                                      slots: wd.slots.filter(
+                                                                                          (_, si) => si !== idx
+                                                                                      ),
+                                                                                  }
+                                                                                : wd
+                                                                        )
+                                                                    )
+                                                                }
+                                                                className="cu-ep-slot-rm"
+                                                            >
+                                                                <X className="cu-ep-slot-rm-icon" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    onClick={() => addTimeSlot(i)}
+                                                    className="cu-ep-slot-add"
+                                                    title="시간 추가"
+                                                    disabled={!d.active}
+                                                >
+                                                    <Plus className="cu-ep-slot-add-icon" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="cu-ep-day-off-msg">휴무일입니다.</div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                        <button
-                            className="cmp-btn cmp-btn-primary cmp-btn-time-save"
-                            onClick={handleSaveProfile}
-                        >
+                        <button className="cmp-btn cmp-btn-primary cmp-btn-time-save" onClick={handleSaveProfile}>
                             <Save className="cmp-btn-save-icon" />
                             <span>시간 저장</span>
                         </button>
@@ -1676,19 +1648,16 @@ const App = () => {
         );
     };
 
+    // ── 렌더: 알림설정 / 탈퇴 / 고객지원 ──────────────────────────────────────
     const renderNotifSettings = () => (
         <>
             <BackHeader title="알림 설정" onBack={() => setSettingsView(null)} />
-            <p className="cmp-page-sub cmp-notif-settings-sub">
-                받고 싶은 알림 종류를 선택하세요.
-            </p>
+            <p className="cmp-page-sub cmp-notif-settings-sub">받고 싶은 알림 종류를 선택하세요.</p>
             <div className="cmp-list-card">
                 {notifSettings.map((s) => (
                     <div key={s.id} className="cmp-notif-setting-item">
                         <div>
-                            <p className="cmp-item-name cmp-item-name--mb2">
-                                {s.label}
-                            </p>
+                            <p className="cmp-item-name cmp-item-name--mb2">{s.label}</p>
                             <p className="cmp-item-sub">{s.desc}</p>
                         </div>
                         <Toggle on={s.on} onChange={() => toggleNotifSetting(s.id)} />
@@ -1737,10 +1706,7 @@ const App = () => {
                             >
                                 취소
                             </button>
-                            <button
-                                className="cmp-btn cmp-btn-danger cmp-btn-flex"
-                                onClick={() => setDeleteStep(2)}
-                            >
+                            <button className="cmp-btn cmp-btn-danger cmp-btn-flex" onClick={() => setDeleteStep(2)}>
                                 다음 단계
                             </button>
                         </div>
@@ -1749,8 +1715,8 @@ const App = () => {
                     <>
                         <h3 className="cmp-delete-confirm-title">탈퇴를 확인해주세요</h3>
                         <p className="cmp-delete-confirm-sub">
-                            아래 입력창에 <strong className="cmp-delete-keyword">탈퇴합니다</strong>를 입력하면
-                            탈퇴가 진행됩니다.
+                            아래 입력창에 <strong className="cmp-delete-keyword">탈퇴합니다</strong>를 입력하면 탈퇴가
+                            진행됩니다.
                         </p>
                         <input
                             className="cmp-input cmp-delete-input"
@@ -1759,10 +1725,7 @@ const App = () => {
                             onChange={(e) => setDeleteInput(e.target.value)}
                         />
                         <div className="cmp-btn-row cmp-btn-row--mt18">
-                            <button
-                                className="cmp-btn cmp-btn-secondary cmp-btn-flex"
-                                onClick={() => setDeleteStep(1)}
-                            >
+                            <button className="cmp-btn cmp-btn-secondary cmp-btn-flex" onClick={() => setDeleteStep(1)}>
                                 이전
                             </button>
                             <button
@@ -1815,21 +1778,15 @@ const App = () => {
             if (settingsView === 'deleteAccount') return renderDeleteAccount();
             return renderSettingsList();
         }
-        const map = { notifications: renderNotifications, customer: renderCustomer };
-        return (map[activeMenu] || renderDashboard)();
+        return ({ notifications: renderNotifications, customer: renderCustomer }[activeMenu] || renderDashboard)();
     };
 
     const navItems = [
         { id: 'dashboard', icon: <LayoutDashboard size={17} />, label: '대시보드' },
         { id: 'notifications', icon: <Bell size={17} />, label: '알림센터' },
     ];
-    const tabItems = [
-        { id: 'dashboard', icon: <LayoutDashboard size={19} />, label: '홈' },
-        { id: 'notifications', icon: <Bell size={19} />, label: '알림' },
-        { id: 'settings', icon: <Settings size={19} />, label: '설정' },
-        { id: 'customer', icon: <HeadphonesIcon size={19} />, label: '고객' },
-    ];
 
+    // ── 렌더 ──────────────────────────────────────────────────────────────────
     return (
         <div className="cmp-app">
             <div className="cmp-mobile-header">
@@ -1871,10 +1828,7 @@ const App = () => {
                     >
                         <Settings size={17} />
                         <span className="cmp-nav-item-label">설정</span>
-                        <ChevronDown
-                            size={13}
-                            className={`cmp-nav-chevron${settingsOpen ? ' open' : ''}`}
-                        />
+                        <ChevronDown size={13} className={`cmp-nav-chevron${settingsOpen ? ' open' : ''}`} />
                     </div>
                     {settingsOpen && (
                         <div className="cmp-nav-submenu">

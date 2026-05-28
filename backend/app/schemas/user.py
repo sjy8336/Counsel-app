@@ -24,6 +24,8 @@ class UserResponse(BaseModel):
     gender: str
     role: str
 
+    is_active: bool
+    profile_img_url: Optional[str] = None
     class Config:
         from_attributes = True
         json_encoders = {
@@ -41,6 +43,7 @@ class UserUpdate(BaseModel):
     full_name: str
     email: EmailStr
     phone_number: str
+    profile_img_url: Optional[str] = None
 
 
 # 비밀번호 변경 요청용 스키마
