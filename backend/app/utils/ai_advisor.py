@@ -4,7 +4,11 @@ from app.core.config import settings
 import json
 import re
 import unicodedata
-from hanspell import spell_checker
+try:
+    from hanspell import spell_checker
+    _hanspell_available = True
+except ImportError:
+    _hanspell_available = False
 
 client = openai.OpenAI(
     base_url="https://api.groq.com/openai/v1",
@@ -126,17 +130,20 @@ def clean_korean_only(text: str) -> str:
 
 
 def fix_common_typos(text: str, nickname: str = "") -> str:
-    try:
-        sentences = text.split('\n\n')
-        corrected = []
-        for sentence in sentences:
-            if sentence.strip():
-                result = spell_checker.check(sentence)
-                corrected.append(result.checked)
-            else:
-                corrected.append(sentence)
-        text = '\n\n'.join(corrected)
-    except Exception:
+    if _hanspell_available:
+        try:
+            sentences = text.split('\n\n')
+            corrected = []
+            for sentence in sentences:
+                if sentence.strip():
+                    result = spell_checker.check(sentence)
+                    corrected.append(result.checked)
+                else:
+                    corrected.append(sentence)
+            text = '\n\n'.join(corrected)
+        except Exception:
+            pass  # hanspell이 있지만 내부 에러가 날 경우 아래 대체 로직 사용
+    else:
         corrections = {
             r'되요': '돼요',
             r'되었어요': '됐어요',
