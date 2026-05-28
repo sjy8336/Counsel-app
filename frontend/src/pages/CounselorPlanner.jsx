@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { confirmBooking } from '../api/bookingConfirm';
 import { rejectBooking } from '../api/bookingReject';
-import { getCounselorBookings } from '../api/bookingCounselor';
+import { getCounselorBookings, deleteCanceledBooking } from '../api/bookingCounselor';
 import { createBooking } from '../api/booking';
 import Header from '../components/header';
 import Footer from '../components/footer';
@@ -39,6 +39,8 @@ const STATUS_MAP = {
     canceled: '내담자 취소',
     rejected: '승인 거절',
 };
+const CANCELED_STATUSES = new Set(['취소됨', '승인 거절', '내담자 취소', '예약 취소']);
+const DELETABLE_STATUSES = new Set(['상담 완료', '취소됨', '승인 거절', '내담자 취소', '예약 취소']);
 const CALENDAR_VISIBLE = new Set(['대기 중', '확정됨']);
 const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const KOR_DAYS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
@@ -62,17 +64,9 @@ const mapBooking = (b) => {
     } else if (b.client) {
         client = typeof b.client === 'string' ? b.client : b.client?.client_name || '';
     }
-    // 날짜와 시간이 모두 있을 때, 이미 지난 상담이면 상태를 '상담 완료'로 표시
     const dateStr = b.date || b.booking_date;
     const timeStr = b.time || b.booking_time;
-    let status = b.status || STATUS_MAP[b.booking_status] || '취소됨';
-    if (dateStr && timeStr && status === '확정됨') {
-        const now = new Date();
-        const target = new Date(dateStr + 'T' + timeStr);
-        if (target < now) {
-            status = '상담 완료';
-        }
-    }
+    const status = b.status || STATUS_MAP[b.booking_status] || '취소됨';
     return {
         id: b.id,
         client,
@@ -658,7 +652,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
         try {
             await rejectBooking(res.order_id);
             await fetchBookings();
-            updateStatus(id, '승인 거절');
+            updateStatus(id, '취소됨');
             showToast('예약이 거절되었습니다.');
         } catch {
             alert('예약 거절에 실패했습니다.');
@@ -678,7 +672,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                 try {
                     await rejectBooking(resv.order_id);
                     await fetchBookings();
-                    updateStatus(id, '승인 거절');
+                    updateStatus(id, '취소됨');
                     showToast('예약 승인이 취소되었습니다.');
                 } catch {
                     alert('예약 승인 취소에 실패했습니다.');
@@ -689,12 +683,44 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
         );
     };
 
+    const handleDeleteBookingHistory = (id, clientName) => {
+        openConfirm(
+            '예약 내역을 삭제하시겠습니까?',
+            `${clientName}님의 예약 내역을 삭제합니다. 이 작업은 되돌릴 수 없습니다.`,
+            async () => {
+                const resv = reservations.find((r) => r.id === id);
+                if (!resv?.order_id) {
+                    alert('예약 정보에 order_id가 없습니다.');
+                    return;
+                }
+                try {
+                    await deleteCanceledBooking(resv.order_id);
+                    setReservations((prev) => prev.filter((r) => r.id !== id));
+                    if (selectedReservation?.id === id) {
+                        setSelectedReservation(null);
+                    }
+                    showToast('예약 내역이 삭제되었습니다.');
+                } catch (e) {
+                    const message = e?.response?.data?.detail || '예약 삭제에 실패했습니다.';
+                    alert(message);
+                }
+                closeConfirm();
+            }
+        );
+    };
+
     // ── 예약 상세 모달 ──────────────────────────────────────
     const ReservationModal = ({ res }) => {
         const isPending = res.status === '대기 중';
         const isConfirmed = res.status === '확정됨';
         const isCompleted = res.status === '상담 완료';
-        const statusBadge = isConfirmed ? ' mwc-res-status-badge--confirmed' : ' mwc-res-status-badge--pending';
+        const isCanceled = CANCELED_STATUSES.has(res.status);
+        const isDeletable = DELETABLE_STATUSES.has(res.status);
+        const statusBadge = isConfirmed
+            ? ' mwc-res-status-badge--confirmed'
+            : isCanceled
+              ? ' mwc-res-status-badge--canceled'
+              : ' mwc-res-status-badge--pending';
 
         return (
             <div className="mwc-modal-overlay" onClick={() => setSelectedReservation(null)}>
@@ -787,6 +813,15 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                     승인 취소
                                 </button>
                             )}
+                            {isDeletable && (
+                                <button
+                                    className="mwc-reject-btn"
+                                    style={{ width: '100%' }}
+                                    onClick={() => handleDeleteBookingHistory(res.id, res.client)}
+                                >
+                                    <Trash2 size={16} /> 삭제하기
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -873,6 +908,8 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                 {reservations.map((res) => {
                     const isPending = res.status === '대기 중';
                     const isConfirmed = res.status === '확정됨';
+                    const isDeletable = DELETABLE_STATUSES.has(res.status);
+                    const isCanceled = CANCELED_STATUSES.has(res.status);
                     const badgeClass = isConfirmed
                         ? 'mwc-status-badge--confirmed'
                         : isPending
@@ -950,6 +987,17 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                         }}
                                     >
                                         승인 취소
+                                    </button>
+                                )}
+                                {isDeletable && (
+                                    <button
+                                        className="mwc-list-reject-btn"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteBookingHistory(res.id, res.client);
+                                        }}
+                                    >
+                                        <Trash2 size={12} /> 삭제하기
                                     </button>
                                 )}
                                 <button className="mwc-list-arrow-btn">

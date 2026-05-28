@@ -9,3 +9,12 @@ export const getCounselorBookings = async () => {
     });
     return response.data;
 };
+
+// 취소된 예약 삭제
+export const deleteCanceledBooking = async (orderId) => {
+    const token = localStorage.getItem('access_token');
+    const response = await axios.delete(`${API_BASE_URL}/booking/remove/${orderId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return response.data;
+};

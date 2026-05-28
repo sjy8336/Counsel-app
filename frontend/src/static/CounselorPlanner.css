@@ -334,10 +334,10 @@
 }
 .mwc-month-nav-btns {
     display: flex;
-    background-color: #ffffff;
+    background-color: transparent;
     border-radius: 0.5rem;
-    border: 1px solid #f1f5f9;
-    padding: 0.125rem;
+    border: none;
+    padding: 0;
 }
 @media (min-width: 768px) {
     .mwc-month-nav-btns {
@@ -1066,6 +1066,10 @@
 .mwc-res-status-badge--pending {
     background-color: #fff7ed;
     color: #f59e0b;
+}
+.mwc-res-status-badge--canceled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
 }
 
 .mwc-res-actions {

@@ -300,6 +300,29 @@ def cancel_booking(order_id: str, db: Session = Depends(get_db)):
     db.refresh(booking)
     return {"message": "예약이 취소 처리되었습니다.", "order_id": order_id, "booking_status": booking.booking_status}
 
+
+@router.delete("/remove/{order_id}")
+def remove_booking_history(
+    order_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    booking = db.query(Booking).filter(Booking.order_id == order_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="예약을 찾을 수 없습니다.")
+
+    is_owner = booking.counselor_id == current_user.id or booking.client_id == current_user.id
+    if not is_owner:
+        raise HTTPException(status_code=403, detail="해당 예약을 삭제할 권한이 없습니다.")
+
+    if booking.booking_status not in ('canceled', 'completed'):
+        raise HTTPException(status_code=400, detail="취소/완료된 예약만 삭제할 수 있습니다.")
+
+    db.delete(booking)
+    db.commit()
+
+    return {"message": "예약 내역이 삭제되었습니다.", "order_id": order_id}
+
 # 상담 완료 처리 API (예약 날짜+시간이 지난 경우 자동 처리용)
 @router.post("/complete/{order_id}")
 def complete_booking(order_id: str, db: Session = Depends(get_db)):

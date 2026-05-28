@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAllBookings, cancelBooking, completeBooking } from '../api/booking';
+import { getAllBookings, cancelBooking } from '../api/booking';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '../components/header';
 import Footer from '../components/footer';
@@ -89,31 +89,8 @@ export default function ReservationHistoryPage({ userName, setUserName, isLogged
         }
         const fetchAndUpdate = async () => {
             try {
-                let data = await getAllBookings();
-                const now = new Date();
-                let changed = false;
-
-                for (const item of data) {
-                    if (item.booking_status !== 'confirmed') continue;
-                    const base = item.date.replace(/\./g, '-');
-                    let endTime = item.time;
-                    if (item.time.includes('~')) {
-                        endTime = item.time.split('~')[1].trim();
-                    } else if (/^\d{2}:\d{2}$/.test(item.time)) {
-                        const end = new Date(`${base}T${item.time}:00`);
-                        end.setMinutes(end.getMinutes() + 59);
-                        endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(
-                            2,
-                            '0'
-                        )}`;
-                    }
-                    if (new Date(`${base}T${endTime}:00`) < now) {
-                        await completeBooking(item.order_id);
-                        changed = true;
-                    }
-                }
-
-                setHistoryData(changed ? await getAllBookings() : data);
+                const data = await getAllBookings();
+                setHistoryData(data);
             } catch (error) {
                 setHistoryData([]);
                 if (error?.response?.status === 401) {
