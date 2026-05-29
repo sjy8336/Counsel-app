@@ -275,7 +275,10 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
             <div className="counlist-counselor-card" onClick={onClick}>
                 <div className="counlist-card-top">
                     <div className="counlist-profile-placeholder">
-                        {profile_img_url && profile_img_url.trim() !== '' ? (
+                        {profile_img_url &&
+                        profile_img_url.trim() !== '' &&
+                        !profile_img_url.startsWith('https://api.dicebear.com/') &&
+                        !profile_img_url.includes('notionists/svg?seed=') ? (
                             <img
                                 src={profile_img_url}
                                 alt="프로필"
@@ -283,7 +286,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }}
                                 onError={(e) => {
                                     e.target.onerror = null;
-                                    e.target.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${name || 'default'}`;
+                                    e.target.style.display = 'none';
                                 }}
                             />
                         ) : (
