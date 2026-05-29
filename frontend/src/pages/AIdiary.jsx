@@ -362,7 +362,12 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
                                         새 일기 작성하기
                                     </button>
                                     <div className="mw3-result-divider" />
-                                    <button className="mw3-result-view-btn">작성한 일기 보기</button>
+                                    <button
+                                        className="mw3-result-view-btn"
+                                        onClick={() => navigate('/diary', { state: { viewMode: 'list' } })}
+                                    >
+                                        작성한 일기 보기
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -456,7 +461,7 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
                                     </h3>
                                     <button
                                         className="mw3-recent-all-btn"
-                                        onClick={() => navigate('/Diary', { state: { viewMode: 'list' } })}
+                                        onClick={() => navigate('/diary', { state: { viewMode: 'list' } })}
                                     >
                                         전체보기
                                     </button>

@@ -81,6 +81,52 @@ const SPECIALTY_OPTIONS = [
     '대인관계',
     '기타',
 ];
+
+const normalizeSpecialties = (list = []) => {
+    const normalized = [];
+    const standardSet = new Set();
+    const customSet = new Set();
+    let hasPlainOther = false;
+
+    (Array.isArray(list) ? list : []).forEach((item) => {
+        const rawName = String(item?.specialty_name || '').trim();
+        const rawCustom = String(item?.custom_description || '').trim();
+
+        if (!rawName && !rawCustom) return;
+
+        if (rawName === '기타') {
+            if (rawCustom) {
+                if (!customSet.has(rawCustom)) {
+                    customSet.add(rawCustom);
+                    normalized.push({ specialty_name: '기타', custom_description: rawCustom });
+                }
+            } else {
+                hasPlainOther = true;
+            }
+            return;
+        }
+
+        if (SPECIALTY_OPTIONS.includes(rawName)) {
+            if (!standardSet.has(rawName)) {
+                standardSet.add(rawName);
+                normalized.push({ specialty_name: rawName, custom_description: '' });
+            }
+            return;
+        }
+
+        // 과거 데이터 호환: custom 항목이 specialty_name에 직접 저장된 경우
+        if (!customSet.has(rawName)) {
+            customSet.add(rawName);
+            normalized.push({ specialty_name: '기타', custom_description: rawName });
+        }
+    });
+
+    if (hasPlainOther && customSet.size === 0) {
+        normalized.push({ specialty_name: '기타', custom_description: '' });
+    }
+
+    return normalized;
+};
 const INIT_WORK_DAYS = DAY_LABELS.map((day) => ({
     day,
     active: !['토', '일'].includes(day),
@@ -385,22 +431,34 @@ const TimePicker = ({ value, onChange, minTime = '', disabled = false, className
 // ─── SpecialtySelector ────────────────────────────────────────────────────────
 const SpecialtySelector = ({ specialties, onChange }) => {
     const [customText, setCustomText] = useState('');
-    const selectedNames = specialties.map((s) => s.specialty_name);
+    const normalized = normalizeSpecialties(specialties);
+    const selectedNames = normalized
+        .filter((s) => SPECIALTY_OPTIONS.includes(s.specialty_name))
+        .map((s) => s.specialty_name);
+    const customItems = normalized.filter((s) => s.specialty_name === '기타' && s.custom_description);
+    const isOtherSelected = selectedNames.includes('기타') || customItems.length > 0;
+
     const toggle = (name) =>
-        selectedNames.includes(name)
-            ? onChange(specialties.filter((s) => s.specialty_name !== name))
-            : onChange([...specialties, { specialty_name: name, custom_description: '' }]);
+        (name === '기타' ? isOtherSelected : selectedNames.includes(name))
+            ? onChange(
+                  normalizeSpecialties(
+                      normalized.filter((s) => (name === '기타' ? s.specialty_name !== '기타' : s.specialty_name !== name))
+                  )
+              )
+            : onChange(normalizeSpecialties([...normalized, { specialty_name: name, custom_description: '' }]));
+
     const addCustom = () => {
         const t = customText.trim();
-        if (!t || selectedNames.includes(t)) return;
-        onChange([...specialties, { specialty_name: t, custom_description: t }]);
+        if (!t || !isOtherSelected) return;
+        if (customItems.some((s) => s.custom_description === t)) return;
+        onChange(normalizeSpecialties([...normalized, { specialty_name: '기타', custom_description: t }]));
         setCustomText('');
     };
     return (
         <div>
             <div className="cmp-specialty-grid">
                 {SPECIALTY_OPTIONS.map((name) => {
-                    const sel = selectedNames.includes(name);
+                    const sel = name === '기타' ? isOtherSelected : selectedNames.includes(name);
                     return (
                         <button
                             key={name}
@@ -414,7 +472,7 @@ const SpecialtySelector = ({ specialties, onChange }) => {
                     );
                 })}
             </div>
-            {selectedNames.includes('기타') && (
+            {isOtherSelected && (
                 <div className="cmp-specialty-custom">
                     <input
                         className="cmp-input cmp-input-sm cmp-specialty-custom-input"
@@ -428,22 +486,29 @@ const SpecialtySelector = ({ specialties, onChange }) => {
                     </button>
                 </div>
             )}
-            {specialties.filter((s) => s.custom_description && !SPECIALTY_OPTIONS.includes(s.specialty_name)).length >
-                0 && (
+            {customItems.length > 0 && (
                 <div className="cmp-specialty-grid cmp-specialty-grid--custom">
-                    {specialties
-                        .filter((s) => !SPECIALTY_OPTIONS.includes(s.specialty_name))
-                        .map((s) => (
+                    {customItems.map((s) => (
                             <button
-                                key={s.specialty_name}
+                                key={s.custom_description}
                                 type="button"
                                 className="cmp-specialty-chip selected"
                                 onClick={() =>
-                                    onChange(specialties.filter((x) => x.specialty_name !== s.specialty_name))
+                                    onChange(
+                                        normalizeSpecialties(
+                                            normalized.filter(
+                                                (x) =>
+                                                    !(
+                                                        x.specialty_name === '기타' &&
+                                                        x.custom_description === s.custom_description
+                                                    )
+                                            )
+                                        )
+                                    )
                                 }
                             >
                                 <Check size={11} />
-                                {s.specialty_name}
+                                {s.custom_description}
                             </button>
                         ))}
                 </div>
@@ -604,10 +669,12 @@ const App = () => {
                 }));
                 setPendingProfileImgUrl('');
                 setSpecialties(
-                    (specs || []).map((s) => ({
-                        specialty_name: s.specialty_name || '',
-                        custom_description: s.custom_description || '',
-                    }))
+                    normalizeSpecialties(
+                        (specs || []).map((s) => ({
+                            specialty_name: s.specialty_name || '',
+                            custom_description: s.custom_description || '',
+                        }))
+                    )
                 );
                 setCertificates(
                     (certs || []).map((c, i) => ({
@@ -791,7 +858,7 @@ const App = () => {
             registered
                 ? await updateCounselorProfile(payload, token)
                 : (await registerCounselorProfile(payload, token), setRegistered(true));
-            await updateSpecialty(specialties, token);
+            await updateSpecialty(normalizeSpecialties(specialties), token);
             await updateCertificate(
                 certificates.map(({ name, issuer, date }) => ({
                     certificate_name: name,
@@ -897,6 +964,12 @@ const App = () => {
         reservations
             .filter((r) => r.status?.includes('확정') && r.dateObj >= today)
             .sort((a, b) => a.dateObj - b.dateObj)[0] || null;
+    const selectedSpecialtyCount = normalizeSpecialties(specialties).reduce((count, item) => {
+        if (item.specialty_name === '기타') {
+            return count + (item.custom_description ? 1 : 0);
+        }
+        return count + 1;
+    }, 0);
 
     // ── 렌더: 대시보드 ─────────────────────────────────────────────────────────
     const renderDashboard = () => (
@@ -1215,7 +1288,7 @@ const App = () => {
                     <div className="cmp-section-divider cmp-section-specialty">
                         <div className="cmp-sub-section-header">
                             <span className="cmp-field-label cmp-specialty-label">전문 상담 분야</span>
-                            <span className="cmp-specialty-count">{specialties.length}개 선택됨</span>
+                            <span className="cmp-specialty-count">{selectedSpecialtyCount}개 선택됨</span>
                         </div>
                         <SpecialtySelector specialties={specialties} onChange={setSpecialties} />
                     </div>
