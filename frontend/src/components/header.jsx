@@ -278,7 +278,7 @@ export default function Header({
                     {isLoggedIn && userRole === 'admin' && (
                         <button className="admin-page-btn" onClick={() => navigate('/admin')} title="관리자 페이지">
                             <ShieldCheck size={16} />
-                            <span>관리자</span>
+                            <span className="hidden-mobile">관리자</span>
                         </button>
                     )}
 

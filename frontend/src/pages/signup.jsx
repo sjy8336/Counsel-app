@@ -366,12 +366,7 @@ export default function SignupPage() {
                                         {successInfo.role === 'user' ? '내담자 (상담 희망)' : '전문 상담사'}
                                     </span>
                                 </div>
-                                <div className="su3-success-row su3-success-row--border">
-                                    <span className="su3-success-key">시작 혜택</span>
-                                    <span className="su3-success-val su3-success-val--amber">
-                                        {successInfo.role === 'user' ? '🌱 신규 마음상담 15% 할인 쿠폰' : '💼 상담 센터 파트너 웰컴 패키지'}
-                                    </span>
-                                </div>
+                                {/* 시작 혜택 행 전체 제거 */}
                             </div>
                             <button type="button" className="su3-start-btn" onClick={() => navigate('/login')}>
                                 <span>시작하기</span>

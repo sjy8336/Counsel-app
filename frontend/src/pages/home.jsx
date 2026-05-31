@@ -51,6 +51,17 @@ const MIND_GUIDES = [
     },
 ];
 
+const pickRandomCounselor = (counselors = []) => {
+    if (!Array.isArray(counselors) || counselors.length === 0) return null;
+    return counselors[Math.floor(Math.random() * counselors.length)] || null;
+};
+
+const formatCounselorDisplayName = (name) => {
+    const raw = String(name || '').trim();
+    if (!raw) return '';
+    return raw.replace(/\s*상담사\s*님?$/u, '').trim();
+};
+
 // --- GuideCard 컴포넌트 ---
 const GuideCard = ({ guide }) => (
     <div className="mwl-guide-card">
@@ -83,6 +94,8 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
     const [activeTab, setActiveTab] = useState('home');
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [recommendedCounselorName, setRecommendedCounselorName] = useState('');
+    const [isCounselorLoading, setIsCounselorLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -97,6 +110,34 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                 setBookings(data || []);
             })
             .finally(() => setLoading(false));
+    }, [isLoggedIn]);
+
+    useEffect(() => {
+        const fetchRecommendedCounselor = async () => {
+            setIsCounselorLoading(true);
+            setRecommendedCounselorName('');
+            try {
+                const params = new URLSearchParams({ offset: '0', limit: '20', summary: 'true' });
+                const cRes = await fetch(`/api/counselors/approved?${params.toString()}`);
+                if (!cRes.ok) return;
+
+                const cData = await cRes.json();
+                const list = Array.isArray(cData?.counselors) ? cData.counselors : [];
+                if (list.length === 0) return;
+
+                const picked = pickRandomCounselor(list);
+                const pickedName = picked?.user?.full_name;
+                if (pickedName) {
+                    setRecommendedCounselorName(formatCounselorDisplayName(pickedName));
+                }
+            } catch {
+                // 추천 상담사 이름은 실패해도 화면 기본 문구를 유지합니다.
+            } finally {
+                setIsCounselorLoading(false);
+            }
+        };
+
+        fetchRecommendedCounselor();
     }, [isLoggedIn]);
 
     const primaryBooking = bookings[0];
@@ -191,9 +232,20 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                                     <span className="mwl-widget-card__label">AI 맞춤 추천</span>
                                 </div>
                                 <p className="mwl-widget-card__desc">
-                                    최근 일기 데이터를 통해
+                                    오늘 마음을 다정하게 들어줄
                                     <br />
-                                    <span className="mwl-widget-card__counselor-name">박민우 상담사</span>님을 찾았어요.
+                                    {isCounselorLoading ? (
+                                        <span className="mwl-widget-card__counselor-name">추천 상담사를 찾고 있어요.</span>
+                                    ) : recommendedCounselorName ? (
+                                        <>
+                                            <span className="mwl-widget-card__counselor-name">
+                                                {recommendedCounselorName} 상담사님
+                                            </span>
+                                            을 추천해요.
+                                        </>
+                                    ) : (
+                                        '추천 상담사를 찾지 못했어요.'
+                                    )}
                                 </p>
                             </div>
                             <button
