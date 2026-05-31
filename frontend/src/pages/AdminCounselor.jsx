@@ -117,7 +117,7 @@ const AdminCounselor = () => {
                         })(),
                     }))
                 );
-            } catch (err) {
+            } catch {
                 alert('상담사 목록을 불러오지 못했습니다.');
                 setCounselors([]);
             }
@@ -152,12 +152,12 @@ const AdminCounselor = () => {
                                   : user.role === 'client'
                                     ? '내담자'
                                     : user.role,
-                        joinDate: user.created_at ? user.created_at.slice(0, 10) : '',
+                        created_at: user.created_at ? user.created_at.slice(0, 10) : '',
                         status: user.is_active ? '활성' : '비활성',
-                        sessions: user.sessions_count || 0,
+                        sessions: user.role === 'counselor' ? user.sessions_count || 0 : null,
                     }))
                 );
-            } catch (err) {
+            } catch {
                 alert('회원 목록을 불러오지 못했습니다.');
                 setMemberList([]);
             }
@@ -169,15 +169,15 @@ const AdminCounselor = () => {
     const pendingCount = counselors.filter((c) => c.status === '대기').length;
 
     const stats = [
-        { label: '승인 대기', value: pendingCount, icon: <Clock size={20} />, color: '#F59E0B' },
-        { label: '전체 회원', value: memberList.length, icon: <Users size={20} />, color: '#8BA888' },
+        { label: '승인 대기', value: pendingCount, icon: <Clock size={20} />, tone: 'amber' },
+        { label: '전체 회원', value: memberList.length, icon: <Users size={20} />, tone: 'sage' },
         {
             label: '활성 내담자',
             value: memberList.filter((m) => m.status === '활성').length,
             icon: <UserCheck size={20} />,
-            color: '#60A5FA',
+            tone: 'blue',
         },
-        { label: '이번 달 신규', value: 3, icon: <BarChart3 size={20} />, color: '#A78BFA' },
+        { label: '이번 달 신규', value: 3, icon: <BarChart3 size={20} />, tone: 'purple' },
     ];
 
     // ✅ 승인 처리 — API 호출 후 state 업데이트
@@ -197,9 +197,8 @@ const AdminCounselor = () => {
             setCounselors((prev) => prev.map((c) => (c.id === counselor.id ? { ...c, status: '승인됨' } : c)));
             setSelectedCounselor((prev) => ({ ...prev, status: '승인됨' }));
             showToast('승인이 완료되었습니다.');
-        } catch (err) {
+        } catch {
             alert('승인 처리 중 오류가 발생했습니다. 다시 시도해 주세요.');
-            console.error(err);
         } finally {
             setIsLoading(false);
         }
@@ -224,9 +223,8 @@ const AdminCounselor = () => {
             setSelectedCounselor((prev) => ({ ...prev, status: '반려' }));
             alert('반려 메일이 발송되었습니다.');
             setShowRejectModal(false);
-        } catch (err) {
+        } catch {
             alert('반려 처리 중 오류가 발생했습니다. 다시 시도해 주세요.');
-            console.error(err);
         } finally {
             setIsLoading(false);
         }
@@ -329,12 +327,7 @@ const AdminCounselor = () => {
                         <div className="ac-stats-row">
                             {stats.map((s, i) => (
                                 <div className="ac-stat-card" key={i}>
-                                    <div
-                                        className="ac-stat-icon"
-                                        style={{ background: s.color + '20', color: s.color }}
-                                    >
-                                        {s.icon}
-                                    </div>
+                                    <div className={`ac-stat-icon ac-stat-icon--${s.tone}`}>{s.icon}</div>
                                     <div>
                                         <div className="ac-stat-value">{s.value}</div>
                                         <div className="ac-stat-label">{s.label}</div>
@@ -383,12 +376,7 @@ const AdminCounselor = () => {
                                                                 : c.profile_img_url
                                                         }
                                                         alt="프로필"
-                                                        style={{
-                                                            width: '100%',
-                                                            height: '100%',
-                                                            objectFit: 'cover',
-                                                            borderRadius: '14px',
-                                                        }}
+                                                        className="u-img-cover-rounded-14"
                                                         onError={(e) => {
                                                             e.target.onerror = null;
                                                             e.target.style.display = 'none';
@@ -464,12 +452,7 @@ const AdminCounselor = () => {
                                                     : selectedCounselor.profile_img_url
                                             }
                                             alt="프로필"
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'cover',
-                                                borderRadius: '14px',
-                                            }}
+                                            className="u-img-cover-rounded-14"
                                         />
                                     ) : (
                                         selectedCounselor.name.charAt(0)
@@ -479,7 +462,7 @@ const AdminCounselor = () => {
                                     <h2 className="ac-detail-title">{selectedCounselor.name} 상담사</h2>
                                     <p className="ac-detail-subtitle">프로필 심사 · {selectedCounselor.email}</p>
                                 </div>
-                                <span style={{ marginLeft: 'auto' }}>
+                                <span className="u-ml-auto">
                                     <StatusBadge status={selectedCounselor.status} />
                                 </span>
                             </div>
@@ -494,7 +477,7 @@ const AdminCounselor = () => {
                                 </p>
                             </div>
 
-                            <div className="ac-detail-grid" style={{ marginTop: '20px' }}>
+                            <div className="ac-detail-grid u-mt-20">
                                 <div className="ac-info-section">
                                     <div className="ac-section-title">
                                         <Building2 size={16} /> 기본 정보 및 상담소
@@ -541,7 +524,7 @@ const AdminCounselor = () => {
                                             <span className="ac-info-key">
                                                 <GraduationCap size={13} /> 학력
                                             </span>
-                                            <span style={{ width: '100%' }}>
+                                            <span className="u-w-full">
                                                 {Array.isArray(selectedCounselor.educations) &&
                                                 selectedCounselor.educations.length > 0 ? (
                                                     <ul className="ac-list">
@@ -569,7 +552,7 @@ const AdminCounselor = () => {
                                             <span className="ac-info-key">
                                                 <Briefcase size={13} /> 경력
                                             </span>
-                                            <span style={{ width: '100%' }}>
+                                            <span className="u-w-full">
                                                 {Array.isArray(selectedCounselor.experiences) &&
                                                 selectedCounselor.experiences.length > 0 ? (
                                                     <ul className="ac-list">
@@ -595,7 +578,7 @@ const AdminCounselor = () => {
                                             <span className="ac-info-key">
                                                 <Award size={13} /> 자격증
                                             </span>
-                                            <span style={{ width: '100%' }}>
+                                            <span className="u-w-full">
                                                 {Array.isArray(selectedCounselor.certificates) &&
                                                 selectedCounselor.certificates.length > 0 ? (
                                                     <ul className="ac-list">
@@ -624,7 +607,7 @@ const AdminCounselor = () => {
                                 </div>
                             </div>
 
-                            <div className="ac-info-section" style={{ marginTop: '20px' }}>
+                            <div className="ac-info-section u-mt-20">
                                 <div className="ac-section-title">
                                     <Calendar size={16} /> 주간 상담 가능 일정
                                 </div>
@@ -767,12 +750,7 @@ const AdminCounselor = () => {
                                                                             : m.profile_img_url
                                                                     }
                                                                     alt="프로필"
-                                                                    style={{
-                                                                        width: '100%',
-                                                                        height: '100%',
-                                                                        objectFit: 'cover',
-                                                                        borderRadius: '14px',
-                                                                    }}
+                                                                    className="u-img-cover-rounded-14"
                                                                     onError={(e) => {
                                                                         e.target.onerror = null;
                                                                         e.target.style.display = 'none';
@@ -804,8 +782,10 @@ const AdminCounselor = () => {
                                                         {m.role}
                                                     </span>
                                                 </td>
-                                                <td className="ac-muted ac-col-joindate">{m.joinDate}</td>
-                                                <td className="ac-center ac-col-sessions">{m.sessions}회</td>
+                                                <td className="ac-muted ac-col-joindate">{m.created_at}</td>
+                                                <td className="ac-center ac-col-sessions">
+                                                    {m.role === '상담사' && m.sessions !== null ? `${m.sessions}회` : '—'}
+                                                </td>
                                                 <td>
                                                     <span
                                                         className={`ac-status-badge ${

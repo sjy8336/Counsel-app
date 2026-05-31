@@ -13,13 +13,23 @@ export const getAllBookings = async (options = {}) => {
 
 // 예약 취소(삭제)
 export const cancelBooking = async (orderId) => {
-    const response = await axios.delete(`${API_BASE_URL}/booking/cancel/${orderId}`);
+    const token = localStorage.getItem('access_token');
+    const response = await axios.delete(`${API_BASE_URL}/booking/cancel/${orderId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     return response.data;
 };
 
 // 상담 완료 처리
 export const completeBooking = async (orderId) => {
-    const response = await axios.post(`${API_BASE_URL}/booking/complete/${orderId}`);
+    const token = localStorage.getItem('access_token');
+    const response = await axios.post(
+        `${API_BASE_URL}/booking/complete/${orderId}`,
+        {},
+        {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }
+    );
     return response.data;
 };
 import axios from 'axios';

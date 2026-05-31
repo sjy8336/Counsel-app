@@ -26,8 +26,6 @@ export default function LoginPage({ setUserName, setIsLoggedIn }) {
         }
 
         try {
-            console.log('로그인 시도 아이디:', loginId);
-
             // 2. API 호출
             // 서버의 요구 형식에 따라 username: loginId로 매핑하여 전달
             const result = await login({ username: loginId, password: password });
@@ -39,7 +37,6 @@ export default function LoginPage({ setUserName, setIsLoggedIn }) {
 
             // 4. 로그인 성공 여부 확인
             if (!user) {
-                console.error('로그인 응답에 사용자 정보가 없습니다.', result);
                 alert('로그인에 실패했습니다. 서버 응답을 확인해주세요.');
                 return;
             }
@@ -67,8 +64,6 @@ export default function LoginPage({ setUserName, setIsLoggedIn }) {
                 navigate('/');
             }
         } catch (error) {
-            console.error('로그인 프로세스 중 에러 발생:', error);
-
             // Axios 에러 처리: 서버에서 보내준 상세 메시지가 있다면 출력
             const serverMessage = error.response?.data?.detail || error.response?.data?.message;
             const clientMessage = error.message;

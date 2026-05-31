@@ -221,6 +221,33 @@
     color: #8BA888;
 }
 
+.fp-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.fp-auth-container {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.fp-auth-text {
+    font-size: 13px;
+    color: #888;
+}
+
+.fp-auth-link {
+    margin-left: 8px;
+    font-weight: 600;
+}
+
 .auth-divider {
     color: #e2e8f0;
     user-select: none;

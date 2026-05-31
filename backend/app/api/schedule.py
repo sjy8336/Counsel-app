@@ -7,6 +7,8 @@ from app.models.counselor import CounselorSchedule
 from typing import List
 from datetime import date
 from app.schemas.counselor import CounselorScheduleCreate
+from app.core.deps import get_current_user
+from app.models.user import User
 
 router = APIRouter(prefix="/api/schedule", tags=["schedule"])
 # 근무일(스케줄) 추가
@@ -16,8 +18,11 @@ def add_schedule(
     day_of_week: str = Body(...),
     start_time: str = Body(...),
     end_time: str = Body(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    if current_user.role != "counselor" or current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="상담사 본인만 근무일을 등록할 수 있습니다.")
     # 중복 체크(동일 요일)
     exists = db.query(CounselorSchedule).filter_by(user_id=user_id, day_of_week=day_of_week).first()
     if exists:

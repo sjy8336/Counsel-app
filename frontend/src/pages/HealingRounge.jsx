@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Coffee, Sparkles, ExternalLink } from 'lucide-react';
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
@@ -137,7 +137,7 @@ export default function HealingRounge({ userName, setUserName, isLoggedIn, setIs
                         <div className="hr-tea-header-text">
                             <h3 className="hr-section-title">
                                 <span className="hr-section-title-text">오늘의 차와 향기</span>{' '}
-                                <span style={{ display: 'inline-block', animation: 'bounce 1s infinite' }}>🍵</span>
+                                <span className="u-bounce-inline">🍵</span>
                             </h3>
                             <p className="hr-section-subtitle">지금 당신에게 가장 필요한 감각의 휴식을 제안합니다.</p>
                         </div>

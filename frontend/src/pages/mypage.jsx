@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { uploadProfileImg } from '../api/profileImg';
 import { getMyInquiries } from '../api/inquiry';
-import { getNotifications } from '../api/notification';
+import { getNotifications, markNotificationRead } from '../api/notification';
 import { deleteAccount } from '../api/auth';
 import { getUserInfo, updateUserInfo, changePassword } from '../api/user';
 import { getCounselorClients } from '../api/counselorClients';
@@ -489,18 +489,19 @@ export default function MyPage() {
             alert('유의사항 동의가 필요합니다.');
             return;
         }
-        if (!userInfo.id) {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
             alert('로그인 정보가 없습니다.');
             return;
         }
         if (!window.confirm('정말로 계정을 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
         setWithdrawLoading(true);
         try {
-            await deleteAccount(Number(userInfo.id));
+            await deleteAccount(token);
             alert('계정이 영구 삭제되었습니다.');
             handleLogout();
-        } catch {
-            alert('계정 삭제에 실패했습니다.');
+        } catch (error) {
+            alert(error?.response?.data?.detail || '계정 삭제에 실패했습니다.');
         } finally {
             setWithdrawLoading(false);
         }
@@ -826,7 +827,7 @@ export default function MyPage() {
                             <input
                                 type="file"
                                 accept="image/*"
-                                style={{ display: 'none' }}
+                                className="u-hidden"
                                 ref={(ref) => (window.__profileImgInputRef = ref)}
                                 onChange={(e) => {
                                     const file = e.target.files?.[0];
@@ -843,8 +844,7 @@ export default function MyPage() {
                             />
                             <div className="profile-image-wrapper">
                                 <div
-                                    className="profile-avatar"
-                                    style={{ cursor: 'pointer' }}
+                                    className="profile-avatar u-pointer"
                                     onClick={() => window.__profileImgInputRef?.click()}
                                 >
                                     <img
@@ -896,8 +896,8 @@ export default function MyPage() {
                                                 userInfo.gender === 'female'
                                                     ? '여성'
                                                     : userInfo.gender === 'male'
-                                                        ? '남성'
-                                                        : userInfo.gender || ''
+                                                      ? '남성'
+                                                      : userInfo.gender || ''
                                             }
                                             readOnly
                                         />
@@ -1187,17 +1187,17 @@ export default function MyPage() {
                 <ul className="mypage-list mypage-list-grid">
                     {favoritesLoading ? (
                         <li className="mypage-list-empty">불러오는 중...</li>
-                                        ) : favoritesList.length === 0 ? (
-                                                <li style={{width:'100%', gridColumn: '1 / -1', listStyle: 'none'}}>
-                                                    <div className="inq-empty-state">
-                                                        <div className="inq-empty-icon">
-                                                            <Heart size={32} />
-                                                        </div>
-                                                        <p className="inq-empty-title">찜내역이 없습니다</p>
-                                                        <p className="inq-empty-sub">관심있는 상담사를 찜해보세요.</p>
-                                                    </div>
-                                                </li>
-                                        ) : (
+                    ) : favoritesList.length === 0 ? (
+                        <li className="u-grid-full">
+                            <div className="inq-empty-state">
+                                <div className="inq-empty-icon">
+                                    <Heart size={32} />
+                                </div>
+                                <p className="inq-empty-title">찜내역이 없습니다</p>
+                                <p className="inq-empty-sub">관심있는 상담사를 찜해보세요.</p>
+                            </div>
+                        </li>
+                    ) : (
                         favoritesList.map((item) => {
                             const itemId = item.counselor_id || item.id;
                             const name = item.counselor_name || item.name || item.full_name || '';
@@ -1212,8 +1212,16 @@ export default function MyPage() {
                                   : [];
                             const shown = specialties.slice(0, 3);
                             const extra = specialties.length - 3;
-                            const src =
-                                item.profile_img_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${name}`;
+
+                            let src = null;
+                            let showUserIcon = false;
+                            if (item.profile_img_url && item.profile_img_url.trim() !== '') {
+                                src = item.profile_img_url.startsWith('http')
+                                    ? item.profile_img_url
+                                    : API_URL.replace(/\/$/, '') + item.profile_img_url;
+                            } else {
+                                showUserIcon = true;
+                            }
 
                             return (
                                 <li
@@ -1229,7 +1237,7 @@ export default function MyPage() {
                                         <Heart size={14} color="#e74c3c" fill="#e74c3c" />
                                     </div>
                                     <div className="mypage-favorite-avatar">
-                                        <img src={src} alt={counselorName} />
+                                        {showUserIcon ? <User size={32} /> : <img src={src} alt={counselorName} />}
                                     </div>
                                     <div className="mypage-favorite-content">
                                         <div className="mypage-list-title">{counselorName}</div>
@@ -1311,7 +1319,7 @@ export default function MyPage() {
         const handleNotificationClick = async (item) => {
             if (!item.read) {
                 const token = localStorage.getItem('access_token');
-                setNotifications((prev) => prev.map((n) => n.id === item.id ? { ...n, read: true } : n));
+                setNotifications((prev) => prev.map((n) => (n.id === item.id ? { ...n, read: true } : n)));
                 try {
                     await markNotificationRead(item.id, token);
                 } catch (e) {
@@ -1339,10 +1347,7 @@ export default function MyPage() {
             ) {
                 setActiveMenu('history');
                 setActiveSubMenu(null);
-            } else if (
-                type === 'inquiry' ||
-                type === 'inquiry_answered'
-            ) {
+            } else if (type === 'inquiry' || type === 'inquiry_answered') {
                 setActiveMenu('inquiry');
                 setActiveSubMenu(null);
             }
@@ -1374,8 +1379,7 @@ export default function MyPage() {
                                 {visible.map((item) => (
                                     <div
                                         key={item.id}
-                                        className={`cmp-notif-item${!item.read ? ' unread' : ''}`}
-                                        style={{ cursor: 'pointer' }}
+                                        className={`cmp-notif-item${item.read ? ' read' : ' unread'} u-pointer`}
                                         onClick={() => handleNotificationClick(item)}
                                     >
                                         <span className="cmp-item-avatar notif">
@@ -1687,7 +1691,7 @@ export default function MyPage() {
                                         const joinDate = new Date(userInfo.created_at);
                                         const today = new Date();
                                         // 시차 보정 (UTC → KST)
-                                        const diffTime = today.setHours(0,0,0,0) - joinDate.setHours(0,0,0,0);
+                                        const diffTime = today.setHours(0, 0, 0, 0) - joinDate.setHours(0, 0, 0, 0);
                                         const days = Math.max(1, Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1);
                                         return `마음 근육을 키운 지 ${days}일째 되는 날이에요. 🌿`;
                                     })()}

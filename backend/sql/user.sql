@@ -17,10 +17,14 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+ALTER TABLE users ADD COLUMN profile_img_url VARCHAR(255) NULL;
+ALTER TABLE users MODIFY profile_img_url LONGTEXT;
+
 SELECT * From users; 
 
 
-DELETE FROM users WHERE id = 2;
+DELETE FROM users WHERE id = 16;
+
 INSERT INTO users (id, full_name, username, email, hashed_password, phone_number, birth_date, gender, role, is_active) 
 VALUES (3, '테스터', 'test_counselor', 'test@test.com', '1234', '010-1243-4565', '2002-04-23', 'male', 'admin', 1);
 
@@ -87,6 +91,9 @@ CREATE TABLE `counselor_profiles` (
   UNIQUE KEY `user_id` (`user_id`),
   CONSTRAINT `fk_profile_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+ALTER TABLE counselor_profiles ADD COLUMN reject_reason TEXT;
+ALTER TABLE counselor_profiles DROP COLUMN profile_img_url;
 
 SELECT * From counselor_profiles;
 
@@ -208,6 +215,8 @@ CREATE TABLE `bookings` (
 ALTER TABLE bookings
 ADD COLUMN client_name VARCHAR(100) NULL AFTER counselor_id;
 ALTER TABLE bookings MODIFY COLUMN client_id INT NULL;
+ALTER TABLE bookings
+ADD CONSTRAINT uq_counselor_date_time UNIQUE (counselor_id, booking_date, booking_time);
 
 SELECT * From bookings;
 commit;

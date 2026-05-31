@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
@@ -22,15 +22,7 @@ const CounselorHome = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(!!userName);
     const [reservations, setReservations] = useState([]);
     const [toast, setToast] = useState(null);
-    // 문의 상태 및 미답변 문의 계산
-    const [inquiries, setInquiries] = useState([]);
-    const unreadInquiries = inquiries.filter((i) => i.status === 'pending');
-
-    useEffect(() => {
-        // 실제 문의 데이터 fetch 함수로 교체 필요
-        // 예: getCounselorInquiries().then(setInquiries);
-        setInquiries([]); // 문의 데이터가 없으면 빈 배열
-    }, []);
+    const unreadInquiries = [];
 
     const getToday = () => {
         const now = new Date();
@@ -52,40 +44,40 @@ const CounselorHome = () => {
     );
 
     // 예약 데이터 변환 함수
-    const mapReservations = (data) => {
-        const today = new Date();
-        return (data || []).map((r) => {
-            const dateObj = new Date(r.date);
-            const dday = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
-            const days = ['일', '월', '화', '수', '목', '금', '토'];
-            // 예약 객체에서 프로필 이미지 우선순위: r.profile_img_url → r.client_profile_img_url → ''
-            const profile_img_url = r.profile_img_url || r.client_profile_img_url || '';
-            return {
-                id: r.id,
-                order_id: r.order_id,
-                name: r.client_name,
-                type: r.survey_content?.type || '상담',
-                date: `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 (${days[dateObj.getDay()]}) ${r.time}`,
-                dateObj,
-                dday,
-                status: r.status,
-                profile_img_url,
-            };
-        });
-    };
-
-    const fetchReservations = async () => {
+    const fetchReservations = useCallback(async () => {
         try {
             const data = await getCounselorBookings();
-            setReservations(mapReservations(data));
+            const today = new Date();
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            setReservations(
+                (data || []).map((r) => {
+                    const dateObj = new Date(r.date);
+                    const dday = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
+                    const profile_img_url = r.profile_img_url || r.client_profile_img_url || '';
+                    return {
+                        id: r.id,
+                        order_id: r.order_id,
+                        name: r.client_name,
+                        type: r.survey_content?.type || '상담',
+                        date: `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 (${days[dateObj.getDay()]}) ${r.time}`,
+                        dateObj,
+                        dday,
+                        status: r.status,
+                        profile_img_url,
+                    };
+                })
+            );
         } catch {
             setReservations([]);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        fetchReservations();
-    }, []);
+        const timerId = window.setTimeout(() => {
+            void fetchReservations();
+        }, 0);
+        return () => window.clearTimeout(timerId);
+    }, [fetchReservations]);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -185,7 +177,7 @@ const CounselorHome = () => {
                 <section className="banner-card">
                     <div className="banner-text">
                         <p className="banner-date">{getToday()}</p>
-                        <h1 style={{ wordBreak: 'keep-all', lineHeight: '1.4' }}>
+                        <h1>
                             {userName}님, 오늘 상담은 <span className="point-color">총 {todaySessions.length}건</span>
                             입니다.
                         </h1>
@@ -231,73 +223,30 @@ const CounselorHome = () => {
                             <h3 className="section-title">오늘의 상담 요약</h3>
                             <div className="list-wrapper">
                                 {todaySessions.length === 0 ? (
-                                    <div
-                                        style={{
-                                            padding: '32px 0',
-                                            textAlign: 'center',
-                                            color: '#888',
-                                            fontSize: '1.05rem',
-                                        }}
-                                    >
+                                    <div className="ch-empty-state">
                                         오늘 예정된 상담이 없습니다.
                                         <br />
                                         편안한 하루 보내세요!
                                     </div>
                                 ) : (
                                     todaySessions.map((s, i) => (
-                                        <div
-                                            key={i}
-                                            className="list-item"
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'space-between',
-                                                gap: '12px',
-                                                padding: '12px 16px',
-                                                marginBottom: '10px',
-                                            }}
-                                        >
-                                            <div
-                                                className="item-info"
-                                                style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}
-                                            >
-                                                <span className="time" style={{ minWidth: '45px', fontWeight: 'bold' }}>
+                                        <div key={i} className="list-item ch-session-item">
+                                            <div className="item-info ch-session-info">
+                                                <span className="time ch-session-time">
                                                     {s.time}
                                                 </span>
-                                                <div
-                                                    style={{
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        overflow: 'hidden',
-                                                    }}
-                                                >
-                                                    <strong style={{ fontSize: '1rem', whiteSpace: 'nowrap' }}>
-                                                        {s.name} 내담자
-                                                    </strong>
-                                                    <span
-                                                        className="desc"
-                                                        style={{
-                                                            fontSize: '0.85rem',
-                                                            color: '#666',
-                                                            whiteSpace: 'nowrap',
-                                                        }}
-                                                    >
+                                                <div className="ch-session-stack">
+                                                    <strong className="ch-session-title">{s.name} 내담자</strong>
+                                                    <span className="desc ch-session-desc">
                                                         {s.room}
                                                     </span>
                                                 </div>
                                             </div>
                                             <button
-                                                className="action-btn"
+                                                className="action-btn ch-session-action"
                                                 onClick={() =>
                                                     navigate('/CounselorClient', { state: { scrollToTop: true } })
                                                 }
-                                                style={{
-                                                    width: 'auto',
-                                                    minWidth: '80px',
-                                                    padding: '8px 12px',
-                                                    fontSize: '0.85rem',
-                                                    flexShrink: 0,
-                                                }}
                                             >
                                                 일지 작성
                                             </button>
@@ -351,9 +300,8 @@ const CounselorHome = () => {
                         {/* 확정된 예약 — 가장 가까운 1개만, 없으면 렌더링 안 함 */}
                         {nextConfirmed && (
                             <div
-                                className="reservation-card is-next"
+                                className="reservation-card is-next u-pointer"
                                 onClick={() => navigate('/CounselorPlanner')}
-                                style={{ cursor: 'pointer' }}
                             >
                                 <span className="next-badge">NEXT</span>
                                 <div className="res-top">
@@ -386,9 +334,8 @@ const CounselorHome = () => {
                         {pendingList.map((r) => (
                             <div
                                 key={r.id}
-                                className="reservation-card"
+                                className="reservation-card u-pointer"
                                 onClick={() => navigate('/CounselorPlanner')}
-                                style={{ cursor: 'pointer' }}
                             >
                                 <div className="res-top">
                                     <div className="res-avatar">

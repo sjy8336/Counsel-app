@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List
@@ -7,12 +8,12 @@ from app.db.session import get_db
 from app.models.user import User
 from app.models.favorite import Favorite
 from app.models.counselor import CounselorProfile, CounselorSpecialty
+from app.models.counseling_log import CounselingLog
 from app.core.deps import get_current_user
 from app.schemas.user import UserCreate, LoginRequest, UserUpdate, ChangePasswordRequest, UserResponse
 from app.core.jwt import create_access_token
 from app.crud import crud
 from passlib.context import CryptContext
-from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -21,35 +22,46 @@ router = APIRouter()
 def get_all_users(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     if current_user.role != 'admin':
         raise HTTPException(status_code=403, detail="관리자만 접근 가능합니다.")
-    users = db.query(User).all()
+    sessions_subquery = (
+        db.query(
+            CounselingLog.counselor_id.label('user_id'),
+            func.count(CounselingLog.id).label('sessions_count')
+        )
+        .group_by(CounselingLog.counselor_id)
+        .subquery()
+    )
+    users = (
+        db.query(User, func.coalesce(sessions_subquery.c.sessions_count, 0).label('sessions_count'))
+        .outerjoin(sessions_subquery, sessions_subquery.c.user_id == User.id)
+        .all()
+    )
     # birth_date가 date 타입이면 str로 변환
     user_dicts = []
-    from app.models.counselor import CounselorProfile
-    for u in users:
+    for u, sessions_count in users:
         d = u.__dict__.copy()
         if hasattr(u, 'birth_date') and u.birth_date is not None:
             d['birth_date'] = str(u.birth_date)
         # is_active가 누락되는 경우를 방지
         d['is_active'] = bool(getattr(u, 'is_active', True))
         # 프로필 이미지 URL 추가 (상담사만)
-        # profile_img_url은 users 테이블 기준으로 통일
         d['profile_img_url'] = u.profile_img_url if hasattr(u, 'profile_img_url') else None
+        d['sessions_count'] = int(sessions_count or 0)
+        # created_at을 문자열로 추가
+        if hasattr(u, 'created_at') and u.created_at is not None:
+            d['created_at'] = str(u.created_at)
+        else:
+            d['created_at'] = None
         user_dicts.append(d)
     from app.schemas.user import UserResponse
     return [UserResponse(**d) for d in user_dicts]
 
-# 계정 영구 삭제용 pydantic 모델
-class DeleteAccountRequest(BaseModel):
-    user_id: int
-
 @router.post("/delete-account")
-def delete_account(req: DeleteAccountRequest, db: Session = Depends(get_db)):
-    """유저 계정 영구 삭제(soft delete)"""
-    result = crud.remove_user(db, req.user_id)
+def delete_account(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """유저 계정 비활성화(soft delete)"""
+    result = crud.remove_user(db, current_user.id)
     if result:
         return {"message": "계정이 삭제(비활성화)되었습니다."}
-    else:
-        raise HTTPException(status_code=404, detail="유저를 찾을 수 없습니다.")
+    raise HTTPException(status_code=404, detail="유저를 찾을 수 없습니다.")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -60,8 +72,7 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="이미 존재하는 아이디입니다.")
 
-    # 2. 비밀번호 길이 체크 및 디버깅 출력
-    print(f"[DEBUG] password: {user_in.password} (len={len(user_in.password)})")
+    # 2. 비밀번호 길이 체크
     if len(user_in.password) > 13:
         raise HTTPException(status_code=400, detail="비밀번호는 최대 13자까지 입력 가능합니다.")
 
@@ -156,21 +167,17 @@ def update_user(user_update: UserUpdate, db: Session = Depends(get_db)):
     if duplicate_email_user:
         raise HTTPException(status_code=400, detail="이미 사용 중인 이메일입니다.")
 
-    print("[DEBUG] 수정 전:", user.id, user.full_name, user.email, user.phone_number, user.profile_img_url)
     user.full_name = user_update.full_name
     user.email = user_update.email
     user.phone_number = user_update.phone_number
     if user_update.profile_img_url is not None:
         user.profile_img_url = user_update.profile_img_url
-    print("[DEBUG] 수정 후:", user.id, user.full_name, user.email, user.phone_number, user.profile_img_url)
     try:
         db.commit()
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=400, detail="이미 사용 중인 이메일입니다.")
-    print("[DEBUG] commit 완료")
     db.refresh(user)
-    print("[DEBUG] DB에서 다시 읽은 값:", user.id, user.full_name, user.email, user.phone_number)
     return {
         "message": "정보가 수정되었습니다.",
         "updated_at": user.updated_at
@@ -179,31 +186,23 @@ def update_user(user_update: UserUpdate, db: Session = Depends(get_db)):
 # --- 비밀번호 변경 ---
 @router.post("/user/change-password")
 def change_password(req: ChangePasswordRequest, db: Session = Depends(get_db)):
-    print("[DEBUG] change-password req:", req)
     user = db.query(User).filter(User.id == req.user_id).first()
-    print("[DEBUG] user:", user)
     if not user:
-        print("[DEBUG] 유저 없음")
         raise HTTPException(status_code=404, detail="유저를 찾을 수 없습니다.")
     # 현재 비밀번호 검증
     try:
         pw_check = pwd_context.verify(req.current_password, user.hashed_password)
     except Exception as e:
-        print("[DEBUG] pwd_context.verify 예외:", e)
         raise HTTPException(status_code=500, detail="비밀번호 검증 중 오류 발생")
-    print("[DEBUG] pw_check:", pw_check)
     if not pw_check:
-        print("[DEBUG] 현재 비밀번호 불일치")
         raise HTTPException(status_code=400, detail="현재 비밀번호가 일치하지 않습니다.")
     # 새 비밀번호 해시 후 저장
     try:
         user.hashed_password = pwd_context.hash(req.new_password)
         db.commit()
         db.refresh(user)
-        print("[DEBUG] 비밀번호 변경 성공")
         return {"message": "비밀번호가 성공적으로 변경되었습니다.", "updated_at": user.updated_at}
     except Exception as e:
-        print("[DEBUG] 비밀번호 변경/DB commit 예외:", e)
         raise HTTPException(status_code=500, detail="비밀번호 변경 중 오류 발생")
 
 @router.get("/me")
@@ -224,7 +223,6 @@ def get_me(current_user=Depends(get_current_user)):
 
 @router.post("/favorites/{counselor_id}")
 def toggle_favorite(counselor_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    # print(f"[DEBUG] toggle_favorite 진입: current_user={getattr(current_user, 'id', None)}, counselor_id={counselor_id}")
     # counselor_id가 실제 존재하는 상담사(유저)인지 확인
     counselor = db.query(User).filter(User.id == counselor_id).first()
     if not counselor:
@@ -234,20 +232,16 @@ def toggle_favorite(counselor_id: int, db: Session = Depends(get_db), current_us
             Favorite.client_id == current_user.id,
             Favorite.counselor_id == counselor_id
         ).first()
-        # print(f"[DEBUG] 기존 favorite: {favorite}")
         if favorite:
             db.delete(favorite)
             db.commit()
-            # print("[DEBUG] 찜 삭제 완료")
             return {"message": "찜하기 취소됨", "is_favorite": False}
         else:
             new_fav = Favorite(client_id=current_user.id, counselor_id=counselor_id)
             db.add(new_fav)
             db.commit()
-            # print("[DEBUG] 찜 추가 완료")
             return {"message": "찜하기 성공", "is_favorite": True}
     except Exception as e:
-        # print(f"[ERROR] toggle_favorite 예외: {e}")
         raise HTTPException(status_code=500, detail=f"찜 처리 중 오류: {e}")
 
 # 찜 목록 조회
@@ -286,7 +280,7 @@ def get_favorites(db: Session = Depends(get_db), current_user = Depends(get_curr
             "intro": profile.intro_line if profile else None,
             "consultation_price": profile.consultation_price if profile else None,
             "center_name": profile.center_name if profile else None,
-            "profile_img_url": counselor.user.profile_img_url if counselor and hasattr(counselor, 'user') and hasattr(counselor.user, 'profile_img_url') else None
+            "profile_img_url": counselor.profile_img_url if counselor and hasattr(counselor, 'profile_img_url') else None
         })
 
     return {"favorites": result}

@@ -23,9 +23,10 @@ class UserResponse(BaseModel):
     birth_date: str
     gender: str
     role: str
-
+    created_at: Optional[str] = None
     is_active: bool
     profile_img_url: Optional[str] = None
+    sessions_count: Optional[int] = 0
     class Config:
         from_attributes = True
         json_encoders = {

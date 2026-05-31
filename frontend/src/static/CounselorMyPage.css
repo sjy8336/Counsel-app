@@ -1,3 +1,8 @@
+/* 찜 목록 User 아이콘 크기 조정 */
+.mypage-favorite-avatar .lucide-user {
+    width: 28px;
+    height: 28px;
+}
 .cmp-reject-box {
     background: #fff5f5;
     border: 1.5px solid #fecaca;
@@ -90,23 +95,39 @@
 
 /* ─── CSS 변수 ───────────────────────────────────────────────────────────────── */
 :root {
-    --cmp-primary: #8BA888; /* Sage Green */
-    --cmp-primary-light: #FAF7F2; /* Sand Beige (Sub Background) */
-    --cmp-primary-dark: #8BA888; /* Sage Green (same as main) */
-    --cmp-bg: #FDFBF7; /* Warm White (Background) */
+    --cmp-primary: #8ba888; /* Sage Green */
+    --cmp-primary-light: #faf7f2; /* Sand Beige (Sub Background) */
+    --cmp-primary-dark: #8ba888; /* Sage Green (same as main) */
+    --cmp-bg: #fdfbf7; /* Warm White (Background) */
     --cmp-card: #ffffff;
-    --cmp-text: #1E293B; /* Slate Navy (Text Main) */
+    --cmp-text: #1e293b; /* Slate Navy (Text Main) */
     --cmp-sub: #888888;
     --cmp-border: #eeeeee;
-    --cmp-danger: #FDA4AF; /* Soft Rose (Accent 1) */
-    --cmp-accent1: #FDA4AF; /* Soft Rose */
-    --cmp-accent2: #F59E0B; /* Amber */
+    --cmp-danger: #fda4af; /* Soft Rose (Accent 1) */
+    --cmp-accent1: #fda4af; /* Soft Rose */
+    --cmp-accent2: #f59e0b; /* Amber */
     --cmp-sidebar-w: 240px;
 }
 
 * {
     box-sizing: border-box;
-    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', 'Nanum Gothic', '나눔고딕', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-family:
+        'Pretendard',
+        'Apple SD Gothic Neo',
+        'Malgun Gothic',
+        '맑은 고딕',
+        'Nanum Gothic',
+        '나눔고딕',
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        'Roboto',
+        'Helvetica Neue',
+        Arial,
+        sans-serif;
     margin: 0;
     padding: 0;
 }
@@ -376,13 +397,13 @@
 
 /* stat icon 색상 variants — JSX inline style 대체 */
 .cmp-stat-icon--green {
-    background: #E8F5E9;
+    background: #e8f5e9;
 }
 .cmp-stat-icon--orange {
-    background: #FFF5E6;
+    background: #fff5e6;
 }
 .cmp-stat-icon--red {
-    background: #FFEBEE;
+    background: #ffebee;
 }
 
 .cmp-stat-label {
@@ -633,7 +654,11 @@
 }
 
 .cmp-notif-item.unread {
-    background: #fafffe;
+    background: #f6fbf6;
+}
+
+.cmp-notif-item.read {
+    background: #ffffff;
 }
 
 .cmp-notif-content {

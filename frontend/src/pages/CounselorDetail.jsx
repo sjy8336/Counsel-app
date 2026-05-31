@@ -119,8 +119,8 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
     const [availableTimesForDate, setAvailableTimesForDate] = useState([]);
-    const [reservedTimes, setReservedTimes] = useState([]); // 예약된 시간 목록
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [, setReservedTimes] = useState([]); // 예약된 시간 목록
+    const [isSubmitting] = useState(false);
     const [liked, setLiked] = useState(location.state?.isLiked || false);
     const [toast, setToast] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
@@ -141,12 +141,11 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                         setHolidays([]);
                     }
                 }
-            } catch (e) {
+            } catch {
                 setHolidays([]);
             }
         };
         fetchHolidays();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [counselor?.id, counselor?.user?.id]);
 
     const showToast = (msg) => setToast(msg);
@@ -319,7 +318,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                 });
                 // 예약된 시간, 블록된 시간 모두 제외
                 setAvailableTimesForDate(times.filter((t) => !reserved.includes(t) && !blockedTimes.includes(t)));
-            } catch (e) {
+            } catch {
                 setReservedTimes([]);
                 setAvailableTimesForDate(times);
             }
@@ -355,7 +354,6 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                 // 아니면 Date로 변환 후 월+1 보정
                 const hd = new Date(h);
                 if (isNaN(hd)) return false;
-                const hStr = formatDate(hd.getFullYear(), hd.getMonth(), hd.getDate());
                 // getMonth()는 0부터 시작하므로 +1 필요
                 const hStrFixed = `${hd.getFullYear()}-${String(hd.getMonth() + 1).padStart(2, '0')}-${String(hd.getDate()).padStart(2, '0')}`;
                 return hStrFixed === dateStr;
@@ -554,7 +552,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                 </label>
                                 <div className="cld-time-grid">
                                     {availableTimesForDate.length === 0 && selectedDate && (
-                                        <span style={{ color: '#b0b0b0', fontSize: '14px' }}>
+                                        <span className="u-muted-sm">
                                             선택한 날짜에 가능한 시간이 없습니다.
                                         </span>
                                     )}
@@ -703,7 +701,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                             </label>
                             <div className="cld-time-grid">
                                 {availableTimesForDate.length === 0 && selectedDate && (
-                                    <span style={{ color: '#b0b0b0', fontSize: '14px' }}>
+                                    <span className="u-muted-sm">
                                         선택한 날짜에 가능한 시간이 없습니다.
                                     </span>
                                 )}

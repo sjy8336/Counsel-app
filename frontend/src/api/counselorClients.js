@@ -127,7 +127,7 @@ export const getCounselorClients = async () => {
                         }
                     });
                     client.keywords = Array.from(allKeywords);
-                } catch (err) {
+                } catch {
                     client.logs = [];
                     client.keywords = [];
                 }
@@ -143,13 +143,13 @@ export const getCounselorClients = async () => {
                     return log;
                 });
                 client.keywords = Array.from(allKeywords);
-            } catch (err) {
+            } catch {
                 client.logs = [];
             }
         });
         await Promise.all(logPromises);
-    } catch (error) {
-        console.error('상담일지 데이터를 불러오는 중 오류 발생:', error);
+    } catch {
+        return uniqueClients;
     }
     return uniqueClients;
 };

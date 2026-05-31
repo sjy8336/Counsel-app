@@ -9,18 +9,6 @@ import { getCounselorClients, addCounselingLog, putCounselingLog, deleteCounseli
 
 const STATUS_CLASS = { '진행 중': 'status-ing', '대기 중': 'status-wait', 종료: 'status-end' };
 
-const findTargetBooking = (clientObj) => {
-    if (!Array.isArray(clientObj?.bookings) || clientObj.bookings.length === 0) return null;
-    const usedIds = (clientObj.logs || []).map((l) => l.booking_id);
-    const available = clientObj.bookings.filter((b) => !usedIds.includes(b.id) && b.status?.includes('확정'));
-    if (!available.length) return null;
-    const now = new Date();
-    const future = available.filter((b) => new Date(`${b.date}T${b.time}`) >= now);
-    return [...(future.length ? future : available)].sort(
-        (a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`)
-    )[0];
-};
-
 const formatBookingDate = (booking) => {
     if (!booking) return '';
     const [y, m, d] = booking.date.split('-');
@@ -54,31 +42,38 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
     const [availableBookings, setAvailableBookings] = useState([]);
     const dateDropdownRef = useRef(null);
 
-    const fetchClients = async () => {
-        try {
-            const data = await getCounselorClients();
-            const normalized = data.map((c) => ({
-                ...c,
-                status: c.status || '진행 중',
-            }));
-            setClients(normalized);
-            if (!selectedId && normalized.length > 0) setSelectedId(normalized[0].id);
-        } catch (e) {
-            console.error('내담자 목록 불러오기 실패:', e);
-            setClients([]);
-        }
-    };
-
     useEffect(() => {
-        fetchClients();
-    }, []);
+        let cancelled = false;
 
-    useEffect(() => {
-        if (location.state?.selectedClientName && clients.length > 0) {
-            const target = clients.find((c) => c.name === location.state.selectedClientName);
-            if (target) setSelectedId(target.id);
-        }
-    }, [location.state, clients]);
+        (async () => {
+            try {
+                const data = await getCounselorClients();
+                if (cancelled) return;
+
+                const normalized = data.map((c) => ({
+                    ...c,
+                    status: c.status || '진행 중',
+                }));
+                setClients(normalized);
+
+                const targetName = location.state?.selectedClientName;
+                const targetClient = targetName ? normalized.find((c) => c.name === targetName) : null;
+                if (targetClient) {
+                    setSelectedId(targetClient.id);
+                } else if (normalized.length > 0) {
+                    setSelectedId((prev) => prev ?? normalized[0].id);
+                }
+            } catch {
+                if (!cancelled) {
+                    setClients([]);
+                }
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [location.state?.selectedClientName]);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -255,7 +250,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
             );
             setDeleteModal({ open: false, logId: null });
             setOpenLogId(null);
-        } catch (e) {
+        } catch {
             alert('상담일지 삭제에 실패했습니다.');
         }
     };
@@ -409,7 +404,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                     height="15"
                                     viewBox="0 0 20 20"
                                     fill="none"
-                                    style={{ marginRight: 5, verticalAlign: 'middle' }}
+                                    className="u-icon-inline"
                                 >
                                     <rect
                                         x="4"
@@ -435,7 +430,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                     height="14"
                                     viewBox="0 0 20 20"
                                     fill="none"
-                                    style={{ marginRight: 5, verticalAlign: 'middle' }}
+                                    className="u-icon-inline"
                                 >
                                     <path d="M10 4v12M4 10h12" stroke="white" strokeWidth="2" strokeLinecap="round" />
                                 </svg>
@@ -461,7 +456,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                     height="14"
                                     viewBox="0 0 20 20"
                                     fill="none"
-                                    style={{ marginRight: 5, verticalAlign: 'middle' }}
+                                    className="u-icon-inline"
                                 >
                                     <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.6" />
                                     <path
@@ -482,7 +477,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                     height="36"
                                     viewBox="0 0 24 24"
                                     fill="none"
-                                    style={{ marginBottom: 10, opacity: 0.35 }}
+                                    className="u-mb-10 u-opacity-35"
                                 >
                                     <rect
                                         x="4"
@@ -637,7 +632,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                                 height="14"
                                                 viewBox="0 0 20 20"
                                                 fill="none"
-                                                style={{ marginRight: 5, flexShrink: 0 }}
+                                                className="u-icon-inline-sm"
                                             >
                                                 <rect
                                                     x="3"
@@ -660,7 +655,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                                 height="12"
                                                 viewBox="0 0 14 14"
                                                 fill="none"
-                                                style={{ marginLeft: 4, flexShrink: 0 }}
+                                                className={`cc-date-chevron${dateDropdownOpen ? ' is-open' : ''} u-ml-4 u-flex-shrink-0`}
                                             >
                                                 <path
                                                     d="M3 5l4 4 4-4"
@@ -769,7 +764,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                 <div key={q} className="cc-survey-group">
                                     <label>{q}</label>
                                     <div className="cc-survey-ans">
-                                        {a || <span style={{ color: '#94a3b8' }}>미입력</span>}
+                                        {a || <span className="u-muted">미입력</span>}
                                     </div>
                                 </div>
                             ))}

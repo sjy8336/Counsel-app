@@ -123,7 +123,9 @@ const App = () => {
                     localStorage.removeItem(DRAFT_KEY(prevUid));
                 }
                 localStorage.setItem('counselor_upload_prev_userid', String(uid));
-            } catch (e) {}
+            } catch {
+                fetchAndApplyUser(userId);
+            }
         })();
     }, []);
 
@@ -152,7 +154,7 @@ const App = () => {
                 );
                 setWeeklySchedule(d.weeklySchedule ?? initSchedule());
                 setProfileImage(d.profileImage ?? null);
-            } catch (e) {
+            } catch {
                 fetchAndApplyUser(userId);
             }
         } else {
@@ -171,14 +173,9 @@ const App = () => {
                 setBasicEmail(user.email || '');
                 setBasicPhone(user.phone_number || '');
             }
-        } catch (e) {}
-    };
-
-    const applyUserDefaults = (user) => {
-        setBasicName(user.full_name || '');
-        setBasicId(user.username || user.id || '');
-        setBasicEmail(user.email || '');
-        setBasicPhone(user.phone_number || '');
+        } catch {
+            return;
+        }
     };
 
     const prevUserId = useRef(null);
@@ -357,9 +354,8 @@ const App = () => {
             setSubmitSuccess(true);
             showToast('등록 신청이 완료되었습니다.');
             setTimeout(() => navigate('/CounselorMyPage', { state: { profileStatus: '심사중' } }), 1200);
-        } catch (err) {
+        } catch {
             alert('등록 중 오류가 발생했습니다.');
-            console.error(err);
         }
     };
 
@@ -400,7 +396,7 @@ const App = () => {
                             </p>
                         </div>
                         <button className="cu-modal-close" onClick={() => setShowConfirmModal(false)}>
-                            <X style={{ width: '1rem', height: '1rem' }} />
+                            <X className="cu-modal-close-icon" />
                         </button>
                     </div>
 
@@ -532,9 +528,7 @@ const App = () => {
                     <hr className="cu-modal-divider" />
 
                     <div className="cu-modal-notice">
-                        <AlertCircle
-                            style={{ width: '1rem', height: '1rem', color: '#8ba888', flexShrink: 0, marginTop: '1px' }}
-                        />
+                        <AlertCircle className="cu-modal-notice-icon" />
                         <p className="cu-modal-notice-text">
                             등록 신청 후 관리자 검토까지 <strong>영업일 기준 2~3일</strong>이 소요됩니다. 심사 결과는
                             등록하신 이메일로 안내드립니다.
@@ -547,14 +541,14 @@ const App = () => {
                             onClick={() => setConfirmChecked((v) => !v)}
                         >
                             {confirmChecked && (
-                                <CheckCircle2 style={{ width: '.75rem', height: '.75rem', color: '#fff' }} />
+                                <CheckCircle2 className="cu-modal-check-icon" />
                             )}
                         </div>
                         <input
                             type="checkbox"
                             checked={confirmChecked}
                             onChange={(e) => setConfirmChecked(e.target.checked)}
-                            style={{ display: 'none' }}
+                            className="cu-hidden-input"
                         />
                         <span className="cu-modal-check-label">
                             위 내용을 모두 확인하였으며, 사실과 다름이 없습니다.
@@ -586,10 +580,10 @@ const App = () => {
                     {profileImage ? (
                         <img src={profileImage} alt="프로필" className="cu-ep-photo-img" />
                     ) : (
-                        <User style={{ color: '#8BA888', width: '3.5rem', height: '3.5rem' }} />
+                        <User className="cu-ep-photo-icon" />
                     )}
                     <div className="cu-ep-photo-overlay">
-                        <Plus style={{ color: '#fff', width: '1.5rem', height: '1.5rem' }} />
+                        <Plus className="cu-ep-photo-plus-icon" />
                     </div>
                 </div>
                 <input
@@ -615,13 +609,13 @@ const App = () => {
                                 } else {
                                     alert('이미지 업로드에 실패했습니다.');
                                 }
-                            } catch (err) {
+                            } catch {
                                 alert('이미지 업로드에 실패했습니다.');
                             }
                         }
                     }}
                     accept="image/*"
-                    style={{ display: 'none' }}
+                    className="cu-hidden-input"
                 />
                 <p className="cu-ep-photo-hint">
                     JPG, PNG 지원
@@ -694,7 +688,7 @@ const App = () => {
                 <div className="cu-ep-divider">
                     <div className="cu-ep-field-group">
                         <label className="cu-ep-group-label">
-                            <MapPin style={{ width: '1rem', height: '1rem', color: '#8BA888' }} /> 상담소 정보
+                            <MapPin className="cu-ep-section-icon" /> 상담소 정보
                         </label>
                     </div>
                 </div>
@@ -766,7 +760,7 @@ const App = () => {
                         inputMode="numeric"
                         pattern="[0-9,]*"
                     />
-                    <div style={{ fontSize: '0.85rem', color: '#888', marginTop: '0.1rem', whiteSpace: 'nowrap' }}>
+                    <div className="cu-ep-note">
                         ※ 대면 상담 기준 시간당 평균가를 입력해 주세요.
                     </div>
                 </div>
@@ -779,7 +773,7 @@ const App = () => {
         <div className="cu-ep-expertise cu-ep-animate">
             <section>
                 <h3 className="cu-ep-section-title">
-                    <CheckCircle2 style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} />
+                    <CheckCircle2 className="cu-ep-section-icon" />
                     전문 상담분야 <span className="cu-ep-section-hint">(중복 선택 가능)</span>
                 </h3>
                 <div className="cu-ep-chips">
@@ -814,7 +808,7 @@ const App = () => {
                                         onClick={() => toggleDayActive(day)}
                                         className={`cu-ep-toggle-btn${d.active ? ' cu-ep-toggle-on' : ''}`}
                                     >
-                                        <CheckCircle2 style={{ width: '1rem', height: '1rem' }} />
+                                        <CheckCircle2 className="cu-ep-section-icon" />
                                     </button>
                                     <span className={`cu-ep-day-label${d.active ? ' cu-ep-day-label-on' : ''}`}>
                                         {day}
@@ -863,7 +857,7 @@ const App = () => {
                                                             onClick={() => removeTimeSlot(day, idx)}
                                                             className="cu-ep-slot-rm"
                                                         >
-                                                            <X style={{ width: '.875rem', height: '.875rem' }} />
+                                                            <X className="cu-ep-add-icon" />
                                                         </button>
                                                     )}
                                                 </div>
@@ -873,7 +867,7 @@ const App = () => {
                                                 className="cu-ep-slot-add"
                                                 title="시간 추가"
                                             >
-                                                <Plus style={{ width: '1rem', height: '1rem' }} />
+                                                <Plus className="cu-ep-add-icon" />
                                             </button>
                                         </div>
                                     ) : (
@@ -896,10 +890,10 @@ const App = () => {
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
-                        <Award style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} /> 자격증
+                        <Award className="cu-ep-section-icon" /> 자격증
                     </h3>
                     <button onClick={addCertificate} className="cu-ep-add-btn">
-                        <Plus style={{ width: '.875rem', height: '.875rem' }} /> 추가
+                        <Plus className="cu-ep-add-icon" /> 추가
                     </button>
                 </div>
                 <div className="cu-ep-items">
@@ -933,7 +927,7 @@ const App = () => {
                             </div>
                             <div className="cu-ep-edu-rm-row">
                                 <button onClick={() => removeCertificate(cert.id)} className="cu-ep-rm-btn">
-                                    <Trash2 style={{ width: '1rem', height: '1rem' }} />
+                                    <Trash2 className="cu-ep-remove-icon" />
                                 </button>
                             </div>
                         </div>
@@ -945,10 +939,10 @@ const App = () => {
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
-                        <BookOpen style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} /> 학력 사항
+                        <BookOpen className="cu-ep-section-icon" /> 학력 사항
                     </h3>
                     <button onClick={addEducation} className="cu-ep-add-btn">
-                        <Plus style={{ width: '.875rem', height: '.875rem' }} /> 추가
+                        <Plus className="cu-ep-add-icon" /> 추가
                     </button>
                 </div>
                 <div className="cu-ep-edu-items">
@@ -1000,7 +994,7 @@ const App = () => {
                                     onClick={() => removeEducation(edu.id)}
                                     className="cu-ep-rm-btn"
                                 >
-                                    <Trash2 style={{ width: '1rem', height: '1rem' }} />
+                                    <Trash2 className="cu-ep-remove-icon" />
                                 </button>
                             </div>
                         </div>
@@ -1012,10 +1006,10 @@ const App = () => {
             <section>
                 <div className="cu-ep-section-header">
                     <h3 className="cu-ep-section-title">
-                        <User style={{ width: '1.25rem', height: '1.25rem', color: '#8BA888' }} /> 경력 사항
+                        <User className="cu-ep-section-icon" /> 경력 사항
                     </h3>
                     <button onClick={addExperience} className="cu-ep-add-btn">
-                        <Plus style={{ width: '.875rem', height: '.875rem' }} /> 추가
+                        <Plus className="cu-ep-add-icon" /> 추가
                     </button>
                 </div>
                 <div className="cu-ep-items">
@@ -1076,7 +1070,7 @@ const App = () => {
                                     onClick={() => removeExperience(exp.id)}
                                     className="cu-ep-rm-btn"
                                 >
-                                    <Trash2 style={{ width: '1rem', height: '1rem' }} />
+                                    <Trash2 className="cu-ep-remove-icon" />
                                 </button>
                             </div>
                         </div>
@@ -1092,16 +1086,13 @@ const App = () => {
             {showConfirmModal && renderConfirmModal()}
             {toastMsg && <div className="cu-toast-popup cu-toast-popup--show">{toastMsg}</div>}
             {submitSuccess && (
-                <div
-                    className="cu-toast-popup cu-toast-popup--show"
-                    style={{ background: '#8BA888', color: '#fff', zIndex: 9999 }}
-                >
+                <div className="cu-toast-popup cu-toast-popup--show cu-toast-popup--success">
                     등록이 완료되었습니다. 마이페이지로 이동합니다.
                 </div>
             )}
 
             <button className="cu-ep-float-btn" onClick={handleSaveDraft}>
-                <Save style={{ width: '1rem', height: '1rem', color: '#8BA888' }} />
+                <Save className="cu-ep-save-icon" />
                 <span className="cu-ep-float-label">임시저장</span>
             </button>
 
@@ -1142,16 +1133,8 @@ const App = () => {
                     {activeTab === 'history' && renderHistory()}
 
                     <div className="cu-ep-nav">
-                        <div className="cu-ep-nav-hint" style={{ color: '#8BA888', fontSize: '.97rem' }}>
-                            <CheckCircle2
-                                style={{
-                                    width: '1rem',
-                                    height: '1rem',
-                                    color: '#8BA888',
-                                    flexShrink: 0,
-                                    marginRight: '.3rem',
-                                }}
-                            />
+                        <div className="cu-ep-nav-hint cu-ep-nav-hint--primary">
+                            <CheckCircle2 className="cu-ep-nav-hint-icon" />
                             관리자 승인까지는 최대 2~3일 소요될 수 있습니다.
                         </div>
                         <div className="cu-ep-nav-btns">

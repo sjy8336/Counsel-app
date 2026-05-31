@@ -34,11 +34,6 @@ export default function App() {
     const counselorIdRaw = location.state?.counselorId || searchParams.get('counselorId');
     const counselorId = counselorIdRaw ? Number(counselorIdRaw) : null;
 
-    // 진단 로그: 실제 값 확인
-    useEffect(() => {
-        // eslint-disable-next-line no-console
-        console.log('[문의하기] counselorIdRaw:', counselorIdRaw, 'counselorId:', counselorId);
-    }, [counselorIdRaw, counselorId]);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [formData, setFormData] = useState({
