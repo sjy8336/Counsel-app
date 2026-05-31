@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiUrl } from '../api/axiosInstance';
 import {
     User,
     Award,
@@ -596,7 +597,7 @@ const App = () => {
                             formData.append('file', file);
                             try {
                                 const token = localStorage.getItem('access_token');
-                                const res = await fetch('/api/upload/profile-image', {
+                                const res = await fetch(apiUrl('/upload/profile-image'), {
                                     method: 'POST',
                                     headers: {
                                         Authorization: `Bearer ${token}`,

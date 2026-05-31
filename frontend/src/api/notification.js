@@ -1,14 +1,14 @@
-import axios from 'axios';
+import axiosInstance from './axiosInstance';
 
 export async function getNotifications(token) {
-    return axios.get('/api/notifications', {
+    return axiosInstance.get('/notifications', {
         headers: { Authorization: `Bearer ${token}` },
     });
 }
 
 export async function markNotificationRead(notifId, token) {
-    return axios.post(
-        `/api/notifications/${notifId}/read`,
+    return axiosInstance.post(
+        `/notifications/${notifId}/read`,
         {},
         {
             headers: { Authorization: `Bearer ${token}` },

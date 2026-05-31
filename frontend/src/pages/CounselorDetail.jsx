@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 import { getBlockedSlots } from '../api/blockedSlot';
 import { toggleFavorite } from '../api/favorite';
 import { isTokenExpired } from '../utils/jwt';
@@ -36,8 +36,8 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
 
     const [counselor, setCounselor] = useState(null);
     useEffect(() => {
-        axios
-            .get(`/api/counselors/${id}`)
+        axiosInstance
+            .get(`/counselors/${id}`)
             .then((res) => setCounselor(res.data))
             .catch(() => setCounselor(null));
     }, [id]);
@@ -296,7 +296,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
             // 예약된 시간, 예약불가시간(블록) 조회
             try {
                 const [reservedRes, blockedRes] = await Promise.all([
-                    axios.get(`/api/booking/reserved-times`, {
+                    axiosInstance.get('/booking/reserved-times', {
                         params: {
                             counselor_id: counselor?.id || counselor?.user?.id,
                             date: dateStr,

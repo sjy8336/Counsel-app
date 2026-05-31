@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { API_BASE_URL } from './axiosInstance';
+import axiosInstance from './axiosInstance';
 
 /**
  * 상담사가 예약을 승인(확정)하는 API
@@ -7,8 +6,8 @@ import { API_BASE_URL } from './axiosInstance';
  */
 export const confirmBooking = async (orderId) => {
     const token = localStorage.getItem('access_token');
-    const response = await axios.post(
-        `${API_BASE_URL}/booking/confirm`,
+    const response = await axiosInstance.post(
+        '/booking/confirm',
         { order_id: orderId },
         {
             headers: {

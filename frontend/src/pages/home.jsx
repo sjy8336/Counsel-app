@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAllBookings } from '../api/booking';
+import { apiUrl } from '../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, ChevronRight, PenTool, MapPin, Clock, Heart, Coffee, User, Lock } from 'lucide-react';
 import '../static/home.css';
@@ -118,7 +119,7 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
             setRecommendedCounselorName('');
             try {
                 const params = new URLSearchParams({ offset: '0', limit: '20', summary: 'true' });
-                const cRes = await fetch(`/api/counselors/approved?${params.toString()}`);
+                const cRes = await fetch(apiUrl(`/counselors/approved?${params.toString()}`));
                 if (!cRes.ok) return;
 
                 const cData = await cRes.json();

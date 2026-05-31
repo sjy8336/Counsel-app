@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import { toggleFavorite, getFavorites } from '../api/favorite';
+import { apiUrl } from '../api/axiosInstance';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, User, Heart, ChevronDown, Check, X } from 'lucide-react';
 import Header from '../components/header';
@@ -112,7 +113,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                 }
 
                 const [counselorRes, favList] = await Promise.all([
-                    fetch(`/api/counselors/approved?${params.toString()}`),
+                    fetch(apiUrl(`/counselors/approved?${params.toString()}`)),
                     token ? getFavorites(token) : Promise.resolve({ favorites: [] }),
                 ]);
                 if (!counselorRes.ok) throw new Error('상담사 목록 조회 실패');
@@ -204,7 +205,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                         if (searchTerm) params.append('search', searchTerm);
                         if (selectedSubCategories.length > 0) params.append('category', selectedSubCategories[0]);
 
-                        const res = await fetch(`/api/counselors/approved?${params.toString()}`);
+                        const res = await fetch(apiUrl(`/counselors/approved?${params.toString()}`));
                         if (!res.ok) throw new Error('상담사 추가 조회 실패');
                         const data = await res.json();
                         setDbCounselors((prev) => [

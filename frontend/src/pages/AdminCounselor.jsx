@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiUrl, API_ORIGIN_URL } from '../api/axiosInstance';
 import {
     Users,
     ClipboardCheck,
@@ -37,6 +38,8 @@ const AdminCounselor = () => {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectReason, setRejectReason] = useState('경력 증빙 서류가 불충분합니다. 보완 후 재등록 부탁드립니다.');
     const [searchQuery, setSearchQuery] = useState('');
+
+    const resolveStaticUrl = (path) => (API_ORIGIN_URL ? `${API_ORIGIN_URL}${path}` : path);
     const [roleFilter, setRoleFilter] = useState('전체');
     const [isLoading, setIsLoading] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,7 +73,7 @@ const AdminCounselor = () => {
         const fetchPendingCounselors = async () => {
             try {
                 const token = localStorage.getItem('access_token');
-                const res = await fetch('/api/admin/counselors/pending', {
+                const res = await fetch(apiUrl('/admin/counselors/pending'), {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!res.ok) throw new Error('목록 조회 실패');
@@ -131,7 +134,7 @@ const AdminCounselor = () => {
         const fetchMembers = async () => {
             try {
                 const token = localStorage.getItem('access_token');
-                const res = await fetch('/api/admin/users', {
+                const res = await fetch(apiUrl('/admin/users'), {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!res.ok) throw new Error('회원 목록 조회 실패');
@@ -185,7 +188,7 @@ const AdminCounselor = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('access_token');
-            const res = await fetch(`/api/admin/counselors/${counselor.id}/approve`, {
+            const res = await fetch(apiUrl(`/admin/counselors/${counselor.id}/approve`), {
                 method: 'PATCH',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -209,7 +212,7 @@ const AdminCounselor = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('access_token');
-            const res = await fetch(`/api/admin/counselors/${selectedCounselor.id}/reject`, {
+            const res = await fetch(apiUrl(`/admin/counselors/${selectedCounselor.id}/reject`), {
                 method: 'PATCH',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -369,12 +372,12 @@ const AdminCounselor = () => {
                                         <div className="ac-counselor-row" key={c.id}>
                                             <div className="ac-counselor-avatar">
                                                 {c.profile_img_url && typeof c.profile_img_url === 'string' ? (
-                                                    <img
-                                                        src={
-                                                            c.profile_img_url.startsWith('/static/')
-                                                                ? `${window.location.origin}${c.profile_img_url}`
-                                                                : c.profile_img_url
-                                                        }
+                                                        <img
+                                                            src={
+                                                                c.profile_img_url.startsWith('/static/')
+                                                                    ? resolveStaticUrl(c.profile_img_url)
+                                                                    : c.profile_img_url
+                                                            }
                                                         alt="프로필"
                                                         className="u-img-cover-rounded-14"
                                                         onError={(e) => {
@@ -448,7 +451,7 @@ const AdminCounselor = () => {
                                         <img
                                             src={
                                                 selectedCounselor.profile_img_url.startsWith('/static/')
-                                                    ? `${window.location.origin}${selectedCounselor.profile_img_url}`
+                                                    ? resolveStaticUrl(selectedCounselor.profile_img_url)
                                                     : selectedCounselor.profile_img_url
                                             }
                                             alt="프로필"
@@ -746,7 +749,7 @@ const AdminCounselor = () => {
                                                                 <img
                                                                     src={
                                                                         m.profile_img_url.startsWith('/static/')
-                                                                            ? `${window.location.origin}${m.profile_img_url}`
+                                                                            ? resolveStaticUrl(m.profile_img_url)
                                                                             : m.profile_img_url
                                                                     }
                                                                     alt="프로필"
