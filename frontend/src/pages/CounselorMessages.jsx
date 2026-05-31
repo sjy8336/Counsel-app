@@ -4,6 +4,7 @@ import Footer from '../components/footer';
 import MobileTap from '../components/mobileTap';
 import { getReceivedInquiries } from '../api/inquiry';
 import axios from 'axios';
+import { apiUrl } from '../api/axiosInstance';
 import {
     Search,
     MessageSquare,
@@ -119,7 +120,7 @@ const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
             const token = localStorage.getItem('access_token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
             await axios.put(
-                `${import.meta.env.VITE_API_BASE_URL}/inquiries/${selectedInquiryId}/reply`,
+                apiUrl(`/inquiries/${selectedInquiryId}/reply`),
                 { answer: replyText },
                 { headers }
             );

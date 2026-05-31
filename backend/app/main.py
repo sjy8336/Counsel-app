@@ -1,10 +1,12 @@
 # FastAPI 실행을 위한 기본 코드
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, counselor, upload, payment, booking, notification, counseling_log, holiday, schedule, blocked_slot, inquiry, ai_diary, ai_diary_recent
+from app.core.config import settings
 
 from fastapi.staticfiles import StaticFiles
-import os
 
 app = FastAPI()
 
@@ -12,9 +14,11 @@ app.include_router(payment.router, prefix="/api/payment", tags=["payment"])
 app.include_router(booking.router, prefix="/api/booking", tags=["booking"])
 
 # CORS 설정
+allowed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], # 리액트 주소
+    allow_origins=allowed_origins, # 프론트엔드 주소
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

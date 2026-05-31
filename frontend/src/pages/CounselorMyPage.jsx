@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 import {
     LayoutDashboard,
     Bell,
@@ -933,8 +933,8 @@ const App = () => {
         if (newPw !== confirmPw) return setPwError('새 비밀번호가 일치하지 않습니다.');
         try {
             const token = localStorage.getItem('access_token');
-            await axios.put(
-                '/api/auth/change-password',
+            await axiosInstance.put(
+                '/user/change-password',
                 { current_password: currentPw, new_password: newPw },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -952,7 +952,7 @@ const App = () => {
         formData.append('file', file);
         try {
             const token = localStorage.getItem('access_token');
-            const res = await axios.post('/api/upload/profile-image', formData, {
+            const res = await axiosInstance.post('/upload/profile-image', formData, {
                 headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
             });
             if (res.data?.profile_img_url) {

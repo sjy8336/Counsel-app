@@ -4,7 +4,9 @@ import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck, Cal
 import { getNotifications } from '../api/notification';
 import { getCounselorProfile } from '../api/counselor.js';
 import { getUserInfo } from '../api/user';
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { API_ORIGIN_URL } from '../api/axiosInstance';
+
+const API_URL = API_ORIGIN_URL;
 const avatarSrc = (name, url) => {
     if (url?.trim()) {
         if (url.startsWith('/static/')) {

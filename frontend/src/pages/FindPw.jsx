@@ -5,6 +5,7 @@ import MobileTap from '../components/mobileTap';
 import { useNavigate } from 'react-router-dom';
 import { Mail, ChevronRight, BookHeart, User, ChevronLeft } from 'lucide-react';
 import axios from 'axios'; // axios 라이브러리 사용
+import { apiUrl } from '../api/axiosInstance';
 import '../static/Login.css'; // 기존 로그인 스타일 시트 유지
 
 export default function FindPwPage() {
@@ -25,7 +26,7 @@ export default function FindPwPage() {
         setIsLoading(true);
         try {
             // 백엔드 API 호출
-            const response = await axios.post('/api/auth/find-password', {
+            const response = await axios.post(apiUrl('/auth/find-password'), {
                 username: id,
                 email: email,
             });

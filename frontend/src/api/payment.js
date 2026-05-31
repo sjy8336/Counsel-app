@@ -1,7 +1,4 @@
-import axios from 'axios';
-
-// 백엔드 기본 주소 (설정 파일이 있다면 거기서 가져오세요)
-const API_BASE_URL = 'http://localhost:8000/api';
+import axiosInstance from './axiosInstance';
 
 /**
  * 토스 결제 승인 요청을 백엔드로 보냅니다.
@@ -9,7 +6,7 @@ const API_BASE_URL = 'http://localhost:8000/api';
  */
 export const confirmPayment = async (paymentData) => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/payment/confirm`, paymentData, {
+        const response = await axiosInstance.post('/payment/confirm', paymentData, {
             headers: {
                 'Content-Type': 'application/json',
             },

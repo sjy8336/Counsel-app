@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     # 4. OpenAI API 키 (.env의 OPENAI_API_KEY와 일치해야 함)
     OPENAI_API_KEY: Optional[str] = None
 
+    # 5. CORS 허용 오리진 (콤마로 여러 개 설정 가능)
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:5173")
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

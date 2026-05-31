@@ -1,9 +1,28 @@
-// 환경에 맞게 BASE URL 지정 (예시)
-export const API_BASE_URL = '/api';
 import axios from 'axios';
 
+const normalizeUrl = (value) => value?.replace(/\/$/, '') || '';
+
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+const apiOriginUrl = import.meta.env.VITE_API_URL;
+
+export const API_ORIGIN_URL = normalizeUrl(
+    apiOriginUrl || (apiBaseUrl ? apiBaseUrl.replace(/\/api\/?$/, '') : '')
+);
+
+const rawApiBaseUrl =
+    apiBaseUrl || (apiOriginUrl ? `${normalizeUrl(apiOriginUrl)}/api` : '/api');
+
+export const API_BASE_URL = normalizeUrl(rawApiBaseUrl);
+
+export const apiUrl = (path = '') => {
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return `${API_BASE_URL}${normalizedPath}`;
+};
+
 // 공통 axios 인스턴스 생성
-const axiosInstance = axios.create();
+const axiosInstance = axios.create({
+    baseURL: API_BASE_URL,
+});
 
 // 401 에러 인터셉터
 axiosInstance.interceptors.response.use(

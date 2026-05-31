@@ -9,6 +9,7 @@ import { getClientLogs } from '../api/clientLogs';
 import { getFavorites, toggleFavorite } from '../api/favorite';
 import { getAllBookings } from '../api/booking';
 import { isTokenExpired } from '../utils/jwt';
+import { API_ORIGIN_URL } from '../api/axiosInstance';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MobileTap from '../components/mobileTap';
 import '../static/MyPage.css';
@@ -526,7 +527,7 @@ export default function MyPage() {
     };
 
     // ── 아바타 공통 ──
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const API_URL = API_ORIGIN_URL;
     const avatarSrc = (name, url) => {
         if (url?.trim()) {
             if (url.startsWith('/static/')) {
