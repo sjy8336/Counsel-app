@@ -134,7 +134,10 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         "username": user.username,
         "email": user.email,
         "phone_number": user.phone_number,
-        "profile_img_url": user.profile_img_url
+        "profile_img_url": user.profile_img_url,
+        "gender": user.gender,
+        "birth": user.birth_date,
+        "created_at": user.created_at.isoformat() if user.created_at else None,
     }
 
 # --- 유저 정보 수정 ---

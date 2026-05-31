@@ -23,7 +23,6 @@ import {
     MessageSquareHeart,
     History,
     Wallet,
-    Calendar,
     MessagesSquare,
     ArrowLeft,
     User,
@@ -52,6 +51,8 @@ import {
     MessageSquare,
     CreditCard,
     Receipt,
+    Mars,
+    Venus,
 } from 'lucide-react';
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
@@ -223,6 +224,7 @@ export default function MyPage() {
     const [activeMenu, setActiveMenu] = useState(() => {
         if (location.state?.showNotifications) return 'notifications';
         if (location.state?.showInquiry) return 'inquiry';
+        if (location.state?.showHistory) return 'history';
         return 'dashboard';
     });
     const [activeSubMenu, setActiveSubMenu] = useState(null);
@@ -232,7 +234,6 @@ export default function MyPage() {
         username: '',
         email: '',
         phone: '',
-        birth: '',
         gender: '',
         profile_img_url: '',
     });
@@ -311,9 +312,9 @@ export default function MyPage() {
                     username: userData.username,
                     email: userData.email,
                     phone: userData.phone_number,
-                    birth: userData.birth || '',
                     gender: userData.gender || '',
                     profile_img_url: userData.profile_img_url || '',
+                    created_at: userData.created_at || '',
                 }));
                 setFavoritesList(favData.favorites || []);
             })
@@ -636,10 +637,11 @@ export default function MyPage() {
                     </div>
                     <div className="history-list-container">
                         {historyList.length === 0 ? (
-                            <div className="history-list-empty">
-                                <CalendarDays size={32} />
-                                <p className="history-list-empty-title">상담 기록이 없습니다</p>
-                                <p className="history-list-empty-desc">상담이 완료되면 이곳에 기록이 표시됩니다.</p>
+                            <div className="cmp-notif-empty">
+                                <div className="cmp-notif-empty-icon">
+                                    <Bell size={22} />
+                                </div>
+                                <p className="cmp-notif-empty-title">상담 기록이 없습니다</p>
                             </div>
                         ) : (
                             historyList.map((item) => (
@@ -885,6 +887,8 @@ export default function MyPage() {
                                 <div className="profile-info-half">
                                     <label className="input-label">성별</label>
                                     <div className="relative-input-box">
+                                        {userInfo.gender === 'female' && <Venus className="input-icon" size={20} />}
+                                        {userInfo.gender === 'male' && <Mars className="input-icon" size={20} />}
                                         <input
                                             type="text"
                                             className="custom-input bg-readonly"
@@ -892,38 +896,25 @@ export default function MyPage() {
                                                 userInfo.gender === 'female'
                                                     ? '여성'
                                                     : userInfo.gender === 'male'
-                                                      ? '남성'
-                                                      : ''
+                                                        ? '남성'
+                                                        : userInfo.gender || ''
                                             }
                                             readOnly
                                         />
                                     </div>
                                 </div>
                             </div>
-                            <div className="profile-info-row">
-                                <div className="profile-info-half">
-                                    <label className="input-label">생년월일</label>
-                                    <div className="relative-input-box">
-                                        <Calendar className="input-icon" size={20} />
-                                        <input
-                                            type="date"
-                                            className="custom-input"
-                                            value={userInfo.birth}
-                                            onChange={(e) => setUserInfo((p) => ({ ...p, birth: e.target.value }))}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="profile-info-half">
-                                    <label className="input-label">휴대폰 번호</label>
-                                    <div className="relative-input-box">
-                                        <Phone className="input-icon" size={20} />
-                                        <input
-                                            type="tel"
-                                            className="custom-input"
-                                            value={userInfo.phone}
-                                            onChange={(e) => setUserInfo((p) => ({ ...p, phone: e.target.value }))}
-                                        />
-                                    </div>
+                            {/* ↓ 생년월일 제거 후 휴대폰 번호만 단독 렌더 */}
+                            <div className="profile-info-half">
+                                <label className="input-label">휴대폰 번호</label>
+                                <div className="relative-input-box">
+                                    <Phone className="input-icon" size={20} />
+                                    <input
+                                        type="tel"
+                                        className="custom-input"
+                                        value={userInfo.phone}
+                                        onChange={(e) => setUserInfo((p) => ({ ...p, phone: e.target.value }))}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -1196,9 +1187,17 @@ export default function MyPage() {
                 <ul className="mypage-list mypage-list-grid">
                     {favoritesLoading ? (
                         <li className="mypage-list-empty">불러오는 중...</li>
-                    ) : favoritesList.length === 0 ? (
-                        <li className="mypage-list-empty">찜내역이 없습니다.</li>
-                    ) : (
+                                        ) : favoritesList.length === 0 ? (
+                                                <li style={{width:'100%', gridColumn: '1 / -1', listStyle: 'none'}}>
+                                                    <div className="inq-empty-state">
+                                                        <div className="inq-empty-icon">
+                                                            <Heart size={32} />
+                                                        </div>
+                                                        <p className="inq-empty-title">찜내역이 없습니다</p>
+                                                        <p className="inq-empty-sub">관심있는 상담사를 찜해보세요.</p>
+                                                    </div>
+                                                </li>
+                                        ) : (
                         favoritesList.map((item) => {
                             const itemId = item.counselor_id || item.id;
                             const name = item.counselor_name || item.name || item.full_name || '';
@@ -1309,11 +1308,51 @@ export default function MyPage() {
             inquiry_answered: <Mail size={15} />,
         };
 
+        const handleNotificationClick = async (item) => {
+            if (!item.read) {
+                const token = localStorage.getItem('access_token');
+                setNotifications((prev) => prev.map((n) => n.id === item.id ? { ...n, read: true } : n));
+                try {
+                    await markNotificationRead(item.id, token);
+                } catch (e) {
+                    // 실패해도 UI는 유지
+                }
+            }
+
+            const type = (item.type || '').toLowerCase();
+            if (
+                type === 'booking' ||
+                type === 'booking_request' ||
+                type === 'booking_confirm' ||
+                type === 'booking_confirmed' ||
+                type === 'booking_rejected' ||
+                type === 'booking_cancelled' ||
+                type === 'reservation'
+            ) {
+                navigate('/reserve');
+            } else if (
+                type === 'counsel_log' ||
+                type === 'counseling_log_registered' ||
+                type === 'counsel' ||
+                type === 'session' ||
+                type === 'log'
+            ) {
+                setActiveMenu('history');
+                setActiveSubMenu(null);
+            } else if (
+                type === 'inquiry' ||
+                type === 'inquiry_answered'
+            ) {
+                setActiveMenu('inquiry');
+                setActiveSubMenu(null);
+            }
+        };
+
         return (
             <>
                 {isMobile && (
                     <button className="mobile-back-btn mobile-back-btn--with-label" onClick={handleBackToDashboard}>
-                        <ChevronRight className="mp-rotate-180" size={20} /> 뒤로가기
+                        <ChevronRight className="mp-rotate-180" size={20} />
                     </button>
                 )}
                 <div className={isMobile ? 'mp-mobile-top-offset-56' : ''}>
@@ -1333,7 +1372,12 @@ export default function MyPage() {
                             <>
                                 <div className="cmp-notif-group-label">최근 알림</div>
                                 {visible.map((item) => (
-                                    <div key={item.id} className={`cmp-notif-item${!item.read ? ' unread' : ''}`}>
+                                    <div
+                                        key={item.id}
+                                        className={`cmp-notif-item${!item.read ? ' unread' : ''}`}
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => handleNotificationClick(item)}
+                                    >
                                         <span className="cmp-item-avatar notif">
                                             {NOTIF_ICON_MAP[item.type] ?? <Bell size={15} />}
                                         </span>
@@ -1637,7 +1681,17 @@ export default function MyPage() {
                                 <h2 className="user-name-title">
                                     안녕하세요, {userInfo.name ? `${userInfo.name}님` : ''}!
                                 </h2>
-                                <p className="user-status-msg">마음 근육을 키운 지 42일째 되는 날이에요. 🌿</p>
+                                <p className="user-status-msg">
+                                    {(() => {
+                                        if (!userInfo.created_at) return '마음 근육을 키운 지 0일째 되는 날이에요. 🌿';
+                                        const joinDate = new Date(userInfo.created_at);
+                                        const today = new Date();
+                                        // 시차 보정 (UTC → KST)
+                                        const diffTime = today.setHours(0,0,0,0) - joinDate.setHours(0,0,0,0);
+                                        const days = Math.max(1, Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1);
+                                        return `마음 근육을 키운 지 ${days}일째 되는 날이에요. 🌿`;
+                                    })()}
+                                </p>
                             </div>
                         </div>
                         <button className="user-notif-check-btn" onClick={() => setActiveMenu('notifications')}>
