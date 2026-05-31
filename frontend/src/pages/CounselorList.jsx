@@ -144,7 +144,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                     });
                 }
                 setLiked(initialLikes);
-            } catch (err) {
+            } catch {
                 setDbCounselors([]);
             } finally {
                 setLoading(false);
@@ -169,7 +169,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                 onFavoriteChange(id, res.is_favorite);
             }
             showToast(res.is_favorite ? '찜이 추가되었습니다.' : '찜이 취소되었습니다.');
-        } catch (err) {
+        } catch {
             alert('찜 처리 중 오류가 발생했습니다.');
         }
     };
@@ -225,8 +225,8 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                             })),
                         ]);
                         setPageOffset((prev) => prev + data.counselors.length);
-                    } catch (err) {
-                        console.error(err);
+                    } catch {
+                        setDbCounselors([]);
                     } finally {
                         setLoading(false);
                     }
@@ -260,7 +260,6 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
     );
 
     const CounselorCard = memo(function CounselorCard({
-        id,
         name,
         category,
         field,
@@ -275,15 +274,12 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
             <div className="counlist-counselor-card" onClick={onClick}>
                 <div className="counlist-card-top">
                     <div className="counlist-profile-placeholder">
-                        {profile_img_url &&
-                        profile_img_url.trim() !== '' &&
-                        !profile_img_url.startsWith('https://api.dicebear.com/') &&
-                        !profile_img_url.includes('notionists/svg?seed=') ? (
+                        {profile_img_url && profile_img_url.trim() !== '' ? (
                             <img
                                 src={profile_img_url}
                                 alt="프로필"
                                 loading="lazy"
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }}
+                                className="u-img-cover-rounded-16"
                                 onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.style.display = 'none';
@@ -318,21 +314,19 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
 
     return (
         <>
+            <Header
+                activeTab="search"
+                setActiveTab={() => {}}
+                userName={userName}
+                setUserName={setUserName}
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+            />
             {toast && <div className="counlist-mp-toast">{toast}</div>}
             <div className="counlist-full-page-wrapper">
-                <Header
-                    activeTab="search"
-                    setActiveTab={() => {}}
-                    userName={userName}
-                    setUserName={setUserName}
-                    isLoggedIn={isLoggedIn}
-                    setIsLoggedIn={setIsLoggedIn}
-                />
-
                 <div className="counlist-counselor-list-container wide">
                     <header className="counlist-clist-search-header">
                         <h2 className="counlist-clist-search-title">전문가 찾기</h2>
-
                         <div className="counlist-modern-filter-bar-container">
                             <div className="counlist-clist-search-bar-wrapper">
                                 <Search className="counlist-clist-search-icon" size={18} />
@@ -344,7 +338,6 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
-
                             {/* 드롭다운 루트 */}
                             <div className="counlist-custom-dropdown-root" ref={dropdownRef}>
                                 <button
@@ -361,7 +354,6 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                                         className={`counlist-arrow-icon ${isDropdownOpen ? 'rotated' : ''}`}
                                     />
                                 </button>
-
                                 {/* 판넬 레이어 */}
                                 {isDropdownOpen && (
                                     <div className="counlist-dropdown-panel-layer">
@@ -411,7 +403,6 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                                 )}
                             </div>
                         </div>
-
                         {/* 선택 태그 배지 대시보드 */}
                         {selectedSubCategories.length > 0 && (
                             <div className="counlist-selected-tags-badge-board">
@@ -431,7 +422,6 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                             </div>
                         )}
                     </header>
-
                     <main className="counlist-counselor-grid counlist-pc-full">
                         {loading && dbCounselors.length === 0 ? (
                             Array.from({ length: 3 }).map((_, idx) => <SkeletonCard key={idx} />)
@@ -465,7 +455,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                                     />
                                 ))}
                                 {dbCounselors.length < totalCount && (
-                                    <div ref={loaderRef} style={{ height: 40, background: 'none' }} />
+                                    <div ref={loaderRef} className="u-loader-spacer" />
                                 )}
                             </>
                         )}

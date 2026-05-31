@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { isTokenExpired } from './utils/jwt';
+import './static/common.css';
 
 import Home from './pages/home';
 import AdminCounselor from './pages/AdminCounselor';
@@ -84,7 +85,6 @@ function App() {
         const token = localStorage.getItem('access_token');
 
         if (!token || isTokenExpired(token)) {
-            console.warn('인증 만료 또는 토큰 없음 -> 로그인 이동');
             localStorage.removeItem('access_token');
             localStorage.removeItem('user');
             localStorage.removeItem('login_time');

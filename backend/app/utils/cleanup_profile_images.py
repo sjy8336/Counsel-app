@@ -6,9 +6,12 @@ profile_images 폴더에서 users.profile_img_url에 없는 파일 중 N일 이�
 import sys
 import os
 import time
+import logging
 from sqlalchemy.orm import sessionmaker
 from app.db.session import engine
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 PROFILE_IMG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../static/profile_images'))
 
@@ -30,7 +33,6 @@ if __name__ == "__main__":
             if now - mtime > days * 86400:
                 try:
                     os.remove(fpath)
-                    print(f"[CLEANUP] 삭제됨: {fpath}")
                 except Exception as e:
-                    print(f"[CLEANUP] 삭제 실패: {fpath} - {e}")
+                    logger.warning("프로필 이미지 정리 실패: %s - %s", fpath, e)
     db.close()

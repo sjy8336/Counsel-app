@@ -541,6 +541,10 @@
     transition: all 0.18s;
 }
 
+.sv-prev--spaced {
+    margin-top: 14px;
+}
+
 .sv-prev:hover {
     border-color: var(--sv-primary);
     color: var(--sv-primary-dark);

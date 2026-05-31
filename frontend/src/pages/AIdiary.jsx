@@ -40,7 +40,6 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
     const [stressLevel, setStressLevel] = useState(0);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [showResult, setShowResult] = useState(false);
-    const [viewDiary, setViewDiary] = useState(false);
     const [activeTab, setActiveTab] = useState('AIdiary');
 
     const [reportData, setReportData] = useState({
@@ -61,7 +60,7 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
             try {
                 const data = await getRecentDiaries(3);
                 setRecentDiaries(data);
-            } catch (e) {
+            } catch {
                 setRecentDiaries([]);
             }
         };
@@ -82,40 +81,14 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
 
     const isSubmitDisabled = isAnalyzing || !diaryText.trim() || !selectedEmotion || emotionIntensity === 0;
 
-    const getDynamicAnalysisText = () => {
-        const { stress, intensity, emotionId, text } = reportData;
-        const emoLabel = emotions.find((e) => e.id === emotionId)?.label || '';
-        let analysis = '';
-        let stressAdvice = '';
-        const empathy = `기록해주신 소중한 문장들 속에서 당신의 진심이 온전히 전해집니다. 오늘 하루도 정말 고생 많으셨습니다.`;
-
-        if (intensity > 80) {
-            analysis = `오늘 느끼신 '${emoLabel}'의 감정은 당신의 마음을 가득 채울 만큼 아주 강렬한 상태입니다. 이 에너지가 당신에게 어떤 의미인지 깊이 들여다보는 시간이 필요해 보여요.`;
-        } else if (intensity > 40) {
-            analysis = `현재 '${emoLabel}'의 기분을 적절히 느끼고 계시네요. 감정을 억누르지 않고 솔직하게 마주하는 것만으로도 마음의 건강을 지키는 좋은 습관입니다.`;
-        } else {
-            analysis = `지금의 '${emoLabel}' 감정은 잔잔하게 흐르는 물결 같습니다. 은은하게 느껴지는 이 마음이 일상의 작은 변화를 만들어낼 수도 있어요.`;
-        }
-
-        if (stress > 80) {
-            stressAdvice = `특히 스트레스 지수가 ${stress}%로 위험 수준에 도달해 있습니다. 기록하신 "${text.substring(0, 10)}..."의 상황이 당신을 많이 짓누르고 있진 않나요? 지금은 정답을 찾기보다 모든 일을 잠시 멈추고 심호흡을 하며 자신을 돌봐야 할 때입니다.`;
-        } else if (stress > 50) {
-            stressAdvice = `스트레스 지수 ${stress}%는 마음의 경고등이 노란색으로 켜진 상태입니다. 긴장이 몸과 마음을 굳게 만들고 있을 수 있으니, 좋아하는 음악을 듣거나 가벼운 산책으로 환기를 시켜보세요.`;
-        } else {
-            stressAdvice = `스트레스 지수가 ${stress}%로 매우 건강한 상태입니다. 기록하신 일기 내용처럼 긍정적인 마음의 흐름이 잘 유지되고 있네요.`;
-        }
-
-        return `${analysis} ${stressAdvice} ${empathy}`;
-    };
-
     const handleEmotionSelect = (id) => {
         setSelectedEmotion(id);
         setEmotionIntensity(0);
         // setStressLevel(0); // 감정 선택 시 스트레스 지수는 리셋하지 않음
     };
 
-    const handleDiaryChange = (e) => {
-        const text = e.target.value;
+    const handleDiaryChange = (event) => {
+        const text = event.target.value;
         if (text.length <= MAX_LENGTH) setDiaryText(text);
     };
 
@@ -141,8 +114,7 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
                 healingIcon: data.healing_icon || 'tea',
             });
             setShowResult(true);
-        } catch (err) {
-            console.error('AI 분석 실패:', err);
+        } catch {
             alert('분석 중 오류가 발생했습니다.');
         } finally {
             setIsAnalyzing(false);
@@ -155,12 +127,11 @@ export default function AIDiary({ userName, setUserName, isLoggedIn, setIsLogged
         setEmotionIntensity(0);
         setStressLevel(0);
         setShowResult(false);
-        setViewDiary(false);
         // 새 일기 작성 시 최근 일기 목록 즉시 갱신
         try {
             const data = await getRecentDiaries(3);
             setRecentDiaries(data);
-        } catch (e) {
+        } catch {
             setRecentDiaries([]);
         }
     };

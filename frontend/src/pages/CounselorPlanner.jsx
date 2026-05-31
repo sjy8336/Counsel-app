@@ -733,13 +733,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                         <img
                                             src={res.client_profile_img_url}
                                             alt={res.client + ' 프로필'}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                borderRadius: 'inherit',
-                                                objectFit: 'cover',
-                                                background: '#f4f4f4',
-                                            }}
+                                            className="u-img-cover-inherit"
                                             onError={(e) => {
                                                 e.target.onerror = null;
                                                 e.target.style.display = 'none';
@@ -798,7 +792,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                             {(isConfirmed || isCompleted) && (
                                 <button
                                     className="mwc-journal-btn"
-                                    style={{ width: '100%' }}
+                                    className="u-w-full"
                                     onClick={() => handleGoToClient(res.client)}
                                 >
                                     일지 작성
@@ -807,7 +801,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                             {isConfirmed && (
                                 <button
                                     className="mwc-reject-btn"
-                                    style={{ width: '100%' }}
+                                    className="u-w-full"
                                     onClick={() => handleCancelConfirmed(res.id, res.client)}
                                 >
                                     승인 취소
@@ -816,7 +810,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                             {isDeletable && (
                                 <button
                                     className="mwc-reject-btn"
-                                    style={{ width: '100%' }}
+                                    className="u-w-full"
                                     onClick={() => handleDeleteBookingHistory(res.id, res.client)}
                                 >
                                     <Trash2 size={16} /> 삭제하기
@@ -924,13 +918,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                         <img
                                             src={res.client_profile_img_url}
                                             alt={res.client + ' 프로필'}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                borderRadius: 'inherit',
-                                                objectFit: 'cover',
-                                                background: '#f4f4f4',
-                                            }}
+                                            className="u-img-cover-inherit"
                                             onError={(e) => {
                                                 e.target.onerror = null;
                                                 e.target.style.display = 'none';

@@ -280,6 +280,18 @@
     align-items: center;
     gap: 0.5rem;
 }
+.cu-ep-nav-hint--primary {
+    color: #8BA888;
+    font-size: 0.97rem;
+    font-style: normal;
+}
+.cu-ep-nav-hint-icon {
+    width: 1rem;
+    height: 1rem;
+    color: #8BA888;
+    flex-shrink: 0;
+    margin-right: 0.3rem;
+}
 .cu-ep-nav-btns {
     display: flex;
     gap: 0.5rem;
@@ -1195,3 +1207,73 @@
 .cu-modal-btn-submit{flex:2;padding:.7rem;border-radius:.875rem;border:none;background:#8ba888;color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;opacity:.35;transition:opacity .15s,background .15s}
 .cu-modal-btn-submit-on{opacity:1}
 .cu-modal-btn-submit-on:hover{background:#799476}
+
+.cu-toast-popup--success {
+    background: #8BA888;
+    color: #fff;
+    z-index: 9999;
+}
+
+.cu-hidden-input {
+    display: none;
+}
+
+.cu-modal-close-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.cu-modal-notice-icon {
+    width: 1rem;
+    height: 1rem;
+    color: #8ba888;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.cu-modal-check-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+    color: #fff;
+}
+
+.cu-ep-photo-icon {
+    color: #8BA888;
+    width: 3.5rem;
+    height: 3.5rem;
+}
+
+.cu-ep-photo-plus-icon {
+    color: #fff;
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.cu-ep-section-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #8BA888;
+}
+
+.cu-ep-add-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+}
+
+.cu-ep-remove-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.cu-ep-save-icon {
+    width: 1rem;
+    height: 1rem;
+    color: #8BA888;
+}
+
+.cu-ep-note {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 0.1rem;
+    white-space: nowrap;
+}

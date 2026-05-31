@@ -307,9 +307,8 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                     ) : !loading ? (
                         bookings.length > 0 ? (
                             <div
-                                className="mwl-appt-primary"
+                                className="mwl-appt-primary u-pointer"
                                 onClick={() => navigate('/reserve')}
-                                style={{ cursor: 'pointer' }}
                             >
                                 <div className="mwl-appt-primary__top-row">
                                     <div className="mwl-appt-primary__map-icon-box">
@@ -338,10 +337,9 @@ const Home = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
                             <h4 className="mwl-upcoming-list__label">다가오는 예약</h4>
                             {upcomingBookings.map((b) => (
                                 <div
-                                    className="mwl-appt-card"
+                                    className="mwl-appt-card u-pointer"
                                     key={b.order_id}
                                     onClick={() => navigate('/reserve')}
-                                    style={{ cursor: 'pointer' }}
                                 >
                                     <div className="mwl-appt-card__top">
                                         <div className="mwl-appt-card__info">

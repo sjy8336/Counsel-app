@@ -3,6 +3,9 @@ from app.utils.keyword_extractor import extract_keywords
 from app.core.config import settings
 import json
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 client = openai.OpenAI(
     base_url="https://api.groq.com/openai/v1",
@@ -637,11 +640,7 @@ def generate_ai_report(
         )
 
     except Exception as e:
-        import traceback
-        print("\n❌ ====== Groq AI 연동 에러 상세 로그 ======")
-        print(f"에러 메시지: {e}")
-        traceback.print_exc()
-        print("==========================================\n")
+        logger.exception("Groq AI 연동 중 오류 발생")
         return (
             "현재 AI 서버에서 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
             "새로운 휴식",

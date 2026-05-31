@@ -35,7 +35,6 @@ export default function FindPwPage() {
                 navigate('/login');
             }
         } catch (error) {
-            console.error('발송 에러:', error);
             alert(error.response?.data?.detail || '정보가 일치하지 않습니다.');
         } finally {
             setIsLoading(false);
@@ -78,18 +77,7 @@ export default function FindPwPage() {
                         <div className="form-inner-container">
                             <button
                                 onClick={() => navigate('/login')}
-                                className="back-to-login"
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    background: 'none',
-                                    border: 'none',
-                                    color: '#666',
-                                    cursor: 'pointer',
-                                    marginBottom: '20px',
-                                    fontSize: '14px',
-                                }}
+                                className="back-to-login fp-back-btn"
                             >
                                 <ChevronLeft size={16} /> 로그인으로 돌아가기
                             </button>
@@ -129,13 +117,12 @@ export default function FindPwPage() {
                                     <ChevronRight size={18} />
                                 </button>
                             </form>
-                            <div className="auth-links-container" style={{ marginTop: '30px', textAlign: 'center' }}>
-                                <p style={{ fontSize: '13px', color: '#888' }}>
+                            <div className="auth-links-container fp-auth-container">
+                                <p className="fp-auth-text">
                                     아직 회원이 아니신가요?
                                     <button
-                                        className="auth-link"
+                                        className="auth-link fp-auth-link"
                                         onClick={() => navigate('/signup')}
-                                        style={{ marginLeft: '8px', fontWeight: '600' }}
                                     >
                                         회원가입
                                     </button>

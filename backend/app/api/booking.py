@@ -1,6 +1,8 @@
+
 from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from typing import Optional
 from app.db.session import get_db
 from app.models.booking import Booking
@@ -17,8 +19,20 @@ from app.models.counselor import CounselorProfile
 
 router = APIRouter()
 
+
+def _require_booking_owner_or_counselor(booking: Booking, current_user: User) -> None:
+    if current_user.role == "counselor" and booking.counselor_id == current_user.id:
+        return
+    if current_user.role == "client" and booking.client_id == current_user.id:
+        return
+    raise HTTPException(status_code=403, detail="해당 예약을 수정할 권한이 없습니다.")
+
 @router.post("/reject")
-def reject_booking(data: dict, db: Session = Depends(get_db)):
+def reject_booking(
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """
     상담사가 예약을 거절(취소)할 때 호출 (order_id로 예약 상태를 'canceled'로 변경)
     """
@@ -28,6 +42,8 @@ def reject_booking(data: dict, db: Session = Depends(get_db)):
     booking = db.query(Booking).filter(Booking.order_id == order_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="예약을 찾을 수 없습니다.")
+    if current_user.role != "counselor" or booking.counselor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="상담사 본인만 예약을 거절할 수 있습니다.")
     booking.booking_status = 'canceled'
     db.commit()
     db.refresh(booking)
@@ -108,7 +124,11 @@ def get_bookings_for_counselor(
 # 중복 import 및 router 선언 제거
 
 @router.post("/confirm")
-def confirm_booking(data: dict, db: Session = Depends(get_db)):
+def confirm_booking(
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """
     상담사가 예약을 승인할 때 호출 (order_id로 예약 상태를 'confirmed'로 변경)
     """
@@ -118,6 +138,8 @@ def confirm_booking(data: dict, db: Session = Depends(get_db)):
     booking = db.query(Booking).filter(Booking.order_id == order_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="예약을 찾을 수 없습니다.")
+    if current_user.role != "counselor" or booking.counselor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="상담사 본인만 예약을 승인할 수 있습니다.")
     booking.booking_status = 'confirmed'
     db.commit()
     db.refresh(booking)
@@ -156,18 +178,29 @@ def create_booking(
     if not all([counselor_id, booking_date, booking_time]):
         raise HTTPException(status_code=400, detail="상담사 정보, 날짜, 시간은 필수입니다.")
 
+    if client_name:
+        if current_user.role != "counselor":
+            raise HTTPException(status_code=403, detail="직접 입력 예약은 상담사만 등록할 수 있습니다.")
+    else:
+        if current_user.role != "client":
+            raise HTTPException(status_code=403, detail="일반 예약은 내담자만 생성할 수 있습니다.")
+
     # 2. 날짜 파싱
     try:
         booking_date_obj = datetime.strptime(booking_date, "%Y-%m-%d").date()
     except Exception:
         raise HTTPException(status_code=400, detail="날짜 형식이 올바르지 않습니다. (YYYY-MM-DD)")
 
-    # 3. [핵심] 중복 예약 체크 (이미 확정된 예약이 있는지)
+    counselor = db.query(User).filter(User.id == counselor_id).first()
+    if not counselor or counselor.role != "counselor":
+        raise HTTPException(status_code=400, detail="상담사를 찾을 수 없습니다.")
+
+    # 3. [핵심] 중복 예약 체크 (이미 취소되지 않은 예약이 있는지)
     existing_booking = db.query(Booking).filter(
         Booking.counselor_id == counselor_id,
         Booking.booking_date == booking_date_obj,
         Booking.booking_time == booking_time,
-        Booking.booking_status != 'canceled' # 취소된 예약은 제외하고 체크
+        Booking.booking_status != 'canceled'
     ).first()
 
     if existing_booking:
@@ -206,6 +239,7 @@ def create_booking(
         )
 
 
+
     try:
         db.add(new_booking)
         db.commit()
@@ -218,6 +252,10 @@ def create_booking(
             booking_date=booking_date,
             booking_time=booking_time
         )
+    except IntegrityError as e:
+        db.rollback()
+        # 유니크 제약 위반(동시성 중복 예약)
+        raise HTTPException(status_code=400, detail="해당 시간대는 이미 예약이 완료되었습니다.")
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"예약 저장 중 오류 발생: {str(e)}")
@@ -291,10 +329,15 @@ def get_all_bookings(
 
 # 예약 취소(삭제) API
 @router.delete("/cancel/{order_id}")
-def cancel_booking(order_id: str, db: Session = Depends(get_db)):
+def cancel_booking(
+    order_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     booking = db.query(Booking).filter(Booking.order_id == order_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="예약을 찾을 수 없습니다.")
+    _require_booking_owner_or_counselor(booking, current_user)
     booking.booking_status = 'canceled'
     db.commit()
     db.refresh(booking)
@@ -325,10 +368,16 @@ def remove_booking_history(
 
 # 상담 완료 처리 API (예약 날짜+시간이 지난 경우 자동 처리용)
 @router.post("/complete/{order_id}")
-def complete_booking(order_id: str, db: Session = Depends(get_db)):
+def complete_booking(
+    order_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     booking = db.query(Booking).filter(Booking.order_id == order_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="예약을 찾을 수 없습니다.")
+    if current_user.role != "counselor" or booking.counselor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="상담사 본인만 상담 완료 처리를 할 수 있습니다.")
     booking.booking_status = 'completed'
     db.commit()
     db.refresh(booking)

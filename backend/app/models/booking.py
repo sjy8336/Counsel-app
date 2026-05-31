@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, TIMESTAMP, Date, JSON, ForeignKey, text, Index
+from sqlalchemy import Column, Integer, String, Enum, TIMESTAMP, Date, JSON, ForeignKey, text, Index, UniqueConstraint
 from app.db.session import Base
 
 class Booking(Base):
@@ -36,7 +36,8 @@ class Booking(Base):
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
 
-    # 멀티 컬럼 인덱스 (선택 사항): 특정 상담사의 날짜별 예약을 광속으로 찾기 위해 추가
+    # 멀티 컬럼 unique 인덱스: 상담사-날짜-시간 조합 중복 예약 방지
     __table_args__ = (
         Index('idx_counselor_date_time', 'counselor_id', 'booking_date', 'booking_time'),
+        UniqueConstraint('counselor_id', 'booking_date', 'booking_time', name='uq_counselor_date_time'),
     )

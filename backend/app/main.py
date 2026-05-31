@@ -36,8 +36,6 @@ def read_root():
     return {"Hello": "Jiyoung's World"}
 
 
-app.include_router(booking.router)
-app.include_router(counselor.router)
 app.include_router(counseling_log.router, prefix="/api/counseling-logs")
 app.include_router(holiday.router)
 app.include_router(schedule.router)
@@ -45,6 +43,3 @@ app.include_router(blocked_slot.router)
 app.include_router(inquiry.router, prefix="/api")
 app.include_router(ai_diary.router, prefix="/api")
 app.include_router(ai_diary_recent.router, prefix="/api/ai-diary")
-app.include_router(holiday.router)
-app.include_router(schedule.router)
-app.include_router(blocked_slot.router)

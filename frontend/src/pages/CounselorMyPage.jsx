@@ -48,6 +48,7 @@ import {
 } from '../api/counselor.js';
 import { getCounselorBookings } from '../api/bookingCounselor.js';
 import { getNotifications, markNotificationRead } from '../api/notification.js';
+import { deleteAccount } from '../api/auth.js';
 import { getMyInfo } from '../api/user.js';
 import '../static/CounselorMyPage.css';
 
@@ -290,8 +291,11 @@ const DatePicker = ({ value, onChange, icon = true, placeholder = '', className 
         if (!value) return;
         const d = new Date(value);
         if (!isNaN(d)) {
-            setViewYear(d.getFullYear());
-            setViewMonth(d.getMonth());
+            const timerId = window.setTimeout(() => {
+                setViewYear(d.getFullYear());
+                setViewMonth(d.getMonth());
+            }, 0);
+            return () => window.clearTimeout(timerId);
         }
     }, [value]);
     const firstDay = new Date(viewYear, viewMonth, 1).getDay();
@@ -538,14 +542,12 @@ const App = () => {
     const [educations, setEducations] = useState([]);
     const [certificates, setCertificates] = useState([]);
     const [workDays, setWorkDays] = useState(INIT_WORK_DAYS);
-    const [holidays, setHolidays] = useState([]);
-    const [newHoliday, setNewHoliday] = useState('');
     const [notifications, setNotifications] = useState([]);
     const [notifSettings, setNotifSettings] = useState(INIT_NOTIF_SETTINGS);
     const [deleteStep, setDeleteStep] = useState(1);
     const [deleteInput, setDeleteInput] = useState('');
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [reservations, setReservations] = useState([]);
-    const [inquiries, setInquiries] = useState([]);
     const [notifDevice, setNotifDevice] = useState(window.innerWidth <= 768 ? 'mobile' : 'pc');
     const [notifExpanded, setNotifExpanded] = useState(false);
     const [passwordForm, setPasswordForm] = useState({ currentPw: '', newPw: '', confirmPw: '' });
@@ -578,6 +580,25 @@ const App = () => {
             sessionStorage.removeItem(k);
         });
         navigate('/login');
+    };
+    const handleDeleteAccount = async () => {
+        if (deleteInput !== '탈퇴합니다') return;
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            alert('로그인 정보가 없습니다.');
+            return;
+        }
+        if (!window.confirm('정말로 회원 탈퇴를 진행하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+        setDeleteLoading(true);
+        try {
+            await deleteAccount(token);
+            alert('회원 탈퇴가 완료되었습니다.');
+            handleLogout();
+        } catch (error) {
+            alert(error?.response?.data?.detail || '회원 탈퇴에 실패했습니다.');
+        } finally {
+            setDeleteLoading(false);
+        }
     };
 
     // ── 이펙트 ────────────────────────────────────────────────────────────────
@@ -814,12 +835,6 @@ const App = () => {
         setWorkDays((p) =>
             p.map((d, idx) => (idx === i ? { ...d, slots: [...(d.slots || []), { start: '09:00', end: '18:00' }] } : d))
         );
-    const addHoliday = () => {
-        if (newHoliday && !holidays.includes(newHoliday)) {
-            setHolidays((p) => [...p, newHoliday]);
-            setNewHoliday('');
-        }
-    };
     const toggleNotifSetting = (id) => setNotifSettings((p) => p.map((s) => (s.id === id ? { ...s, on: !s.on } : s)));
 
     const handleNotifClick = async (groupId, itemId) => {
@@ -957,7 +972,7 @@ const App = () => {
         (r) => r.status?.includes('확정') && r.dateObj?.toISOString().slice(0, 10) === todayStr
     );
     const pendingList = reservations.filter((r) => r.status?.includes('대기'));
-    const unreadInquiries = inquiries.filter((i) => i.status === 'pending');
+    const unreadInquiries = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const nextConfirmed =
@@ -1088,8 +1103,7 @@ const App = () => {
                             {items.slice(0, showCount).map((item) => (
                                 <div
                                     key={item.id}
-                                    className={`cmp-notif-item${item.unread ? ' unread' : ''}`}
-                                    style={{ cursor: 'pointer' }}
+                                    className={`cmp-notif-item${item.unread ? ' unread' : ''} u-pointer`}
                                     onClick={() => handleNotifClick(group.id, item.id)}
                                 >
                                     <NotifIcon type={item.type} />
@@ -1195,14 +1209,13 @@ const App = () => {
                     <h3 className="cmp-register-title">프로필 등록이 반려되었습니다</h3>
                     <p className="cmp-register-sub">사유를 확인 후 정보를 수정해 다시 등록해 주세요.</p>
                     {profile?.reject_reason && (
-                        <div className="cmp-reject-reason" style={{ marginTop: 22, marginBottom: 24 }}>
+                        <div className="cmp-reject-reason u-mt-22 u-mb-24">
                             반려 사유: {profile.reject_reason}
                         </div>
                     )}
                     <button
-                        className="cmp-btn cmp-btn-primary cmp-btn-register"
+                        className="cmp-btn cmp-btn-primary cmp-btn-register u-mt-24 u-minw-160 u-py-13 u-fs-17"
                         onClick={() => navigate('/counselorUpload')}
-                        style={{ marginTop: 24, minWidth: 160, padding: '13px 0', fontSize: '17px' }}
                     >
                         재등록하기
                     </button>
@@ -1495,12 +1508,12 @@ const App = () => {
                         />
                     </div>
                     {/* 비밀번호 변경 */}
-                    <div className="cmp-section-divider" style={{ marginTop: 24 }}>
-                        <div className="cmp-card-title" style={{ marginBottom: 16 }}>
+                    <div className="cmp-section-divider u-mt-24">
+                        <div className="cmp-card-title u-mb-16">
                             <Lock size={15} color="var(--cmp-primary)" /> 비밀번호 변경
                         </div>
                         <div className="cmp-grid-2">
-                            <div style={{ gridColumn: '1 / -1' }}>
+                            <div className="u-grid-full">
                                 <label className="cmp-field-label">현재 비밀번호</label>
                                 <input
                                     type="password"
@@ -1531,14 +1544,13 @@ const App = () => {
                                 />
                             </div>
                         </div>
-                        {pwError && <p style={{ fontSize: 12, color: 'var(--cmp-danger)', marginTop: 8 }}>{pwError}</p>}
+                        {pwError && <p className="u-fs-12 u-text-danger u-mt-8">{pwError}</p>}
                         {pwSuccess && (
-                            <p style={{ fontSize: 12, color: 'var(--cmp-primary)', marginTop: 8 }}>{pwSuccess}</p>
+                            <p className="u-fs-12 u-text-primary u-mt-8">{pwSuccess}</p>
                         )}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
+                        <div className="u-flex-end u-mt-14">
                             <button
-                                className="cmp-btn cmp-btn-primary"
-                                style={{ maxWidth: 130 }}
+                                className="cmp-btn cmp-btn-primary u-maxw-130"
                                 onClick={handleChangePassword}
                             >
                                 비밀번호 변경
@@ -1771,11 +1783,11 @@ const App = () => {
                                 이전
                             </button>
                             <button
-                                className={`cmp-btn cmp-btn-danger cmp-btn-flex${deleteInput !== '탈퇴합니다' ? ' cmp-btn-dimmed' : ''}`}
-                                disabled={deleteInput !== '탈퇴합니다'}
-                                onClick={() => alert('회원 탈퇴가 완료되었습니다.')}
+                                className={`cmp-btn cmp-btn-danger cmp-btn-flex${deleteInput !== '탈퇴합니다' || deleteLoading ? ' cmp-btn-dimmed' : ''}`}
+                                disabled={deleteInput !== '탈퇴합니다' || deleteLoading}
+                                onClick={handleDeleteAccount}
                             >
-                                탈퇴하기
+                                {deleteLoading ? '처리 중...' : '탈퇴하기'}
                             </button>
                         </div>
                     </>

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { createBooking } from '../api/booking';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     MessageCircle,
@@ -137,13 +136,14 @@ const Survey = () => {
                     <div className="sv-track">
                         <div className="sv-track-fill" style={{ width: `${progress}%` }} />
                     </div>
-                    {STEPS.map(({ id, label, Icon }) => {
+                    {STEPS.map(({ id, label }) => {
                         const done = step > id;
                         const active = step === id;
+                        const StepIcon = STEPS[id - 1].Icon;
                         return (
                             <div key={id} className={`sv-node${active ? ' active' : ''}${done ? ' done' : ''}`}>
                                 <div className="sv-circle">
-                                    {done ? <Check size={14} strokeWidth={3} /> : <Icon size={15} />}
+                                    {done ? <Check size={14} strokeWidth={3} /> : React.createElement(StepIcon, { size: 15 })}
                                 </div>
                                 <span className="sv-node-label">{label}</span>
                             </div>
@@ -278,7 +278,7 @@ const Survey = () => {
                         </div>
                     )}
                     {step === 4 && (
-                        <button type="button" className="sv-prev" style={{ marginTop: 14 }} onClick={() => setStep(3)}>
+                        <button type="button" className="sv-prev sv-prev--spaced" onClick={() => setStep(3)}>
                             <ChevronLeft size={15} />
                             이전으로
                         </button>

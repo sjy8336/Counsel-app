@@ -1,7 +1,10 @@
 import os
 import time
+import logging
 from app.models.user import User
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 PROFILE_IMG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../static/profile_images'))
 
@@ -21,7 +24,7 @@ def delete_old_profile_image(db: Session, user_id: int):
             try:
                 os.remove(img_path)
             except Exception as e:
-                print(f"[WARN] 기존 프로필 이미지 삭제 실패: {img_path} - {e}")
+                logger.warning("기존 프로필 이미지 삭제 실패: %s - %s", img_path, e)
 
 
 def cleanup_unused_profile_images(db: Session, days: int = 30):
@@ -42,6 +45,5 @@ def cleanup_unused_profile_images(db: Session, days: int = 30):
             if now - mtime > days * 86400:
                 try:
                     os.remove(fpath)
-                    print(f"[CLEANUP] 삭제됨: {fpath}")
                 except Exception as e:
-                    print(f"[CLEANUP] 삭제 실패: {fpath} - {e}")
+                    logger.warning("프로필 이미지 정리 실패: %s - %s", fpath, e)
