@@ -5,9 +5,9 @@ import './static/common.css';
 
 import Home from './pages/home';
 import AdminCounselor from './pages/AdminCounselor';
-import LoginPage from './pages/Login';
-import SignUp from './pages/signup.jsx';
-import MyPage from './pages/mypage';
+import LoginPage from './pages/Login.jsx';
+import SignUp from './pages/SignUp.jsx';
+import MyPage from './pages/Mypage.jsx';
 import Diary from './pages/DiaryList';
 import FindPwPage from './pages/FindPw';
 import ReservationPage from './pages/Reservation';
