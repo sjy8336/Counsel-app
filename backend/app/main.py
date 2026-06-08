@@ -1,6 +1,4 @@
-# FastAPI 실행을 위한 기본 코드
 import os
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, counselor, upload, payment, booking, notification, counseling_log, holiday, schedule, blocked_slot, inquiry, ai_diary, ai_diary_recent
@@ -14,17 +12,16 @@ app.include_router(payment.router, prefix="/api/payment", tags=["payment"])
 app.include_router(booking.router, prefix="/api/booking", tags=["booking"])
 
 # CORS 설정
-allowed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
+cors_origins_raw = getattr(settings, "CORS_ORIGINS", "") or "http://localhost:5173,http://localhost:3000"
+allowed_origins = [origin.strip() for origin in cors_origins_raw.split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,                 
-    allow_origin_regex=r"https://.*\.vercel\.app", 
+    allow_origins=allowed_origins, 
     allow_credentials=True,                        
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # 회원가입/로그인 라우터 등록
 app.include_router(auth.router, prefix="/api")
