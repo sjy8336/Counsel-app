@@ -2,10 +2,9 @@
 FROM python:3.14-slim
 
 # 2. 보안 에러(Permission denied)를 피하기 위해 가상 컴퓨터 조립 단계에서 자바와 빌드 도구 설치
-RUN apt-get update && apt-get install -y \
-    openjdk-17-jdk \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends openjdk-17-jdk g++ && \
+    rm -rf /var/lib/apt/lists/*
 
 # 자바 환경변수 경로 시스템에 확실하게 고정
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
