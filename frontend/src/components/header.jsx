@@ -8,7 +8,6 @@ import axiosInstance from '../api/axiosInstance';
 import '../static/Common.css';
 import '../static/NotifPopup.css';
 
-const API_URL = API_ORIGIN_URL;
 const avatarSrc = (name, url) => {
     if (url?.trim()) {
         if (url.startsWith('/static/')) {
