@@ -255,3 +255,4 @@ AI/부가 기능
 - 알림센터 클릭 후 읽음 상태가 즉시 반영되도록 UI/상태 동기화
 - 관리자 회원 조회 화면의 가입일(created_at) 표시 개선
 - CounselorList 상단 Header sticky 동작 구조 보완
+.
