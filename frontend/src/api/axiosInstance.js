@@ -9,10 +9,7 @@ export const API_ORIGIN_URL = normalizeUrl(
     apiOriginUrl || (apiBaseUrl ? apiBaseUrl.replace(/\/api\/?$/, '') : '')
 );
 
-const rawApiBaseUrl =
-    apiBaseUrl || (apiOriginUrl ? `${normalizeUrl(apiOriginUrl)}/api` : '/api');
-
-export const API_BASE_URL = normalizeUrl(rawApiBaseUrl);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const apiUrl = (path = '') => {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
@@ -21,7 +18,7 @@ export const apiUrl = (path = '') => {
 
 // 공통 axios 인스턴스 생성
 const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: API_BASE_URL, 
 });
 
 // 401 에러 인터셉터
