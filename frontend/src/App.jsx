@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { isTokenExpired } from './utils/jwt';
-import './static/common.css';
+import './static/Common.css';
 
 import Home from './pages/Home.jsx';
 import AdminCounselor from './pages/AdminCounselor';
