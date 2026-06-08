@@ -4,7 +4,7 @@ import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck, Cal
 import { getNotifications } from '../api/notification';
 import { getCounselorProfile } from '../api/counselor.js';
 import { getUserInfo } from '../api/user';
-import { axiosInstance } from '../api/axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 import '../static/Common.css';
 import '../static/NotifPopup.css';
 

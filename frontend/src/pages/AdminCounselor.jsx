@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiUrl, API_ORIGIN_URL } from '../api/axiosInstance';
+import axiosInstance, { apiUrl } from '../api/axiosInstance';
 import {
     Users,
     ClipboardCheck,
@@ -39,7 +39,11 @@ const AdminCounselor = () => {
     const [rejectReason, setRejectReason] = useState('경력 증빙 서류가 불충분합니다. 보완 후 재등록 부탁드립니다.');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const resolveStaticUrl = (path) => (API_ORIGIN_URL ? `${API_ORIGIN_URL}${path}` : path);
+    const resolveStaticUrl = (path) => {
+        if (!path) return '';
+        const baseUrl = axiosInstance.defaults.baseURL.replace(/\/api$/, '');
+        return `${baseUrl}${path}`;
+    };
     const [roleFilter, setRoleFilter] = useState('전체');
     const [isLoading, setIsLoading] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
