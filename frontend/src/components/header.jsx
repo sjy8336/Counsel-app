@@ -4,20 +4,23 @@ import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck, Cal
 import { getNotifications } from '../api/notification';
 import { getCounselorProfile } from '../api/counselor.js';
 import { getUserInfo } from '../api/user';
-import { API_ORIGIN_URL } from '../api/axiosInstance';
+import { axiosInstance } from '../api/axiosInstance';
+import '../static/Common.css';
+import '../static/NotifPopup.css';
 
 const API_URL = API_ORIGIN_URL;
 const avatarSrc = (name, url) => {
     if (url?.trim()) {
         if (url.startsWith('/static/')) {
-            return API_URL + url;
+            // baseURL은 보통 'https://.../api'인데, static 경로는 'https://.../static'이므로
+            // baseURL에서 '/api'를 떼고 붙여야 합니다.
+            const baseUrl = axiosInstance.defaults.baseURL.replace(/\/api$/, '');
+            return baseUrl + url;
         }
         return url;
     }
     return `https://api.dicebear.com/7.x/notionists/svg?seed=${name || 'default'}`;
 };
-import '../static/Common.css';
-import '../static/NotifPopup.css';
 
 function formatTime(dateStr) {
     if (!dateStr) return '';
