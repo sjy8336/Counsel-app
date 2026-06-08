@@ -9,7 +9,7 @@ import { getClientLogs } from '../api/clientLogs';
 import { getFavorites, toggleFavorite } from '../api/favorite';
 import { getAllBookings } from '../api/booking';
 import { isTokenExpired } from '../utils/jwt';
-import { API_ORIGIN_URL } from '../api/axiosInstance';
+import axiosInstance, { apiUrl } from '../api/axiosInstance';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MobileTap from '../components/mobileTap';
 import '../static/MyPage.css';
@@ -527,11 +527,11 @@ export default function MyPage() {
     };
 
     // ── 아바타 공통 ──
-    const API_URL = API_ORIGIN_URL;
     const avatarSrc = (name, url) => {
         if (url?.trim()) {
             if (url.startsWith('/static/')) {
-                return API_URL + url;
+                // apiUrl 함수를 호출하여 경로를 완성합니다.
+                return apiUrl(url);
             }
             return url;
         }
