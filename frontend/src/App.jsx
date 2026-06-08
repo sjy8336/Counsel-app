@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { isTokenExpired } from './utils/jwt';
 import './static/common.css';
 
-import Home from './pages/home';
+import Home from './pages/Home.jsx';
 import AdminCounselor from './pages/AdminCounselor';
 import LoginPage from './pages/Login.jsx';
 import SignUp from './pages/SignUp.jsx';
@@ -15,7 +15,6 @@ import CounselorListPage from './pages/CounselorList';
 import CounselorDetailPage from './pages/CounselorDetail';
 import CounselorMyPage from './pages/CounselorMyPage';
 import CounselorUpload from './pages/CounselorUpload';
-// import Schedule from './pages/Schedule';
 import CounselorPlanner from './pages/CounselorPlanner';
 import CounselorHome from './pages/CounselorHome';
 import CounselorClient from './pages/CounselorClient';
