@@ -1,6 +1,8 @@
 from konlpy.tag import Okt
 from collections import Counter
 import re
+import os
+os.environ['JAVA_HOME'] = '/usr/lib/jvm/default-java'
 
 okt = Okt()
 
