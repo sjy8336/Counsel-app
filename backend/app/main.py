@@ -18,7 +18,7 @@ allowed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins, # 프론트엔드 주소
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
