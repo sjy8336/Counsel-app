@@ -792,7 +792,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                             {(isConfirmed || isCompleted) && (
                                 <button
                                     className="mwc-journal-btn"
-                                    className="u-w-full"
+                                    className="mwc-reject-btn"
                                     onClick={() => handleGoToClient(res.client)}
                                 >
                                     일지 작성
@@ -801,7 +801,6 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                             {isConfirmed && (
                                 <button
                                     className="mwc-reject-btn"
-                                    className="u-w-full"
                                     onClick={() => handleCancelConfirmed(res.id, res.client)}
                                 >
                                     승인 취소
@@ -810,7 +809,6 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                             {isDeletable && (
                                 <button
                                     className="mwc-reject-btn"
-                                    className="u-w-full"
                                     onClick={() => handleDeleteBookingHistory(res.id, res.client)}
                                 >
                                     <Trash2 size={16} /> 삭제하기
