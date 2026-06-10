@@ -955,8 +955,13 @@ const App = () => {
             const res = await axiosInstance.post('/upload/profile-image', formData, {
                 headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
             });
+
             if (res.data?.profile_img_url) {
-                setPendingProfileImgUrl(res.data.profile_img_url); // 미리보기만 변경, DB에는 저장하지 않음
+                const fullUrl = res.data.profile_img_url.startsWith('http')
+                    ? res.data.profile_img_url
+                    : `https://mindwell-wqwr.onrender.com/${res.data.profile_img_url}`;
+
+                setPendingProfileImgUrl(fullUrl); // 이제 fullUrl을 저장!
             }
         } catch {
             alert('이미지 업로드에 실패했습니다.');

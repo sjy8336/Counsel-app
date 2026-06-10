@@ -530,14 +530,13 @@ export default function MyPage() {
     const avatarSrc = (name, url) => {
         if (url?.trim()) {
             if (url.startsWith('static/')) {
-                // apiUrl 함수를 호출하여 경로를 완성합니다.
                 return apiUrl(url);
             }
             return url;
         }
+        // 아바타가 없을 때 기본 이미지 반환
         return `https://api.dicebear.com/7.x/notionists/svg?seed=${name || 'default'}`;
     };
-
     // ── 렌더 함수 ──
 
     const renderMobileBack = () => (
