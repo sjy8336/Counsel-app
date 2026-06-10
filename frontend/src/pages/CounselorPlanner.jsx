@@ -792,7 +792,6 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                             {(isConfirmed || isCompleted) && (
                                 <button
                                     className="mwc-journal-btn"
-                                    className="mwc-reject-btn"
                                     onClick={() => handleGoToClient(res.client)}
                                 >
                                     일지 작성

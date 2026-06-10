@@ -1219,7 +1219,7 @@ export default function MyPage() {
                             if (item.profile_img_url && item.profile_img_url.trim() !== '') {
                                 src = item.profile_img_url.startsWith('http')
                                     ? item.profile_img_url
-                                    : API_URL.replace(/\/$/, '') + item.profile_img_url;
+                                    : apiUrl.replace(/\/$/, '') + item.profile_img_url;
                             } else {
                                 showUserIcon = true;
                             }
