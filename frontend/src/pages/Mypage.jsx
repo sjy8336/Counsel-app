@@ -529,10 +529,10 @@ export default function MyPage() {
     // ── 아바타 공통 ──
     const avatarSrc = (name, url) => {
         if (url?.trim()) {
-            if (url.startsWith('static/')) {
-                return apiUrl(url);
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return url;
             }
-            return url;
+            return apiUrl(url.startsWith('/') ? url : `/${url}`);
         }
         // 아바타가 없을 때 기본 이미지 반환
         return `https://api.dicebear.com/7.x/notionists/svg?seed=${name || 'default'}`;
@@ -1216,9 +1216,7 @@ export default function MyPage() {
                             let src = null;
                             let showUserIcon = false;
                             if (item.profile_img_url && item.profile_img_url.trim() !== '') {
-                                src = item.profile_img_url.startsWith('http')
-                                    ? item.profile_img_url
-                                    : apiUrl.replace(/\/$/, '') + item.profile_img_url;
+                                src = avatarSrc(name, item.profile_img_url);
                             } else {
                                 showUserIcon = true;
                             }
