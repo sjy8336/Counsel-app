@@ -4,20 +4,12 @@ import { Bell, Search, User, Check, MessageSquare, AlertCircle, ShieldCheck, Cal
 import { getNotifications } from '../api/notification';
 import { getCounselorProfile } from '../api/counselor.js';
 import { getUserInfo } from '../api/user';
-import axiosInstance from '../api/axiosInstance';
+import axiosInstance, { resolveImageUrl } from '../api/axiosInstance';
 import '../static/Common.css';
 import '../static/NotifPopup.css';
 
 const avatarSrc = (name, url) => {
-    if (url?.trim()) {
-        if (url.startsWith('/static/')) {
-            // baseURL은 보통 'https://.../api'인데, static 경로는 'https://.../static'이므로
-            // baseURL에서 '/api'를 떼고 붙여야 합니다.
-            const baseUrl = axiosInstance.defaults.baseURL.replace(/\/api$/, '');
-            return baseUrl + url;
-        }
-        return url;
-    }
+    if (url?.trim()) return resolveImageUrl(url);
     return `https://api.dicebear.com/7.x/notionists/svg?seed=${name || 'default'}`;
 };
 

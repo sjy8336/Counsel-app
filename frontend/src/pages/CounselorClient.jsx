@@ -6,6 +6,7 @@ import MobileTap from '../components/mobileTap.jsx';
 import '../static/CounselorClient.css';
 
 import { getCounselorClients, addCounselingLog, putCounselingLog, deleteCounselingLog } from '../api/counselorClients';
+import { resolveImageUrl } from '../api/axiosInstance';
 
 const STATUS_CLASS = { '진행 중': 'status-ing', '대기 중': 'status-wait', 종료: 'status-end' };
 
@@ -320,7 +321,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                                     <div className="cc-client-avatar">
                                         {c.profile_img_url && c.profile_img_url.trim() ? (
                                             <img
-                                                src={c.profile_img_url}
+                                                src={resolveImageUrl(c.profile_img_url)}
                                                 alt={c.name ? `${c.name} 프로필 이미지` : '프로필 이미지'}
                                                 className="cc-avatar-img"
                                                 loading="lazy"
@@ -356,7 +357,7 @@ const CounselorClient = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) =
                             <div className="cc-profile-avatar">
                                 {client.profile_img_url && client.profile_img_url.trim() ? (
                                     <img
-                                        src={client.profile_img_url}
+                                        src={resolveImageUrl(client.profile_img_url)}
                                         alt={client.name ? `${client.name} 프로필 이미지` : '프로필 이미지'}
                                         className="cc-avatar-img"
                                         loading="lazy"

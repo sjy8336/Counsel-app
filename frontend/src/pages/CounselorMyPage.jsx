@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import axiosInstance from '../api/axiosInstance';
+import axiosInstance, { resolveImageUrl } from '../api/axiosInstance';
 import {
     LayoutDashboard,
     Bell,
@@ -957,10 +957,7 @@ const App = () => {
             });
 
             if (res.data?.profile_img_url) {
-                const fullUrl = res.data.profile_img_url.startsWith('http')
-                    ? res.data.profile_img_url
-                    : `https://mindwell-wqwr.onrender.com/${res.data.profile_img_url}`;
-
+                const fullUrl = resolveImageUrl(res.data.profile_img_url);
                 setPendingProfileImgUrl(fullUrl); // 이제 fullUrl을 저장!
             }
         } catch {
@@ -999,7 +996,7 @@ const App = () => {
                     <div className="cmp-profile-img">
                         <img
                             src={
-                                profile.profile_img_url ||
+                                resolveImageUrl(profile.profile_img_url) ||
                                 `https://api.dicebear.com/7.x/notionists/svg?seed=${getCounselorName()}`
                             }
                             alt="프로필"
@@ -1240,8 +1237,8 @@ const App = () => {
                             <img
                                 src={
                                     pendingProfileImgUrl ||
-                                    profile.profile_img_url ||
-                                    JSON.parse(localStorage.getItem('user') || '{}').profile_img_url ||
+                                    resolveImageUrl(profile.profile_img_url) ||
+                                    resolveImageUrl(JSON.parse(localStorage.getItem('user') || '{}').profile_img_url || '') ||
                                     '' ||
                                     `https://api.dicebear.com/7.x/notionists/svg?seed=${getCounselorName()}`
                                 }
