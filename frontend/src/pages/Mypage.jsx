@@ -9,7 +9,7 @@ import { getClientLogs } from '../api/clientLogs';
 import { getFavorites, toggleFavorite } from '../api/favorite';
 import { getAllBookings } from '../api/booking';
 import { isTokenExpired } from '../utils/jwt';
-import axiosInstance, { apiUrl } from '../api/axiosInstance';
+import { resolveImageUrl } from '../api/axiosInstance';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MobileTap from '../components/mobileTap';
 import '../static/MyPage.css';
@@ -528,12 +528,7 @@ export default function MyPage() {
 
     // ── 아바타 공통 ──
     const avatarSrc = (name, url) => {
-        if (url?.trim()) {
-            if (url.startsWith('http://') || url.startsWith('https://')) {
-                return url;
-            }
-            return apiUrl(url.startsWith('/') ? url : `/${url}`);
-        }
+        if (url?.trim()) return resolveImageUrl(url);
         // 아바타가 없을 때 기본 이미지 반환
         return `https://api.dicebear.com/7.x/notionists/svg?seed=${name || 'default'}`;
     };

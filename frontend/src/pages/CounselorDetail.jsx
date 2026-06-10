@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axiosInstance from '../api/axiosInstance';
+import axiosInstance, { resolveImageUrl } from '../api/axiosInstance';
 import { getBlockedSlots } from '../api/blockedSlot';
 import { toggleFavorite } from '../api/favorite';
 import { isTokenExpired } from '../utils/jwt';
@@ -102,8 +102,9 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                       .filter(Boolean)
                 : counselor?.availableTimes || ['10:00', '14:00', '16:00'],
         // DB에 저장된 users.profile_img_url만 사용, 없으면 ''
-        profileImg:
-            counselor?.user?.profile_img_url || counselor?.profile?.profile_img_url || counselor?.profile_img_url || '',
+        profileImg: resolveImageUrl(
+            counselor?.user?.profile_img_url || counselor?.profile?.profile_img_url || counselor?.profile_img_url || ''
+        ),
         schedules: counselor?.schedules || [],
     };
     // 상담 가능한 요일 인덱스 추출 (0=일, 1=월, ...)
