@@ -529,7 +529,7 @@ export default function MyPage() {
     // ── 아바타 공통 ──
     const avatarSrc = (name, url) => {
         if (url?.trim()) {
-            if (url.startsWith('/static/')) {
+            if (url.startsWith('static/')) {
                 // apiUrl 함수를 호출하여 경로를 완성합니다.
                 return apiUrl(url);
             }
