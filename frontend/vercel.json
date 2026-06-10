@@ -1,3 +1,7 @@
 {
-    "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+    "rewrites": [
+        { "source": "/api/(.*)", "destination": "https://mindwell-wqwr.onrender.com/api/$1" },
+        { "source": "/static/(.*)", "destination": "https://mindwell-wqwr.onrender.com/static/$1" },
+        { "source": "/(.*)", "destination": "/index.html" }
+    ]
 }
