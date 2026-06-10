@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import { toggleFavorite, getFavorites } from '../api/favorite';
-import { apiUrl } from '../api/axiosInstance';
+import { apiUrl, resolveImageUrl } from '../api/axiosInstance';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, User, Heart, ChevronDown, Check, X } from 'lucide-react';
 import Header from '../components/header';
@@ -277,7 +277,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
                     <div className="counlist-profile-placeholder">
                         {profile_img_url && profile_img_url.trim() !== '' ? (
                             <img
-                                src={profile_img_url}
+                                src={resolveImageUrl(profile_img_url)}
                                 alt="프로필"
                                 loading="lazy"
                                 className="u-img-cover-rounded-16"

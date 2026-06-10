@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance, { apiUrl } from '../api/axiosInstance';
+import axiosInstance, { apiUrl, resolveImageUrl } from '../api/axiosInstance';
 import {
     Users,
     ClipboardCheck,
@@ -40,9 +40,7 @@ const AdminCounselor = () => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const resolveStaticUrl = (path) => {
-        if (!path) return '';
-        const baseUrl = axiosInstance.defaults.baseURL.replace(/\/api$/, '');
-        return `${baseUrl}${path}`;
+        return resolveImageUrl(path);
     };
     const [roleFilter, setRoleFilter] = useState('전체');
     const [isLoading, setIsLoading] = useState(false);

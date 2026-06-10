@@ -10,6 +10,7 @@ import MobileTap from '../components/mobileTap';
 import { getHolidays, addHoliday, removeHoliday } from '../api/holiday';
 import { getScheduleCalendar, addSchedule } from '../api/schedule';
 import { getBlockedSlots, addBlockedSlot, deleteBlockedSlot } from '../api/blockedSlot';
+import { resolveImageUrl } from '../api/axiosInstance';
 import {
     Calendar as CalendarIcon,
     List,
@@ -731,7 +732,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                 <div className="mwc-res-avatar">
                                     {res.client_profile_img_url && res.client_profile_img_url.trim() ? (
                                         <img
-                                            src={res.client_profile_img_url}
+                                            src={resolveImageUrl(res.client_profile_img_url)}
                                             alt={res.client + ' 프로필'}
                                             className="u-img-cover-inherit"
                                             onError={(e) => {
@@ -913,7 +914,7 @@ const CounselorPlanner = ({ userId, userName, setUserName, isLoggedIn, setIsLogg
                                 <div className="mwc-list-avatar">
                                     {hasProfileImg ? (
                                         <img
-                                            src={res.client_profile_img_url}
+                                            src={resolveImageUrl(res.client_profile_img_url)}
                                             alt={res.client + ' 프로필'}
                                             className="u-img-cover-inherit"
                                             onError={(e) => {

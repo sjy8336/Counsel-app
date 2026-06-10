@@ -4,7 +4,7 @@ import Footer from '../components/footer';
 import MobileTap from '../components/mobileTap';
 import { getReceivedInquiries } from '../api/inquiry';
 import axios from 'axios';
-import { apiUrl } from '../api/axiosInstance';
+import { apiUrl, resolveImageUrl } from '../api/axiosInstance';
 import {
     Search,
     MessageSquare,
@@ -64,7 +64,7 @@ const App = ({ userName, setUserName, isLoggedIn, setIsLoggedIn }) => {
         // 답변 완료 상태 자동 처리
         let status = inquiry.status || inquiry.inquiry_status || (myReply ? 'completed' : 'pending');
         // 프로필 이미지 우선순위: inquiry.profile_img_url → inquiry.client?.profile_img_url → ''
-        let profile_img_url = inquiry.profile_img_url || inquiry.client?.profile_img_url || '';
+        let profile_img_url = resolveImageUrl(inquiry.profile_img_url || inquiry.client?.profile_img_url || '');
         return {
             ...inquiry,
             sender,

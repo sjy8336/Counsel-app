@@ -8,6 +8,7 @@ import '../static/CounselorHome.css';
 import { getCounselorBookings } from '../api/bookingCounselor';
 import { confirmBooking } from '../api/bookingConfirm';
 import { rejectBooking } from '../api/bookingReject';
+import { resolveImageUrl } from '../api/axiosInstance';
 
 const CounselorHome = () => {
     const navigate = useNavigate();
@@ -308,7 +309,7 @@ const CounselorHome = () => {
                                     <div className="res-avatar">
                                         {nextConfirmed.profile_img_url ? (
                                             <img
-                                                src={nextConfirmed.profile_img_url}
+                                                src={resolveImageUrl(nextConfirmed.profile_img_url)}
                                                 alt="프로필"
                                                 className="res-avatar-img"
                                                 onError={(e) => {
@@ -341,7 +342,7 @@ const CounselorHome = () => {
                                     <div className="res-avatar">
                                         {r.profile_img_url ? (
                                             <img
-                                                src={r.profile_img_url}
+                                                src={resolveImageUrl(r.profile_img_url)}
                                                 alt="프로필"
                                                 className="res-avatar-img"
                                                 onError={(e) => {

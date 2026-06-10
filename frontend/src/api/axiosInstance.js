@@ -3,10 +3,21 @@ import axios from 'axios';
 const normalizeUrl = (value) => value?.replace(/\/$/, '') || '';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_ORIGIN_URL = normalizeUrl(import.meta.env.VITE_API_URL || API_BASE_URL?.replace(/\/api$/, ''));
 
 export const apiUrl = (path = '') => {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
     return `${API_BASE_URL}${normalizedPath}`;
+};
+
+export const resolveImageUrl = (path = '') => {
+    if (!path) return '';
+    if (path.startsWith('data:') || path.startsWith('blob:')) return path;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    if (path.startsWith('/static/')) return `${API_ORIGIN_URL}${path}`;
+    if (path.startsWith('static/')) return `${API_ORIGIN_URL}/${path}`;
+    if (path.startsWith('/')) return `${API_ORIGIN_URL}${path}`;
+    return `${API_ORIGIN_URL}/static/profile_images/${path}`;
 };
 
 // 공통 axios 인스턴스 생성
