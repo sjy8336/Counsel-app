@@ -3,68 +3,71 @@ import Header from '../components/header';
 import Footer from '../components/footer';
 import MobileTap from '../components/mobileTap';
 import { useNavigate } from 'react-router-dom';
-import { Lock, ChevronRight, Eye, EyeOff, User } from 'lucide-react';
+import { Lock, ChevronRight, Eye, EyeOff, User, Sparkles, HeartHandshake, ShieldCheck } from 'lucide-react';
 import { login } from '../api/auth';
 import '../static/Login.css';
 
+// 데모 계정 정보
+const DEMO_ACCOUNTS = {
+    client: { id: 'sjy8336', pw: 'demo1234!!', label: '내담자' },
+    counselor: { id: 'sang1', pw: 'qqqq0000', label: '상담사' },
+    admin: { id: 'sang2', pw: 'qwer1234', label: '관리자' },
+};
+
 export default function LoginPage({ setUserName, setIsLoggedIn }) {
-    // 헤더/모바일탭 activeTab 상태 관리
     const [activeTab, setActiveTab] = useState('home');
-    // 변수명 충돌 방지를 위해 id 대신 loginId 사용
     const [loginId, setLoginId] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [demoFilled, setDemoFilled] = useState(null); 
     const navigate = useNavigate();
+
+    const handleDemoLogin = (type) => {
+        const account = DEMO_ACCOUNTS[type];
+        if (!account) return;
+        setLoginId(account.id);
+        setPassword(account.pw);
+        setDemoFilled(type);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // 1. 입력값 검증 (방어 코드)
         if (!loginId || !password) {
             alert('아이디와 비밀번호를 모두 입력해주세요.');
             return;
         }
 
         try {
-            // 2. API 호출
-            // 서버의 요구 형식에 따라 username: loginId로 매핑하여 전달
             const result = await login({ username: loginId, password: password });
 
-            // 3. 응답 데이터 안전하게 추출 (Optional Chaining 적용)
             const responseData = result?.data;
             const user = responseData?.user;
             const token = responseData?.access_token;
 
-            // 4. 로그인 성공 여부 확인
             if (!user) {
                 alert('로그인에 실패했습니다. 서버 응답을 확인해주세요.');
                 return;
             }
 
-            // 5. 로컬 스토리지 데이터 저장
-            // 나중에 새로고침해도 로그인이 유지되도록 함
             localStorage.setItem('user', JSON.stringify(user));
             if (token) {
                 localStorage.setItem('access_token', token);
             }
             localStorage.setItem('login_time', Date.now().toString());
 
-            // 6. 상위 컴포넌트(App) 상태 업데이트
-            // DB 테이블의 full_name이 없으면 username을, 둘 다 없으면 '사용자' 표시
             const displayName = user.full_name || user.username || '사용자';
             setUserName(displayName);
             setIsLoggedIn(true);
 
             alert(`${displayName}님, 환영합니다!`);
 
-            // 7. DB 역할(role)에 따른 페이지 라우팅
             if (user.role === 'counselor') {
                 navigate('/counselorhome');
             } else {
                 navigate('/');
             }
         } catch (error) {
-            // Axios 에러 처리: 서버에서 보내준 상세 메시지가 있다면 출력
             const serverMessage = error.response?.data?.detail || error.response?.data?.message;
             const clientMessage = error.message;
 
@@ -76,12 +79,52 @@ export default function LoginPage({ setUserName, setIsLoggedIn }) {
         <>
             <Header activeTab={activeTab} setActiveTab={setActiveTab} />
             <div className="login-container">
-                {/* 단일 카드 (브랜딩 섹션 제거, 폼만 유지) */}
                 <div className="login-card">
                     <div className="form-section">
                         <div className="form-inner-container">
                             <h3 className="form-header-title">다시 오셨군요!</h3>
                             <p className="form-header-sub">당신의 이야기를 들려주세요.</p>
+
+                            {/* 데모 로그인 섹션 */}
+                            <div className="demo-login-box">
+                                <div className="demo-login-heading">
+                                    <Sparkles size={14} />
+                                    <span>데모 계정으로 빠르게 둘러보기</span>
+                                </div>
+                                <div className="demo-btn-group">
+                                    <button
+                                        type="button"
+                                        className={`demo-btn demo-btn-client ${demoFilled === 'client' ? 'active' : ''}`}
+                                        onClick={() => handleDemoLogin('client')}
+                                    >
+                                        <User size={15} />
+                                        <span>내담자</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`demo-btn demo-btn-counselor ${demoFilled === 'counselor' ? 'active' : ''}`}
+                                        onClick={() => handleDemoLogin('counselor')}
+                                    >
+                                        <HeartHandshake size={15} />
+                                        <span>상담사</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`demo-btn demo-btn-admin ${demoFilled === 'admin' ? 'active' : ''}`}
+                                        onClick={() => handleDemoLogin('admin')}
+                                    >
+                                        <ShieldCheck size={15} />
+                                        <span>관리자</span>
+                                    </button>
+                                </div>
+                                {demoFilled && (
+                                    <p className="demo-filled-hint">
+                                        {DEMO_ACCOUNTS[demoFilled].label} 계정 정보가 입력되었어요.<br/>아래 로그인하기
+                                        버튼을 눌러주세요.
+                                    </p>
+                                )}
+                            </div>
+
                             <form onSubmit={handleSubmit}>
                                 <div className="input-group-container">
                                     <label className="input-label">아이디</label>
@@ -90,7 +133,10 @@ export default function LoginPage({ setUserName, setIsLoggedIn }) {
                                         <input
                                             type="text"
                                             value={loginId}
-                                            onChange={(e) => setLoginId(e.target.value)}
+                                            onChange={(e) => {
+                                                setLoginId(e.target.value);
+                                                setDemoFilled(null);
+                                            }}
                                             className="input-field"
                                             placeholder="아이디를 입력해 주세요"
                                             autoComplete="username"
@@ -105,7 +151,10 @@ export default function LoginPage({ setUserName, setIsLoggedIn }) {
                                         <input
                                             type={showPassword ? 'text' : 'password'}
                                             value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
+                                            onChange={(e) => {
+                                                setPassword(e.target.value);
+                                                setDemoFilled(null);
+                                            }}
                                             className="input-field"
                                             placeholder="비밀번호를 입력해 주세요"
                                             autoComplete="current-password"
@@ -134,11 +183,9 @@ export default function LoginPage({ setUserName, setIsLoggedIn }) {
                                     비밀번호 찾기
                                 </button>
                             </div>
-                            {/* 소셜 로그인 구분선 - 양옆 라인 스타일 */}
                             <div className="divider-container">
                                 <span className="divider-text">간편 로그인</span>
                             </div>
-                            {/* 소셜 버튼 - 원형 */}
                             <div className="social-icon-wrapper">
                                 {['Google', 'Kakao', 'Naver'].map((p) => (
                                     <button
