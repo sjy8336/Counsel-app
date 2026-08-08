@@ -24,7 +24,18 @@ class Settings(BaseSettings):
     # 4. OpenAI API 키 (.env의 OPENAI_API_KEY와 일치해야 함)
     OPENAI_API_KEY: Optional[str] = None
 
-    # 5. CORS 허용 오리진 (콤마로 여러 개 설정 가능)
+    # 5. Supabase Storage 설정
+    SUPABASE_URL: Optional[str] = None
+    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
+    SUPABASE_BUCKET_NAME: str = "uploads"
+    DELETE_LEGACY_PROFILE_IMAGES: bool = os.getenv("DELETE_LEGACY_PROFILE_IMAGES", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+    # 6. CORS 허용 오리진 (콤마로 여러 개 설정 가능)
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:5173")
 
     class Config:
