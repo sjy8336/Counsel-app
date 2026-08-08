@@ -22,3 +22,5 @@ COPY backend/ .
 # 6. Render 포트 설정 및 서버 가동 명령어
 EXPOSE 10000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10000"]
+
+RUN pip install --no-cache-dir --use-deprecated=legacy-resolver -r requirements.txt
