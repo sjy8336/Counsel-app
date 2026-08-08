@@ -54,3 +54,4 @@ watchfiles==1.2.0
 websockets==16.0
 wheel==0.45.1
 supabase>=2.0.0
+websockets==14.2
