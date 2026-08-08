@@ -51,7 +51,6 @@ urllib3==2.7.0
 uvicorn==0.44.0
 uvloop==0.22.1
 watchfiles==1.2.0
-websockets==16.0
 wheel==0.45.1
 supabase>=2.0.0
 websockets==14.2
