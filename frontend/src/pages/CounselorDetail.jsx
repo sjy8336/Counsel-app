@@ -552,10 +552,14 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                     <Clock size={18} /> 시간 선택
                                 </label>
                                 <div className="cld-time-grid">
-                                    {availableTimesForDate.length === 0 && selectedDate && (
-                                        <span className="u-muted-sm">
-                                            선택한 날짜에 가능한 시간이 없습니다.
-                                        </span>
+                                    {!selectedDate && (
+                                        <div className="cld-time-placeholder">
+                                            <Calendar size={18} />
+                                            <span>상담 일자를 먼저 선택해주세요</span>
+                                        </div>
+                                    )}
+                                    {selectedDate && availableTimesForDate.length === 0 && (
+                                        <span className="u-muted-sm">선택한 날짜에 가능한 시간이 없습니다.</span>
                                     )}
                                     {availableTimesForDate.map((time, idx) => (
                                         <button
@@ -702,9 +706,7 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                             </label>
                             <div className="cld-time-grid">
                                 {availableTimesForDate.length === 0 && selectedDate && (
-                                    <span className="u-muted-sm">
-                                        선택한 날짜에 가능한 시간이 없습니다.
-                                    </span>
+                                    <span className="u-muted-sm">선택한 날짜에 가능한 시간이 없습니다.</span>
                                 )}
                                 {availableTimesForDate.map((time, idx) => (
                                     <button
