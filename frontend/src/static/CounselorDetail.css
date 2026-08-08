@@ -1,4 +1,3 @@
-
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
 :root {
@@ -1000,4 +999,23 @@ body {
         border-radius: 3px;
         flex-shrink: 0;
     }
+}
+/* 시간 선택 영역 - 날짜 미선택 시 안내 플레이스홀더 */
+.cld-time-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1.5px dashed #d9e2d8;
+    background: #faf7f2;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.cld-time-placeholder svg {
+    color: #8ba888;
+    flex-shrink: 0;
 }
