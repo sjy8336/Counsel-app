@@ -1,12 +1,8 @@
-/* MINDWELL Login Page Custom Styles - Single Card Design */
-
 .login-container {
     background-color: #FDFBF7;
     display: flex;
-    /* align-items: center 제거 → 카드를 세로 중앙에 고정하지 않음 */
     justify-content: center;
     font-family: 'Pretendard', sans-serif;
-    /* 위아래 충분한 여백, 모바일 하단은 MobileTap(fixed ~80px) 가림 방지 */
     padding: 3rem 1rem 8rem 1rem;
     position: relative;
     overflow: visible;
@@ -325,4 +321,100 @@
 
 .branding-section {
     display: none;
+}
+
+/* ===== 데모 로그인 섹션 ===== */
+.demo-login-box {
+    background: linear-gradient(135deg, rgba(139, 168, 136, 0.08), rgba(253, 164, 175, 0.06));
+    border: 1px dashed rgba(139, 168, 136, 0.35);
+    border-radius: 1.25rem;
+    padding: 1.1rem 1.1rem 1rem 1.1rem;
+    margin-bottom: 1.75rem;
+}
+
+.demo-login-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #7a9677;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.01em;
+}
+
+.demo-btn-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.demo-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.65rem 0.4rem;
+    border-radius: 0.9rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    background-color: white;
+    color: #475569;
+    transition: all 0.18s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.demo-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px -4px rgba(0, 0, 0, 0.12);
+}
+
+.demo-btn-client {
+    border-color: rgba(139, 168, 136, 0.4);
+    color: #6f8a6c;
+}
+.demo-btn-client:hover,
+.demo-btn-client.active {
+    background-color: #8BA888;
+    border-color: #8BA888;
+    color: white;
+}
+
+.demo-btn-counselor {
+    border-color: rgba(253, 164, 175, 0.5);
+    color: #c97b86;
+}
+.demo-btn-counselor:hover,
+.demo-btn-counselor.active {
+    background-color: #FDA4AF;
+    border-color: #FDA4AF;
+    color: white;
+}
+
+.demo-btn-admin {
+    border-color: rgba(30, 41, 59, 0.25);
+    color: #475569;
+}
+.demo-btn-admin:hover,
+.demo-btn-admin.active {
+    background-color: #1e293b;
+    border-color: #1e293b;
+    color: white;
+}
+
+.demo-filled-hint {
+    margin: 0.65rem 0 0 0;
+    font-size: 0.75rem;
+    color: #7a9677;
+    text-align: center;
+    font-weight: 500;
+    animation: demo-hint-fade 0.25s ease;
+}
+
+@keyframes demo-hint-fade {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
