@@ -16,8 +16,10 @@ from app.services.notification_service import (
     send_booking_rejected_notification
 )
 from app.models.counselor import CounselorProfile
+from zoneinfo import ZoneInfo
 
 router = APIRouter()
+KST = ZoneInfo("Asia/Seoul")
 
 
 def _require_booking_owner_or_counselor(booking: Booking, current_user: User) -> None:
@@ -26,6 +28,43 @@ def _require_booking_owner_or_counselor(booking: Booking, current_user: User) ->
     if current_user.role == "client" and booking.client_id == current_user.id:
         return
     raise HTTPException(status_code=403, detail="해당 예약을 수정할 권한이 없습니다.")
+
+
+def _parse_booking_datetime(booking: Booking):
+    date_part = booking.booking_date.strftime("%Y-%m-%d")
+    for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%d %H:%M:%S"):
+        try:
+            return datetime.strptime(f"{date_part} {booking.booking_time}", fmt).replace(tzinfo=KST)
+        except ValueError:
+            continue
+    return None
+
+
+def _sync_overdue_bookings(db: Session):
+    """
+    예약 시간이 지난 건을 자동 상태 전환한다.
+    - waiting  -> canceled
+    - confirmed -> completed
+    """
+    now = datetime.now(KST)
+    changed = False
+    candidates = (
+        db.query(Booking)
+        .filter(Booking.booking_status.in_(["waiting", "confirmed"]))
+        .all()
+    )
+    for booking in candidates:
+        booking_dt = _parse_booking_datetime(booking)
+        if not booking_dt or booking_dt > now:
+            continue
+        if booking.booking_status == "waiting":
+            booking.booking_status = "canceled"
+            changed = True
+        elif booking.booking_status == "confirmed":
+            booking.booking_status = "completed"
+            changed = True
+    if changed:
+        db.commit()
 
 @router.post("/reject")
 def reject_booking(
@@ -69,6 +108,7 @@ def get_bookings_for_counselor(
     """
     (상담사 본인만) 본인이 받은 모든 예약 목록 반환 (내담자 정보 포함)
     """
+    _sync_overdue_bookings(db)
     bookings = (
         db.query(Booking, User, CounselorProfile)
         .outerjoin(User, User.id == Booking.client_id)
@@ -276,6 +316,7 @@ def get_all_bookings(
     """
     로그인한 사용자의 모든 예약(취소 포함) 반환
     """
+    _sync_overdue_bookings(db)
     query = (
         db.query(Booking, User, CounselorProfile)
         .join(User, User.id == Booking.counselor_id)
@@ -284,7 +325,7 @@ def get_all_bookings(
     )
 
     if upcoming_only:
-        now = datetime.now()
+        now = datetime.now(KST)
         today = now.date()
         current_time = now.strftime("%H:%M")
         query = query.filter(
@@ -389,6 +430,7 @@ def get_bookings_by_counselor_and_date(
     date: str = Query(..., description="예약 날짜 (YYYY-MM-DD)"),
     db: Session = Depends(get_db)
 ):
+    _sync_overdue_bookings(db)
     try:
         booking_date_obj = datetime.strptime(date, "%Y-%m-%d").date()
     except Exception:
