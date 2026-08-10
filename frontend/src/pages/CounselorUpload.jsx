@@ -356,6 +356,7 @@ const App = () => {
                 throw new Error('상담 일정 저장에 실패했습니다.');
             }
             if (userId) localStorage.removeItem(DRAFT_KEY(userId));
+            window.dispatchEvent(new Event('profileImgChanged'));
             setShowConfirmModal(false);
             setSubmitSuccess(true);
             showToast('등록 신청이 완료되었습니다.');

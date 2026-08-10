@@ -22,6 +22,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
     const [loading, setLoading] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
     const [pageOffset, setPageOffset] = useState(0);
+    const [profileRefreshTick, setProfileRefreshTick] = useState(0);
     const loaderRef = useRef(null);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
@@ -95,6 +96,12 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
         }
     }, [toast]);
 
+    useEffect(() => {
+        const sync = () => setProfileRefreshTick((prev) => prev + 1);
+        window.addEventListener('profileImgChanged', sync);
+        return () => window.removeEventListener('profileImgChanged', sync);
+    }, []);
+
     // API 데이터 로딩 로직 (필터 조합 연동)
     useEffect(() => {
         const fetchAll = async () => {
@@ -152,7 +159,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
             }
         };
         fetchAll();
-    }, [searchTerm, selectedSubCategories]);
+    }, [searchTerm, selectedSubCategories, profileRefreshTick]);
 
     const handleLike = async (id, e) => {
         e.stopPropagation();

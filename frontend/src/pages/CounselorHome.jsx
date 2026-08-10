@@ -80,6 +80,14 @@ const CounselorHome = () => {
         return () => window.clearTimeout(timerId);
     }, [fetchReservations]);
 
+    useEffect(() => {
+        const sync = () => {
+            void fetchReservations();
+        };
+        window.addEventListener('profileImgChanged', sync);
+        return () => window.removeEventListener('profileImgChanged', sync);
+    }, [fetchReservations]);
+
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 3000);
