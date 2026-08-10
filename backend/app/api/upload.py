@@ -1,5 +1,6 @@
 import os
 import uuid
+import logging
 
 from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, status
 
@@ -8,6 +9,7 @@ from app.core.config import settings
 from app.core.supabase_storage import get_supabase_bucket_name, get_supabase_client
 
 router = APIRouter(prefix="/api")
+logger = logging.getLogger(__name__)
 
 @router.post("/upload/profile-image")
 async def upload_profile_image(
@@ -25,10 +27,19 @@ async def upload_profile_image(
     unique_filename = f"user_{current_user.id}_{uuid.uuid4().hex}{ext}"
     contents = await file.read()
 
-    supabase = get_supabase_client()
     bucket_name = get_supabase_bucket_name()
+    logger.info(
+        "profile image upload start user_id=%s filename=%s content_type=%s bucket=%s has_supabase_url=%s has_service_key=%s",
+        getattr(current_user, "id", None),
+        file.filename,
+        file.content_type,
+        bucket_name,
+        bool(settings.SUPABASE_URL),
+        bool(settings.SUPABASE_SERVICE_ROLE_KEY),
+    )
 
     try:
+        supabase = get_supabase_client()
         supabase.storage.from_(bucket_name).upload(
             path=unique_filename,
             file=contents,
@@ -53,4 +64,10 @@ async def upload_profile_image(
             public_url = f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{bucket_name}/{unique_filename}"
         return {"profile_img_url": public_url}
     except Exception as exc:
+        logger.exception(
+            "profile image upload failed user_id=%s filename=%s bucket=%s",
+            getattr(current_user, "id", None),
+            file.filename,
+            bucket_name,
+        )
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Image upload failed: {exc}")
