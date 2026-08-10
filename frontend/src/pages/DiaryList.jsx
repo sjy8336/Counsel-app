@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// ★ 추가: deleteDiary import
-import { getRecentDiaries } from '../api/aiDiary';
+import { getRecentDiaries, deleteDiary } from '../api/aiDiary';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/header.jsx';
 import Footer from '../components/footer.jsx';
@@ -115,20 +114,6 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
         };
     }, [selectedDiary]);
 
-    useEffect(() => {
-        async function fetchDiaries() {
-            setLoading(true);
-            try {
-                const diaries = await getRecentDiaries(100);
-                setDiaryData(diaries);
-            } catch (e) {
-                setDiaryData([]);
-            }
-            setLoading(false);
-        }
-        fetchDiaries();
-    }, []);
-
     // ★ 추가: 일기 삭제 핸들러 (1회 클릭 → 확인 메시지, 2회 클릭 → 실제 삭제)
     const handleDeleteDiary = async (diaryId) => {
         if (!deleteConfirm) {
@@ -137,10 +122,14 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
         }
         try {
             await deleteDiary(diaryId);
-            setDiaryData((prev) => prev.filter((d) => d.id !== diaryId));
+            setDiaryData((prev) => {
+                const nextDiaries = prev.filter((d) => d.id !== diaryId);
+                setCurrentDate(getLatestDate(nextDiaries));
+                return nextDiaries;
+            });
             setSelectedDiary(null);
             setDeleteConfirm(false);
-        } catch (e) {
+        } catch {
             alert('삭제 중 오류가 발생했습니다.');
             setDeleteConfirm(false);
         }
@@ -152,9 +141,9 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
 
     const [viewMode, setViewMode] = useState(location.state?.viewMode || 'calendar');
 
-    const getLatestDate = () => {
-        if (diaryData.length === 0) return new Date();
-        const latest = diaryData.reduce((latest, cur) => {
+    const getLatestDate = (items = diaryData) => {
+        if (items.length === 0) return new Date();
+        const latest = items.reduce((latest, cur) => {
             if (!latest) return cur;
             return new Date(cur.created_at) > new Date(latest.created_at) ? cur : latest;
         }, null);
@@ -165,13 +154,29 @@ export default function App({ userName, setUserName, isLoggedIn, setIsLoggedIn }
 
     const [currentDate, setCurrentDate] = useState(getLatestDate());
 
-    useEffect(() => {
-        if (diaryData.length > 0) {
-            setCurrentDate(getLatestDate());
-        }
-    }, [diaryData]);
-
     const [activeTab, setActiveTab] = useState('diary');
+
+    useEffect(() => {
+        async function fetchDiaries() {
+            setLoading(true);
+            try {
+                const diaries = await getRecentDiaries(100);
+                setDiaryData(diaries);
+                const latestDiary = diaries.reduce((latest, cur) => {
+                    if (!latest) return cur;
+                    return new Date(cur.created_at) > new Date(latest.created_at) ? cur : latest;
+                }, null);
+                if (latestDiary?.created_at) {
+                    const d = new Date(latestDiary.created_at);
+                    setCurrentDate(new Date(d.getFullYear(), d.getMonth(), 1));
+                }
+            } catch {
+                setDiaryData([]);
+            }
+            setLoading(false);
+        }
+        fetchDiaries();
+    }, []);
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
