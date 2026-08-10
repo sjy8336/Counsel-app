@@ -305,31 +305,52 @@ export default function MyPage() {
         }
 
         setFavoritesLoading(true);
-        Promise.all([getUserInfo(userObj.id), getFavorites(token)])
-            .then(([userData, favData]) => {
-                setUserInfo((prev) => ({
-                    ...prev,
-                    name: userData.full_name,
-                    username: userData.username,
-                    email: userData.email,
-                    phone: userData.phone_number,
-                    gender: userData.gender || '',
-                    profile_img_url: userData.profile_img_url || '',
-                    created_at: userData.created_at || '',
-                }));
+
+        const loadFavorites = async () => {
+            try {
+                const favData = await getFavorites(token);
                 setFavoritesList(favData.favorites || []);
-            })
-            .catch((err) => {
+            } catch (err) {
                 if (err?.response?.status === 401) {
                     alert('로그인 세션이 만료되었습니다. 다시 로그인 해주세요.');
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('user');
                     navigate('/login');
-                } else {
-                    setFavoritesList([]);
+                    return;
                 }
-            })
-            .finally(() => setFavoritesLoading(false));
+                setFavoritesList([]);
+            } finally {
+                setFavoritesLoading(false);
+            }
+        };
+
+        const syncFavorites = () => {
+            loadFavorites();
+        };
+
+        window.addEventListener('favoritesChanged', syncFavorites);
+        loadFavorites();
+
+        if (userObj.id) {
+            getUserInfo(userObj.id)
+                .then((userData) => {
+                    setUserInfo((prev) => ({
+                        ...prev,
+                        name: userData.full_name,
+                        username: userData.username,
+                        email: userData.email,
+                        phone: userData.phone_number,
+                        gender: userData.gender || '',
+                        profile_img_url: userData.profile_img_url || '',
+                        created_at: userData.created_at || '',
+                    }));
+                })
+                .catch(() => {
+                    // 유저 정보가 잠시 실패해도 찜 목록은 그대로 보여주기
+                });
+        }
+
+        return () => window.removeEventListener('favoritesChanged', syncFavorites);
     }, [navigate]);
 
     // 예약 로드
@@ -519,6 +540,7 @@ export default function MyPage() {
             await toggleFavorite(id, token);
             const data = await getFavorites(token);
             setFavoritesList(data.favorites || []);
+            window.dispatchEvent(new Event('favoritesChanged'));
         } catch {
             alert('찜 해제 처리 중 오류가 발생했습니다.');
         }
