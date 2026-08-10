@@ -13,6 +13,32 @@ from app.models.counselor import CounselorProfile, CounselorSpecialty, Counselor
 
 router = APIRouter()
 
+def _serialize_counselor_application(db: Session, profile: CounselorProfile):
+    user = db.query(User).filter(User.id == profile.user_id).first()
+    specialties = db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == profile.user_id).all()
+    certificates = db.query(CounselorCertificate).filter(CounselorCertificate.user_id == profile.user_id).all()
+    educations = db.query(CounselorEducation).filter(CounselorEducation.user_id == profile.user_id).all()
+    experiences = db.query(CounselorExperience).filter(CounselorExperience.user_id == profile.user_id).all()
+    schedules = db.query(CounselorSchedule).filter(CounselorSchedule.user_id == profile.user_id).all()
+    return {
+        "user": {
+            "id": user.id,
+            "full_name": user.full_name,
+            "username": user.username,
+            "email": user.email,
+            "phone_number": user.phone_number,
+            "birth_date": user.birth_date,
+            "gender": user.gender,
+            "profile_img_url": user.profile_img_url,
+        } if user else None,
+        "profile": profile,
+        "specialties": specialties,
+        "certificates": certificates,
+        "educations": educations,
+        "experiences": experiences,
+        "schedules": schedules,
+    }
+
 # 관리자: 상담사 승인
 @router.patch("/admin/counselors/{user_id}/approve")
 def approve_counselor(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
@@ -24,6 +50,7 @@ def approve_counselor(user_id: int, db: Session = Depends(get_db), current_user=
     if profile.status == '수락':
         raise HTTPException(status_code=409, detail="이미 승인된 상담사입니다.")
     profile.status = '수락'
+    profile.reject_reason = None
     db.commit()
     # 알림 생성
     user = db.query(User).filter(User.id == user_id).first()
@@ -62,6 +89,38 @@ def reject_counselor(user_id: int, db: Session = Depends(get_db), current_user=D
         create_notification(db, notif)
     return {"message": "상담사 반려 및 알림 전송 완료"}
 
+# 관리자: 승인된 상담사 승인 취소
+@router.patch("/admin/counselors/{user_id}/revoke")
+def revoke_counselor(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+    reason: str = Body(None, embed=True),
+):
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="관리자만 승인 취소할 수 있습니다.")
+    profile = db.query(CounselorProfile).filter(CounselorProfile.user_id == user_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="상담사 프로필을 찾을 수 없습니다.")
+    if profile.status != '수락':
+        raise HTTPException(status_code=409, detail="승인된 상담사만 취소할 수 있습니다.")
+
+    final_reason = reason or "관리자에 의해 상담사 등록 승인 취소되었습니다."
+    profile.status = '반려'
+    profile.reject_reason = final_reason
+    db.commit()
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        notif = NotificationCreate(
+            user_id=user_id,
+            type="counselor_revoked",
+            title="상담사 등록 승인이 취소되었습니다.",
+            desc=final_reason,
+        )
+        create_notification(db, notif)
+    return {"message": "상담사 승인 취소 및 알림 전송 완료"}
+
 # 관리자: 심사중 상담사 전체 신청 내역 조회
 @router.get("/admin/counselors/pending")
 def get_pending_counselors(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
@@ -69,33 +128,15 @@ def get_pending_counselors(db: Session = Depends(get_db), current_user=Depends(g
         raise HTTPException(status_code=403, detail="관리자만 접근 가능합니다.")
     # status='심사중'인 프로필 전체
     profiles = db.query(CounselorProfile).filter(CounselorProfile.status == '심사중').all()
-    result = []
-    for profile in profiles:
-        user = db.query(User).filter(User.id == profile.user_id).first()
-        specialties = db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == profile.user_id).all()
-        certificates = db.query(CounselorCertificate).filter(CounselorCertificate.user_id == profile.user_id).all()
-        educations = db.query(CounselorEducation).filter(CounselorEducation.user_id == profile.user_id).all()
-        experiences = db.query(CounselorExperience).filter(CounselorExperience.user_id == profile.user_id).all()
-        schedules = db.query(CounselorSchedule).filter(CounselorSchedule.user_id == profile.user_id).all()
-        result.append({
-            "user": {
-                "id": user.id,
-                "full_name": user.full_name,
-                "username": user.username,
-                "email": user.email,
-                "phone_number": user.phone_number,
-                "birth_date": user.birth_date,
-                "gender": user.gender,
-                "profile_img_url": user.profile_img_url,  # 프로필 이미지 경로 추가
-            } if user else None,
-            "profile": profile,
-            "specialties": specialties,
-            "certificates": certificates,
-            "educations": educations,
-            "experiences": experiences,
-            "schedules": schedules,
-        })
-    return result
+    return [_serialize_counselor_application(db, profile) for profile in profiles]
+
+# 관리자: 승인된 상담사 전체 목록 조회
+@router.get("/admin/counselors/approved")
+def get_approved_counselors_admin(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="관리자만 접근 가능합니다.")
+    profiles = db.query(CounselorProfile).filter(CounselorProfile.status == '수락').all()
+    return [_serialize_counselor_application(db, profile) for profile in profiles]
 
 # 1. 프로필
 @router.post("/counselor/profile")

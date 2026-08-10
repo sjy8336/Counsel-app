@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance, { apiUrl, resolveImageUrl } from '../api/axiosInstance';
+import { apiUrl, resolveImageUrl } from '../api/axiosInstance';
 import {
     Users,
     ClipboardCheck,
@@ -36,6 +36,7 @@ const AdminCounselor = () => {
     const [viewMode, setViewMode] = useState('list');
     const [selectedCounselor, setSelectedCounselor] = useState(null);
     const [showRejectModal, setShowRejectModal] = useState(false);
+    const [reviewAction, setReviewAction] = useState('reject');
     const [rejectReason, setRejectReason] = useState('경력 증빙 서류가 불충분합니다. 보완 후 재등록 부탁드립니다.');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -68,67 +69,70 @@ const AdminCounselor = () => {
         }
     }, [navigate]);
 
-    // 승인 대기 상담사 목록 (API)
-    const [counselors, setCounselors] = useState([]);
+    const mapCounselorRow = (item) => ({
+        id: item.user?.id,
+        name: item.user?.full_name,
+        email: item.user?.email,
+        center: item.profile?.center_name,
+        address: item.profile?.center_address,
+        specialties: item.specialties?.map((s) => s.specialty_name) || [],
+        appliedDate: item.profile?.created_at?.slice(0, 10),
+        status: item.profile?.status === '심사중' ? '대기' : item.profile?.status === '수락' ? '승인됨' : '반려',
+        introduction: item.profile?.intro_line,
+        fee: item.profile?.consultation_price,
+        profile_img_url: item.user?.profile_img_url,
+        reject_reason: item.profile?.reject_reason,
+        educations: item.educations || [],
+        experiences: item.experiences || [],
+        certificates: item.certificates || [],
+        schedule: (() => {
+            const result = { 월: [], 화: [], 수: [], 목: [], 금: [] };
+            if (item.schedules && item.schedules.length > 0) {
+                item.schedules.forEach((s) => {
+                    const day = s.day_of_week?.replace('요일', '');
+                    if (result[day] !== undefined) {
+                        result[day].push(`${s.start_time?.slice(0, 5)}~${s.end_time?.slice(0, 5)}`);
+                    }
+                });
+            }
+            Object.keys(result).forEach((k) => {
+                if (result[k].length === 0) result[k] = '휴무';
+                else result[k] = result[k].join(', ');
+            });
+            return result;
+        })(),
+    });
+
+    // 승인 대기/승인 완료 상담사 목록 (API)
+    const [pendingCounselors, setPendingCounselors] = useState([]);
+    const [approvedCounselors, setApprovedCounselors] = useState([]);
+    const [counselorView, setCounselorView] = useState('pending'); // pending | approved
+
+    const fetchCounselorLists = useCallback(async () => {
+        try {
+            const token = localStorage.getItem('access_token');
+            const [pendingRes, approvedRes] = await Promise.all([
+                fetch(apiUrl('/admin/counselors/pending'), {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
+                fetch(apiUrl('/admin/counselors/approved'), {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
+            ]);
+            if (!pendingRes.ok || !approvedRes.ok) throw new Error('목록 조회 실패');
+            const [pendingData, approvedData] = await Promise.all([pendingRes.json(), approvedRes.json()]);
+            setPendingCounselors((pendingData || []).map(mapCounselorRow));
+            setApprovedCounselors((approvedData || []).map(mapCounselorRow));
+        } catch {
+            alert('상담사 목록을 불러오지 못했습니다.');
+            setPendingCounselors([]);
+            setApprovedCounselors([]);
+        }
+    }, []);
 
     useEffect(() => {
-        const fetchPendingCounselors = async () => {
-            try {
-                const token = localStorage.getItem('access_token');
-                const res = await fetch(apiUrl('/admin/counselors/pending'), {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                if (!res.ok) throw new Error('목록 조회 실패');
-                const data = await res.json();
-                // 평평하게 매핑
-                setCounselors(
-                    data.map((item) => ({
-                        id: item.user?.id,
-                        name: item.user?.full_name,
-                        email: item.user?.email,
-                        center: item.profile?.center_name,
-                        address: item.profile?.center_address,
-                        specialties: item.specialties?.map((s) => s.specialty_name) || [],
-                        appliedDate: item.profile?.created_at?.slice(0, 10),
-                        status:
-                            item.profile?.status === '심사중'
-                                ? '대기'
-                                : item.profile?.status === '수락'
-                                  ? '승인됨'
-                                  : '반려',
-                        introduction: item.profile?.intro_line,
-                        fee: item.profile?.consultation_price,
-                        profile_img_url: item.user?.profile_img_url,
-                        educations: item.educations || [],
-                        experiences: item.experiences || [],
-                        certificates: item.certificates || [],
-                        schedule: (() => {
-                            // 요일별로 여러 시간대 지원
-                            const result = { 월: [], 화: [], 수: [], 목: [], 금: [] };
-                            if (item.schedules && item.schedules.length > 0) {
-                                item.schedules.forEach((s) => {
-                                    const day = s.day_of_week?.replace('요일', '');
-                                    if (result[day] !== undefined) {
-                                        result[day].push(`${s.start_time?.slice(0, 5)}~${s.end_time?.slice(0, 5)}`);
-                                    }
-                                });
-                            }
-                            // 휴무/여러 시간대 문자열로 변환
-                            Object.keys(result).forEach((k) => {
-                                if (result[k].length === 0) result[k] = '휴무';
-                                else result[k] = result[k].join(', ');
-                            });
-                            return result;
-                        })(),
-                    }))
-                );
-            } catch {
-                alert('상담사 목록을 불러오지 못했습니다.');
-                setCounselors([]);
-            }
-        };
-        fetchPendingCounselors();
-    }, []);
+        fetchCounselorLists();
+    }, [fetchCounselorLists]);
 
     // 실제 DB에서 회원 데이터 조회
     const [memberList, setMemberList] = useState([]);
@@ -170,11 +174,13 @@ const AdminCounselor = () => {
         fetchMembers();
     }, []);
 
-    // ✅ 대기 중인 수만 실시간 계산
-    const pendingCount = counselors.filter((c) => c.status === '대기').length;
+    // ✅ 상태별 수만 실시간 계산
+    const pendingCount = pendingCounselors.length;
+    const approvedCount = approvedCounselors.length;
 
     const stats = [
         { label: '승인 대기', value: pendingCount, icon: <Clock size={20} />, tone: 'amber' },
+        { label: '승인 완료', value: approvedCount, icon: <CheckCircle size={20} />, tone: 'green' },
         { label: '전체 회원', value: memberList.length, icon: <Users size={20} />, tone: 'sage' },
         {
             label: '활성 내담자',
@@ -198,9 +204,8 @@ const AdminCounselor = () => {
                 },
             });
             if (!res.ok) throw new Error('승인 처리 실패');
-
-            setCounselors((prev) => prev.map((c) => (c.id === counselor.id ? { ...c, status: '승인됨' } : c)));
-            setSelectedCounselor((prev) => ({ ...prev, status: '승인됨' }));
+            await fetchCounselorLists();
+            setSelectedCounselor((prev) => (prev ? { ...prev, status: '승인됨', reject_reason: null } : prev));
             showToast('승인이 완료되었습니다.');
         } catch {
             alert('승인 처리 중 오류가 발생했습니다. 다시 시도해 주세요.');
@@ -223,13 +228,40 @@ const AdminCounselor = () => {
                 body: JSON.stringify({ reason: rejectReason }),
             });
             if (!res.ok) throw new Error('반려 처리 실패');
-
-            setCounselors((prev) => prev.map((c) => (c.id === selectedCounselor.id ? { ...c, status: '반려' } : c)));
-            setSelectedCounselor((prev) => ({ ...prev, status: '반려' }));
-            alert('반려 메일이 발송되었습니다.');
+            await fetchCounselorLists();
+            setSelectedCounselor((prev) => (prev ? { ...prev, status: '반려', reject_reason: rejectReason } : prev));
+            alert(reviewAction === 'revoke' ? '승인 취소 메일이 발송되었습니다.' : '반려 메일이 발송되었습니다.');
             setShowRejectModal(false);
         } catch {
-            alert('반려 처리 중 오류가 발생했습니다. 다시 시도해 주세요.');
+            alert(
+                reviewAction === 'revoke'
+                    ? '승인 취소 처리 중 오류가 발생했습니다. 다시 시도해 주세요.'
+                    : '반려 처리 중 오류가 발생했습니다. 다시 시도해 주세요.'
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleRevoke = async () => {
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem('access_token');
+            const res = await fetch(apiUrl(`/admin/counselors/${selectedCounselor.id}/revoke`), {
+                method: 'PATCH',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ reason: rejectReason }),
+            });
+            if (!res.ok) throw new Error('승인 취소 실패');
+            await fetchCounselorLists();
+            setSelectedCounselor((prev) => (prev ? { ...prev, status: '반려', reject_reason: rejectReason } : prev));
+            alert('승인 취소 메일이 발송되었습니다.');
+            setShowRejectModal(false);
+        } catch {
+            alert('승인 취소 처리 중 오류가 발생했습니다. 다시 시도해 주세요.');
         } finally {
             setIsLoading(false);
         }
@@ -248,7 +280,8 @@ const AdminCounselor = () => {
         setCurrentPage(1);
     }, [searchQuery, roleFilter]);
 
-    const filteredCounselors = counselors.filter(
+    const activeCounselorList = counselorView === 'pending' ? pendingCounselors : approvedCounselors;
+    const filteredCounselors = activeCounselorList.filter(
         (c) =>
             (typeof c.name === 'string' && c.name.includes(searchQuery)) ||
             (typeof c.email === 'string' && c.email.includes(searchQuery))
@@ -347,19 +380,53 @@ const AdminCounselor = () => {
                         <div className="ac-card">
                             <div className="ac-card-header">
                                 <div>
-                                    <h2 className="ac-card-title">전문가 승인 대기 목록</h2>
+                                    <h2 className="ac-card-title">
+                                        {counselorView === 'pending' ? '전문가 승인 대기 목록' : '승인된 상담사 목록'}
+                                    </h2>
                                     <p className="ac-card-desc">
-                                        등록 신청한 상담사의 프로필을 검토하고 승인 여부를 결정합니다.
+                                        {counselorView === 'pending'
+                                            ? '등록 신청한 상담사의 프로필을 검토하고 승인 여부를 결정합니다.'
+                                            : '이미 승인된 상담사를 확인하고 필요 시 승인 취소를 진행할 수 있습니다.'}
                                     </p>
                                 </div>
-                                <div className="ac-search-box">
-                                    <Search size={16} className="ac-search-icon" />
-                                    <input
-                                        className="ac-search-input"
-                                        placeholder="이름 또는 이메일 검색"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
+                                <div className="ac-member-controls">
+                                    <div className="ac-toggle-group">
+                                        <button
+                                            type="button"
+                                            className={`ac-toggle-btn${counselorView === 'pending' ? ' active' : ''}`}
+                                            onClick={() => {
+                                                setCounselorView('pending');
+                                                setViewMode('list');
+                                                setSelectedCounselor(null);
+                                                setSearchQuery('');
+                                            }}
+                                        >
+                                            승인 대기
+                                            <span className="ac-badge">{pendingCount}</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`ac-toggle-btn${counselorView === 'approved' ? ' active' : ''}`}
+                                            onClick={() => {
+                                                setCounselorView('approved');
+                                                setViewMode('list');
+                                                setSelectedCounselor(null);
+                                                setSearchQuery('');
+                                            }}
+                                        >
+                                            승인 완료
+                                            <span className="ac-badge">{approvedCount}</span>
+                                        </button>
+                                    </div>
+                                    <div className="ac-search-box">
+                                        <Search size={16} className="ac-search-icon" />
+                                        <input
+                                            className="ac-search-input"
+                                            placeholder="이름 또는 이메일 검색"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -367,7 +434,7 @@ const AdminCounselor = () => {
                                 {filteredCounselors.length === 0 ? (
                                     <div className="ac-empty">
                                         <AlertCircle size={40} />
-                                        <p>대기 중인 신청이 없습니다.</p>
+                                        <p>{counselorView === 'pending' ? '대기 중인 신청이 없습니다.' : '승인된 상담사가 없습니다.'}</p>
                                     </div>
                                 ) : (
                                     filteredCounselors.map((c) => (
@@ -419,7 +486,7 @@ const AdminCounselor = () => {
                                             <div className="ac-counselor-right">
                                                 <StatusBadge status={c.status} />
                                                 <div className="ac-counselor-date">신청일 {c.appliedDate}</div>
-                                                {/* ✅ 대기 중이면 '심사하기', 처리됐으면 '상세보기' */}
+                                                {/* ✅ 대기 중이면 '심사하기', 승인된 상담사도 상세보기로 진입 */}
                                                 <button
                                                     className={
                                                         c.status === '대기' ? 'ac-detail-btn' : 'ac-detail-btn-ghost'
@@ -429,7 +496,11 @@ const AdminCounselor = () => {
                                                         setViewMode('detail');
                                                     }}
                                                 >
-                                                    {c.status === '대기' ? '심사하기' : '상세보기'}{' '}
+                                                    {c.status === '대기'
+                                                        ? '심사하기'
+                                                        : counselorView === 'approved'
+                                                          ? '승인 취소하기'
+                                                          : '상세보기'}{' '}
                                                     <ChevronRight size={15} />
                                                 </button>
                                             </div>
@@ -636,13 +707,14 @@ const AdminCounselor = () => {
                                 </div>
                             </div>
 
-                            {/* ✅ 대기 중일 때만 버튼 표시, 처리 완료 시 안내 메시지 */}
+                            {/* ✅ 상태별 액션 */}
                             {selectedCounselor.status === '대기' ? (
                                 <div className="ac-action-row">
                                     <button
                                         className="ac-btn-reject"
                                         disabled={isLoading}
                                         onClick={() => {
+                                            setReviewAction('reject');
                                             setRejectReason(defaultRejectReason);
                                             setShowRejectModal(true);
                                         }}
@@ -657,11 +729,29 @@ const AdminCounselor = () => {
                                         <CheckCircle size={17} /> {isLoading ? '처리 중...' : '최종 승인 완료'}
                                     </button>
                                 </div>
+                            ) : selectedCounselor.status === '승인됨' ? (
+                                <div className="ac-action-row">
+                                    <button
+                                        className="ac-btn-reject"
+                                        disabled={isLoading}
+                                        onClick={() => {
+                                            setReviewAction('revoke');
+                                            setRejectReason(
+                                                '관리자에 의해 상담사 등록 승인이 취소되었습니다. 자세한 내용은 관리자에게 문의해 주세요.'
+                                            );
+                                            setShowRejectModal(true);
+                                        }}
+                                    >
+                                        <XCircle size={17} /> 승인 취소
+                                    </button>
+                                </div>
                             ) : (
                                 <div className="ac-action-done">
                                     {selectedCounselor.status === '승인됨'
                                         ? '✅ 이미 승인 처리된 상담사입니다.'
-                                        : '❌ 반려 처리된 상담사입니다.'}
+                                        : selectedCounselor.reject_reason
+                                          ? `❌ ${selectedCounselor.reject_reason}`
+                                          : '❌ 반려 처리된 상담사입니다.'}
                                 </div>
                             )}
                         </div>
@@ -851,9 +941,13 @@ const AdminCounselor = () => {
                         <div className="ac-modal" onClick={(e) => e.stopPropagation()}>
                             <div className="ac-modal-header">
                                 <XCircle size={22} className="ac-modal-icon" />
-                                <h3>심사 반려 사유 입력</h3>
+                                <h3>{reviewAction === 'revoke' ? '승인 취소 사유 입력' : '심사 반려 사유 입력'}</h3>
                             </div>
-                            <p className="ac-modal-desc">반려 시 상담사님께 이메일로 발송될 내용을 작성해 주세요.</p>
+                            <p className="ac-modal-desc">
+                                {reviewAction === 'revoke'
+                                    ? '승인 취소 시 상담사님께 이메일로 발송될 내용을 작성해 주세요.'
+                                    : '반려 시 상담사님께 이메일로 발송될 내용을 작성해 주세요.'}
+                            </p>
                             <textarea
                                 className="ac-modal-textarea"
                                 value={rejectReason}
@@ -864,8 +958,17 @@ const AdminCounselor = () => {
                                 <button className="ac-modal-cancel" onClick={() => setShowRejectModal(false)}>
                                     취소
                                 </button>
-                                <button className="ac-modal-send" disabled={isLoading} onClick={handleReject}>
-                                    <Mail size={15} /> {isLoading ? '처리 중...' : '반려 메일 전송'}
+                                <button
+                                    className="ac-modal-send"
+                                    disabled={isLoading}
+                                    onClick={reviewAction === 'revoke' ? handleRevoke : handleReject}
+                                >
+                                    <Mail size={15} />{' '}
+                                    {isLoading
+                                        ? '처리 중...'
+                                        : reviewAction === 'revoke'
+                                          ? '승인 취소 메일 전송'
+                                          : '반려 메일 전송'}
                                 </button>
                             </div>
                         </div>
