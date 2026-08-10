@@ -1218,8 +1218,16 @@ const App = () => {
             return (
                 <div className="cmp-settings-card cmp-settings-card--center">
                     <div className="cmp-register-icon">❌</div>
-                    <h3 className="cmp-register-title">프로필 등록이 반려되었습니다</h3>
-                    <p className="cmp-register-sub">사유를 확인 후 정보를 수정해 다시 등록해 주세요.</p>
+                    <h3 className="cmp-register-title">
+                        {profile?.reject_reason?.includes('승인 취소')
+                            ? '관리자에 의해 승인이 취소되었습니다'
+                            : '프로필 등록이 반려되었습니다'}
+                    </h3>
+                    <p className="cmp-register-sub">
+                        {profile?.reject_reason?.includes('승인 취소')
+                            ? '사유를 확인 후 필요하면 정보를 수정해 다시 등록해 주세요.'
+                            : '사유를 확인 후 정보를 수정해 다시 등록해 주세요.'}
+                    </p>
                     {profile?.reject_reason && (
                         <div className="cmp-reject-reason u-mt-22 u-mb-24">
                             반려 사유: {profile.reject_reason}
