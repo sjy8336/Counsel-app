@@ -1161,6 +1161,11 @@ img {
     color: #8ba888;
     transform: scale(1.05);
 }
+.profile-camera-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
 .profile-change-text {
     margin-top: 1.25rem;
     font-weight: 900;
@@ -1314,6 +1319,12 @@ img {
     background-color: #6b8469;
     transform: translateY(-2px);
     box-shadow: 0 10px 15px -3px rgba(139, 168, 136, 0.2);
+}
+.profile-save-full-btn.is-loading,
+.profile-save-full-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
 }
 .profile-save-btn-row {
     display: flex;

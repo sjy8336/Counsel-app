@@ -933,6 +933,25 @@
     align-items: center;
     justify-content: center;
 }
+.cmp-profile-edit-btn:disabled,
+.cmp-profile-edit-btn.is-loading {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+.cmp-profile-uploading-badge {
+    position: absolute;
+    left: 50%;
+    bottom: -10px;
+    transform: translateX(-50%);
+    background: rgba(30, 41, 59, 0.9);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    pointer-events: none;
+}
 
 /* 자기소개 textarea 상하 여백 — JSX inline style 대체 */
 .cmp-intro-wrap {
@@ -945,6 +964,11 @@
     max-width: 130px;
     display: block;
     margin-left: auto;
+}
+.cmp-btn-profile-save.is-loading,
+.cmp-btn-profile-save:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
 /* 상담 시간 섹션 상단 여백 — JSX inline style 대체 */
@@ -961,6 +985,11 @@
     justify-content: center;
     gap: 7px;
     margin-left: auto;
+}
+.cmp-btn-time-save.is-loading,
+.cmp-btn-time-save:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
 /* 시간 저장 아이콘 — JSX inline style 대체 */

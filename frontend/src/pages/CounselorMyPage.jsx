@@ -537,6 +537,8 @@ const App = () => {
     const [profileStatus, setProfileStatus] = useState('');
     const [profile, setProfile] = useState({});
     const [pendingProfileImgUrl, setPendingProfileImgUrl] = useState('');
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
+    const [isProfileImgUploading, setIsProfileImgUploading] = useState(false);
     const [specialties, setSpecialties] = useState([]);
     const [careers, setCareers] = useState([]);
     const [educations, setEducations] = useState([]);
@@ -867,6 +869,8 @@ const App = () => {
     });
 
     const handleSaveProfile = async () => {
+        if (isSavingProfile) return;
+        setIsSavingProfile(true);
         const token = localStorage.getItem('access_token');
         try {
             const payload = buildProfilePayload();
@@ -921,6 +925,8 @@ const App = () => {
             alert('저장되었습니다.');
         } catch {
             alert('저장 중 오류가 발생했습니다.');
+        } finally {
+            setIsSavingProfile(false);
         }
     };
 
@@ -950,6 +956,7 @@ const App = () => {
         if (!file) return;
         const formData = new FormData();
         formData.append('file', file);
+        setIsProfileImgUploading(true);
         try {
             const token = localStorage.getItem('access_token');
             const res = await axiosInstance.post('/upload/profile-image', formData, {
@@ -962,6 +969,9 @@ const App = () => {
             }
         } catch {
             alert('이미지 업로드에 실패했습니다.');
+        } finally {
+            setIsProfileImgUploading(false);
+            e.target.value = '';
         }
     };
 
@@ -1232,7 +1242,10 @@ const App = () => {
                     <div className="cmp-profile-upload">
                         <div
                             className="cmp-profile-img-lg cmp-cursor-pointer cmp-pos-rel"
-                            onClick={() => fileInputRef.current?.click()}
+                            onClick={() => {
+                                if (isSavingProfile || isProfileImgUploading) return;
+                                fileInputRef.current?.click();
+                            }}
                         >
                             <img
                                 src={
@@ -1245,14 +1258,18 @@ const App = () => {
                                 alt="프로필"
                                 className="cmp-profile-img-content"
                             />
-                            <button className="cmp-profile-edit-btn" type="button">
-                                <Settings size={11} />
+                            <button className={`cmp-profile-edit-btn${isProfileImgUploading ? ' is-loading' : ''}`} type="button" disabled={isSavingProfile || isProfileImgUploading}>
+                                {isProfileImgUploading ? '업로드 중...' : <Settings size={11} />}
                             </button>
+                            {isProfileImgUploading && (
+                                <span className="cmp-profile-uploading-badge">업로드 중...</span>
+                            )}
                             <input
                                 type="file"
                                 accept="image/*"
                                 ref={fileInputRef}
                                 className="cmp-d-none"
+                                disabled={isSavingProfile || isProfileImgUploading}
                                 onChange={handleProfileImgChange}
                             />
                         </div>
@@ -1559,8 +1576,12 @@ const App = () => {
                             </button>
                         </div>
                     </div>
-                    <button className="cmp-btn cmp-btn-primary cmp-btn-profile-save" onClick={handleSaveProfile}>
-                        프로필 저장
+                    <button
+                        className={`cmp-btn cmp-btn-primary cmp-btn-profile-save${isSavingProfile ? ' is-loading' : ''}`}
+                        onClick={handleSaveProfile}
+                        disabled={isSavingProfile || isProfileImgUploading}
+                    >
+                        {isSavingProfile ? '저장 중...' : '프로필 저장'}
                     </button>
                 </div>
                 {/* 상담 시간 설정 */}
@@ -1694,9 +1715,13 @@ const App = () => {
                                 </div>
                             ))}
                         </div>
-                        <button className="cmp-btn cmp-btn-primary cmp-btn-time-save" onClick={handleSaveProfile}>
+                        <button
+                            className={`cmp-btn cmp-btn-primary cmp-btn-time-save${isSavingProfile ? ' is-loading' : ''}`}
+                            onClick={handleSaveProfile}
+                            disabled={isSavingProfile || isProfileImgUploading}
+                        >
                             <Save className="cmp-btn-save-icon" />
-                            <span>시간 저장</span>
+                            <span>{isSavingProfile ? '저장 중...' : '시간 저장'}</span>
                         </button>
                     </section>
                 </div>

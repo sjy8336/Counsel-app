@@ -240,6 +240,7 @@ export default function MyPage() {
     });
     const [pwFields, setPwFields] = useState({ current: '', new1: '', new2: '' });
     const [pwLoading, setPwLoading] = useState(false);
+    const [profileSaving, setProfileSaving] = useState(false);
     const [notifSettings, setNotifSettings] = useState({
         session: true,
         marketing: false,
@@ -258,9 +259,8 @@ export default function MyPage() {
     const [favoritesLoading, setFavoritesLoading] = useState(true);
     const [withdrawAgree, setWithdrawAgree] = useState(false);
     const [withdrawLoading, setWithdrawLoading] = useState(false);
-    const [ticketCount, setTicketCount] = useState(2);
+    const [ticketCount] = useState(2);
     const [toast, setToast] = useState(null);
-    const [loading, setLoading] = useState(true);
 
     const showToast = (msg) => {
         setToast(msg);
@@ -334,15 +334,9 @@ export default function MyPage() {
 
     // 예약 로드
     useEffect(() => {
-        if (!localStorage.getItem('user')) {
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
         getAllBookings({ upcomingOnly: true, limit: 1 })
             .then((data) => setBookings(data || []))
             .catch(() => setBookings([]))
-            .finally(() => setLoading(false));
     }, []);
 
     // 알림 로드
@@ -431,6 +425,8 @@ export default function MyPage() {
     };
 
     const handleSaveProfile = async () => {
+        if (profileSaving) return;
+        setProfileSaving(true);
         try {
             let uploadedImgUrl;
             if (userInfo._profileImgFile) {
@@ -453,6 +449,8 @@ export default function MyPage() {
             showToast('변경사항이 저장되었습니다.');
         } catch {
             alert('개인정보 수정에 실패했습니다.');
+        } finally {
+            setProfileSaving(false);
         }
     };
 
@@ -823,6 +821,7 @@ export default function MyPage() {
                                 type="file"
                                 accept="image/*"
                                 className="u-hidden"
+                                disabled={profileSaving}
                                 ref={(ref) => (window.__profileImgInputRef = ref)}
                                 onChange={(e) => {
                                     const file = e.target.files?.[0];
@@ -852,11 +851,13 @@ export default function MyPage() {
                                     />
                                 </div>
                                 <button
-                                    className="profile-camera-btn"
+                                    className={`profile-camera-btn${profileSaving ? ' is-loading' : ''}`}
                                     onClick={(e) => {
                                         e.preventDefault();
+                                        if (profileSaving) return;
                                         window.__profileImgInputRef?.click();
                                     }}
+                                    disabled={profileSaving}
                                 >
                                     <Camera size={24} />
                                 </button>
@@ -1006,8 +1007,12 @@ export default function MyPage() {
                 </div>
 
                 <div className="profile-save-btn-row">
-                    <button className="profile-save-full-btn" onClick={handleSaveProfile}>
-                        <CheckCircle2 size={20} /> 변경사항 저장
+                    <button
+                        className={`profile-save-full-btn${profileSaving ? ' is-loading' : ''}`}
+                        onClick={handleSaveProfile}
+                        disabled={profileSaving}
+                    >
+                        <CheckCircle2 size={20} /> {profileSaving ? '저장 중...' : '변경사항 저장'}
                     </button>
                 </div>
             </div>
@@ -1315,7 +1320,7 @@ export default function MyPage() {
                 setNotifications((prev) => prev.map((n) => (n.id === item.id ? { ...n, read: true } : n)));
                 try {
                     await markNotificationRead(item.id, token);
-                } catch (e) {
+                } catch {
                     // 실패해도 UI는 유지
                 }
             }
@@ -1433,11 +1438,11 @@ export default function MyPage() {
                             계정 설정
                         </h3>
                         <div className="setting-items-list">
-                            {PROFILE_SUBMENU.map(({ key, label, icon: Icon, key: type }) => (
+                            {PROFILE_SUBMENU.map(({ key, label, icon }) => (
                                 <div key={key} className="setting-item-card" onClick={() => setActiveSubMenu(key)}>
                                     <div className={`setting-item-left is-${key}`}>
                                         <div className={`setting-item-icon-box is-${key}`}>
-                                            <Icon size={20} />
+                                            {icon && <icon.type size={20} />}
                                         </div>
                                         <span className="setting-item-label">{label}</span>
                                     </div>
@@ -1634,13 +1639,13 @@ export default function MyPage() {
                         <Bell size={20} />
                         <span>알림센터</span>
                     </div>
-                    {MENU_ITEMS.map(({ id, label, icon: Icon }) => (
+                    {MENU_ITEMS.map(({ id, label, icon }) => (
                         <div
                             key={id}
                             onClick={() => handleMenuClick(id)}
                             className={`sidebar-nav-item ${activeMenu === id ? 'is-active' : ''}`}
                         >
-                            <Icon size={20} />
+                            {icon && <icon.type size={20} />}
                             <span>{label}</span>
                         </div>
                     ))}

@@ -79,7 +79,6 @@ def add_specialty(db: Session, user_id: int, data: CounselorSpecialtyCreate):
     specialty = CounselorSpecialty(user_id=user_id, **data.dict())
     db.add(specialty)
     db.commit()
-    db.refresh(specialty)
     return specialty
 
 def get_specialties(db: Session, user_id: int):
