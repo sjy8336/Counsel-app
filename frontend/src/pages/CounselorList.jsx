@@ -176,6 +176,7 @@ export default function CounselorListPage({ userName, setUserName, isLoggedIn, s
             if (typeof onFavoriteChange === 'function') {
                 onFavoriteChange(id, res.is_favorite);
             }
+            window.dispatchEvent(new Event('favoritesChanged'));
             showToast(res.is_favorite ? '찜이 추가되었습니다.' : '찜이 취소되었습니다.');
         } catch {
             alert('찜 처리 중 오류가 발생했습니다.');
