@@ -75,6 +75,8 @@ const App = () => {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [confirmChecked, setConfirmChecked] = useState(false);
     const [profileImage, setProfileImage] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isProfileImgUploading, setIsProfileImgUploading] = useState(false);
 
     // 기본 정보
     const [basicName, setBasicName] = useState('');
@@ -125,7 +127,7 @@ const App = () => {
                 }
                 localStorage.setItem('counselor_upload_prev_userid', String(uid));
             } catch {
-                fetchAndApplyUser(userId);
+                fetchAndApplyUser(null);
             }
         })();
     }, []);
@@ -168,7 +170,7 @@ const App = () => {
         if (!token) return;
         try {
             const user = await getMyInfo(token);
-            if (user && user.id === uid) {
+            if (user && (uid == null || user.id === uid)) {
                 setBasicName(user.full_name || '');
                 setBasicId(user.username || user.id || '');
                 setBasicEmail(user.email || '');
@@ -277,9 +279,12 @@ const App = () => {
 
     // ── 최종 제출 ────────────────────────────────────────────────────────────
     const handleFinalSubmit = async () => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
         const token = localStorage.getItem('access_token');
         if (!token) {
             alert('로그인이 필요합니다.');
+            setIsSubmitting(false);
             return;
         }
         try {
@@ -357,6 +362,8 @@ const App = () => {
             setTimeout(() => navigate('/CounselorMyPage', { state: { profileStatus: '심사중' } }), 1200);
         } catch {
             alert('등록 중 오류가 발생했습니다.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -561,11 +568,13 @@ const App = () => {
                             다시 수정하기
                         </button>
                         <button
-                            className={`cu-modal-btn-submit${confirmChecked ? ' cu-modal-btn-submit-on' : ''}`}
+                            className={`cu-modal-btn-submit${confirmChecked ? ' cu-modal-btn-submit-on' : ''}${
+                                isSubmitting ? ' is-loading' : ''
+                            }`}
                             onClick={handleFinalSubmit}
-                            disabled={!confirmChecked}
+                            disabled={!confirmChecked || isSubmitting}
                         >
-                            등록 신청하기
+                            {isSubmitting ? '처리 중...' : '등록 신청하기'}
                         </button>
                     </div>
                 </div>
@@ -577,7 +586,13 @@ const App = () => {
     const renderBasicInfo = () => (
         <div className="cu-ep-basic cu-ep-animate">
             <div className="cu-ep-photo-section">
-                <div className="cu-ep-photo-box" onClick={() => fileInputRef.current?.click()}>
+                <div
+                    className="cu-ep-photo-box"
+                    onClick={() => {
+                        if (isSubmitting || isProfileImgUploading) return;
+                        fileInputRef.current?.click();
+                    }}
+                >
                     {profileImage ? (
                         <img src={profileImage} alt="프로필" className="cu-ep-photo-img" />
                     ) : (
@@ -586,6 +601,7 @@ const App = () => {
                     <div className="cu-ep-photo-overlay">
                         <Plus className="cu-ep-photo-plus-icon" />
                     </div>
+                    {isProfileImgUploading && <span className="cu-ep-photo-badge">업로드 중...</span>}
                 </div>
                 <input
                     type="file"
@@ -595,6 +611,7 @@ const App = () => {
                         if (file) {
                             const formData = new FormData();
                             formData.append('file', file);
+                            setIsProfileImgUploading(true);
                             try {
                                 const token = localStorage.getItem('access_token');
                                 const res = await fetch(apiUrl('/upload/profile-image'), {
@@ -612,11 +629,15 @@ const App = () => {
                                 }
                             } catch {
                                 alert('이미지 업로드에 실패했습니다.');
+                            } finally {
+                                setIsProfileImgUploading(false);
+                                e.target.value = '';
                             }
                         }
                     }}
                     accept="image/*"
                     className="cu-hidden-input"
+                    disabled={isSubmitting || isProfileImgUploading}
                 />
                 <p className="cu-ep-photo-hint">
                     JPG, PNG 지원
@@ -1147,7 +1168,7 @@ const App = () => {
                                     이전
                                 </button>
                             )}
-                            <button onClick={handleNext} className="cu-ep-btn-next">
+                            <button onClick={handleNext} className="cu-ep-btn-next" disabled={isSubmitting || isProfileImgUploading}>
                                 {activeTab === 'history' ? '등록 신청하기' : '다음 단계'}
                             </button>
                         </div>

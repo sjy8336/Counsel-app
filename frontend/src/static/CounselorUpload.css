@@ -104,6 +104,12 @@
     background: #f0f5f0;
     transform: translateY(-4px);
 }
+.cu-ep-float-btn:disabled,
+.cu-ep-float-btn.is-loading {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
 .cu-ep-float-label {
     display: none;
     font-size: 0.875rem;
@@ -343,6 +349,10 @@
 .cu-ep-btn-next:hover {
     background: #799476;
 }
+.cu-ep-btn-next:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
 
 /* ===== FOOTER ===== */
 .cu-ep-footer {
@@ -470,6 +480,20 @@
 }
 .cu-ep-photo-box:hover .cu-ep-photo-overlay {
     opacity: 1;
+}
+.cu-ep-photo-badge {
+    position: absolute;
+    left: 50%;
+    bottom: -10px;
+    transform: translateX(-50%);
+    background: rgba(30, 41, 59, 0.9);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    pointer-events: none;
 }
 .cu-ep-photo-hint {
     margin-top: 1rem;
@@ -1207,6 +1231,11 @@
 .cu-modal-btn-submit{flex:2;padding:.7rem;border-radius:.875rem;border:none;background:#8ba888;color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;opacity:.35;transition:opacity .15s,background .15s}
 .cu-modal-btn-submit-on{opacity:1}
 .cu-modal-btn-submit-on:hover{background:#799476}
+.cu-modal-btn-submit:disabled,
+.cu-modal-btn-submit.is-loading {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
 
 .cu-toast-popup--success {
     background: #8BA888;
