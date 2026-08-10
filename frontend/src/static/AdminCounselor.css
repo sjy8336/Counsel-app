@@ -199,6 +199,19 @@
     color: inherit;
 }
 
+.ac-spin {
+    animation: ac-spin 1s linear infinite;
+}
+
+@keyframes ac-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .ac-logout-btn {
     width: 100%;
     display: flex;

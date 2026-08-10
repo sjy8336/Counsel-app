@@ -27,8 +27,43 @@ import {
     CircleDollarSign,
     Menu,
     X,
+    Loader2,
 } from 'lucide-react';
 import '../static/AdminCounselor.css';
+
+const mapCounselorRow = (item) => ({
+    id: item.user?.id,
+    name: item.user?.full_name,
+    email: item.user?.email,
+    center: item.profile?.center_name,
+    address: item.profile?.center_address,
+    specialties: item.specialties?.map((s) => s.specialty_name) || [],
+    appliedDate: item.profile?.created_at?.slice(0, 10),
+    status: item.profile?.status === '심사중' ? '대기' : item.profile?.status === '수락' ? '승인됨' : '반려',
+    introduction: item.profile?.intro_line,
+    fee: item.profile?.consultation_price,
+    profile_img_url: item.user?.profile_img_url,
+    reject_reason: item.profile?.reject_reason,
+    educations: item.educations || [],
+    experiences: item.experiences || [],
+    certificates: item.certificates || [],
+    schedule: (() => {
+        const result = { 월: [], 화: [], 수: [], 목: [], 금: [] };
+        if (item.schedules && item.schedules.length > 0) {
+            item.schedules.forEach((s) => {
+                const day = s.day_of_week?.replace('요일', '');
+                if (result[day] !== undefined) {
+                    result[day].push(`${s.start_time?.slice(0, 5)}~${s.end_time?.slice(0, 5)}`);
+                }
+            });
+        }
+        Object.keys(result).forEach((k) => {
+            if (result[k].length === 0) result[k] = '휴무';
+            else result[k] = result[k].join(', ');
+        });
+        return result;
+    })(),
+});
 
 const AdminCounselor = () => {
     const navigate = useNavigate();
@@ -48,6 +83,7 @@ const AdminCounselor = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    const [counselorListsLoading, setCounselorListsLoading] = useState(true);
     const PAGE_SIZE = 10;
 
     const defaultRejectReason = '경력 증빙 서류가 불충분합니다. 보완 후 재등록 부탁드립니다.';
@@ -69,64 +105,50 @@ const AdminCounselor = () => {
         }
     }, [navigate]);
 
-    const mapCounselorRow = (item) => ({
-        id: item.user?.id,
-        name: item.user?.full_name,
-        email: item.user?.email,
-        center: item.profile?.center_name,
-        address: item.profile?.center_address,
-        specialties: item.specialties?.map((s) => s.specialty_name) || [],
-        appliedDate: item.profile?.created_at?.slice(0, 10),
-        status: item.profile?.status === '심사중' ? '대기' : item.profile?.status === '수락' ? '승인됨' : '반려',
-        introduction: item.profile?.intro_line,
-        fee: item.profile?.consultation_price,
-        profile_img_url: item.user?.profile_img_url,
-        reject_reason: item.profile?.reject_reason,
-        educations: item.educations || [],
-        experiences: item.experiences || [],
-        certificates: item.certificates || [],
-        schedule: (() => {
-            const result = { 월: [], 화: [], 수: [], 목: [], 금: [] };
-            if (item.schedules && item.schedules.length > 0) {
-                item.schedules.forEach((s) => {
-                    const day = s.day_of_week?.replace('요일', '');
-                    if (result[day] !== undefined) {
-                        result[day].push(`${s.start_time?.slice(0, 5)}~${s.end_time?.slice(0, 5)}`);
-                    }
-                });
-            }
-            Object.keys(result).forEach((k) => {
-                if (result[k].length === 0) result[k] = '휴무';
-                else result[k] = result[k].join(', ');
-            });
-            return result;
-        })(),
-    });
-
     // 승인 대기/승인 완료 상담사 목록 (API)
     const [pendingCounselors, setPendingCounselors] = useState([]);
     const [approvedCounselors, setApprovedCounselors] = useState([]);
     const [counselorView, setCounselorView] = useState('pending'); // pending | approved
 
     const fetchCounselorLists = useCallback(async () => {
+        setCounselorListsLoading(true);
         try {
             const token = localStorage.getItem('access_token');
-            const [pendingRes, approvedRes] = await Promise.all([
-                fetch(apiUrl('/admin/counselors/pending'), {
+            const loadPending = async () => {
+                const res = await fetch(apiUrl('/admin/counselors/pending'), {
                     headers: { Authorization: `Bearer ${token}` },
-                }),
-                fetch(apiUrl('/admin/counselors/approved'), {
-                    headers: { Authorization: `Bearer ${token}` },
-                }),
-            ]);
-            if (!pendingRes.ok || !approvedRes.ok) throw new Error('목록 조회 실패');
-            const [pendingData, approvedData] = await Promise.all([pendingRes.json(), approvedRes.json()]);
-            setPendingCounselors((pendingData || []).map(mapCounselorRow));
-            setApprovedCounselors((approvedData || []).map(mapCounselorRow));
-        } catch {
-            alert('상담사 목록을 불러오지 못했습니다.');
-            setPendingCounselors([]);
-            setApprovedCounselors([]);
+                });
+                if (!res.ok) throw new Error('pending');
+                const data = await res.json();
+                return Array.isArray(data) ? data : [];
+            };
+
+            const loadApproved = async () => {
+                const urls = [apiUrl('/admin/counselors/approved'), apiUrl('/counselors/approved')];
+                for (const url of urls) {
+                    const res = await fetch(url, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    const rows = Array.isArray(data?.counselors) ? data.counselors : Array.isArray(data) ? data : [];
+                    return rows;
+                }
+                throw new Error('approved');
+            };
+
+            const [pendingResult, approvedResult] = await Promise.allSettled([loadPending(), loadApproved()]);
+            if (pendingResult.status === 'fulfilled') {
+                setPendingCounselors(pendingResult.value.map(mapCounselorRow));
+            }
+            if (approvedResult.status === 'fulfilled') {
+                setApprovedCounselors(approvedResult.value.map(mapCounselorRow));
+            }
+            if (pendingResult.status === 'rejected' && approvedResult.status === 'rejected') {
+                alert('상담사 목록을 불러오지 못했습니다.');
+            }
+        } finally {
+            setCounselorListsLoading(false);
         }
     }, []);
 
@@ -431,7 +453,12 @@ const AdminCounselor = () => {
                             </div>
 
                             <div className="ac-counselor-list">
-                                {filteredCounselors.length === 0 ? (
+                                {counselorListsLoading && filteredCounselors.length === 0 ? (
+                                    <div className="ac-empty">
+                                        <Loader2 size={40} className="ac-spin" />
+                                        <p>상담사 목록을 불러오는 중입니다...</p>
+                                    </div>
+                                ) : filteredCounselors.length === 0 ? (
                                     <div className="ac-empty">
                                         <AlertCircle size={40} />
                                         <p>{counselorView === 'pending' ? '대기 중인 신청이 없습니다.' : '승인된 상담사가 없습니다.'}</p>
