@@ -23,3 +23,11 @@ export const getRecentDiaries = async (limit = 3) => {
     });
     return res.data;
 };
+
+export const deleteDiary = async (diaryId) => {
+    const token = localStorage.getItem('access_token');
+    const res = await axiosInstance.delete(`/ai-diary/${diaryId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+};

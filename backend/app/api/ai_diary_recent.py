@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.ai_diary import AIDiaryModel
@@ -30,3 +30,18 @@ def get_recent_diaries(db: Session = Depends(get_db), current_user=Depends(get_c
         d_dict["keywords"] = d.keywords
         result.append(DiaryAnalysisResponse(**d_dict))
     return result
+
+
+@router.delete("/{diary_id}")
+def delete_diary(diary_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    diary = (
+        db.query(AIDiaryModel)
+        .filter(AIDiaryModel.id == diary_id, AIDiaryModel.user_id == current_user.id)
+        .first()
+    )
+    if not diary:
+        raise HTTPException(status_code=404, detail="일기를 찾을 수 없습니다.")
+
+    db.delete(diary)
+    db.commit()
+    return {"message": "일기가 삭제되었습니다."}
