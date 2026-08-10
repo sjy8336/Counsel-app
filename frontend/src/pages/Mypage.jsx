@@ -1438,11 +1438,11 @@ export default function MyPage() {
                             계정 설정
                         </h3>
                         <div className="setting-items-list">
-                            {PROFILE_SUBMENU.map(({ key, label, icon }) => (
+                            {PROFILE_SUBMENU.map(({ key, label, icon: SubmenuIcon }) => (
                                 <div key={key} className="setting-item-card" onClick={() => setActiveSubMenu(key)}>
                                     <div className={`setting-item-left is-${key}`}>
                                         <div className={`setting-item-icon-box is-${key}`}>
-                                            {icon && <icon.type size={20} />}
+                                            {React.createElement(SubmenuIcon, { size: 20 })}
                                         </div>
                                         <span className="setting-item-label">{label}</span>
                                     </div>
@@ -1639,13 +1639,13 @@ export default function MyPage() {
                         <Bell size={20} />
                         <span>알림센터</span>
                     </div>
-                    {MENU_ITEMS.map(({ id, label, icon }) => (
+                    {MENU_ITEMS.map(({ id, label, icon: MenuIcon }) => (
                         <div
                             key={id}
                             onClick={() => handleMenuClick(id)}
                             className={`sidebar-nav-item ${activeMenu === id ? 'is-active' : ''}`}
                         >
-                            {icon && <icon.type size={20} />}
+                            {React.createElement(MenuIcon, { size: 20 })}
                             <span>{label}</span>
                         </div>
                     ))}
