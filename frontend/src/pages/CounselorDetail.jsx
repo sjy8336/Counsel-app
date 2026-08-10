@@ -36,10 +36,16 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
 
     const [counselor, setCounselor] = useState(null);
     useEffect(() => {
-        axiosInstance
-            .get(`/counselors/${id}`)
-            .then((res) => setCounselor(res.data))
-            .catch(() => setCounselor(null));
+        const fetchCounselor = () => {
+            axiosInstance
+                .get(`/counselors/${id}`)
+                .then((res) => setCounselor(res.data))
+                .catch(() => setCounselor(null));
+        };
+        fetchCounselor();
+        const sync = () => fetchCounselor();
+        window.addEventListener('profileImgChanged', sync);
+        return () => window.removeEventListener('profileImgChanged', sync);
     }, [id]);
 
     function formatPeriod(start, end) {
