@@ -4,6 +4,7 @@ import Footer from '../components/footer';
 import MobileTap from '../components/mobileTap';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, Paperclip, Send, Info, User, CheckCircle2 } from 'lucide-react';
+import axiosInstance, { resolveImageUrl } from '../api/axiosInstance';
 import '../static/ContactCoach.css';
 
 const NavLinks = ({ className, onClick }) => (
@@ -33,9 +34,20 @@ export default function App() {
     const passedCounselorName = location.state?.counselorName || searchParams.get('counselorName') || '상담사';
     const counselorIdRaw = location.state?.counselorId || searchParams.get('counselorId');
     const counselorId = counselorIdRaw ? Number(counselorIdRaw) : null;
+    const passedCounselorImg =
+        location.state?.counselorProfileImgUrl || searchParams.get('counselorProfileImgUrl') || '';
+    const passedCounselorIntro = location.state?.counselorIntro || searchParams.get('counselorIntro') || '';
+    const passedCounselorCenter = location.state?.counselorCenterName || searchParams.get('counselorCenterName') || '';
 
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isProfileLoading, setIsProfileLoading] = useState(false);
+    const [counselorProfile, setCounselorProfile] = useState({
+        name: passedCounselorName,
+        profile_img_url: passedCounselorImg,
+        intro_line: passedCounselorIntro,
+        center_name: passedCounselorCenter,
+    });
     const [formData, setFormData] = useState({
         type: '예약 및 일정 변경',
         title: '',
@@ -62,6 +74,51 @@ export default function App() {
             setUserName('');
         }
     }, [isLoggedIn]);
+
+    useEffect(() => {
+        let ignore = false;
+        const fetchCounselorProfile = async () => {
+            if (!counselorId) {
+                setCounselorProfile((prev) => ({
+                    ...prev,
+                    name: passedCounselorName,
+                    profile_img_url: passedCounselorImg,
+                    intro_line: passedCounselorIntro,
+                    center_name: passedCounselorCenter,
+                }));
+                return;
+            }
+            setIsProfileLoading(true);
+            try {
+                const res = await axiosInstance.get(`/counselors/${counselorId}`);
+                const data = res.data || {};
+                const user = data.user || {};
+                const profile = data.profile || {};
+                if (ignore) return;
+                setCounselorProfile({
+                    name: user.full_name || user.username || passedCounselorName,
+                    profile_img_url: user.profile_img_url || profile.profile_img_url || passedCounselorImg || '',
+                    intro_line: profile.intro_line || passedCounselorIntro || '',
+                    center_name: profile.center_name || passedCounselorCenter || '',
+                });
+            } catch {
+                if (ignore) return;
+                setCounselorProfile((prev) => ({
+                    ...prev,
+                    name: passedCounselorName,
+                    profile_img_url: passedCounselorImg,
+                    intro_line: passedCounselorIntro,
+                    center_name: passedCounselorCenter,
+                }));
+            } finally {
+                if (!ignore) setIsProfileLoading(false);
+            }
+        };
+        fetchCounselorProfile();
+        return () => {
+            ignore = true;
+        };
+    }, [counselorId, passedCounselorName, passedCounselorImg, passedCounselorIntro, passedCounselorCenter]);
 
     // --- 2. 이벤트 핸들러 (Handlers) ---
     const handleInputChange = (e) => {
@@ -130,8 +187,8 @@ export default function App() {
                             </div>
                             <h2 className="cont-success-card__title">문의가 성공적으로 접수되었습니다.</h2>
                             <p className="cont-success-card__desc">
-                                이은지 코치님이 내용을 확인하는 대로 알림을 통해 답변을 안내해 드리겠습니다. 평균 답변
-                                시간은 1~2일 소요될 수 있습니다.
+                                {counselorProfile.name || '상담사'}님이 내용을 확인하는 대로 알림을 통해 답변을 안내해
+                                드리겠습니다. 평균 답변 시간은 1~2일 소요될 수 있습니다.
                             </p>
                             <button
                                 onClick={() => navigate('/mypage', { state: { showInquiry: true } })}
@@ -148,12 +205,28 @@ export default function App() {
                                     <FieldLabel label="수신자 (담당 상담사)" />
                                     <div className="cont-recipient-box">
                                         <div className="cont-recipient-box__avatar">
-                                            <User className="cont-recipient-box__avatar-icon" />
+                                            {counselorProfile.profile_img_url ? (
+                                                <img
+                                                    src={resolveImageUrl(counselorProfile.profile_img_url)}
+                                                    alt={counselorProfile.name || '상담사'}
+                                                    className="cont-recipient-box__avatar-img"
+                                                />
+                                            ) : (
+                                                <User className="cont-recipient-box__avatar-icon" />
+                                            )}
                                         </div>
                                         <div>
                                             <div className="cont-recipient-box__name">
-                                                {(passedCounselorName || '이은지') + ' 상담사님'}
+                                                {(counselorProfile.name || passedCounselorName || '상담사') + ' 상담사님'}
                                             </div>
+                                            {isProfileLoading ? (
+                                                <div className="cont-recipient-box__meta">프로필 불러오는 중...</div>
+                                            ) : counselorProfile.center_name ? (
+                                                <div className="cont-recipient-box__meta">{counselorProfile.center_name}</div>
+                                            ) : null}
+                                            {!isProfileLoading && counselorProfile.intro_line ? (
+                                                <div className="cont-recipient-box__meta">{counselorProfile.intro_line}</div>
+                                            ) : null}
                                         </div>
                                     </div>
                                 </div>
