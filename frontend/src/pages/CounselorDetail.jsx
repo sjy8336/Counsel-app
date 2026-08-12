@@ -74,9 +74,13 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
             counselor?.profile?.intro_line ||
             '',
         certificates: Array.isArray(counselor?.certificates)
-            ? counselor.certificates
-                  .map((c) => c && (c.certificate_name || c.name || c.certificate || c))
-                  .filter(Boolean)
+            ? Array.from(
+                  new Set(
+                      counselor.certificates
+                          .map((c) => c && (c.certificate_name || c.name || c.certificate || c))
+                          .filter(Boolean)
+                  )
+              )
             : [],
         educations: Array.isArray(counselor?.educations)
             ? counselor.educations
