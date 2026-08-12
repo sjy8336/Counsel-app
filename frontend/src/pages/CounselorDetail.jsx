@@ -627,6 +627,20 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                                         state: {
                                             counselorName: safeCounselor.name,
                                             counselorId: counselor?.id || counselor?.user?.id || null,
+                                            counselorProfileImgUrl:
+                                                counselor?.user?.profile_img_url ||
+                                                counselor?.profile?.profile_img_url ||
+                                                counselor?.profile_img_url ||
+                                                '',
+                                            counselorIntro:
+                                                counselor?.profile?.intro_line ||
+                                                counselor?.profile?.intro ||
+                                                counselor?.intro ||
+                                                '',
+                                            counselorCenterName:
+                                                counselor?.profile?.center_name ||
+                                                counselor?.center_name ||
+                                                '',
                                         },
                                     })
                                 }
@@ -767,7 +781,22 @@ export default function CounselorDetailPage({ userName, setUserName, isLoggedIn,
                         </div>
                         <button
                             className="cld-inquiry-btn"
-                            onClick={() => navigate('/contact-coach', { state: { counselorName: counselor.name } })}
+                            onClick={() =>
+                                navigate('/contact-coach', {
+                                    state: {
+                                        counselorName: counselor.name,
+                                        counselorId: counselor?.id || counselor?.user?.id || null,
+                                        counselorProfileImgUrl:
+                                            counselor?.user?.profile_img_url ||
+                                            counselor?.profile?.profile_img_url ||
+                                            counselor?.profile_img_url ||
+                                            '',
+                                        counselorIntro:
+                                            counselor?.profile?.intro_line || counselor?.profile?.intro || counselor?.intro || '',
+                                        counselorCenterName: counselor?.profile?.center_name || counselor?.center_name || '',
+                                    },
+                                })
+                            }
                         >
                             <MessageCircle size={18} /> 상담사에게 예약 문의하기
                         </button>
