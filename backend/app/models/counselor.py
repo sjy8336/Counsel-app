@@ -26,6 +26,9 @@ class CounselorSpecialty(Base):
 
 class CounselorCertificate(Base):
     __tablename__ = 'counselor_certificates'
+    __table_args__ = (
+        UniqueConstraint('user_id', 'acquisition_date', 'certificate_name', 'issuer', name='uix_counselor_certificate_unique'),
+    )
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     acquisition_date = Column(String(10), comment='취득일 (YYYY-MM)')

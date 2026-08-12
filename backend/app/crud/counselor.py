@@ -7,6 +7,29 @@ from app.schemas.counselor import (
     CounselorProfileCreate, CounselorSpecialtyCreate, CounselorCertificateCreate, CounselorEducationCreate, CounselorExperienceCreate, CounselorScheduleCreate
 )
 
+def _normalize_certificate_value(value):
+    if value is None:
+        return ""
+    return str(value).strip().lower()
+
+def _certificate_key_from_row(row):
+    return (
+        _normalize_certificate_value(getattr(row, "acquisition_date", None)),
+        _normalize_certificate_value(getattr(row, "certificate_name", None)),
+        _normalize_certificate_value(getattr(row, "issuer", None)),
+    )
+
+def _dedupe_certificate_rows(rows):
+    unique_rows = []
+    seen = set()
+    for row in rows:
+        key = _certificate_key_from_row(row)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_rows.append(row)
+    return unique_rows
+
 def safe_time_fromisoformat(value):
     # '8:00:00' -> '08:00:00' 보정
     parts = value.split(":")
@@ -86,14 +109,27 @@ def get_specialties(db: Session, user_id: int):
 
 # 3. 자격증
 def add_certificate(db: Session, user_id: int, data: CounselorCertificateCreate):
-    cert = CounselorCertificate(user_id=user_id, **data.dict())
+    data_dict = data.dict()
+    data_dict["acquisition_date"] = data_dict.get("acquisition_date") or ""
+    data_dict["issuer"] = data_dict.get("issuer") or ""
+    target_key = (
+        _normalize_certificate_value(data_dict.get("acquisition_date")),
+        _normalize_certificate_value(data_dict.get("certificate_name")),
+        _normalize_certificate_value(data_dict.get("issuer")),
+    )
+    existing_rows = db.query(CounselorCertificate).filter(CounselorCertificate.user_id == user_id).all()
+    for cert in existing_rows:
+        if _certificate_key_from_row(cert) == target_key:
+            return cert
+    cert = CounselorCertificate(user_id=user_id, **data_dict)
     db.add(cert)
     db.commit()
     db.refresh(cert)
     return cert
 
 def get_certificates(db: Session, user_id: int):
-    return db.query(CounselorCertificate).filter(CounselorCertificate.user_id == user_id).all()
+    rows = db.query(CounselorCertificate).filter(CounselorCertificate.user_id == user_id).all()
+    return _dedupe_certificate_rows(rows)
 
 # 4. 학력
 def add_education(db: Session, user_id: int, data: CounselorEducationCreate):
