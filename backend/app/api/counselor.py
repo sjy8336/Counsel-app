@@ -13,10 +13,35 @@ from app.models.counselor import CounselorProfile, CounselorSpecialty, Counselor
 
 router = APIRouter()
 
+def _normalize_certificate_value(value):
+    if value is None:
+        return ""
+    return str(value).strip().lower()
+
+def _certificate_key_from_row(row):
+    return (
+        _normalize_certificate_value(getattr(row, "acquisition_date", None)),
+        _normalize_certificate_value(getattr(row, "certificate_name", None)),
+        _normalize_certificate_value(getattr(row, "issuer", None)),
+    )
+
+def _dedupe_certificate_rows(rows):
+    unique_rows = []
+    seen = set()
+    for row in rows:
+        key = _certificate_key_from_row(row)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_rows.append(row)
+    return unique_rows
+
 def _serialize_counselor_application(db: Session, profile: CounselorProfile):
     user = db.query(User).filter(User.id == profile.user_id).first()
     specialties = db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == profile.user_id).all()
-    certificates = db.query(CounselorCertificate).filter(CounselorCertificate.user_id == profile.user_id).all()
+    certificates = _dedupe_certificate_rows(
+        db.query(CounselorCertificate).filter(CounselorCertificate.user_id == profile.user_id).all()
+    )
     educations = db.query(CounselorEducation).filter(CounselorEducation.user_id == profile.user_id).all()
     experiences = db.query(CounselorExperience).filter(CounselorExperience.user_id == profile.user_id).all()
     schedules = db.query(CounselorSchedule).filter(CounselorSchedule.user_id == profile.user_id).all()
@@ -340,7 +365,7 @@ def get_approved_counselors(
             } if user else None,
             "profile": profile_dict,
             "specialties": specialties_by_user_id.get(profile.user_id, []),
-            "certificates": certificates_by_user_id.get(profile.user_id, []),
+            "certificates": _dedupe_certificate_rows(certificates_by_user_id.get(profile.user_id, [])),
             "educations": educations_by_user_id.get(profile.user_id, []),
             "experiences": experiences_by_user_id.get(profile.user_id, []),
             "schedules": schedules_by_user_id.get(profile.user_id, []),
@@ -354,7 +379,9 @@ def get_counselor_detail(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="상담사 프로필을 찾을 수 없습니다.")
     user = db.query(User).filter(User.id == user_id).first()
     specialties = db.query(CounselorSpecialty).filter(CounselorSpecialty.user_id == user_id).all()
-    certificates = db.query(CounselorCertificate).filter(CounselorCertificate.user_id == user_id).all()
+    certificates = _dedupe_certificate_rows(
+        db.query(CounselorCertificate).filter(CounselorCertificate.user_id == user_id).all()
+    )
     educations = db.query(CounselorEducation).filter(CounselorEducation.user_id == user_id).all()
     experiences = db.query(CounselorExperience).filter(CounselorExperience.user_id == user_id).all()
     schedules = db.query(CounselorSchedule).filter(CounselorSchedule.user_id == user_id).all()
